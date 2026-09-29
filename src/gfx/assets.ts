@@ -3,7 +3,24 @@
 // Finnes ikke manifestet, brukes den prosedyretegnede grafikken som før.
 import { TORSO_Y, ARM_L, LEG_L } from './chars/types';
 
-export interface PartOverride { canvas: HTMLCanvasElement; w: number; h: number; ox: number; oy: number }
+export interface PartOverride {
+  canvas: HTMLCanvasElement;
+  w: number;
+  h: number;
+  ox: number;
+  oy: number;
+  /** Leddpunktet som brøk av bildet, [x, y] med y fra toppen. */
+  ax: number;
+  ay: number;
+  /** Høyden er satt i manifestet (eller av beltet) og skal ikke regnes om fra riggen. */
+  fixedH: boolean;
+}
+
+/** Samme bilde i en annen høyde. Leddpunktet følger med. Riggene bruker den til høyder regnet ut fra leddene. */
+export function resized(ov: PartOverride, h: number): PartOverride {
+  const w = (ov.canvas.width / ov.canvas.height) * h;
+  return { ...ov, w, h, ox: ov.ax * w, oy: (1 - ov.ay) * h };
+}
 
 type PartKey = 'head' | 'hairback' | 'torso' | 'pelvis' | 'arm' | 'leg' | 'weapon' | 'body' | 'tail';
 interface ManifestPart {
@@ -116,6 +133,26 @@ function trim(img: HTMLImageElement) {
   return out;
 }
 
+/**
+ * Midten av det som er tegnet i de øverste (top) eller nederste radene, som brøk av bredden. Leddet sitter der:
+ * nakken nederst på hodet, midjen nederst på overkroppen, skaftet nederst på våpenet, beltet, skulderen og
+ * hoften øverst. Da flytter ikke stort hår til én side eller et øksehode til én side festepunktet.
+ */
+function edgeX(cv: HTMLCanvasElement, top: boolean) {
+  const rows = Math.max(1, Math.round(cv.height * 0.04));
+  const y0 = top ? 0 : cv.height - rows;
+  const d = cv.getContext('2d')!.getImageData(0, y0, cv.width, rows).data;
+  let sum = 0, k = 0;
+  for (let y = 0; y < rows; y++)
+    for (let x = 0; x < cv.width; x++)
+      if (d[(y * cv.width + x) * 4 + 3] > 128) {
+        sum += x;
+        k++;
+      }
+  return k ? (sum / k + 0.5) / cv.width : 0.5;
+}
+const EDGE_TOP: Partial<Record<PartKey, boolean>> = { head: false, torso: false, weapon: false, pelvis: true, arm: true, leg: true };
+
 /** Bredden på beltet øverst i en hoftedel, i piksler: bredeste rad blant de øverste 8 prosentene. */
 function beltWidth(cv: HTMLCanvasElement) {
   const rows = Math.max(1, Math.round(cv.height * 0.08));
@@ -153,13 +190,19 @@ export async function loadAssets(base = './assets/') {
           const cv = trim(img);
           const beast = BEAST_IDS.has(p.char);
           let h = p.height ?? (beast ? BEAST_H[p.part] : HERO_IDS.has(p.char) ? HERO_H[p.part] : undefined) ?? DEFAULT_H[p.part] ?? 1;
-          if (p.height === undefined && p.part === 'pelvis' && HERO_IDS.has(p.char)) {
+          let fixedH = p.height !== undefined;
+          if (!fixedH && p.part === 'pelvis' && HERO_IDS.has(p.char)) {
             const bw = beltWidth(cv);
-            if (bw > 0) h = Math.min(1.2, Math.max(0.25, (HERO_BELT_W * cv.height) / bw));
+            if (bw > 0) {
+              h = Math.min(1.2, Math.max(0.25, (HERO_BELT_W * cv.height) / bw));
+              fixedH = true;
+            }
           }
+          let [ax, ay] = p.anchor ?? (beast ? BEAST_ANCHOR[p.part] : undefined) ?? DEFAULT_ANCHOR[p.part] ?? [0.5, 0.5];
+          const edge = EDGE_TOP[p.part];
+          if (!p.anchor && !beast && edge !== undefined) ax = edgeX(cv, edge);
           const w = (cv.width / cv.height) * h;
-          const [ax, ay] = p.anchor ?? (beast ? BEAST_ANCHOR[p.part] : undefined) ?? DEFAULT_ANCHOR[p.part] ?? [0.5, 0.5];
-          parts.set(p.char + ':' + p.part, { canvas: cv, w, h, ox: ax * w, oy: (1 - ay) * h });
+          parts.set(p.char + ':' + p.part, { canvas: cv, w, h, ox: ax * w, oy: (1 - ay) * h, ax, ay, fixedH });
           n++;
         })
         .catch((e) => console.warn(e)),

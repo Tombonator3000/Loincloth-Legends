@@ -177,10 +177,17 @@ export function physicalSky(a: Atmosphere) {
 export function sky(top: string, mid: string, bottom: string, biome?: string) {
   const img = biome ? images.sky[biome] : undefined;
   if (img) {
+    // Panoramaet går fire ganger rundt sylinderen (bildet må være sømløst i sidene). Negativ repeat snur det
+    // riktig vei sett innenfra, og offset legger midten av et bilde rett bak brettet (mot -z). Sylinderen går
+    // fra y -25 til 85, så horisonten ligger omtrent 73 prosent ned i bildet og det meste over den synes.
     const t = canvasTex(img, false);
-    const m = new THREE.Mesh(new THREE.CylinderGeometry(170, 170, 170, 48, 1, true), new THREE.MeshBasicMaterial({ map: t, side: THREE.BackSide, fog: false, depthWrite: false }));
-    m.position.y = 40;
+    t.wrapS = THREE.RepeatWrapping;
+    t.repeat.x = -4;
+    t.offset.x = 0.5;
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(170, 170, 110, 64, 1, true), new THREE.MeshBasicMaterial({ map: t, side: THREE.BackSide, fog: false, depthWrite: false }));
+    m.position.y = 30;
     m.renderOrder = -10;
+    m.userData.skyImage = true;
     return m;
   }
   const geo = new THREE.SphereGeometry(180, 24, 16);
@@ -265,7 +272,13 @@ export function stageBase(scene: THREE.Scene, length: number, look: Look) {
     const sk = sky(look.sky[0], look.sky[1], look.sky[2], look.biome);
     sk.userData.sky = true;
     g.add(sk);
+    // Himmelen er uendelig langt unna: den følger kameraet
+    updates.push((_dt, _t, camX) => {
+      sk.position.x = camX;
+    });
   }
+  // Et himmelbilde har sin egen sol, måne og skyer, så de tegnede legges ikke oppå
+  const skyImg = !!(look.biome && images.sky[look.biome]);
   const hemi = new THREE.HemisphereLight(look.hemi[0], look.hemi[1], look.hemi[2]);
   const sun = new THREE.DirectionalLight(look.sun[0], look.sun[1]);
   g.add(hemi);
@@ -273,7 +286,8 @@ export function stageBase(scene: THREE.Scene, length: number, look: Look) {
   shadow.update(0);
   updates.push((_dt, _t, camX) => shadow.update(camX + 3));
 
-  look.ground.repeat.set(60, 10);
+  // Ett bilde dekker 5 x 5 enheter (omtrent 3.5 x 3.5 meter), så teksturer fra ChatGPT blir ikke strukket
+  look.ground.repeat.set((length + 140) / 5, 12);
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(length + 140, 60), toon('#ffffff', look.ground));
   ground.rotation.x = -Math.PI / 2;
   ground.position.set(length / 2, 0, -18);
@@ -286,7 +300,7 @@ export function stageBase(scene: THREE.Scene, length: number, look: Look) {
   road.userData.noCast = true;
   g.add(road);
 
-  if (look.sunDisk && !atmo) {
+  if (look.sunDisk && !atmo && !skyImg) {
     // Sola følger kameraet (den er uendelig langt unna) og lyser sterkt nok til å gi bloom
     const sd = new THREE.Mesh(new THREE.CircleGeometry(9, 32), new THREE.MeshBasicMaterial({ color: new THREE.Color(look.sunDisk).multiplyScalar(2.2), fog: false }));
     sd.userData.sky = true;
@@ -297,7 +311,7 @@ export function stageBase(scene: THREE.Scene, length: number, look: Look) {
       sd.position.x = camX + dx;
     });
   }
-  if (look.clouds && !atmo) {
+  if (look.clouds && !atmo && !skyImg) {
     const cloudT = canvasTex(cloudCanvas(look.clouds), false);
     const clouds: THREE.Mesh[] = [];
     for (let i = 0; i < Math.ceil(length / 16) + 4; i++) {
@@ -686,7 +700,8 @@ export function arrows(g: THREE.Group, length: number, n = 40) {
 /** Port i bakgrunnen på slutten av et brett (duell-finale). */
 export function endGate(g: THREE.Group, gore: Gore, x: number, title: string, sub: string, stone = '#6e6670', roof = '#5b2a86') {
   const st = texFile('wall_gate', () => stoneTex(stone, shade(stone, -0.45), 64, 32), { tint: true });
-  st.repeat.set(1, 3);
+  // Tre bilder rundt tårnet og tre i høyden, så steinene får vanlige proporsjoner
+  st.repeat.set(3, 3);
   for (const dx of [-3.4, 3.4]) {
     const tw = M(new THREE.CylinderGeometry(1.5, 1.7, 9, 8), stone, x + dx, 4.5, -5.2, 0.05, st);
     tw.add(M(new THREE.ConeGeometry(2.1, 3, 8), roof, 0, 6, 0, 0.05));

@@ -108,7 +108,10 @@ export function buildArena(scene: THREE.Scene, gore: Gore, theme: ArenaTheme = '
 
   const balc = new THREE.Group();
   balc.position.set(0, 0, -15.5);
-  balc.add(M(new THREE.BoxGeometry(8, 3.2, 3), T.wall[0], 0, 1.6, 0, 0.05, wt));
+  // Egen kopi av murteksturen: balkongen er bare 8 bred, så den trenger færre gjentak enn muren rundt
+  const bt = texFile('wall_arena-' + theme, () => stoneTex(T.wall[0], T.wall[1], 64, 40));
+  bt.repeat.set(2, 1);
+  balc.add(M(new THREE.BoxGeometry(8, 3.2, 3), T.wall[0], 0, 1.6, 0, 0.05, bt));
   balc.add(M(new THREE.BoxGeometry(8.4, 0.3, 3.4), '#3a2a2a', 0, 3.3, 0, 0.05));
   const drape = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 2.2), toon(T.drape));
   drape.position.set(0, 1.9, 1.55);

@@ -77,6 +77,8 @@ const INKY: [number, number] = [0, 0];
 const SKIN: [number, number] = [0.72, 0.5];
 const STEEL: [number, number] = [1, 1];
 const GOLD: [number, number] = [0.9, 1];
+/** Svakere metallglans for malte PNG-deler. */
+const SOFT_METAL: [number, number] = [0.45, 1];
 
 /**
  * Hud gjenkjennes som en mørkere eller litt lysere utgave av en av hudfargene (shade() i draw.ts ganger
@@ -138,6 +140,8 @@ export function reliefTexture(cv: HTMLCanvasElement, ppu: number, skin: string[]
       luma[i] = inside ? (0.299 * r + 0.587 * g + 0.114 * b) / 255 : 0;
       if (c === INKY) c = MATTE;
       else if (inside && c === MATTE && paintedSkin(r, g, b)) c = SKIN;
+      // Malt bilde har egne høylys, og hvit pels, bein og blondt hår ville fått full metallglans av fargen alene
+      else if (c === STEEL || c === GOLD) c = SOFT_METAL;
     }
     cls[i * 2] = c[0];
     cls[i * 2 + 1] = c[1];

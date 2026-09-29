@@ -1,7 +1,7 @@
 // Rigg for firbente (og tobente) ridedyr: kropp, hode, hale og bein som egne plan med pivot i leddet.
 import * as THREE from 'three';
 import { unitCanvas } from './draw';
-import { getOverride } from './assets';
+import { getOverride, resized } from './assets';
 import { partMaterial, INK_W } from './rig';
 import { reliefTexture, paintInk } from './charlight';
 import { damp } from '../core/math';
@@ -27,8 +27,12 @@ function asset(def: BeastDef, key: string, pd: PartDef) {
   const k = def.id + ':' + key;
   let a = cache.get(k);
   if (!a) {
-    const ov = getOverride(def.id, key);
-    if (ov) pd = { w: ov.w, h: ov.h, ox: ov.ox, oy: ov.oy, draw: () => {} };
+    let ov = getOverride(def.id, key);
+    if (ov) {
+      // Høyde fra riggen: beinet når bakken fra leddet under kroppen, de andre delene som den tegnede delen
+      if (!ov.fixedH) ov = resized(ov, key === 'leg' ? (def.bodyY + def.joints.legF[1]) / Math.max(0.5, 1 - ov.ay) : pd.h * 0.92);
+      pd = { w: ov.w, h: ov.h, ox: ov.ox, oy: ov.oy, draw: () => {} };
+    }
     const cv = ov ? ov.canvas : unitCanvas(pd.w, pd.h, pd.ox, pd.oy, 140, pd.draw, INK_W);
     const relief = reliefTexture(cv, ov ? cv.width / pd.w : 140, [], !!ov);
     if (!ov) paintInk(cv);

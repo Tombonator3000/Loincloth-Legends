@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { getChar, type CharDef, type CharId, type PartDef, type PartName } from './chars';
 import { unitCanvas } from './draw';
-import { getOverride } from './assets';
+import { getOverride, resized, type PartOverride } from './assets';
 import { damp } from '../core/math';
 import { charMaterial, reliefTexture, paintInk } from './charlight';
 
@@ -14,14 +14,45 @@ export const INK_W = 0.028;
 type Asset = { tex: THREE.Texture; relief: THREE.Texture; geo: THREE.PlaneGeometry; canvas: HTMLCanvasElement };
 const cache = new Map<string, Asset>();
 
+/**
+ * Høyde for en PNG-del regnet ut fra riggen, så bilder fra ChatGPT passer på alle figurer uten tall i manifestet:
+ * beinet når bakken fra hofta, overkroppen når nakkeleddet, våpenleddet havner i neven, og hode, hofte og våpen
+ * får omtrent samme høyde som den tegnede delen (hatter og lange våpen tar plassen de trenger). null beholder
+ * høyden fra lasteren (hårmanken, heltenes hofte som skaleres etter beltet, og høyder satt i manifestet).
+ */
+function rigHeight(ch: CharDef, key: string, def: PartDef, ov: PartOverride): number | null {
+  if (ov.fixedH) return null;
+  const J = ch.joints;
+  switch (key) {
+    case 'leg':
+      return ch.hipY / Math.max(0.5, 1 - ov.ay);
+    case 'torso':
+      // Nakkeleddet omtrent 12 prosent under toppen av overkroppen
+      return J.neck[1] / Math.max(0.4, ov.ay - 0.12);
+    case 'arm':
+      // Neven (der våpenet sitter) omtrent 86 prosent ned i bildet
+      return Math.abs(J.hand[1]) / Math.max(0.3, 0.86 - ov.ay);
+    case 'head':
+    case 'pelvis':
+    case 'weapon':
+      return def.h * 0.92;
+    default:
+      return null;
+  }
+}
+
 export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
   const k = ch.id + ':' + key;
   let a = cache.get(k);
   if (!a) {
     // Hårmanken bak ryggen følger hodet (også når en helt arver PNG-ene fra thrugg eller valkyra)
     const src = ch.inherit?.[(key === 'hairback' ? 'head' : key) as keyof NonNullable<CharDef['inherit']>];
-    const ov = getOverride(ch.id, key) ?? (src ? getOverride(src, key) : undefined);
-    if (ov) def = { w: ov.w, h: ov.h, ox: ov.ox, oy: ov.oy, draw: () => {} };
+    let ov = getOverride(ch.id, key) ?? (src ? getOverride(src, key) : undefined);
+    if (ov) {
+      const h = rigHeight(ch, key, def, ov);
+      if (h) ov = resized(ov, h);
+      def = { w: ov.w, h: ov.h, ox: ov.ox, oy: ov.oy, draw: () => {} };
+    }
     // Tynnere strek enn standard: figurene skal se malte ut, ikke tegnet (docs/STYLE_TARGET.md)
     const cv = ov ? ov.canvas : unitCanvas(def.w, def.h, def.ox, def.oy, PPU, def.draw, INK_W);
     // Normal- og glanskart ut fra tegningen (volum, muskelfurer, olje på huden), se gfx/charlight.ts.

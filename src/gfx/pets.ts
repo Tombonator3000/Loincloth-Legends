@@ -87,7 +87,10 @@ export function petMesh(id: string) {
     m = new THREE.MeshBasicMaterial({ map: t, alphaTest: 0.5, side: THREE.DoubleSide });
     mats.set(id, m);
   }
-  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(art.w, art.h), m);
+  // Et bilde fra manifestet beholder sine egne proporsjoner (samme høyde som tegningen)
+  const cv = (m.map as THREE.CanvasTexture).image as HTMLCanvasElement;
+  const w = getOverride('pet_' + id, 'body') ? (art.h * cv.width) / cv.height : art.w;
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, art.h), m);
   mesh.renderOrder = 3;
   return mesh;
 }

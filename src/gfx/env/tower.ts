@@ -31,7 +31,8 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   updates.push((_dt, _t, camX) => keyShadow.update(camX + 3));
 
   const ft = texFile('floor_tower', () => tileTex('#3a3048', '#1a1420'));
-  ft.repeat.set(L / 4, 6);
+  // Ett bilde per 4 x 4 enheter (kvadratiske heller)
+  ft.repeat.set((L + 60) / 4, 6);
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(L + 60, 24), toon('#ffffff', ft));
   floor.rotation.x = -Math.PI / 2;
   floor.position.set(L / 2, 0, -2);
@@ -59,7 +60,7 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   g.add(carpet);
 
   const wt = texFile('wall_tower', () => stoneTex('#4a4058', '#221a2c', 64, 40));
-  wt.repeat.set(L / 6, 3);
+  wt.repeat.set((L + 60) / 5, 3);
   const wall = new THREE.Mesh(new THREE.BoxGeometry(L + 60, 14, 1), toon('#ffffff', wt));
   wall.position.set(L / 2, 7, -6);
   g.add(wall);

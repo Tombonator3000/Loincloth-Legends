@@ -20,7 +20,7 @@ export function buildScorch(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): En
     sky: ['#1a0808', '#8a2a10', '#e0602a'], bg: '#3a1410', fog: ['#4a1a10', 30, 110],
     hemi: ['#ffb080', '#2a1010', 1.3], sun: ['#ffb070', 1.5],
     ground: texFile('ground_scorch', lavaRockTex, { glow: true }),
-    road: texFile('road_scorch', () => roadTex('#4a3a36', ['#3a2e2c', '#5a4844', '#2a2020'], 'rgba(255,90,20,0.25)', ['#2a2226', '#44383e']), { fringe: true }),
+    road: texFile('road_scorch', () => roadTex('#4a3a36', ['#3a2e2c', '#5a4844', '#2a2020'], 'rgba(255,90,20,0.25)', ['#2a2226', '#44383e']), { fringe: true, glow: true }),
   });
   mountains(g, L, ['#3a1a18', '#4a2420', '#2e1614'], null, -100, 10, 20);
 

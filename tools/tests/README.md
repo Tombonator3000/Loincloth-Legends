@@ -30,6 +30,7 @@ node tools/tests/homage.mjs http://localhost:4173/ ./shots                # tord
 node tools/tests/nightcamp.mjs http://localhost:4173/ ./shots             # nattleiren: sovende helter, tyvnisser, krukker tilbake, daggry og forsyninger
 node tools/tests/ab.mjs http://localhost:4173/ ./shots road ao           # samme bilde med og uten en effekt (ao, bloom, dof, grade), pluss bare AO-bufferet
 node tools/tests/textures.mjs http://localhost:4173/ ./shots              # teksturer fra manifestet brukes i stedet for de prosedyrelagde (later som tre bilder finnes)
+node tools/tests/pngparts.mjs http://localhost:4173/                      # PNG-deler sitter riktig på helt og fiender: fot på bakken, våpen i neven, nakke og skaft
 ```
 
 Skriptene skriver ut tilstand og eventuelle konsollfeil (`LOGS:`). Tom logg betyr ingen feil.

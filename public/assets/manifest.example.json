@@ -6,7 +6,7 @@
     { "char": "valkyra", "part": "pelvis", "file": "valkyra_pelvis.png" },
     { "char": "valkyra", "part": "arm", "file": "valkyra_arm.png" },
     { "char": "valkyra", "part": "leg", "file": "valkyra_leg.png" },
-    { "char": "valkyra", "part": "weapon", "file": "valkyra_weapon.png", "anchor": [0.5, 0.8] }
+    { "char": "valkyra", "part": "weapon", "file": "valkyra_weapon.png" }
   ],
   "textures": {
     "ground_grass": "tex_ground_grass.png",

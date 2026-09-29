@@ -64,18 +64,20 @@ Confirm that you understand. Then wait for my asset requests.
 
 ## Deltemplater (figurdeler)
 
-Hver figur er en "papirdukke" som settes sammen i spillet. Alle deler lages **sett fra siden i trekvart profil, vendt mot høyre**, isolert, uten de andre kroppsdelene. Leddpunktet (der delen festes) må være der templatet sier, ellers sitter delen skjevt.
+Hver figur er en "papirdukke" som settes sammen i spillet. Alle deler lages **vendt mot høyre**, isolert, uten de andre kroppsdelene: heltene i trekvart profil, fiendene og sjefene mest fra siden (armene deres sitter tett på brystet i riggen). Leddpunktet (der delen festes) må være der templatet sier, ellers sitter delen skjevt.
+
+Spillet regner selv ut størrelsen på hver del fra figurens skjelett: beinet blir så langt at foten når bakken, armen så lang at våpenet havner i neven, og overkroppen så høy at nakken sitter like under toppen. Festepunktet til siden finner spillet selv der leddet er (midten av halsstumpen nederst på hodet, skaftet nederst på våpenet, beltet, skulderen og hofta øverst). Derfor er det nok at bildene følger reglene i templatene, uten tall i manifestet.
 
 | Del | Filnavn | Leddpunkt (anker) | Template |
 |---|---|---|---|
 | Helfigur | `<id>_reference.png` | Brukes ikke i spillet | REFERENCE |
-| Hode | `<id>_head.png` | Nakken, nederst på midten | HEAD |
+| Hode | `<id>_head.png` | Halsstumpen nederst | HEAD |
 | Hårmanke bak | `<id>_hairback.png` | Nakken, litt ned fra toppen og til høyre | HAIRBACK |
-| Overkropp | `<id>_torso.png` | Midjen, nederst på midten | TORSO |
-| Hofte / lendeklede | `<id>_pelvis.png` | Beltet, øverst på midten | PELVIS |
-| Arm | `<id>_arm.png` | Skulderen, øverst på midten | ARM |
-| Bein | `<id>_leg.png` | Hofteleddet, øverst (litt til venstre) | LEG |
-| Våpen | `<id>_weapon.png` | Grepet, der hånda holder | WEAPON |
+| Overkropp | `<id>_torso.png` | Midjen nederst | TORSO |
+| Hofte / lendeklede | `<id>_pelvis.png` | Beltet øverst | PELVIS |
+| Arm | `<id>_arm.png` | Skulderen øverst, neven nederst | ARM |
+| Bein | `<id>_leg.png` | Hofteleddet øverst, sålen nederst | LEG |
+| Våpen | `<id>_weapon.png` | Grepet, 82 prosent ned; skaftenden nederst | WEAPON |
 
 Samme arm og samme bein brukes både foran og bak (spillet gjør den bakre litt mørkere). Hårmanken legges bak overkroppen og følger hodet.
 
@@ -87,8 +89,8 @@ Asset: FULL-BODY REFERENCE of the character described above. The whole character
 ### HEAD
 ```
 Asset: HEAD of the character in the attached reference. Same face, same hair, same materials, same colours, same light.
-Draw only the head (with helmet or hair), in 3/4 view facing RIGHT, with a short neck stump at the bottom centre.
-The neck stump must touch the bottom edge of the image, centred horizontally. Nothing below the neck: no shoulders, no necklace below the collarbone.
+Draw only the head (with helmet or hair), in 3/4 view facing RIGHT, with a short neck stump at the bottom.
+The neck stump must be the LOWEST part of the image: nothing (hair, beard, jewellery) may hang lower than the bottom of the neck. No shoulders, no chest.
 Keep all hair ABOVE the shoulders. Big volume around the head is great. Long hair that would hang down the back goes in a separate HAIRBACK image.
 Canvas 1024x1024, transparent background.
 ```
@@ -96,15 +98,15 @@ Canvas 1024x1024, transparent background.
 ### HAIRBACK (bare ved langt hår)
 ```
 Asset: HAIR BACK of the character in the attached reference. Same hair colour and style.
-Draw ONLY the long hair that falls down behind the head and down the back, seen from the side facing RIGHT (so the hair hangs down on the LEFT side of the image). The top of the hair mass is at the top of the image, the ends at the bottom. NO face, NO head, NO body, NO hands. It will be placed behind the body.
+Draw ONLY the long hair that falls down behind the head and down the back, seen from the side facing RIGHT (so the hair hangs down on the LEFT side of the image). The top of the hair mass is at the top of the image, the ends at the bottom, about waist long. The top fifth is hidden behind the head in the game. NO face, NO head, NO body, NO hands. It will be placed behind the body.
 Canvas 1024x1536 (tall), transparent background.
 ```
 
 ### TORSO
 ```
 Asset: TORSO of the character in the attached reference. Same body, same materials, same colours, same light.
-Draw only the upper body from the waist up to the base of the neck, 3/4 view facing RIGHT. NO head, NO arms, NO legs, NO hair.
-The waist must be at the bottom edge, centred. The shoulders are at the top. Leave the arm sockets as simple rounded shoulders.
+Draw only the upper body from the waist up to the base of the neck, facing RIGHT (3/4 view for heroes, side view for enemies and bosses). NO head, NO arms, NO legs, NO hair.
+The waist is the bottom edge. The base of the neck is just below the top. Leave the arm sockets as simple rounded shoulders.
 Canvas 1024x1024, transparent background.
 ```
 
@@ -112,14 +114,14 @@ Canvas 1024x1024, transparent background.
 ```
 Asset: PELVIS / LOINCLOTH of the character in the attached reference. Same materials and colours.
 Draw only the belt and what hangs from it (loincloth, chainmail flap, briefs, armour plates), 3/4 view facing RIGHT. NO legs, NO torso.
-The belt must be at the top edge, centred. The cloth hangs down.
+The belt is the top edge and the widest thing at the top (no fur tufts or buckles sticking out wider than the belt). The cloth hangs down and may be long.
 Canvas 1024x1024, transparent background.
 ```
 
 ### ARM
 ```
 Asset: ARM of the character in the attached reference. Same skin, same bracers, same light.
-Draw only one arm hanging STRAIGHT DOWN, side view: the round shoulder at the very top centre, the elbow in the middle, a CLOSED FIST at the bottom, knuckles facing RIGHT.
+Draw only one arm hanging STRAIGHT DOWN, side view: the round shoulder at the very top, the elbow in the middle, a CLOSED FIST filling the bottom of the image, knuckles facing RIGHT. The centre of the fist is where the weapon goes.
 The fist must have a gap to grip a handle (the weapon is a separate image). NO weapon, NO body.
 Canvas 1024x1536 (tall), transparent background.
 ```
@@ -127,14 +129,14 @@ Canvas 1024x1536 (tall), transparent background.
 ### LEG
 ```
 Asset: LEG of the character in the attached reference. Same skin, same boots, same light.
-Draw only one leg hanging STRAIGHT DOWN, side view: the round hip joint at the very top, the knee in the middle, the foot/boot at the bottom with the TOES POINTING RIGHT. Thick, powerful thigh.
+Draw only one leg hanging STRAIGHT DOWN, side view: the round hip joint at the very top, the knee in the middle, the foot/boot at the bottom with the sole flat and the TOES POINTING RIGHT. Thick, powerful thigh.
 NO body, NO other leg. Canvas 1024x1536 (tall), transparent background.
 ```
 
 ### WEAPON
 ```
 Asset: WEAPON of the character in the attached reference. Same materials, same wear and rust.
-Draw only the weapon, perfectly VERTICAL: the blade/head pointing UP, the handle pointing DOWN, as if held upright in a fist.
+Draw only the weapon, perfectly VERTICAL: the blade/head pointing UP, the handle pointing DOWN, as if held upright in a fist. The end of the handle (pommel, ring or butt) must be the LOWEST part of the image, and the hand grips about 82% of the way down.
 No hand, no character. Canvas 1024x1536 (tall), transparent background.
 ```
 
@@ -169,9 +171,9 @@ Heltebyggerens deler (hode med hårfrisyrer, hjelmer, skjegg og så videre) tegn
 
 Tom har et godkjent referansebilde av Valkyra (ligger ikke i repoet, repoet er offentlig). Last det opp i ChatGPT som REFERENCE, og bruk det i hver bestilling av delene hennes. Håret hennes er så langt at det trenger to bilder: HEAD med manken rundt hodet, og HAIRBACK med håret som faller ned bak ryggen. Den tegnede utgaven i spillet er satt opp etter samme bilde (vill kobberrød manke, selvgodt blikk, rusten ringbrynje, pelsstøvler og øks), så hun ligner selv før PNG-ene er på plass.
 
-### Høyder for heltene (thrugg og valkyra)
+### Størrelser
 
-Når du lager PNG-er for `thrugg` eller `valkyra`, bruker spillet disse høydene automatisk (i spillenheter, regnet ut fra `src/gfx/chars/types.ts`): hode 1.1 (med stort hår), hårmanke 1.25, overkropp 1.08, arm 0.98, bein 1.06. Hoftedelen skaleres etter beltet i stedet: beltet øverst blir 0.5 bredt (like bredt som midjen), så en lang ringbrynjeflik som Valkyras får plass under uten at beltet krymper. Karikaturen ligger i selve bildet: tegn hodet, håret, hendene og støvlene store. Ser hodet for lite eller for stort ut i spillet, sett `height` for hodet i manifestet (for eksempel 1.25).
+Spillet regner ut høyden på hver del fra figurens skjelett (se over), så de samme reglene virker for helter, fiender og sjefer. Hoftedelen til heltene skaleres etter beltet: beltet øverst blir 0.5 bredt (like bredt som midjen), så en lang ringbrynjeflik som Valkyras får plass uten at beltet krymper. Hodet får omtrent samme høyde som det tegnede hodet, med håret. Karikaturen ligger i selve bildet: tegn hodet, håret, hendene og støvlene store. Ser noe for lite eller for stort ut, sett `height` i manifestet (for eksempel 1.25 for et hode).
 
 ---
 
@@ -203,14 +205,14 @@ Confirm that you understand. Then wait for my texture requests.
 
 | Navn i manifestet | Fil | Brukes til | Prompt |
 |---|---|---|---|
-| `ground_grass` | `tex_ground_grass.png` | Bakken i grasslandet (brett 1) | `Texture: late-autumn meadow ground, about 3 x 3 metres seen from above: short trampled yellow-green grass in tufts, patches of bare brown soil, small grey pebbles, a few fallen orange leaves.` |
+| `ground_grass` | `tex_ground_grass.png` | Bakken i grasslandet (brett 1) | `Texture: late-autumn meadow ground, about 3.5 x 3.5 metres seen from above: short trampled yellow-green grass in tufts, patches of bare brown soil, small grey pebbles, a few fallen orange leaves.` |
 | `road_grass` | `tex_road_grass.png` | Veien i grasslandet | `Texture: packed dirt road, about 6 x 5 metres seen from above, running LEFT to RIGHT: dry brown earth, two faint wheel ruts along the road, embedded small stones and gravel. The road surface fills the whole image, no grass verges.` |
 | `ground_swamp` | `tex_ground_swamp.png` | Bakken i sumpen | `Texture: swamp ground seen from above: wet dark mud, patches of green moss, rotting reeds and twigs, small murky puddles.` |
 | `road_swamp` | `tex_road_swamp.png` | Veien i sumpen | `Texture: muddy swamp track seen from above, running LEFT to RIGHT: sticky brown mud with footprints and wheel ruts, puddles, a few stones. The track fills the whole image.` |
 | `ground_frost` | `tex_ground_frost.png` | Bakken i frosten | `Texture: fresh snow seen from above: soft wind ripples, a few ice crystals, tiny tips of dry grass poking through.` |
 | `road_frost` | `tex_road_frost.png` | Veien i frosten | `Texture: trampled snow road seen from above, running LEFT to RIGHT: packed icy snow, wheel ruts and boot prints, a little grey slush. The road fills the whole image.` |
-| `ground_scorch` | `tex_ground_scorch.png` | Bakken i vulkanlandet (gløder) | `Texture: black cracked volcanic rock seen from above, with bright glowing orange-yellow lava in the cracks and a little grey ash.` |
-| `road_scorch` | `tex_road_scorch.png` | Veien i vulkanlandet | `Texture: road of dark grey ash and cinders seen from above, running LEFT to RIGHT, small black rocks and a few red embers. The road fills the whole image.` |
+| `ground_scorch` | `tex_ground_scorch.png` | Bakken i vulkanlandet (alt lyst oransje gløder) | `Texture: black and dark grey cracked volcanic rock seen from above, with bright glowing orange-yellow lava only in the cracks and a little grey ash. The rock itself stays dark, never red or rusty.` |
+| `road_scorch` | `tex_road_scorch.png` | Veien i vulkanlandet (glørne gløder) | `Texture: road of dark grey ash and cinders seen from above, running LEFT to RIGHT, small black rocks and a few glowing orange embers. The road fills the whole image.` |
 | `ground_night` | `tex_ground_night.png` | Bakken ved nattleiren | `Texture: dark forest floor seen from above: damp dark-green grass, moss, dead brown leaves and twigs, a few pebbles.` |
 | `road_night` | `tex_road_night.png` | Veien ved nattleiren | `Texture: muddy forest road seen from above, running LEFT to RIGHT: dark brown mud, wheel ruts, stones and gravel. The road fills the whole image.` |
 | `wall_keep` | `tex_wall_keep.png` | Borgmuren og tårnet ved start | `Texture: castle wall of large grey granite blocks seen straight on, about 4 blocks across and 8 courses high, weathered, chipped edges, dark mortar joints with a little moss.` |
@@ -230,19 +232,21 @@ Isarenaen og beinarenaen bruker samme navn med `-ice` og `-bone` i stedet for `-
 
 ## Bakgrunner
 
-Grasslandet, sumpen og frosten har en fysisk himmel laget i kode (sol, spredt lys og skyer), og den lyser også opp scenen. Et himmelbilde i manifestet tar over for den i det miljøet, så lag bare bilder der du vil ha noe annet enn den. Vulkanlandet, nattleiren og arenaene bruker himmelbildet direkte.
+Grasslandet, sumpen og frosten har en fysisk himmel laget i kode (sol, spredt lys og skyer), og den lyser også opp scenen. Et himmelbilde i manifestet tar over for den i det miljøet, så lag bare bilder der du vil ha noe annet enn den. Vulkanlandet, nattleiren og arenaene bruker himmelbildet direkte. Tårnet er innendørs og har ingen himmel.
+
+Slik vises himmelbildet: det gjentas fire ganger rundt brettet, så det må være helt sømløst mellom venstre og høyre kant. Horisonten ligger omtrent 73 prosent ned i bildet, og det meste som synes er båndet fra omtrent 35 til 75 prosent ned. Den nederste femtedelen skjules av bakken, tåka og 3D-fjellene. Når et himmelbilde brukes, tegner ikke spillet sin egen sol, måne eller skyer, så de kan være med i bildet.
 
 | Fil | Bruk | Prompt |
 |---|---|---|
-| `sky_grass.png` | Himmel, brett 1 | `Wide panoramic sky background, 1536x1024, seamless left-right. Photorealistic matte painting of a warm late-afternoon sky over rolling hills: orange-gold light, big volumetric clouds lit from below, a pale sun low on the horizon, distant blue mountains with snowy tips at the very bottom. No characters, no text.` |
-| `sky_swamp.png` | Himmel, sumpen | `Wide panoramic sky background, 1536x1024, seamless left-right. Photorealistic murky green-grey overcast swamp sky, low heavy clouds, faint mist bands, silhouettes of dead twisted trees and low hills at the bottom. No characters, no text.` |
-| `sky_frost.png` | Himmel, frosten | `Wide panoramic sky background, 1536x1024, seamless left-right. Photorealistic cold clear winter sky, pale blue to white, jagged snowy mountain range at the bottom, light snowfall, a pale sun. No characters, no text.` |
-| `sky_scorch.png` | Himmel, vulkanlandet | `Wide panoramic sky background, 1536x1024, seamless left-right. Photorealistic hellish volcanic sky, black at the top fading to deep red and orange, ash clouds, a distant erupting volcano with lava, ember sparks. No characters, no text.` |
-| `sky_night.png` | Himmel, nattleiren | `Wide panoramic night sky, 1536x1024, seamless left-right. Photorealistic dark blue night with a big pale moon behind thin clouds, stars, black forest treeline at the bottom. No characters, no text.` |
-| `sky_arena-pit.png` | Himmel over gropa | `Wide panoramic night sky, 1536x1024, seamless left-right. Dark crimson night with thin clouds and a few stars, like the sky above a gladiator pit. No characters, no text.` |
-| `map.png` | Verdenskartet | `Top-down fantasy world map of an island, 1536x1024, like an old hand-painted fantasy map with ink and watercolour on parchment. West: green grassland with a small castle keep. South-centre: murky swamp with dead trees and a pond. North: snowy mountains and pine forest. East: black volcanic wasteland with a lava river and a volcano. Far east: a dark purple tower on a cliff. A blue river runs from the mountains to the swamp. Sea around the island. NO text, NO labels, NO roads (the game draws them).` |
+| `sky_grass.png` | Himmel, brett 1 | `Wide panoramic sky background, 1536x1024, seamless left-right. Photorealistic matte painting of a warm late-afternoon sky over rolling hills: orange-gold light, big volumetric clouds lit from below, a pale sun low on the horizon, the horizon about 73% down the image with distant blue hills along it. No characters, no text.` |
+| `sky_swamp.png` | Himmel, sumpen | `Wide panoramic sky background, 1536x1024, seamless left-right. Photorealistic murky green-grey overcast swamp sky, low heavy clouds, faint mist bands, silhouettes of dead twisted trees and low hills along the horizon, about 73% down the image. No characters, no text.` |
+| `sky_frost.png` | Himmel, frosten | `Wide panoramic sky background, 1536x1024, seamless left-right. Photorealistic cold clear winter sky, pale blue to white, a jagged snowy mountain range along the horizon about 73% down the image, light snowfall, a pale sun. No characters, no text.` |
+| `sky_scorch.png` | Himmel, vulkanlandet | `Wide panoramic sky background, 1536x1024, seamless left-right. Photorealistic hellish volcanic sky, black at the top fading to deep red and orange, ash clouds, a distant erupting volcano on the horizon about 73% down the image, ember sparks. No characters, no text.` |
+| `sky_night.png` | Himmel, nattleiren | `Wide panoramic night sky, 1536x1024, seamless left-right. Photorealistic dark blue night with a big pale moon behind thin clouds, stars, a black forest treeline along the horizon about 73% down the image. No characters, no text.` |
+| `sky_arena-pit.png` | Himmel over gropa | `Wide panoramic night sky, 1536x1024, seamless left-right. Dark crimson night with thin clouds and a few stars, like the sky above a gladiator pit, horizon about 73% down the image. No characters, no text.` |
+| `map.png` | Verdenskartet | `Top-down fantasy world map of an island, 1536x1024, like an old hand-painted fantasy map with ink and watercolour on parchment, terrain only. West: green grassland and fields. South-centre: murky swamp with a pond. North: snowy uplands. East: black volcanic wasteland with a lava river. Far east: a dark rocky cliff by the sea. A blue river runs from the north to the swamp. The land stays inside an oval that leaves a margin of sea all around (about 10% at the sides, 12% at the top and bottom), and the sea is dark slate blue (#2a4a6a) out to all four edges. NO buildings, NO castle, NO tower, NO volcano cone, NO trees drawn as symbols, NO text, NO labels, NO roads (the game places 3D models and paths on top).` |
 
-Kartbildet må ha samme utsnitt som det innebygde kartet: øya fyller bildet, hjemborgen til venstre (vest), tårnet helt til høyre (øst), frost i nord (oppe), sump i sør (nede).
+Kartbildet må ha samme utsnitt som det innebygde kartet: hjemborgen til venstre (vest), tårnet helt til høyre (øst), frost i nord (oppe), sump i sør (nede). Spillet setter selv 3D-modeller av borgen, tårnet, vulkanen, fjell og trær oppå bildet, så bildet skal bare vise landskapet. Havet utenfor bildet er flatt i fargen #2a4a6a, så kantene på bildet bør ha samme farge.
 
 ---
 
@@ -259,7 +263,7 @@ Eksempel (`public/assets/manifest.json`):
     { "char": "valkyra", "part": "pelvis", "file": "valkyra_pelvis.png" },
     { "char": "valkyra", "part": "arm", "file": "valkyra_arm.png" },
     { "char": "valkyra", "part": "leg", "file": "valkyra_leg.png" },
-    { "char": "valkyra", "part": "weapon", "file": "valkyra_weapon.png", "anchor": [0.5, 0.8] }
+    { "char": "valkyra", "part": "weapon", "file": "valkyra_weapon.png" }
   ],
   "textures": {
     "ground_grass": "tex_ground_grass.png",
@@ -271,8 +275,8 @@ Eksempel (`public/assets/manifest.json`):
 }
 ```
 
-- `height` er delens høyde i spillenheter. Standard: hode 1.0, hårmanke 1.3, overkropp 0.9, hofte 0.6, arm 0.78, bein 0.92, våpen 1.7. For heltene (`thrugg`, `valkyra`): hode 1.1, hårmanke 1.25, overkropp 1.08, arm 0.98, bein 1.06, og hoften skaleres så beltet blir 0.5 bredt (med `height` satt gjelder den i stedet). For ridedyr: kropp 1.3, hode 0.9, hale 0.6, bein 0.75. Store figurer skaleres av spillet selv, så bruk standardverdiene.
-- `anchor` er leddpunktet i det beskårne bildet, `[x, y]` fra 0 til 1 der `y` måles fra toppen. Standard: hode `[0.5, 0.95]`, hårmanke `[0.62, 0.22]`, overkropp `[0.5, 0.96]`, hofte `[0.5, 0.12]`, arm `[0.5, 0.06]`, bein `[0.4, 0.04]`, våpen `[0.5, 0.82]`.
+- `height` (valgfri) er delens høyde i spillenheter. Uten den regner spillet ut høyden fra figurens skjelett: beinet når bakken, overkroppen når nakken, neven havner der våpenet sitter, og hode, hofte og våpen blir omtrent like høye som de tegnede delene. Heltenes hofte skaleres så beltet blir 0.5 bredt. Hårmanken er 1.25 høy for heltene og 1.3 ellers. For ridedyr når beinet bakken, og hode, kropp og hale blir like høye som de tegnede delene.
+- `anchor` (valgfri) er leddpunktet i det beskårne bildet, `[x, y]` fra 0 til 1 der `y` måles fra toppen. Høyden på leddet er fast (hode 0.95, hårmanke 0.22, overkropp 0.96, hofte 0.12, arm 0.06, bein 0.04, våpen 0.82), og sideplasseringen finner spillet selv fra kanten der leddet er (midten av halsstumpen, midjen, beltet, skulderen, hofta og skaftenden). Hårmanken bruker `[0.62, 0.22]`. Ridedyr: hode `[0.15, 0.55]`, kropp `[0.5, 0.5]`, hale `[0.92, 0.55]`, bein `[0.5, 0.06]`.
 - `textures` knytter navnene fra teksturlista til filer. Navn spillet ikke kjenner, blir ignorert.
 - `tools/tests/textures.mjs` sjekker at teksturer fra manifestet blir brukt (den later som om tre bilder finnes).
 
@@ -280,7 +284,7 @@ Eksempel (`public/assets/manifest.json`):
 
 ## Ridedyr
 
-Ridedyrene er satt sammen av fire deler: `body` (kropp med sal), `head`, `tail` og `leg` (samme bein brukes fire ganger, eller to for kakatrissen). Alt lages **sett fra siden, vendt mot høyre**, uten rytter. Filnavn: `<id>_body.png`, `<id>_head.png`, `<id>_tail.png`, `<id>_leg.png`. I manifestet: `{ "char": "warhog", "part": "body", "file": "warhog_body.png" }`. Bruk stil-blokken: ridedyrene skal også se nesten ekte ut.
+Ridedyrene er satt sammen av fire deler: `body` (kropp med sal), `head`, `tail` og `leg` (samme bein brukes fire ganger, eller to for kakatrissen). Beinet skaleres så det når bakken. Hodet festes 15 prosent inn fra venstre kant og 55 prosent ned, halen 92 prosent bortover og 55 prosent ned, så la halsen og halerota gå helt ut til kanten. Kakatrissens hode er en lang, oppreist hals med hodet på toppen; der sitter halsrota nede til venstre, så sett `"anchor": [0.27, 0.84]` for den. Alt lages **sett fra siden, vendt mot høyre**, uten rytter. Filnavn: `<id>_body.png`, `<id>_head.png`, `<id>_tail.png`, `<id>_leg.png`. I manifestet: `{ "char": "warhog", "part": "body", "file": "warhog_body.png" }`. Bruk stil-blokken: ridedyrene skal også se nesten ekte ut.
 
 | id | Beskrivelse (lim inn) |
 |---|---|
@@ -307,7 +311,7 @@ Asset: LEG of the mount described above. Only one leg hanging STRAIGHT DOWN, hip
 
 ## Kjæledyr
 
-Én sprite per kjæledyr, vendt mot høyre, 1024x1024, transparent. Filnavn `pet_<id>.png`, i manifestet: `{ "char": "pet_rat", "part": "body", "file": "pet_rat.png" }`.
+Én sprite per kjæledyr, vendt mot høyre, 1024x1024, transparent. Spillet beholder bildets proporsjoner og gjør det like høyt som det tegnede dyret. Kjæledyrene får ikke lys fra scenen, så de kan ha litt tydeligere lys i selve bildet. Filnavn `pet_<id>.png`, i manifestet: `{ "char": "pet_rat", "part": "body", "file": "pet_rat.png" }`.
 
 | id | Beskrivelse (lim inn) |
 |---|---|
