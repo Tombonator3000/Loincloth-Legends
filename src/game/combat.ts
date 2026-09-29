@@ -6,6 +6,7 @@ import { W } from './world';
 import { audio } from '../core/audio';
 import { pick, rand, chance } from '../core/math';
 import { settings } from '../core/settings';
+import { screenFX } from '../gfx/screenfx';
 
 export interface HitResult {
   blocked: boolean;
@@ -124,7 +125,11 @@ export function applyHit(att: Fighter, tgt: Fighter, a: AttackDef, dmgOverride?:
   res.dmg = dmg;
   tgt.hp -= dmg;
   const bigHit = !!a.heavy || dmg >= 14;
-  if (tgt.player >= 0) W.rumble(tgt.player, bigHit ? 0.9 : 0.45, 0.6, bigHit ? 240 : 120);
+  if (tgt.player >= 0) {
+    W.rumble(tgt.player, bigHit ? 0.9 : 0.45, 0.6, bigHit ? 240 : 120);
+    // Blod på glasset fra siden slaget kom fra, mer jo hardere (gfx/screenwet.ts)
+    if (tgt.def.blood !== 'bone') W.fx.heroHit(Math.min(1.6, Math.max(0.35, (dmg / Math.max(10, tgt.maxHp)) * 3)), -dir);
+  }
   if (att.player >= 0) W.rumble(att.player, bigHit ? 0.35 : 0.1, bigHit ? 0.5 : 0.25, 70);
   tgt.lastHitBy = att;
   tgt.flash(0.1);
@@ -148,11 +153,17 @@ export function applyHit(att: Fighter, tgt: Fighter, a: AttackDef, dmgOverride?:
     tgt.die(style, dir, att);
     W.fx.stop(0.1);
     W.fx.shake(0.45);
+    // Tunge drap sender en liten sjokkbølge og et zoomslag gjennom bildet
+    if (heavy) {
+      screenFX.shock(contact, 0.45, 0.55, 1.4);
+      screenFX.punch(contact, 0.3);
+    }
     return res;
   }
 
   W.fx.stop(heavy ? 0.09 : 0.045);
   W.fx.shake(heavy ? 0.32 : 0.14);
+  if (heavy) screenFX.shock(contact, 0.25, 0.45, 1.5);
   if (chance(severChance(tgt, a, dmg, pvp)) && tgt.loseArm(dir)) {
     W.fx.stop(0.12);
   } else if (heavy && a.word) W.fx.text(contact.clone().add(new THREE.Vector3(0, 0.9, 0)), pick(a.word), 'word');

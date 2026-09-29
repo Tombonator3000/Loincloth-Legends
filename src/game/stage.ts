@@ -30,6 +30,7 @@ import type { HUD } from '../ui/hud';
 import { MetalMode, METAL } from './metalmode';
 import { HERO_QUIPS, HEROINE_QUIPS, JUGGLE_WORDS, QUIP_STREAKS } from '../data/quips';
 import { GRADES } from '../gfx/env/grades';
+import { screenFX } from '../gfx/screenfx';
 
 const Z_MIN = -2.6;
 const Z_MAX = 2.6;
@@ -243,6 +244,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
       this.hud.streak(this.streak, labels[this.streak]);
       // Fanfaren trappes opp med rekken: gitar, pauker, orgel, kor, gong, torden og publikum (core/layers.ts)
       audio.streak(this.streak);
+      // Kameraet dykker litt inn på lange rekker
+      screenFX.dive(0.03 + Math.min(this.streak, 15) * 0.006);
     }
     // B-film-replikker etter lange rekker
     if (hero && QUIP_STREAKS.includes(this.streak)) this.hud.say(hero.name, pick(hero.cfg.body === 1 ? [...HERO_QUIPS, ...HEROINE_QUIPS] : HERO_QUIPS), 2.4);
@@ -336,6 +339,9 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     h.respawnT = 2.5;
     W.fx.flash('#8e0015', 0.5, 0.6);
     W.fx.screenBlood(6);
+    // Kameraet dykker inn mot helten som falt, og en sjokkbølge går ut fra ham
+    screenFX.dive(0.15, 1.2);
+    screenFX.shock(h.f.torsoPoint(), 1.0, 0.8, 1.1);
     if (this.heroes.every((x) => !x.f.alive && x.lives <= 0)) setTimeout(() => (this.done = 'gameover'), 2500);
   }
 
@@ -389,7 +395,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
         for (let i = 0; i < Math.max(0, m.level - 2) * 2; i++) m.meteors.push({ x: hf.pos.x + rand(-8, 8), z: rand(-2.4, 2.4), t: -rand(0.2, 1.1), hit: false, f: hf });
         W.gore.vfx.lightning(sky(hf.pos.x, hf.pos.z), hf.rig.weaponTip(), '#cfe8ff', 0.3);
         audio.thunder(0.8);
-        W.fx.flash('#cfe8ff', 0.4, 0.2);
+        W.fx.lightningFlash(0.4, 0.2);
       }
       let allDone = true;
       for (const mt of m.meteors) {
@@ -403,6 +409,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
         W.gore.vfx.lightning(sky(x, z), new THREE.Vector3(x, 0.05, z), m.level >= 5 ? '#e6d0ff' : '#9fd8ff', 0.2 + m.level * 0.03);
         audio.thunder(0.5 + m.level * 0.08);
         W.fx.shake(0.35 + m.level * 0.06);
+        W.fx.lightningFlash(0.15 + m.level * 0.02, 0.12);
         if (onFoe) applyHit(hf, mt.f, THUNDER_ATK, bossDmg(mt.f));
       }
       if (allDone && m.t > 1.4) this.endMagic();
@@ -430,6 +437,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
             W.gore.fire(pos, 30, 1.2, 5);
             audio.boom(1);
             W.fx.shake(0.7);
+            screenFX.boom(pos, 1.2);
+            screenFX.addHeat(pos.clone().setY(0.2), 1.8, 1, false, 2);
             if (mt.f !== hf && mt.f.alive) applyHit(hf, mt.f, MAGIC_ATK, bossDmg(mt.f));
           }
         }
@@ -446,6 +455,9 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
           audio.scream('heroine');
           audio.boom(0.7);
           W.fx.shake(0.6);
+          // Skriket sender en stor, langsom sjokkbølge ut fra helten
+          screenFX.shock(hf.headPoint(), 1.8, 1.1, 1.0);
+          screenFX.dive(0.08);
         }
       }
       for (const f of m.targets) {
@@ -479,6 +491,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     this.hud.announce(def.name, 'boss', 2.6, def.title);
     // Sjefslåta kommer på en taktstrek minst 1,4 sekunder fram, med stuping, gong og stor akkord på første slag
     audio.bossArrives('duel');
+    // Kameradykk mens sjefen gjør entré
+    screenFX.dive(0.12, 2.4);
     def.intro.forEach(([who, text], i) => setTimeout(() => this.hud.say(who, text, 2.2), 900 + i * 2300));
   }
 
@@ -491,6 +505,11 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     W.fx.screenBlood(12);
     W.fx.shake(1);
     const tp = b.f.torsoPoint();
+    // Det største øyeblikket: sjokkbølge, zoomslag, en mild negativ ramme og kameradykk
+    screenFX.shock(tp, 2, 1.0, 1.1);
+    screenFX.punch(tp, 0.8);
+    screenFX.negative(0.1);
+    screenFX.dive(0.16, 1.2);
     W.gore.burst(tp, 160, 12, 0.14, b.f.def.blood === 'lava' ? 'lava' : 'red');
     W.gore.gibs(tp, 18, b.f.def.blood === 'lava' ? 'lava' : 'red', 1.6);
     audio.boom(1.4);
@@ -680,6 +699,10 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     this.metal.update(dt, this);
     for (const [f] of this.juggle) if (f.onGround || !f.alive) this.juggle.delete(f);
     if (this.level.nightCamp) this.thieves(dt);
+    // Årer og en rød kant som banker når den svakeste levende helten nesten er død
+    let weakest = -1;
+    for (const h of this.heroes) if (h.f.alive) weakest = Math.min(weakest < 0 ? 1 : weakest, Math.max(0, h.f.hp) / h.f.maxHp);
+    screenFX.health(weakest);
     this.hud.updateBrawler(this.heroes);
   }
 

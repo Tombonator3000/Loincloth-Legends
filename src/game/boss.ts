@@ -4,6 +4,7 @@ import { Fighter, GRAVITY } from './fighter';
 import { P, ENEMY_ATK, type AttackDef } from './attacks';
 import { applyHit } from './combat';
 import { W } from './world';
+import { screenFX } from '../gfx/screenfx';
 import { fireProjectile } from './foes';
 import type { Hero } from './hero';
 import type { Projectiles } from './projectiles';
@@ -231,6 +232,10 @@ export class BossCtl {
           W.fx.shake(0.8);
           audio.boom(0.9);
           W.gore.dust(f.pos, 20);
+          // Bakken smeller: sjokkbølge og zoomslag i bildet
+          screenFX.shock(f.pos, 1.2, 0.8, 1.2);
+          screenFX.punch(f.pos, 0.45);
+          screenFX.dive(0.05);
           for (const dir of [-1, 1]) this.w.proj.spawn({ kind: 'shockwave', owner: f, x: f.pos.x + dir * 1.2, y: 0.2, z: f.pos.z, vx: dir * 9, dmg: 12, life: 1.6 });
           for (const h of this.w.heroes) {
             const hf = h.f;

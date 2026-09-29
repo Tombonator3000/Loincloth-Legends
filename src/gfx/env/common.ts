@@ -9,6 +9,7 @@ import type { Gore } from '../gore';
 import { images } from '../assets';
 import type { Grade } from '../post';
 import { SunShadow } from './sun';
+import { screenFX } from '../screenfx';
 import { withSurface, type SurfaceOpts } from './surface';
 import { groundTexture, roadTexture, stoneTexture, tileTexture, sandTexture, woodTexture, lavaRockTexture, imageTexture } from './textures';
 
@@ -234,6 +235,8 @@ export interface Env {
   grade?: Partial<Grade>;
   /** Bålene på brettet (satt av campfire()). Stemningen knitrer sterkere nær dem (core/ambience.ts). */
   fires?: THREE.Vector3[];
+  /** Regn, 0..1: vanndråper treffer glasset og renner (gfx/screenwet.ts). Ingen brett har regn ennå. */
+  rain?: number;
 }
 
 export interface Look {
@@ -689,6 +692,8 @@ export function campfire(g: THREE.Group, x: number, z: number, gore?: Gore) {
   const at = new THREE.Vector3(x, 0.3, z);
   // Lydkilde for stemningen (finishEnv legger listen på Env.fires)
   ((g.userData.fires ??= []) as THREE.Vector3[]).push(at);
+  // Lufta over bålet dirrer (varmeflimmer i etterbehandlingen, gfx/screenfx.ts)
+  screenFX.addHeat(new THREE.Vector3(x, 0.4, z), 1.1, 0.9);
   return at;
 }
 

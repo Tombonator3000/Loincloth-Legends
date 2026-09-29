@@ -7,6 +7,7 @@
 import * as THREE from 'three';
 import { wind } from './wind';
 import { qualityRank } from './post';
+import { screenFX } from './screenfx';
 
 const STRIDE = 24;
 
@@ -288,22 +289,45 @@ void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(
 // ---------------------------------------------------------------- lyspool
 interface LightSource { pos: THREE.Vector3; color: THREE.Color; intensity: number; range: number; flicker: number; ph: number }
 interface Flash { pos: THREE.Vector3; color: THREE.Color; intensity: number; range: number; t: number; dur: number }
+/** Et punktlys og hvem som har det: en fast kilde (med toning w) eller et glimt. */
+interface Slot { light: THREE.PointLight; src: LightSource | null; fl: Flash | null; w: number; want: boolean; d: number }
+
+/** Faste kilder lenger unna kameraet enn dette får ikke lys. */
+const LIGHT_RANGE = 26;
 
 /**
  * Et fast antall punktlys som fordeles til de nærmeste lyskildene (fakler, fyrfat, lava) og til korte
  * lysglimt (treff, magi, lyn). Antallet endres aldri, så materialene kompileres ikke på nytt.
+ * Fordelingen er portet fra Morbidium (src/15_rom3d.js, fordel): en kilde beholder lyset sitt så lenge den er
+ * blant de N + 2 nærmeste, og bytter bare når en ventende kilde er 1,5 enheter nærmere. Den som mister lyset,
+ * toner ut på 0,2 sekunder, og den nye toner inn på 0,25. Et glimt tar et ledig lys, eller et som er på vei ut.
+ * Bare store glimt (eksplosjoner og lyn) tar lyset fra den fjerneste fakkelen, så faklene slukner ikke ved
+ * hvert slag.
  */
 export class LightPool {
   readonly lights: THREE.PointLight[] = [];
+  private slots: Slot[] = [];
   private sources: LightSource[] = [];
   private flashes: Flash[] = [];
   private t = 0;
+  /** Første fordeling etter clear(): lysene står fullt på med en gang, uten inntoning. */
+  private fresh = true;
+  /** Sekunder inn og ut når en kilde får eller mister et lys. */
+  static FADE_IN = 0.25;
+  static FADE_OUT = 0.2;
+  /** Hvor mye nærmere en ventende kilde må være før den tar lyset fra en som har det. */
+  static SLACK = 1.5;
+  /** Glimt fra og med denne styrken kan ta lyset fra den fjerneste kilden. Svakere glimt tar bare ledige lys. */
+  static STEAL = 15;
+  /** Høyst så mange glimt samtidig. */
+  static MAX_FLASHES = 2;
 
   constructor(group: THREE.Group, count = 4) {
     for (let i = 0; i < count; i++) {
       const l = new THREE.PointLight('#ffffff', 0, 10, 1.8);
       l.position.set(0, -100, 0);
       this.lights.push(l);
+      this.slots.push({ light: l, src: null, fl: null, w: 0, want: false, d: 0 });
       group.add(l);
     }
   }
@@ -322,45 +346,127 @@ export class LightPool {
   clear() {
     this.sources.length = 0;
     this.flashes.length = 0;
-    for (const l of this.lights) l.intensity = 0;
+    for (const s of this.slots) {
+      s.src = null;
+      s.fl = null;
+      s.w = 0;
+      s.light.intensity = 0;
+    }
+    this.fresh = true;
+  }
+
+  /** Hvem som har lysene nå (for testene): indeks i kildelista, 'flash' eller null. */
+  owners() {
+    return this.slots.map((s) => (s.fl ? 'flash' : s.src ? this.sources.indexOf(s.src) : null));
   }
 
   update(dt: number, camX: number) {
     this.t += dt;
+    const S = this.slots, N = S.length;
+    // Glimt som er ferdige, gir fra seg lyset
     for (let i = this.flashes.length - 1; i >= 0; i--) {
-      this.flashes[i].t += dt;
-      if (this.flashes[i].t >= this.flashes[i].dur) this.flashes.splice(i, 1);
+      const f = this.flashes[i];
+      f.t += dt;
+      if (f.t < f.dur) continue;
+      this.flashes.splice(i, 1);
+      for (const s of S) if (s.fl === f) s.fl = null;
     }
-    const used = this.lights.length;
-    let n = 0;
-    // Lysglimt først (de sterkeste), så de nærmeste faste kildene
-    const fl = [...this.flashes].sort((a, b) => b.intensity * (1 - b.t / b.dur) - a.intensity * (1 - a.t / a.dur));
-    for (const f of fl) {
-      if (n >= Math.min(used, 2)) break;
-      const l = this.lights[n++];
-      const k = 1 - f.t / f.dur;
-      l.position.copy(f.pos);
-      l.color.copy(f.color);
-      l.intensity = f.intensity * k * k;
-      l.distance = f.range;
+    // Faste kilder sortert etter avstand til kameraet
+    const ranked = this.sources
+      .map((s) => ({ s, d: Math.abs(s.pos.x - camX) + Math.abs(s.pos.z) * 0.3 }))
+      .filter((e) => e.d < LIGHT_RANGE)
+      .sort((a, b) => a.d - b.d);
+    const rank = new Map<LightSource, number>();
+    const dist = new Map<LightSource, number>();
+    ranked.forEach((e, i) => {
+      rank.set(e.s, i);
+      dist.set(e.s, e.d);
+    });
+    // De som har lys, beholder det så lenge de er blant de N + 2 nærmeste. Utenfor rekkevidde er det slukket
+    // (intensiteten er tonet ned mot kanten av rekkevidden allerede).
+    for (const s of S) {
+      if (!s.src) continue;
+      const r = rank.get(s.src);
+      if (r === undefined) {
+        s.src = null;
+        s.w = 0;
+        continue;
+      }
+      s.d = dist.get(s.src)!;
+      s.want = r < N + 2;
     }
-    if (n < used && this.sources.length) {
-      const near = this.sources
-        .map((s) => ({ s, d: Math.abs(s.pos.x - camX) + Math.abs(s.pos.z) * 0.3 }))
-        .filter((e) => e.d < 26)
-        .sort((a, b) => a.d - b.d);
-      for (const { s, d } of near) {
-        if (n >= used) break;
-        const l = this.lights[n++];
-        const fk = 1 - s.flicker * (0.5 + 0.25 * Math.sin(this.t * 13 + s.ph) + 0.25 * Math.sin(this.t * 7.3 + s.ph * 2));
-        // Ton ut mot kanten av utvalget så lys ikke spretter av og på
-        l.position.copy(s.pos);
-        l.color.copy(s.color);
-        l.intensity = s.intensity * fk * THREE.MathUtils.smoothstep(26 - d, 0, 6);
-        l.distance = s.range;
+    const owned = new Set<LightSource>();
+    for (const s of S) if (s.src) owned.add(s.src);
+    // Glimt: de sterkeste først. Ledig lys, så et som er på vei ut, og bare for store glimt den fjerneste kilden.
+    let flashSlots = S.filter((s) => s.fl).length;
+    const waitingFl = this.flashes
+      .filter((f) => !S.some((s) => s.fl === f))
+      .sort((a, b) => b.intensity * (1 - b.t / b.dur) - a.intensity * (1 - a.t / a.dur));
+    for (const f of waitingFl) {
+      if (flashSlots >= Math.min(N, LightPool.MAX_FLASHES)) break;
+      let slot = S.find((s) => !s.src && !s.fl);
+      if (!slot) slot = S.filter((s) => s.src && !s.want && !s.fl).sort((a, b) => a.w - b.w)[0];
+      if (!slot && f.intensity >= LightPool.STEAL) {
+        for (const s of S) if (s.src && !s.fl && (!slot || s.d > slot.d)) slot = s;
+      }
+      if (!slot) continue;
+      if (slot.src) owned.delete(slot.src);
+      slot.src = null;
+      slot.fl = f;
+      slot.w = 1;
+      flashSlots++;
+    }
+    // Kildene som venter: de N nærmeste som ikke har lys. Den nærmeste av dem tar lyset fra den fjerneste som har
+    // det, bare når det ikke er plass ellers og den er SLACK nærmere.
+    const waiting = ranked.slice(0, N).map((e) => e.s).filter((s) => !owned.has(s));
+    const free = S.filter((s) => !s.fl && (!s.src || !s.want)).length;
+    if (waiting.length > free) {
+      let far: Slot | null = null;
+      for (const s of S) if (s.src && s.want && !s.fl && (!far || s.d > far.d)) far = s;
+      if (far && dist.get(waiting[0])! + LightPool.SLACK < far.d) far.want = false;
+    }
+    // Toning, og ledige lys til de som venter
+    for (const s of S) {
+      if (s.fl) continue;
+      if (s.src) {
+        s.w = s.want ? Math.min(1, s.w + dt / LightPool.FADE_IN) : Math.max(0, s.w - dt / LightPool.FADE_OUT);
+        if (!s.want && s.w <= 0) s.src = null;
+      }
+      if (!s.src) {
+        const next = waiting.shift();
+        if (next) {
+          s.src = next;
+          s.want = true;
+          s.d = dist.get(next)!;
+          s.w = this.fresh ? 1 : 0;
+        } else s.w = 0;
       }
     }
-    for (; n < used; n++) this.lights[n].intensity = 0;
+    this.fresh = false;
+    // Lysene følger kilden eller glimtet sitt
+    for (const s of S) {
+      const l = s.light;
+      if (s.fl) {
+        const f = s.fl;
+        const k = 1 - f.t / f.dur;
+        l.position.copy(f.pos);
+        l.color.copy(f.color);
+        l.intensity = f.intensity * k * k;
+        l.distance = f.range;
+        continue;
+      }
+      const src = s.src;
+      if (!src) {
+        l.intensity = 0;
+        continue;
+      }
+      const fk = 1 - src.flicker * (0.5 + 0.25 * Math.sin(this.t * 13 + src.ph) + 0.25 * Math.sin(this.t * 7.3 + src.ph * 2));
+      l.position.copy(src.pos);
+      l.color.copy(src.color);
+      // Ton ut mot kanten av rekkevidden så lys ikke spretter av og på
+      l.intensity = src.intensity * fk * THREE.MathUtils.smoothstep(LIGHT_RANGE - s.d, 0, 6) * s.w;
+      l.distance = src.range;
+    }
   }
 }
 
@@ -507,6 +613,9 @@ export class VFX {
     this.sparks(pos, 14 * size, cols[0], 9 * size);
     for (let i = 0; i < 6 * size; i++) this.puff(pos.x, pos.y, pos.z - 0.2, 1.2 * size, 1.2, '#2a221e', 0.6 * size, 2.2 * size, 1.6, 0.5);
     this.lights.flash(pos, cols[1], 22 * size, 12 * size, 0.35);
+    // Sjokkbølge og zoomslag i bildet, og varm luft som dirrer en stund
+    screenFX.boom(pos, size);
+    screenFX.addHeat(pos.clone().setY(0.2), 1.6 * size, 0.9, false, 1.6);
   }
 
   /** Lyn fra himmelen (eller fra en stav) til et punkt. Slår ned 2-3 ganger med ny form hver gang. */
@@ -525,6 +634,8 @@ export class VFX {
     this.shockwave(to.clone().setY(0.05), 2.4, color);
     this.lights.flash(to, color, 40, 16, 0.4);
     for (let i = 0; i < 5; i++) this.puff(to.x, 0.3, to.z, 1.4, 0.8, '#5a5a60', 0.5, 1.8, 1.2, 0.3);
+    // Nedslaget sender en sjokkbølge gjennom bildet
+    screenFX.shock(to, 0.55, 0.6, 1.5);
   }
 
   private buildBolt(b: Bolt) {

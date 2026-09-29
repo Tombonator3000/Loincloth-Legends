@@ -10,7 +10,9 @@ import { Screens, type Item } from '../ui/screens';
 import { TouchControls } from '../ui/touch';
 import { Splash, wantSplash } from '../ui/splash';
 import { settings, setSettings, onSettings, touchEnabled, GORE_NAMES, GORE_HINTS, QUALITY_SETTINGS, QUALITY_HINTS, type GoreLevel, type TouchMode, type QualitySetting } from '../core/settings';
-import { PostFX, autoQuality, type Quality } from '../gfx/post';
+import { PostFX, autoQuality, qualityRank, type Quality } from '../gfx/post';
+import { screenFX } from '../gfx/screenfx';
+import { QualityGovernor, PerfMeter, lighter } from './perf';
 import { skyLight } from '../gfx/envlight';
 import { wind } from '../gfx/wind';
 import { W } from '../game/world';
@@ -43,9 +45,24 @@ const INTRO = [
 ];
 const GAMEOVER_QUIPS = ['YOU DIED. BADLY.', 'THE BARD WILL NOT SING OF THIS.', 'YOUR LOINCLOTH HAS BEEN RECYCLED.', 'VORTHAX IS DOING A LITTLE DANCE.'];
 
-/** AUTO velger ut fra enheten, ellers brukes nivået direkte. */
+/**
+ * AUTO velger ut fra enheten, eller det lavere nivået AUTO har trappet ned til fordi bildet hakket
+ * (settings.autoQuality, se app/perf.ts). Ellers brukes nivået direkte.
+ */
 function resolveQuality(q: QualitySetting): Quality {
-  return q === 'auto' ? autoQuality() : q;
+  if (q !== 'auto') return q;
+  const guess = autoQuality();
+  const saved = settings.autoQuality;
+  return saved && qualityRank(saved) < qualityRank(guess) ? saved : guess;
+}
+
+/** Automatisk grafikkvalitet og tap av WebGL gjelder ikke automatiske tester, med mindre adressen har ?autotune. */
+function autoTuneAllowed() {
+  try {
+    return !navigator.webdriver || new URLSearchParams(location.search).has('autotune');
+  } catch {
+    return true;
+  }
 }
 
 // ---------------------------------------------------------------- enkle scener
@@ -91,7 +108,7 @@ class TitleScene implements Scene {
       this.boltT = rand(2.8, 5.5);
       const x = pick([-1, 1]) * rand(1.5, 6);
       W.gore.vfx.lightning(new THREE.Vector3(x + rand(-2, 2), 16, -7), new THREE.Vector3(x, 0.05, rand(-3.5, -1.5)), '#9fd8ff', 0.28);
-      W.fx.flash('#cfe8ff', 0.25, 0.12);
+      W.fx.lightningFlash(0.25, 0.12);
       // Lynet slår ned langt bak kjempene: buldringen kommer litt etter
       audio.thunder(0.35, 0.7);
     }
@@ -194,6 +211,25 @@ export class Game {
   width = 1;
   height = 1;
   private qualitySet = false;
+  /** Automatisk grafikkvalitet (app/perf.ts). */
+  readonly governor = new QualityGovernor();
+  /** Får AUTO trappe ned (ikke i automatiske tester, med mindre adressen har ?autotune). */
+  autoTune = autoTuneAllowed();
+  /** Første bilde etter at fanen ble synlig igjen (telles ikke av den automatiske kvaliteten). */
+  private resumed = false;
+  /** Ytelsesmåleren bak ?perf (null ellers). */
+  private perf: PerfMeter | null = null;
+  /** WebGL er mistet (mobil med lite minne, eller nettleseren la fanen i bakgrunnen). */
+  glLost = false;
+  private glLostT = 0;
+  private glLostHidden = false;
+  private glLostWarned = false;
+  /** Selvtest etter nytt nivå: tre sjekker av om bildet er helt hvitt eller helt svart. */
+  private checkN = 0;
+  private checkF = 0;
+  /** Tid til neste bilde i pause, og om neste bilde må tegnes uansett (ny størrelse, nytt nivå). */
+  private pauseDrawT = 0;
+  private drawNow = true;
 
   constructor() {
     const q0 = resolveQuality(settings.quality);
@@ -219,6 +255,7 @@ export class Game {
     this.input.onFirstInteraction = () => audio.init();
     this.input.onPad = (msg) => this.toast(msg + (this.twoP ? ' (1 PAD = PLAYER 2, 2 PADS = P1 + P2)' : ''));
     onSettings((st) => {
+      this.drawNow = true;
       audio.setVolumes(st.music, st.sfx);
       audio.setStyle(st.musicStyle);
       audio.setRecorded(st.recorded);
@@ -228,8 +265,29 @@ export class Game {
         this.qualitySet = true;
         this.post.setQuality(q);
         this.resize();
+        this.governor.reset(3);
+        this.checkN = 0;
+        this.checkF = 0;
       }
     });
+    // WebGL kan mistes på mobil (for lite minne, eller når nettleseren legges i bakgrunnen). Three.js bygger opp
+    // igjen det den eier når konteksten kommer tilbake; spillet pauser, venter og bygger resten (se contextLost).
+    this.canvas.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault();
+      this.contextLost();
+    });
+    this.canvas.addEventListener('webglcontextrestored', () => this.contextRestored());
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) return;
+      if (this.glLost) this.glLostT = 0;
+      // Bildet etter et fanebytte er langt fordi fanen var skjult, ikke fordi skjermkortet er tregt
+      this.resumed = true;
+    });
+    try {
+      if (new URLSearchParams(location.search).has('perf')) this.perf = new PerfMeter(this.app);
+    } catch {
+      /* ingen adresse */
+    }
     document.querySelector('.rotate-note')?.addEventListener('click', (e) => (e.currentTarget as HTMLElement).classList.add('dismissed'));
     window.addEventListener('resize', () => this.resize());
     this.resize();
@@ -248,6 +306,8 @@ export class Game {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
     this.post.setSize(this.width, this.height);
+    screenFX.resize(this.width, this.height);
+    this.drawNow = true;
     this.camera.aspect = this.width / Math.max(1, this.height);
     this.camera.fov = this.camera.aspect < 1.2 ? 52 : 38;
     this.camera.updateProjectionMatrix();
@@ -264,13 +324,16 @@ export class Game {
     W.scene = scene;
     W.env = null;
     this.fx.reset(scene);
+    // Skjermeffektene og varmekildene nullstilles; miljøet legger inn sine egne når det bygges
+    screenFX.reset();
     this.paused = false;
     this.hud.clear();
     this.scene = make();
     this.post.focus = -1;
-    this.post.hurt = 0;
     // make() kan ha satt W.env; TypeScript tror den fortsatt er null her
     const env = (W as { env: Env | null }).env;
+    screenFX.wet.rain = env?.rain ?? 0;
+    this.governor.reset(2);
     this.post.setGrade(this.scene.grade ?? env?.grade ?? {}, true);
     // Himmelen blir lyskilde for PBR-materialene (refleksjoner og omgivelseslys, gfx/envlight.ts)
     skyLight(this.renderer, W.scene);
@@ -374,13 +437,28 @@ export class Game {
       return { label: 'RECORDED SOUNDS: ' + (settings.recorded ? 'ON' : 'OFF'), hint: settings.recorded ? 'REAL CRUNCHES AND THUNDER OVER THE SYNTH' : 'SYNTH ONLY. VERY 1984.', action: flip, adjust: flip };
     });
     row((again) => ({ label: 'SCREEN SHAKE: ' + (settings.shake ? 'ON' : 'OFF'), action: () => { setSettings({ shake: !settings.shake }); again(); }, adjust: () => { setSettings({ shake: !settings.shake }); again(); } }));
+    row((again) => {
+      const flip = () => {
+        setSettings({ flashes: !settings.flashes });
+        again();
+      };
+      return { label: 'FLASHES: ' + (settings.flashes ? 'ON' : 'OFF'), hint: settings.flashes ? 'WHITE FLASHES AND LIGHTNING' : 'NO WHITE FLASHES. EASIER ON THE EYES.', action: flip, adjust: flip };
+    });
+    row((again) => {
+      const flip = () => {
+        setSettings({ distortion: !settings.distortion });
+        again();
+      };
+      return { label: 'SCREEN DISTORTION: ' + (settings.distortion ? 'ON' : 'OFF'), hint: settings.distortion ? 'SHOCKWAVES, ZOOM AND HEAT SHIMMER' : 'A STEADY PICTURE. THE BLOOD STILL RUNS.', action: flip, adjust: flip };
+    });
     row((again) => ({ label: 'GAMEPAD RUMBLE: ' + (settings.rumble ? 'ON' : 'OFF'), action: () => { setSettings({ rumble: !settings.rumble }); this.input.rumble(-1, 0.6, 0.6, 200); again(); }, adjust: () => { setSettings({ rumble: !settings.rumble }); again(); } }));
     row((again) => ({ label: 'TOUCH CONTROLS: ' + settings.touch.toUpperCase(), hint: 'AUTO = PÅ TELEFON OG NETTBRETT', action: () => { setSettings({ touch: TOUCH[(TOUCH.indexOf(settings.touch) + 1) % 3] }); again(); }, adjust: (d) => { setSettings({ touch: TOUCH[(TOUCH.indexOf(settings.touch) + d + 3) % 3] }); again(); } }));
     row((again) => ({ label: 'FULLSCREEN: ' + (fs ? 'ON' : 'OFF'), action: () => { this.toggleFullscreen(); setTimeout(again, 250); } }));
     row((again) => {
       const cycle = (d: number) => {
         const i = QUALITY_SETTINGS.indexOf(settings.quality);
-        setSettings({ quality: QUALITY_SETTINGS[(i + d + QUALITY_SETTINGS.length) % QUALITY_SETTINGS.length] as QualitySetting });
+        // Et nytt valg gir AUTO en ny sjanse (glemmer hvor langt den har trappet ned)
+        setSettings({ quality: QUALITY_SETTINGS[(i + d + QUALITY_SETTINGS.length) % QUALITY_SETTINGS.length] as QualitySetting, autoQuality: '' });
         again();
       };
       return { label: 'GRAPHICS: ' + settings.quality.toUpperCase() + (settings.quality === 'auto' ? ' (' + this.post.quality.toUpperCase() + ')' : ''), hint: QUALITY_HINTS[settings.quality], action: () => cycle(1), adjust: cycle };
@@ -641,14 +719,96 @@ export class Game {
     } else this.screens.hide();
   }
 
+  // ---------------------------------------------------------------- ytelse og WebGL
+  /** Spilles det nå (brett eller duell, ingen meny eller pause)? Da måler den automatiske kvaliteten. */
+  private get measuring() {
+    return (this.scene.name === 'stage' || this.scene.name === 'duel') && !this.paused && !this.screens.active && !this.splash && !this.glLost && !document.hidden;
+  }
+
+  /** Ett trinn ned med AUTO: lagres, så neste lasting starter der. */
+  stepDown(to: Quality, why: string) {
+    if (settings.quality !== 'auto' || qualityRank(to) >= qualityRank(this.post.quality)) return false;
+    setSettings({ autoQuality: to as 'low' | 'medium' | 'high' });
+    this.toast('GRAPHICS ADJUSTED: ' + to.toUpperCase() + (why ? ' (' + why + ')' : ''), 3.5);
+    return true;
+  }
+
+  private contextLost() {
+    this.glLost = true;
+    this.glLostT = 0;
+    this.glLostWarned = false;
+    this.glLostHidden = document.hidden;
+    if (this.scene.pausable && !this.paused) this.togglePause();
+    if (!document.hidden) this.toast('THE GRAPHICS FAINTED. WAITING FOR THEM TO WAKE UP...', 8);
+  }
+
+  private contextRestored() {
+    this.glLost = false;
+    // Three.js har bygget opp sine egne ting igjen, og målene i bildepipelinen lages på nytt første gang de brukes.
+    // Det som bare fantes på skjermkortet, må tegnes på nytt: skyggekartet og miljøkartet fra himmelen.
+    // Ble konteksten mistet mens fanen var synlig, var det trolig minnet: ett trinn ned med AUTO.
+    this.post.recover();
+    const next = lighter(this.post.quality);
+    const stepped = !this.glLostHidden && this.autoTune && this.stepDown(next, 'GRAPHICS RESTORED');
+    if (!stepped) this.toast('THE GRAPHICS ARE BACK', 2.5);
+    this.renderer.shadowMap.needsUpdate = true;
+    skyLight(this.renderer, W.scene, undefined, true);
+    this.checkN = 0;
+    this.checkF = 0;
+  }
+
+  /**
+   * Selvtest etter nytt nivå (Morbidium, 04_render.js): blir bildet helt hvitt eller helt svart (noen
+   * skjermkort takler ikke flyttallsmål), går spillet ned til LOW, som tegner rett til skjermen.
+   */
+  private selfTest() {
+    if (this.checkN >= 3 || !this.post.enabled || this.glLost) return;
+    if (++this.checkF % 20 !== 0) return;
+    this.checkN++;
+    try {
+      const gl = this.renderer.getContext();
+      if (gl.isContextLost()) return;
+      const w = gl.drawingBufferWidth, h = gl.drawingBufferHeight, px = new Uint8Array(4);
+      let white = 0, blank = 0;
+      for (let i = 1; i <= 3; i++) {
+        for (let j = 1; j <= 3; j++) {
+          gl.readPixels(Math.floor((w * i) / 4), Math.floor((h * j) / 4), 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
+          if (px[0] > 247 && px[1] > 247 && px[2] > 247) white++;
+          if (px[0] + px[1] + px[2] === 0) blank++;
+        }
+      }
+      if (white >= 8 || blank >= 9) {
+        const why = white >= 8 ? 'WHITE SCREEN' : 'BLANK SCREEN';
+        if (settings.quality === 'auto') this.stepDown('low', why);
+        else setSettings({ quality: 'low' });
+        this.toast('GRAPHICS SET TO LOW (' + why + ')', 4);
+      }
+    } catch {
+      /* lesing er ikke mulig */
+    }
+  }
+
   // ---------------------------------------------------------------- løkke
   frame(now: number) {
-    const realDt = Math.min(0.05, Math.max(0, (now - this.last) / 1000));
+    const raw = Math.max(0, (now - this.last) / 1000);
+    const realDt = Math.min(0.05, raw);
     this.last = now;
+    const t0 = performance.now();
     try {
       this.tick(realDt);
     } catch (e) {
       console.error(e);
+    }
+    // Automatisk kvalitet: ekte tid mellom bildene (ikke klemt), bare når det spilles
+    if (settings.quality === 'auto' && this.autoTune) {
+      const down = this.governor.sample(raw, this.measuring && !this.resumed, this.post.quality);
+      if (down) this.stepDown(down, Math.round(this.governor.lastFps) + ' FPS');
+    }
+    this.resumed = false;
+    if (this.perf) {
+      this.perf.record(raw * 1000, performance.now() - t0);
+      const r = this.renderer.info.render;
+      this.perf.show(raw, { quality: this.post.quality, auto: settings.quality === 'auto' ? 'AUTO' : '', calls: r.calls, tris: r.triangles, fps: this.governor.lastFps });
     }
     requestAnimationFrame((t) => this.frame(t));
   }
@@ -706,10 +866,49 @@ export class Game {
     this.gore.camX = cam.position.x;
     this.gore.update(simDt);
     W.env?.update(simDt, W.time, cam.position.x);
+    // Skjermeffektene går på ekte tid (slowmo og hitstop gjelder verden, ikke glasset), men står i pause.
+    // Kameradykket settes før teksten plasseres, så flytende tekst følger bildet.
+    screenFX.update(this.paused ? 0 : realDt, cam);
+    this.post.update(this.paused ? 0 : realDt);
+    if (cam.zoom !== screenFX.camZoom) {
+      cam.zoom = screenFX.camZoom;
+      cam.updateProjectionMatrix();
+    }
     this.fx.update(realDt, cam, this.width, this.height);
-    if (!render) return;
+    // Skyggekartet tegnes ikke på nytt i pause (ingenting flytter seg), men én gang når tilstanden skifter
+    const sm = this.renderer.shadowMap;
+    if (sm.autoUpdate === this.paused) {
+      sm.autoUpdate = !this.paused;
+      sm.needsUpdate = true;
+    }
+    if (!render || this.glLost) {
+      // Mistet mens fanen var skjult (bytte av app): de åtte sekundene telles først når siden synes igjen
+      if (this.glLost && !document.hidden) {
+        this.glLostT += realDt;
+        if (this.glLostT > 8 && !this.glLostWarned) {
+          // Kom den ikke tilbake: be om ny lasting, og start ett trinn lettere neste gang (bare med AUTO)
+          this.glLostWarned = true;
+          if (settings.quality === 'auto') setSettings({ autoQuality: lighter(this.post.quality) as 'low' | 'medium' | 'high' });
+          this.toast('THE GRAPHICS DID NOT COME BACK. RELOAD THE PAGE.', 30);
+        }
+      }
+      return;
+    }
+    // I pause står bildet stille: tegn det bare fire ganger i sekundet (og med en gang etter ny størrelse eller
+    // nytt nivå), så en telefon slipper hele etterbehandlingen hver frame. Lerretet viser det siste bildet imens.
+    if (this.paused && !this.drawNow) {
+      this.pauseDrawT -= realDt;
+      if (this.pauseDrawT > 0) return;
+      this.pauseDrawT = 0.25;
+    } else this.pauseDrawT = 0;
+    this.drawNow = false;
+    if (this.perf) {
+      this.renderer.info.autoReset = false;
+      this.renderer.info.reset();
+    }
     cam.position.add(this.fx.offset);
     this.post.render(W.scene, cam, realDt);
     cam.position.sub(this.fx.offset);
+    this.selfTest();
   }
 }

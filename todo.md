@@ -1,5 +1,15 @@
 # todo.md
 
+## Gjenbruk fra Morbidium (docs/GJENBRUK.md)
+- [x] Lydbank med CC0-opptak, torden og zap, dukking, stemning per biom, fanfarer for drapsrekker, RECORDED SOUNDS
+- [x] Dirigent: låtbytte på taktstreken med bro, intensitetslag, METAL MODE, sjef, seier, tap og innslag i takt
+- [x] Skjermeffekter: dråper på glasset, sjokkbølger, dykk, årer, varmeflimmer, brennende kant, FLASHES og SCREEN DISTORTION
+- [x] Automatisk grafikkvalitet, gjenoppretting av WebGL, ?perf, lyspool uten blinking, sårede drypper blod, SSAO lar lava lyse
+- [x] Bildeverktøy og maler for ChatGPT, fiendevariasjon, kreditering (README, public/LICENSES, THIRD_PARTY_LICENSES.md)
+- [ ] Tom: lytt på musikken og lydene på ekte høyttalere og si hva som skal justeres
+- [ ] Senere fra rapporten: ro (musikken trekker seg tilbake), seierslåt som slutter, kunngjørerstemme, fottrinn per underlag, lyder fra riktig side, flere Freesound-lyder med lag_lyd.py (sverdklang, publikum, ulv, krigshorn), lava som flyter, varsel på bakken før angrep, fugleflokker, snø og mose på steiner, Playwright i CI
+- [ ] CREDITS-skjerm i spillet (src/data/credits.ts), så også enkeltfil-bygget bærer krediteringen
+
 ## Pågår: nesten ekte karikatur (Toms Valkyra-bilde, fra 2026-09-29 17:05)
 - [x] Ny tegneinstruks i docs/ART_PROMPTS.md: stil-blokk for nesten ekte karikatur, helfigur først, delene med helfiguren som referanse, HAIRBACK for langt hår, nye Thrugg- og Valkyra-prompter
 - [x] Teksturliste for 3D-verdenen (tekstur-blokk, 20 navn pluss is- og beinarena) og teksturer fra manifestet i spillet (texFile, imageTexture)

@@ -2,6 +2,7 @@
 // bandet en gitarsolo (core/metal.ts), heltene slår hardere, våpnene brenner og lynet slår ned i fiendene.
 // Alt går på spilltid, så pause og slowmo virker.
 import { W } from './world';
+import { screenFX } from '../gfx/screenfx';
 import { audio } from '../core/audio';
 import { rand, pick } from '../core/math';
 import type { Fighter } from './fighter';
@@ -90,6 +91,8 @@ export class MetalMode {
     }
     // Settes hver frame, så en ny kropp etter gjenoppstandelse også får det
     for (const h of w.heroes) h.f.dmgMul = h.fx.dmgMul * (this.on ? METAL.dmg : 1);
+    // Skjermkanten brenner så lenge det varer (gfx/screenfx.ts)
+    screenFX.burnGoal = this.on ? 1 : 0;
     w.hud.metal(this.meter, this.on);
   }
 
@@ -101,6 +104,10 @@ export class MetalMode {
     W.fx.flash('#ff7a1a', 0.35, 0.3);
     W.fx.shake(0.7);
     if (W.post) W.post.aberration = Math.max(W.post.aberration, 0.6);
+    // Sjokkbølge ut fra heltene, en mild negativ ramme og et kameradykk
+    for (const h of w.heroes) if (h.f.alive) screenFX.shock(h.f.torsoPoint(), 1.6, 0.9, 1.2);
+    screenFX.negative(0.06);
+    screenFX.dive(0.1, 0.7);
   }
 
   /** Lynet slår ned i en tilfeldig fiende på skjermen (varslet med en ring på bakken). */
@@ -115,6 +122,7 @@ export class MetalMode {
   stop() {
     if (this.left > 0 || this.meter >= 1) this.meter = 0;
     this.left = 0;
+    screenFX.burnGoal = 0;
     audio.metalMode(false);
   }
 }

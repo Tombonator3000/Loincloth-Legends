@@ -11,6 +11,7 @@ app/               Spillflyt
   camp.ts          Hjemborgen: Hero Forge, butikk (YE OLDE SHOPPE) og trening (nivåer, stats, kjæledyr)
   scene.ts         Scene-grensesnitt
   save.ts          Lagring i localStorage (helter, fremgang, opplåsinger, nivåer, kjæledyr, forbruksvarer)
+  perf.ts          Automatisk grafikkvalitet (QualityGovernor) og ytelsesmåleren bak ?perf (PerfMeter)
   debug.ts         window.__lib for Playwright-testene
   scenes/          creator.ts (Hero Forge), map.ts (verdenskart)
 data/              Alt innhold som data (ingen Three.js her)
@@ -52,6 +53,8 @@ gfx/               Grafikk
   noise.ts         Flisbar Perlin- og Worley-støy og fbm, brukt av teksturene, fjellene og 3D-steinene
   envlight.ts      Miljøkart fra himmelen (PMREM), så metall og våte flater speiler himmelen
   post.ts          Bildepipeline: HDR, bloom, SSAO, dybdeskarphet, eksponering, tonemapping, gradering, linseeffekter, grafikknivå
+  screenfx.ts      Skjermeffekter i sluttpasset: sjokkbølger, zoomslag, kameradykk, varmeflimmer, årer, brennende kant, lyn, negativ
+  screenwet.ts     Blod og vann på glasset (dråper som renner, høydekart som etterbehandlingen bryter bildet gjennom)
   wind.ts          Felles vindfelt (uniformer, GLSL, windifyTree) som trær, gress og blader deler
   rig.ts           Cutout-rigg for mennesker (hver kroppsdel er et plan med pivot i leddet), restore og setTint
   charlight.ts     Lys på figurene: relieffkart (normal og glans) fra tegningene og figurskyggeleggeren
@@ -120,7 +123,7 @@ Del `hairback` i manifestet (langt hår) er bare PNG. `Rig.hairBack()` legger de
 
 ## Bilde og grafikknivå
 
-`gfx/post.ts` eier det endelige bildet. Scenen tegnes i lineær HDR med MSAA, så bloom, dybdeskarphet, eksponering, tonemapping (én gang), gradering og linseeffekter. LOW tegner rett til skjermen uten etterbehandling. Graderingen settes per miljø (`grade` på Env, fra `env/grades.ts`) eller per scene (kartet). `W.post` gir tilgang fra spillkoden (aberrasjon ved store treff, rød kant ved lite liv, lysglimt).
+`gfx/post.ts` eier det endelige bildet. Scenen tegnes i lineær HDR med MSAA, så bloom, dybdeskarphet, eksponering, tonemapping (én gang), gradering og linseeffekter. LOW tegner rett til skjermen uten etterbehandling. Graderingen settes per miljø (`grade` på Env, fra `env/grades.ts`) eller per scene (kartet). `W.post` gir tilgang fra spillkoden (aberrasjon ved store treff). Rød kant, årer, lyn, sjokkbølger og dråper på glasset går via `screenFX` (se Skjermeffekter og automatisk kvalitet).
 
 Kode som bygger innhold leser `gfxState.quality` eller `qualityRank()` (0 LOW til 3 ULTRA) for tetthet på gress, antall blader og størrelse på skyggekart. Miljøene bruker `lit()`/`toon()` (MeshStandardMaterial) og `applyShadows()`. Sola (`SunShadow`) følger kameraet.
 
@@ -133,12 +136,26 @@ Realisme i 3D (Tom: 3D så ekte som mulig, ingen konturer på 3D-ting):
 
 Målbildet for grafikken står i `docs/STYLE_TARGET.md`. Små statiske rekvisitter legges i `staticGroup(g)` (paliser, piler, steiner, hodeskaller på stake gjør det allerede) og slås sammen per materiale og bit langs x i `finishEnv`, så de koster noen få tegnekall. Ting som flyttes eller animeres skal ligge direkte i gruppa. `foreground(g, L, typer, farge)` i `env/common.ts` legger mørke silhuetter nederst i forgrunnen (pigger, hodeskaller, kors, steiner, bein) slått sammen til ett mesh.
 
+### Skjermeffekter og automatisk kvalitet
+
+Portet og forbedret fra Morbidium (Toms eget spill): dråpene fra `src/43_vaatt.js`, sjokkbølger, zoomslag, kameradykk, lyn, negativ, årer og brennende kant fra `src/04_render.js`, varmekildene fra `src/40_dybde.js`, årene ved lav helse fra `src/34_blod.js`, lyspoolen og kvalitetsmålingen fra `src/15_rom3d.js`, og måling av bildetid fra The Deep Ones (`v2/main.js`).
+
+- `screenFX` (`gfx/screenfx.ts`) er én felles tilstand, som `wind` og `audio`. Spillkoden kaller `shock(pos, styrke)`, `punch(pos)`, `dive(k, hold)`, `boom(pos, størrelse)`, `negative()`, `lightning()`, `health(andel)` (brettet og duellen hver frame) og setter `burnGoal` (METAL MODE). Posisjonene er i verden og projiseres når bildet tegnes.
+- Varmeflimmer: miljøet legger inn kilder med `screenFX.addHeat(pos, radius, styrke, bånd, levetid)` når det bygges (bål i `campfire()`, lavaelva som bånd, brennende trær, lavapøler, fyrfat med ekte ild). Listen tømmes ved scenebytte. Flimmeret forvrenger bare det som ligger bak kilden (dybdetest), så figurer foran bålet står stille.
+- Dråper på glasset: `W.fx.heroHit(kraft, side)` fra `applyHit` når en helt blir truffet (blod fra siden slaget kom fra), `W.fx.screenBlood(n)` på store øyeblikk og `W.fx.lensSplat(pos)` når noe sprenges. Uten etterbehandling (LOW) er 2D-blodet i `fx.ts` reserven, og FAMILY får konfetti. `Env.rain` gir regndråper (ingen brett har regn ennå).
+- Alt oppdateres i `Game.tick` på ekte tid (0 i pause), også når testene kjører uten å tegne. Kameradykket settes som `camera.zoom` før flytende tekst plasseres.
+- Innstillinger: `flashes` (hvite glimt, lyn, negativ; mørke toninger blir svakere) og `distortion` (sjokk, zoom, dykk, flimmer, aberrasjon; dråpene bryter litt lys uansett). Blodet følger gore-nivået. Nytt grafikkvalg nullstiller `autoQuality`.
+- Automatisk kvalitet: `QualityGovernor` (`app/perf.ts`) måler bildefrekvensen i to sekunder om gangen når et brett eller en duell spilles. To målinger under grensen (ULTRA 50, HIGH 40, MEDIUM 30) gir ett trinn ned, lagret i `settings.autoQuality` så neste lasting starter der. Den står av i Playwright med mindre adressen har `?autotune`. `?perf` viser måleren.
+- WebGL mistet: spillet pauser og venter. Når konteksten kommer tilbake, lager `post.recover()` nye mål uten å slette de gamle (de finnes ikke lenger), skyggekartet og miljøkartet tegnes på nytt, og AUTO går ett trinn ned. En selvtest etter hvert nytt nivå går til LOW hvis bildet er helt hvitt eller helt svart. I pause tegnes ikke skyggekartet på nytt, og bildet tegnes bare fire ganger i sekundet (med en gang etter ny størrelse eller nye innstillinger).
+- Lyspoolen (`LightPool` i `vfx.ts`) holder lysene på de samme kildene med inn- og uttoning. Små glimt tar bare ledige lys; store (styrke 15 og mer) låner lyset fra den fjerneste kilden.
+- Nye effekter i sluttpasset legges i COMPOSITE i `post.ts` med en uniform som `screenFX.writeUniforms()` fyller. Sjekk med `tools/tests/screenfx.mjs`.
+
 ### Nytt tre eller ny art
 Legg en `Species` i `SPECIES` (`env/trees.ts`): lengde, radius, seksjoner, barn, vinkler, knudrethet og blader per nivå. Bruk den med `new Forest(art).add(x, z, skala)` og `forest.build()` i biomet.
 
 ## Innstillinger og gore-nivå
 
-`core/settings.ts` lagrer gore-nivå, lydnivå, musikkstil (heavy metal eller 8-bit), innspilte lyder (RECORDED SOUNDS), risting, rumble og berøringsmodus (`loincloth-legends-settings-v1`). `Game` lytter med `onSettings` og setter `Gore.level`, lydnivåene og musikkstilen. Nye felt må også inn i `load()` med sjekk, ellers forsvinner de. Radene i innstillingsmenyen legges inn med `row()`, som gir hver rad sin egen plass, så nye valg kan settes inn hvor som helst. Gore-nivået skalerer partikler, gibs, fontener og blod på skjermen. FAMILY bytter blod mot konfetti og gibs mot gummiender, blomster og stjerner.
+`core/settings.ts` lagrer gore-nivå, lydnivå, musikkstil (heavy metal eller 8-bit), innspilte lyder (RECORDED SOUNDS), risting, blink (FLASHES), forvrengning (SCREEN DISTORTION), rumble, berøringsmodus, grafikknivå og hvor langt AUTO har trappet ned (`loincloth-legends-settings-v1`). `Game` lytter med `onSettings` og setter `Gore.level`, lydnivåene og musikkstilen. Nye felt må også inn i `load()` med sjekk, ellers forsvinner de. Radene i innstillingsmenyen legges inn med `row()`, som gir hver rad sin egen plass, så nye valg kan settes inn hvor som helst. Gore-nivået skalerer partikler, gibs, fontener og blod på skjermen. FAMILY bytter blod mot konfetti og gibs mot gummiender, blomster og stjerner.
 
 ## Input
 

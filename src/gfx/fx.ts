@@ -1,10 +1,13 @@
 // Skjermeffekter: risting, hitstop, slowmo, sverd-spor, tegneserietekst, blod på skjermen.
+// Blodet på skjermen går til dråpene på glasset (screenwet.ts, via screenfx.ts) når etterbehandlingen er på.
+// Det flate 2D-blodet her er reserven på LOW, og FAMILY får konfetti i stedet.
 import * as THREE from 'three';
 import { plainCanvas } from './draw';
 import { rand, pick } from '../core/math';
 import { settings } from '../core/settings';
 import { audio } from '../core/audio';
 import { CONFETTI } from './gore';
+import { screenFX } from './screenfx';
 
 function arcTexture() {
   const cv = plainCanvas(256, 256, (c) => {
@@ -66,7 +69,6 @@ export class FX {
   private glass: GlassHead[] = [];
   /** Kalles når et hode treffer skjermen (brukes til tekst, publikum og tester). */
   onGlassHit: (() => void) | null = null;
-  zoomPunch = 0;
   scene: THREE.Scene | null = null;
 
   constructor(root: HTMLElement) {
@@ -122,7 +124,16 @@ export class FX {
     this.timeScale = scale;
     this.slowTimer = realTime;
   }
+  /**
+   * Farget glimt over hele skjermen. Med FLASHES av blir det bare mørke toninger (magi, raseri, død),
+   * og svakere; lyse og hvite glimt hoppes over.
+   */
   flash(color = '#fff', strength = 0.6, dur = 0.12) {
+    if (!settings.flashes) {
+      const c = new THREE.Color(color);
+      if (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b > 0.2) return;
+      strength *= 0.5;
+    }
     const el = this.flashEl;
     el.style.transition = 'none';
     el.style.background = color;
@@ -130,6 +141,27 @@ export class FX {
     void el.offsetWidth;
     el.style.transition = `opacity ${dur}s ease-out`;
     el.style.opacity = '0';
+  }
+
+  /** Lynglimt: kaldt og sterkest øverst i etterbehandlingen, ellers et blått glimt. Følger FLASHES. */
+  lightningFlash(strength = 0.3, dur = 0.15) {
+    if (!settings.flashes) return;
+    if (screenFX.active) screenFX.lightning(Math.min(1, strength * 1.8));
+    else this.flash('#cfe8ff', strength, dur);
+  }
+
+  /**
+   * En helt er truffet: rød kant, og blod på glasset fra siden slaget kom fra (side -1 venstre, 1 høyre).
+   * power er omtrent skaden delt på maks helse ganger tre (0.35 til 1.6).
+   */
+  heroHit(power: number, side: number) {
+    screenFX.hurt = Math.max(screenFX.hurt, Math.min(1, 0.3 + power * 0.35));
+    screenFX.wet.hit(power, side);
+  }
+
+  /** Blod mot glasset fra et punkt i verden (sprengte fiender). Bare med etterbehandling, ikke på FAMILY. */
+  lensSplat(pos: THREE.Vector3, amount = 1) {
+    screenFX.splatAt(pos, amount);
   }
 
   /** Hvit sverd-bue. angle = rotasjon i xy, facing = speilvending. */
@@ -154,7 +186,15 @@ export class FX {
     this.texts.push({ el, pos: pos.clone(), life, max: life, vy: 1.2 });
   }
 
+  /**
+   * Blod over hele skjermen (helten dør, sjefen dør, hodet i skjermen, halshugging i duellen). Med etterbehandling
+   * blir det dråper på glasset som renner. Ellers (LOW) flate dråper på et 2D-lerret, og konfetti på FAMILY.
+   */
   screenBlood(n = 8) {
+    if (settings.gore > 0 && screenFX.wet.enabled) {
+      screenFX.wet.drench(n);
+      return;
+    }
     const W = this.bloodCv.width, H = this.bloodCv.height;
     const fam = settings.gore === 0;
     n = Math.round(n * [0.6, 0.5, 1, 2.2][settings.gore]);
@@ -316,7 +356,6 @@ export class FX {
     this.shakeAmt = Math.max(0, this.shakeAmt - realDt * 2.8);
     const s = this.shakeAmt * this.shakeAmt * 0.6;
     this.offset.set(rand(-s, s), rand(-s, s), 0);
-    this.zoomPunch = Math.max(0, this.zoomPunch - realDt * 3);
 
     for (let i = this.swooshes.length - 1; i >= 0; i--) {
       const sw = this.swooshes[i];

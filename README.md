@@ -43,7 +43,9 @@ npm run typecheck
 - **Oppstartslogo** for Tom's Happy Happy Funtimes Emporium: trommevirvel, sirkusfanfare, solstråler og konfetti.
 - **Hero Forge**: lag din egen helt (mann eller dame) fra deler. Heroiske 80-talls kropper med altfor store muskler, ringbrynjebikini, røde støvler og bittesmå lendeklær.
 - **Grafikk**: HDR-bilde med bloom, SSAO, dybdeskarphet og fargegradering per brett, fysisk himmel med miljølys, eksponentiell tåke, støyteksturer med normalkart, 3D-steiner og hodeskaller, myke skygger, 3D-trær og gress i vinden, GPU-partikler, lyn og eksplosjoner, blod som lander og tørker inn, 3D-gibs, figurer som tar lys fra fakler og lyn, og mørke silhuetter i forgrunnen. Fem grafikknivåer (AUTO til ULTRA).
-- **Heavy metal**: 80-talls metal syntetisert i nettleseren (vrengte gitarer, dobbel stortromme, tvillinggitarer og solo), én låt per brett. De gamle 8-bit-låtene kan velges i innstillingene.
+- **Heavy metal**: 80-talls metal syntetisert i nettleseren (vrengte gitarer, dobbel stortromme, tvillinggitarer og solo), én låt per brett. En dirigent bytter låt på taktstreken og trapper bandet opp når fiendene kommer. De gamle 8-bit-låtene kan velges i innstillingene.
+- **Lyd**: ekte opptak av slag, knas, sprut og torden (CC0) oppå synthen, stemning per brett og fanfarer for drapsrekker.
+- **Skjerm**: blod og vann som treffer glasset og renner, sjokkbølger, kameradykk, årer ved lav helse, varmeflimmer og automatisk grafikkvalitet.
 - **METAL MODE**: drap og lemlestelse fyller en måler. Full måler gir gitarsolo, brennende våpen, hardere slag og lyn som slår ned i fiendene.
 - **Verdenskart** i 3D med fem biomer, stier, låste noder og fremgang som lagres.
 - **Fem brett** med egne fiender, farer (pigger, myr, råk, lava, piggfeller) og fiender som kommer ridende. Finale per brett: fire sjefer og én duell til døden.
@@ -87,12 +89,17 @@ Loincloth Legends bygger på kode og ideer fra Toms egne spill og fra åpne kild
 
 **Toms egne prosjekter**
 - Morbidium (Tombonator3000/morbidium): bildeverktøyene for ChatGPT-grafikk (maler, klipping, bakgrunn, sømmer og innboks i `tools/process_art.py` og `tools/make_templates.py`) og variasjonen i fiendene (`src/game/foes.ts`).
+- Musikksystemet (bytte på taktstreken med bro, intensitetslag, dukking og innslag i takt, `src/core/conductor.ts`), lydbanken (`src/core/soundbank.ts`), stemningen (`src/core/ambience.ts`) og fanfarene (`src/core/layers.ts`) er tilpasset fra Morbidium. Lagspilleren for syntlyd og zap-lyden bygger på Geometry 3044, og den brune støyen på The Deep Ones.
+- Skjermdråpene (`src/gfx/screenwet.ts`), sjokkbølgene, varmeflimmeret, årene ved lav helse og den brennende kanten (`src/gfx/screenfx.ts`), lyspoolen og den automatiske grafikkvaliteten (`src/app/perf.ts`) er tilpasset fra Morbidium. Målingen av bildetid bygger på The Deep Ones.
 
 **Kode og teknikker fra andre**
 - Gresset og vinden (`src/gfx/env/meadow.ts`, `src/gfx/wind.ts`) er tilpasset fra stylized-meadow-grass i Threejs-Awesome-Graphics-Agent-Skills av Scott Sun (MIT), som bygger på stylized-scene av Andre Elias (MIT). Pakken var også oppskrift for etterbehandling, sol og skygger, partikler og trær.
 - three.js (MIT): motoren, Sky-tillegget og tonekurvene i `src/gfx/post.ts`.
 - Hash etter Dave Hoskins, «Hash without Sine» (MIT).
 - Ben Golus (whiteout-blanding i `src/gfx/env/surface.ts`), Felzenszwalb og Huttenlocher (avstandsfeltet i `src/gfx/charlight.ts`) og mulberry32 (fri).
+- Musikksystemet er inspirert av iMUSE (LucasArts, Michael Land og Peter McConnell). Ingen kode eller musikk er hentet derfra. Tidsstyringen følger Chris Wilsons «A Tale of Two Clocks».
+- Lydopptak fra Freesound, alle CC0 1.0. Tittel, innspiller og lenke for hver fil står i `public/assets/sound/KILDER.md`.
+- Slagverk fra Versilian Community Sample Library (VCSL) av Versilian Studios, CC0 1.0.
 - Skrifttyper fra Google Fonts: Metal Mania, Press Start 2P og VT323 (SIL Open Font License 1.1).
 
 Lisenstekstene ligger i `public/LICENSES/` og i `THIRD_PARTY_LICENSES.md` i bygget. Hele gjennomgangen av opphav og lisenser står i `docs/GJENBRUK.md`.

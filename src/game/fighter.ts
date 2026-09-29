@@ -10,6 +10,7 @@ import { audio } from '../core/audio';
 import { rand, pick, chance, clamp } from '../core/math';
 import type { Debris, BloodKind } from '../gfx/gore';
 import type { WeaponStats } from '../data/weapons';
+import { screenFX } from '../gfx/screenfx';
 
 export type FState =
   | 'idle' | 'walk' | 'jump' | 'attack' | 'hurt' | 'down' | 'getup' | 'dead' | 'block' | 'magic'
@@ -54,6 +55,7 @@ export interface FighterOpts {
 }
 export const bloodOf = (d: CharDef): BloodKind => (d.blood === 'green' ? 'green' : d.blood === 'lava' ? 'lava' : 'red');
 export const GRAVITY = 26;
+const dripTmp = new THREE.Vector3();
 
 /** Replikker når armen ryker. Den første i spillet er alltid den klassiske. */
 export const FLESH_WOUND = ['IT\'S JUST A FLESH WOUND!', 'JUST A FLESH WOUND!', 'I WASN\'T USING THAT ONE!', 'I HAVE ANOTHER ONE!', 'COME BACK HERE, ARM!', 'THAT\'LL BUFF OUT!', 'IT\'S JUST A FLESH WOUND!'];
@@ -112,6 +114,8 @@ export class Fighter {
   corpseLife = 14;
   /** Har liket fått en blodpytt under seg? */
   private pooled = false;
+  /** Tid til neste bloddråpe fra en såret figur (se drip). */
+  private dripT = Math.random() * 0.5;
   removeMe = false;
   headDebris: Debris | null = null;
   lastHitBy: Fighter | null = null;
@@ -413,6 +417,10 @@ export class Fighter {
           W.fx.shake(0.45);
           audio.squish();
           W.stats.gibs += 12;
+          // Kroppen smeller: sjokkbølge og zoomslag i bildet, og litt av den havner på glasset
+          screenFX.shock(tp, 0.8, 0.65, 1.3);
+          screenFX.punch(tp, 0.35);
+          if (style === 'explode' && col === 'red') W.fx.lensSplat(tp, 0.8);
         }
         this.corpseLife = 0.5;
         break;
@@ -440,6 +448,7 @@ export class Fighter {
         g.gibs(hp, 2, 'bone', 0.9);
         g.fountain(this.rig.g.torso, J.neck[0], J.neck[1], 0, 1, 2.4, 1.2, col);
         W.fx.shake(0.35);
+        if (col === 'red') W.fx.lensSplat(hp, 0.5);
         audio.squish();
         this.collapseT = 1.0;
         this.vel.set(dir * 0.3, 0, 0);
@@ -466,11 +475,30 @@ export class Fighter {
     this.onDeath?.(this, killer, style);
   }
 
+  /**
+   * Sårede figurer drypper blod: fiender under halv helse, helter under 30 prosent. Oftere når de beveger seg.
+   * Etter Morbidium (src/34_blod.js). Ikke for skjeletter, lava eller på FAMILY.
+   */
+  private drip(dt: number) {
+    const lim = this.player >= 0 || this.team === 'hero' ? 0.3 : 0.5;
+    if (!this.alive || this.hp >= this.maxHp * lim || this.def.blood === 'bone' || this.def.blood === 'lava' || W.gore.family) return;
+    this.dripT -= dt;
+    if (this.dripT > 0) return;
+    const moving = Math.abs(this.vel.x) + Math.abs(this.vel.z) > 0.6;
+    this.dripT = moving ? rand(0.18, 0.4) : rand(0.7, 1.4);
+    const col = bloodOf(this.def);
+    const p = this.torsoPoint(rand(0.05, 0.4), dripTmp);
+    W.gore.drop(p.x + rand(-0.12, 0.12), p.y, p.z + 0.04, this.vel.x * 0.3 + rand(-0.3, 0.3), rand(-0.6, 0.1), 0, rand(0.05, 0.08), col, 1.5);
+    // Et lite spor på bakken der figuren går
+    if (moving && this.onGround && chance(0.4)) W.gore.splat(this.pos.x + rand(-0.15, 0.15), this.pos.z + rand(-0.05, 0.15), rand(0.12, 0.2), col);
+  }
+
   // ---------------------------------------------------------------- oppdatering
   update(dt: number, b: Bounds) {
     this.st += dt;
     this.invuln = Math.max(0, this.invuln - dt);
     this.flashT = Math.max(0, this.flashT - dt);
+    this.drip(dt);
     const a = this.atk;
     // På ryggen av et ridedyr: dyret bestemmer posisjonen
     if (this.mount && this.alive) {

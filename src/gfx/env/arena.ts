@@ -6,6 +6,7 @@ import { FIRE, ICEFIRE, GHOSTFIRE, type Gore } from '../gore';
 import { applyShadows, lit, M, toon, sky, stoneTex, tileTex, sandTex, texFile, canvasTex, skull3D, type Env } from './common';
 import { vorthaxSprite, princessSprite, crowdTex } from './sprites';
 import { GRADES } from './grades';
+import { screenFX } from '../screenfx';
 import { SunShadow } from './sun';
 
 export type ArenaTheme = 'pit' | 'ice' | 'bone';
@@ -103,6 +104,8 @@ export function buildArena(scene: THREE.Scene, gore: Gore, theme: ArenaTheme = '
     g.add(col);
     g.add(M(new THREE.CylinderGeometry(0.5, 0.2, 0.5, 8), '#3a302e', x, 6.5, z + 0.4, 0.05));
     fireSpots.push(new THREE.Vector3(x, 6.8, z + 0.4));
+    // Ekte ild dirrer (ikke isild og spøkelsesild)
+    if (T.fire === FIRE) screenFX.addHeat(new THREE.Vector3(x, 6.7, z + 0.4), 0.8, 0.8);
     gore.vfx.lights.source(new THREE.Vector3(x, 7.2, z + 1.2), T.light, 22, 16, 0.25);
   }
 
