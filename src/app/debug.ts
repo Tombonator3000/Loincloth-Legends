@@ -9,6 +9,7 @@ import { headCanvas } from '../gfx/rig';
 import { charUniforms } from '../gfx/charlight';
 import { MetalBand, METAL_TRACKS } from '../core/metal';
 import { audio } from '../core/audio';
+import { Conductor, BandPerformer } from '../core/conductor';
 import { WEAPONS } from '../data/weapons';
 import { settings, setSettings } from '../core/settings';
 import { defaultSave } from './save';
@@ -16,6 +17,6 @@ import { images } from '../gfx/assets';
 
 export function installDebug() {
   (window as unknown as { __lib: unknown }).__lib = {
-    THREE, Fighter, W, registerChar, getChar, buildHeroDef, PRESETS, randomHero, HERO_OPTIONS, headCanvas, WEAPONS, settings, setSettings, defaultSave, charUniforms, MetalBand, METAL_TRACKS, audio, images,
+    THREE, Fighter, W, registerChar, getChar, buildHeroDef, PRESETS, randomHero, HERO_OPTIONS, headCanvas, WEAPONS, settings, setSettings, defaultSave, charUniforms, MetalBand, METAL_TRACKS, Conductor, BandPerformer, audio, images,
   };
 }

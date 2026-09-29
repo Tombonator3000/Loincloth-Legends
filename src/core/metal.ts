@@ -1,8 +1,10 @@
-// Heavy metal fra 1980-tallet, syntetisert med WebAudio (ingen lydfiler, se AGENTS.md).
+// Heavy metal fra 1980-tallet, syntetisert med WebAudio. Bare paukene og bekkensvulmen kan komme fra lydbanken
+// (VCSL, CC0) når den er lastet; ellers er alt synth.
 // Dobbeltinnspilte rytmegitarer panorert ut til hver side, kraftakkorder gjennom forvrengning og et
 // høyttalerkabinett, palm mute og galopp, bassgitar, trommer med dobbel stortromme og gated reverb på
 // skarptromma (den store trommelyden fra 80-tallet), og leadgitar med vibrato, bend og ekko. Tvillinggitarer
 // i terser. I METAL MODE spiller leadgitaren en solo som lages fortløpende ut fra akkordene under.
+// Dirigenten (core/conductor.ts) bruker lagbussene, broen, avslutningen og stingerne nederst i MetalBand.
 // Alle riff og melodier her er skrevet for spillet.
 
 const mtof = (m: number) => 440 * Math.pow(2, (m - 69) / 12);
@@ -282,13 +284,92 @@ export function impulse(ctx: BaseAudioContext, dur: number, gated: boolean) {
 
 interface Amp { input: GainNode }
 
+/** Intensitet (core/conductor.ts): 0 rolig, 1 kamp (låta som skrevet), 2 hete, 3 sjef. */
+export type Level = 0 | 1 | 2 | 3;
+
 /**
- * Hele bandet. out er musikkbussen. Lager forsterkere, kabinett, romklang og ekko én gang, og lager nye
+ * Nivået på lagbussene per intensitet: [rytmegitarer, leadgitar, bass, trommer, ekstralaget]. Nivå 1 er låta som
+ * skrevet. Ekstralaget er dobbel stortromme og crash på hver takt (hete), og kor, pauker og stortromme i
+ * sekstendeler (sjef).
+ */
+const MIX: Record<Level, readonly [number, number, number, number, number]> = {
+  0: [0.74, 0.3, 0.9, 0.8, 0],
+  1: [1, 1, 1, 1, 0],
+  2: [1, 1.12, 1, 1, 1],
+  3: [1.04, 1.12, 1.06, 1.04, 1],
+};
+
+/** Inngangene til gitarene og bassen for én låt. Ved et bytte kveles det som fortsatt klinger fra den gamle. */
+interface Section { nodes: GainNode[]; r: GainNode[]; lead: GainNode; bass: GainNode; end: number }
+
+/** Et opptak bandet kan bruke (VCSL-bekkenet): bufferet og stillheten foran i sekunder. */
+export interface Sample { buf: AudioBuffer; lead: number }
+/** Stemt slagverk fra lydbanken (paukene): gruppe, MIDI-tone, tid, nivå og buss. Gir false når opptaket mangler. */
+export type Sampler = (group: string, midi: number, t: number, vol: number, out: AudioNode) => boolean;
+
+/** Flytt en tone med hele oktaver til den ligger fra lo og opp til (men ikke med) lo + 12. */
+export function fold(m: number, lo: number) {
+  return lo + ((((m - lo) % 12) + 12) % 12);
+}
+/** Grunntonen som gitarakkord (E2 til D#3). */
+const guitar = (root: number) => fold(root, 40);
+const inScale = (m: number, scale: number[]) => scale.includes(((m % 12) + 12) % 12);
+/** Nærmeste skalatone på eller under m (blåtonene i riffene, som A# i myra, ligger utenfor skalaen). */
+function snap(m: number, scale: number[]) {
+  for (let k = 0; k < 12; k++) if (inScale(m - k, scale)) return m - k;
+  return m;
+}
+/** En tone et antall skalatrinn over m (0 = m selv). */
+const deg = (m: number, d: number, scale: number[]) => (d === 0 ? m : diatonic(m, d, scale));
+
+/**
+ * Toppen i et opptak (sekunder inn i bufferet), målt én gang. Morbidiums svulm tok midten av de 20 ms med mest energi.
+ * VCSL-bekkenet vokser i over ett sekund og ligger så nesten flatt i et halvt, så her er toppen der crescendoet når
+ * fram: første vindu på 20 ms som er innenfor 1,5 dB av det sterkeste.
+ */
+const peaks = new WeakMap<AudioBuffer, number>();
+export function peakOf(b: AudioBuffer) {
+  const known = peaks.get(b);
+  if (known !== undefined) return known;
+  const d = b.getChannelData(0);
+  const w = Math.max(1, Math.floor(b.sampleRate * 0.02));
+  const hop = Math.max(1, Math.floor(w / 4));
+  const en: number[] = [];
+  for (let i = 0; i + w <= d.length; i += hop) {
+    let s = 0;
+    for (let j = i; j < i + w; j++) s += d[j] * d[j];
+    en.push(s);
+  }
+  let top = 0;
+  for (const e of en) top = Math.max(top, e);
+  const k = Math.max(0, en.findIndex((e) => e >= top * 0.708));
+  const p = (k * hop + w / 2) / b.sampleRate;
+  peaks.set(b, p);
+  return p;
+}
+
+/**
+ * Hele bandet. dest er musikkbussen. Lager forsterkere, kabinett, romklang og ekko én gang, og lager nye
  * oscillatorer per tone (WebAudio-oscillatorer kan bare startes én gang).
+ *
+ * Lagene (dirigenten, core/conductor.ts): rytmegitarene, leadgitaren, bassen og trommene har hver sin buss som
+ * intensiteten skrur opp og ned, og et ekstralag (dobbel stortromme, crash, kor og pauker) kommer inn ved hete og
+ * sjef. Stingere (stuping, skrik, bekkensvulm, innslagene) går utenom lagene, så de alltid høres.
  */
 export class MetalBand {
-  /** METAL MODE: soloen erstatter melodien, og trommeslageren gir alt. */
+  /** METAL MODE: trommeslageren gir alt (stortromme i sekstendeler og crash på hver takt). */
   shred = false;
+  /**
+   * Soloen erstatter melodien. null betyr at den følger shred (som før dirigenten kom). Dirigenten setter den selv,
+   * så soloen starter på taktstreken selv når METAL MODE kommer inn på et slag midt i takten.
+   */
+  solo: boolean | null = null;
+  /** Intensiteten (setLevel). */
+  level: Level = 1;
+  /** Pauker fra lydbanken (settes av AudioEngine). Uten den spiller bandet syntpauker. */
+  sampler: Sampler | null = null;
+  /** Bekkensvulmen fra lydbanken (VCSL ins_bekken_1). Uten den blir svulmen en baklengs crash i synth. */
+  swellSample: (() => Sample | null) | null = null;
   private noise: AudioBuffer;
   private rhythm: Amp[] = [];
   private lead: Amp;
@@ -297,8 +378,20 @@ export class MetalBand {
   private hall: GainNode;
   private gate: GainNode;
   private echo: DelayNode;
+  private echoSd = 0;
+  private rhythmBus: GainNode;
+  private leadBus: GainNode;
+  private bassOut: GainNode;
+  private extra: GainNode;
+  private extraKit: GainNode;
+  private fx: GainNode;
+  private fxKit: GainNode;
+  private stingIn: GainNode | null = null;
+  private sec: Section;
+  private oldSecs: Section[] = [];
   private soloPhrase = 0;
   private soloSeed = 1;
+  private soloFresh = false;
 
   constructor(private ctx: BaseAudioContext, dest: AudioNode) {
     const c = ctx;
@@ -307,6 +400,12 @@ export class MetalBand {
     out.type = 'highpass';
     out.frequency.value = 38;
     out.connect(dest);
+    const bus = (v: number) => {
+      const g = c.createGain();
+      g.gain.value = v;
+      g.connect(out);
+      return g;
+    };
     this.noise = c.createBuffer(1, c.sampleRate, c.sampleRate);
     const nd = this.noise.getChannelData(0);
     for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
@@ -327,17 +426,19 @@ export class MetalBand {
     this.gate = c.createGain();
     this.gate.connect(gate);
 
-    // To rytmegitarer, én på hver side (dobbeltinnspilling)
+    // To rytmegitarer, én på hver side (dobbeltinnspilling), på hver sin buss for lagene
+    this.rhythmBus = bus(1);
     for (const pan of [-0.8, 0.8]) {
       const amp = this.makeAmp(18, 110, 5200, 0.42);
       const p = c.createStereoPanner();
       p.pan.value = pan;
-      amp.out.connect(p).connect(out);
+      amp.out.connect(p).connect(this.rhythmBus);
       this.rhythm.push({ input: amp.input });
     }
-    // Leadgitar i midten, mer gain, ekko og hall
+    // Leadgitar i midten, mer gain, ekko og hall. Ekkoet og hallen hentes etter lagbussen, så halen følger med ned.
     const lead = this.makeAmp(34, 320, 4600, 0.26);
-    lead.out.connect(out);
+    this.leadBus = bus(1);
+    lead.out.connect(this.leadBus);
     this.echo = c.createDelay(1.5);
     this.echo.delayTime.value = 0.3;
     const fb = c.createGain();
@@ -347,10 +448,10 @@ export class MetalBand {
     echoTone.frequency.value = 2400;
     const echoOut = c.createGain();
     echoOut.gain.value = 0.35;
-    lead.out.connect(this.echo);
+    this.leadBus.connect(this.echo);
     this.echo.connect(echoTone).connect(fb).connect(this.echo);
     echoTone.connect(echoOut).connect(out);
-    lead.out.connect(this.hall);
+    this.leadBus.connect(this.hall);
     this.lead = { input: lead.input };
 
     // Bassgitar: litt knurr, ikke mye
@@ -360,13 +461,20 @@ export class MetalBand {
     const bassLp = c.createBiquadFilter();
     bassLp.type = 'lowpass';
     bassLp.frequency.value = 1100;
-    const bassOut = c.createGain();
-    bassOut.gain.value = 0.3;
-    this.bassIn.connect(bassDrive).connect(bassLp).connect(bassOut).connect(out);
+    this.bassOut = bus(0.3);
+    this.bassIn.connect(bassDrive).connect(bassLp).connect(this.bassOut);
 
-    this.drums = c.createGain();
-    this.drums.gain.value = 0.72;
-    this.drums.connect(out);
+    this.drums = bus(0.72);
+    // Ekstralaget (hete og sjef) og stingerne, som går utenom lagene
+    this.extra = bus(0);
+    this.extraKit = c.createGain();
+    this.extraKit.gain.value = 0.72;
+    this.extraKit.connect(this.extra);
+    this.fx = bus(1);
+    this.fxKit = c.createGain();
+    this.fxKit.gain.value = 0.72;
+    this.fxKit.connect(this.fx);
+    this.sec = this.section();
   }
 
   /** Forvrenger og kabinett: inn, høypass, forvrengning, to lavpass (4x12-kabinett), litt nærvær, ut. */
@@ -402,6 +510,51 @@ export class MetalBand {
     return { input, out };
   }
 
+  /** Leadgitaren for stingerne: en egen forsterker utenom lagene og bytteinngangene, laget første gang den trengs. */
+  private sting(): GainNode {
+    if (!this.stingIn) {
+      const a = this.makeAmp(34, 320, 4600, 0.26);
+      a.out.connect(this.fx);
+      a.out.connect(this.hall);
+      this.stingIn = a.input;
+    }
+    return this.stingIn;
+  }
+
+  private section(): Section {
+    const c = this.ctx;
+    const mk = (to: AudioNode) => {
+      const g = c.createGain();
+      g.connect(to);
+      return g;
+    };
+    const r = this.rhythm.map((a) => mk(a.input));
+    const lead = mk(this.lead.input);
+    const bass = mk(this.bassIn);
+    return { nodes: [...r, lead, bass], r, lead, bass, end: Infinity };
+  }
+
+  /**
+   * Kvel alt som klinger fra gitarene og bassen ved t (broen, et bytte, en avslutning eller et stopp). Nye toner går
+   * til nye innganger, så akkorder som fortsatt ringer fra den gamle låta ikke legger seg over den nye.
+   */
+  choke(t: number, fade = 0.04) {
+    const old = this.sec;
+    for (const g of old.nodes) {
+      g.gain.setValueAtTime(1, t);
+      g.gain.linearRampToValueAtTime(0, t + fade);
+    }
+    old.end = t + fade;
+    const now = this.ctx.currentTime;
+    this.oldSecs = this.oldSecs.filter((s) => {
+      if (s.end > now - 5) return true;
+      for (const g of s.nodes) g.disconnect();
+      return false;
+    });
+    this.oldSecs.push(old);
+    this.sec = this.section();
+  }
+
   private noiseAt(t: number, dur: number, dest: AudioNode, type: BiquadFilterType, freq: number, peak: number, decay: number, q = 0.7) {
     const c = this.ctx;
     const s = c.createBufferSource();
@@ -420,10 +573,11 @@ export class MetalBand {
   }
 
   // ---------------------------------------------------------------- gitarer
-  /** Kraftakkord (grunntone, kvint og oktav) på begge gitarene. Palm mute er mørk og kort. */
-  powerChord(t: number, root: number, dur: number, open: boolean, vel = 1) {
+  /** Kraftakkord (grunntone, kvint og oktav) på begge gitarene. Palm mute er mørk og kort. Bassen følger med. */
+  powerChord(t: number, root: number, dur: number, open: boolean, vel = 1, withBass = true) {
     const c = this.ctx;
-    this.rhythm.forEach((amp, side) => {
+    this.rhythm.forEach((_amp, side) => {
+      const input = this.sec.r[side];
       const t0 = t + side * 0.007;
       const f = c.createBiquadFilter();
       f.type = 'lowpass';
@@ -440,7 +594,7 @@ export class MetalBand {
         g.gain.exponentialRampToValueAtTime(vel * 0.3, t0 + len * 0.7);
         g.gain.exponentialRampToValueAtTime(0.0001, t0 + len + 0.03);
       }
-      f.connect(g).connect(amp.input);
+      f.connect(g).connect(input);
       const notes = open ? [0, 7, 12] : [0, 7];
       const cents = side ? [-4, 5, 3] : [2, -2, -3];
       notes.forEach((iv, k) => {
@@ -453,10 +607,10 @@ export class MetalBand {
         o.stop(t0 + len + 0.1);
       });
       // Plekteret
-      this.noiseAt(t0, 0.02, amp.input, 'highpass', 1800, 0.35 * vel, 0.012);
+      this.noiseAt(t0, 0.02, input, 'highpass', 1800, 0.35 * vel, 0.012);
     });
     // Bassen følger grunntonen en oktav ned
-    this.bass(t, root - 12, open ? dur : Math.min(dur, 0.24), vel);
+    if (withBass) this.bass(t, root - 12, open ? dur : Math.min(dur, 0.24), vel);
   }
 
   private bass(t: number, m: number, dur: number, vel: number) {
@@ -470,7 +624,7 @@ export class MetalBand {
     f.type = 'lowpass';
     f.frequency.setValueAtTime(1400, t);
     f.frequency.exponentialRampToValueAtTime(380, t + dur + 0.05);
-    f.connect(g).connect(this.bassIn);
+    f.connect(g).connect(this.sec.bass);
     for (const type of ['sawtooth', 'sine'] as const) {
       const o = c.createOscillator();
       o.type = type;
@@ -481,15 +635,14 @@ export class MetalBand {
     }
   }
 
-  /** Én leadtone med forsinket vibrato og eventuelt bend. */
-  leadNote(t: number, m: number, dur: number, bend = 0, vel = 1, pan = 0) {
+  /** Én leadtone med forsinket vibrato og eventuelt bend. dest er stingergitaren for innslagene. */
+  leadNote(t: number, m: number, dur: number, bend = 0, vel = 1, pan = 0, dest: AudioNode = this.sec.lead) {
     const c = this.ctx;
     const g = c.createGain();
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(vel, t + 0.006);
     g.gain.setValueAtTime(vel, t + Math.max(0.012, dur - 0.02));
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.07);
-    let dest: AudioNode = this.lead.input;
     if (pan) {
       const p = c.createStereoPanner();
       p.pan.value = pan;
@@ -526,7 +679,7 @@ export class MetalBand {
   }
 
   // ---------------------------------------------------------------- trommer
-  kick(t: number, vel = 1) {
+  kick(t: number, vel = 1, dest: AudioNode = this.drums) {
     const c = this.ctx;
     const o = c.createOscillator();
     o.frequency.setValueAtTime(170, t);
@@ -535,11 +688,11 @@ export class MetalBand {
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(vel * 0.85, t + 0.002);
     g.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
-    o.connect(g).connect(this.drums);
+    o.connect(g).connect(dest);
     o.start(t);
     o.stop(t + 0.17);
     // Klikket fra køllen, viktig for at dobbel stortromme skal høres i gitarveggen
-    this.noiseAt(t, 0.02, this.drums, 'bandpass', 3800, 0.55 * vel, 0.014, 1.2);
+    this.noiseAt(t, 0.02, dest, 'bandpass', 3800, 0.55 * vel, 0.014, 1.2);
   }
 
   snare(t: number, vel = 1) {
@@ -564,20 +717,20 @@ export class MetalBand {
     this.noiseAt(t, 0.05, this.drums, 'highpass', 7500, 0.22 * vel, 0.04);
   }
 
-  crash(t: number, vel = 1) {
-    const g = this.noiseAt(t, 1.7, this.drums, 'highpass', 3800, 0.4 * vel, 1.6);
+  crash(t: number, vel = 1, dest: AudioNode = this.drums) {
+    const g = this.noiseAt(t, 1.7, dest, 'highpass', 3800, 0.4 * vel, 1.6);
     g.connect(this.hall);
-    this.noiseAt(t, 0.6, this.drums, 'bandpass', 6200, 0.25 * vel, 0.5, 3);
+    this.noiseAt(t, 0.6, dest, 'bandpass', 6200, 0.25 * vel, 0.5, 3);
   }
 
-  tom(t: number, pitch: number) {
+  tom(t: number, pitch: number, vel = 1) {
     const c = this.ctx;
     const o = c.createOscillator();
     o.frequency.setValueAtTime(pitch, t);
     o.frequency.exponentialRampToValueAtTime(pitch * 0.55, t + 0.25);
     const g = c.createGain();
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.7, t + 0.003);
+    g.gain.exponentialRampToValueAtTime(0.7 * vel, t + 0.003);
     g.gain.exponentialRampToValueAtTime(0.0001, t + 0.32);
     o.connect(g).connect(this.drums);
     g.connect(this.gate);
@@ -585,29 +738,171 @@ export class MetalBand {
     o.stop(t + 0.34);
   }
 
-  // ---------------------------------------------------------------- avspilling
+  /** Pauke på en tone: VCSL-opptaket fra lydbanken når det finnes, ellers en syntpauke (sinus med et lite fall). */
+  private timpani(t: number, midi: number, vol: number, out: AudioNode = this.extra) {
+    if (this.sampler?.('ins_pauke', midi, t, vol, out)) return;
+    const c = this.ctx;
+    const f0 = mtof(midi);
+    const o = c.createOscillator();
+    o.frequency.setValueAtTime(f0 * 1.05, t);
+    o.frequency.exponentialRampToValueAtTime(f0, t + 0.08);
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.9 * vol, t + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+    o.connect(g).connect(out);
+    o.start(t);
+    o.stop(t + 1);
+    this.noiseAt(t, 0.05, out, 'lowpass', 900, 0.35 * vol, 0.05);
+  }
+
+  // ---------------------------------------------------------------- avspilling og lag
+  /** Soloen spiller nå (se solo). */
+  get soloing() {
+    return this.solo ?? this.shred;
+  }
+
+  /** Intensiteten som styrer hva som spilles: METAL MODE teller som minst hete (trommeslageren gir alt). */
+  private get eff(): Level {
+    return this.shred ? (Math.max(this.level, 2) as Level) : this.level;
+  }
+
+  /** Ekkoet er tre sekstendeler. Det settes bare når tempoet endres, og glir over, så ekkohalen ikke knitrer. */
+  private setEcho(sd: number, t: number) {
+    if (Math.abs(sd - this.echoSd) < 1e-5) return;
+    const d = this.echo.delayTime;
+    if (this.echoSd === 0) d.setValueAtTime(sd * 3, t);
+    else d.setTargetAtTime(sd * 3, t, 0.15);
+    this.echoSd = sd;
+  }
+
+  /** Nivået på lagbussene for intensiteten (og METAL MODE, der leadgitaren aldri dempes). */
+  private mix(t: number, tc: number) {
+    const m = MIX[this.eff];
+    this.rhythmBus.gain.setTargetAtTime(m[0], t, tc);
+    this.leadBus.gain.setTargetAtTime(this.shred ? Math.max(1.12, m[1]) : m[1], t, tc);
+    this.bassOut.gain.setTargetAtTime(0.3 * m[2], t, tc);
+    this.drums.gain.setTargetAtTime(0.72 * m[3], t, tc);
+    this.extra.gain.setTargetAtTime(m[4], t, tc);
+  }
+
+  /**
+   * Bytt intensitet ved t (dirigenten legger opp på et slag og ned på en taktstrek). Opp går fort og får crash og
+   * stortromme på slaget (Morbidium: bekken og pauke). Ned glir over en tredel av en takt. fast = ved låtstart.
+   */
+  setLevel(n: Level, t: number, sd: number, fast = false) {
+    const up = n > this.level;
+    this.level = n;
+    this.mix(t, fast || up ? 0.03 : (sd * 16) / 3);
+    if (up && !fast) {
+      this.crash(t, 0.5 + 0.1 * n, this.fxKit);
+      this.kick(t, 1, this.fxKit);
+      if (n === 3) this.timpani(t, 40, 0.6, this.fxKit);
+    }
+  }
+
+  /** METAL MODE inn (på et slag) eller ut (på en taktstrek): trommene og lagbussene følger med. */
+  setShred(on: boolean, t: number, sd: number) {
+    this.shred = on;
+    if (!on) this.solo = false;
+    this.mix(t, on ? 0.03 : (sd * 16) / 3);
+  }
+
+  /** Soloen starter (på en taktstrek), med skalaløpet som første frase. */
+  startSolo() {
+    this.solo = true;
+    this.soloFresh = true;
+  }
+
   /** Spill ett sekstendelssteg av en låt. s er steget i runden, sd er lengden på et steg i sekunder. */
   playStep(tr: MetalTrack, s: number, t: number, sd: number) {
-    this.echo.delayTime.setValueAtTime(sd * 3, t);
+    this.setEcho(sd, t);
+    const L = this.eff;
     for (const n of tr.riff) if (n[0] === s) this.powerChord(t, n[1], n[2] * sd, n[3], n[3] ? 0.9 : 0.8);
-    if (this.shred) this.solo(tr, s, t, sd);
+    if (this.soloing) this.soloStep(tr, s, t, sd);
     else
       for (const n of tr.lead) {
         if (n[0] !== s) continue;
         const dur = n[2] * sd;
         this.leadNote(t, n[1], dur, n[3], 0.9);
-        const h = n[4] === -1 ? (tr.twin ? diatonic(n[1], tr.twin, tr.scale) : 0) : n[4];
+        // Tvillingstemmen tier når det er rolig
+        const h = L === 0 ? 0 : n[4] === -1 ? (tr.twin ? diatonic(n[1], tr.twin, tr.scale) : 0) : n[4];
         if (h) this.leadNote(t + 0.004, h, dur, n[3], 0.7, 0.35);
       }
-    // I METAL MODE går stortromma i sekstendeler og det er crash på hver takt
+    // Trommer. I METAL MODE går stortromma i sekstendeler og det er crash på hver takt. Hete og sjef legger dobbel
+    // stortromme (åttendeler og sekstendeler) og crash på hver takt i ekstralaget. Rolig: hi-hat bare på slagene.
     if (this.shred) {
       this.kick(t, s % 4 === 0 ? 1 : 0.75);
       if (s % 16 === 0) this.crash(t, 0.8);
     } else if (tr.kick.includes(s)) this.kick(t, s % 4 === 0 ? 1 : 0.8);
+    else if (L === 3 || (L === 2 && s % 2 === 0)) this.kick(t, s % 2 === 0 ? 0.62 : 0.48, this.extraKit);
     if (tr.snare.includes(s)) this.snare(t);
-    if (tr.hat.includes(s)) this.hat(t, s % 4 === 0 ? 1 : 0.7);
-    if (tr.crash.includes(s)) this.crash(t);
+    if (tr.hat.includes(s) && (L > 0 || s % 4 === 0)) this.hat(t, s % 4 === 0 ? 1 : 0.7);
+    if (tr.crash.includes(s) && (L > 0 || s === 0)) this.crash(t);
+    else if (L >= 2 && !this.shred && s % 16 === 0) this.crash(t, 0.6, this.extraKit);
     if (tr.tom.includes(s)) this.tom(t, 180 - (s % 4) * 30);
+    if (this.level === 3) this.bossLayer(tr, s, t, sd);
+  }
+
+  /**
+   * Sjefslaget (Morbidiums sjefslag i metall): pauker på grunntonen på hver taktstrek, kor på hver takt og der riffet
+   * slår en åpen akkord, og paukene ruller mot slutten av hver fjerde takt med kvinten til slutt.
+   */
+  private bossLayer(tr: MetalTrack, s: number, t: number, sd: number) {
+    const bar = s % 16;
+    const root = guitar(tr.roots?.[s] ?? 40);
+    if (bar === 0) this.timpani(t, root, 0.55);
+    const open = tr.riff.find((n) => n[0] === s && n[3]);
+    if (bar === 0 || open) {
+      // Koret holder til neste åpne akkord eller taktstreken
+      let len = 16 - bar;
+      for (const n of tr.riff) if (n[3] && n[0] > s && n[0] - s < len) len = n[0] - s;
+      this.pad(t, root, tr.scale, len * sd);
+    }
+    if (Math.floor(s / 16) % 4 === 3 && bar >= 10 && bar % 2 === 0) this.timpani(t, root + (bar === 14 ? 7 : 0), 0.3 + (bar - 10) * 0.05);
+  }
+
+  /** Kor og messing i ett: tre toner i akkorden, to ustemte sagtenner per tone gjennom et formantfilter (Morbidiums «kor»). */
+  private pad(t: number, root: number, scale: number[], dur: number, vel = 1) {
+    const c = this.ctx;
+    const base = fold(root, 52);
+    // Tersen fra skalaen gir akkorden dur eller moll. En blåtone (utenfor skalaen) får bare kvint og oktav.
+    const notes = inScale(base, scale) ? [base, deg(base, 2, scale), base + 7] : [base, base + 7, base + 12];
+    const g = c.createGain();
+    const a = Math.min(0.12, dur * 0.3);
+    const v = 0.05 * vel;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(v, t + a);
+    g.gain.setValueAtTime(v, t + Math.max(a, dur - 0.06));
+    g.gain.linearRampToValueAtTime(0.0001, t + dur + 0.25);
+    const bp = c.createBiquadFilter();
+    bp.type = 'bandpass';
+    bp.frequency.value = 950;
+    bp.Q.value = 1.1;
+    const lp = c.createBiquadFilter();
+    lp.type = 'lowpass';
+    lp.frequency.value = 2600;
+    bp.connect(lp).connect(g);
+    g.connect(this.extra);
+    g.connect(this.hall);
+    const vib = c.createOscillator();
+    vib.frequency.value = 5.2;
+    const vg = c.createGain();
+    vg.gain.value = 12;
+    vib.connect(vg);
+    for (const m of notes)
+      for (const det of [-7, 6]) {
+        const o = c.createOscillator();
+        o.type = 'sawtooth';
+        o.frequency.value = mtof(m);
+        o.detune.value = det;
+        vg.connect(o.detune);
+        o.connect(bp);
+        o.start(t);
+        o.stop(t + dur + 0.3);
+      }
+    vib.start(t);
+    vib.stop(t + dur + 0.3);
   }
 
   private rnd() {
@@ -621,11 +916,12 @@ export class MetalBand {
    * trille eller lange bend), og hver fjerde takt slutter med et stort bend. Tonene hentes fra skalaen
    * rundt akkorden som spilles under, lagt i leadgitarens register (rundt H4 til A#5 og oppover).
    */
-  private solo(tr: MetalTrack, s: number, t: number, sd: number) {
+  private soloStep(tr: MetalTrack, s: number, t: number, sd: number) {
     const bar = s % 16;
     if (bar === 0) {
       const n = Math.floor(s / 16);
-      this.soloPhrase = n % 4 === 3 ? 5 : Math.floor(this.rnd() * 5);
+      this.soloPhrase = this.soloFresh ? 0 : n % 4 === 3 ? 5 : Math.floor(this.rnd() * 5);
+      this.soloFresh = false;
     }
     const sc = tr.scale;
     let base = (tr.roots ? tr.roots[s % tr.steps] : 40) + 24;
@@ -677,28 +973,193 @@ export class MetalBand {
     }
   }
 
-  // ---------------------------------------------------------------- stingere
-  /** Enorm åpen E-akkord med crash og stortromme (brettstart). */
-  bigChord(t: number) {
-    this.powerChord(t, 40, 1.6, true, 1);
-    this.crash(t);
-    this.kick(t);
+  // ---------------------------------------------------------------- overganger (dirigenten)
+  /**
+   * Ett steg av broen til en ny låt (det siste slaget før byttet), k av n steg. Den gamle låta kveles, tammene tar en
+   * virvel nedover med skarptromme til slutt, gitarene holder en kvintakkord på dominanten i den nye tonearten, og
+   * bassen går opp mot den nye grunntonen (kvinten, så kromatisk). Tilpasset fra Morbidiums bro, der en harpe løper
+   * opp dominanten.
+   */
+  bridgeStep(k: number, n: number, toRoot: number, t: number, sd: number) {
+    const r = guitar(toRoot);
+    if (k === 0) {
+      this.choke(t, 0.05);
+      this.powerChord(t, fold(r + 7, 40), n * sd + 0.01, true, 0.92, false);
+    }
+    const i = 4 - n + k;
+    this.bass(t, r - 12 + [7, 9, 10, 11][i], sd * 0.92, 0.9);
+    this.tom(t, 215 - i * 34, 0.9 + i * 0.05);
+    if (k === n - 1) {
+      this.snare(t, 0.7);
+      this.snare(t + sd * 0.5, 1);
+    }
   }
 
-  /** Vektarm-dykk: en tone som faller to oktaver. */
-  diveBomb(t: number) {
+  /** Første slag i en ny låt: stortromme, crash og en stor akkord på den nye grunntonen, og en pauke. */
+  downbeat(t: number, root: number, sd: number, boss = false) {
+    const r = guitar(root);
+    this.choke(t, 0.02);
+    this.powerChord(t, r, (boss ? 8 : 4) * sd, true, 1);
+    this.kick(t, 1.1, this.fxKit);
+    this.crash(t, 1, this.fxKit);
+    if (boss) this.crash(t + 0.012, 0.8, this.fxKit);
+    this.timpani(t, r, boss ? 0.8 : 0.45, this.fxKit);
+  }
+
+  /**
+   * Bekkensvulm som topper nøyaktig ved T (Morbidiums svulm). VCSL-opptaket (en crescendo på to sekunder) når det er
+   * lastet: toppen måles én gang, og lyden startes midt i når det er kort tid igjen. Ellers en baklengs crash i synth
+   * med samme timing. Under 0,25 sekunder blir det ingen svulm. Gir tilbake en stopper (hvis byttet avlyses).
+   */
+  swell(T: number, now: number, vel = 1): (() => void) | null {
+    const c = this.ctx;
+    const smp = this.swellSample?.() ?? null;
+    let src: AudioBufferSourceNode;
+    const g = c.createGain();
+    if (smp) {
+      const peak = peakOf(smp.buf);
+      const t0 = Math.max(now + 0.02, T - Math.max(0, peak - smp.lead));
+      if (T - t0 < 0.25) return null;
+      src = c.createBufferSource();
+      src.buffer = smp.buf;
+      // Opptaket holder seg nesten flatt etter toppen, så det tones ut fra første slag, der crashen tar over
+      const v = 0.55 * vel;
+      g.gain.setValueAtTime(v, t0);
+      g.gain.setValueAtTime(v, T + 0.02);
+      g.gain.linearRampToValueAtTime(0.0001, T + 0.3);
+      src.connect(g);
+      src.start(t0, Math.max(0, peak - (T - t0)));
+      src.stop(T + 0.35);
+    } else {
+      const len = Math.min(1.8, T - now - 0.02);
+      if (len < 0.25) return null;
+      const t0 = T - len;
+      src = c.createBufferSource();
+      src.buffer = this.noise;
+      src.loop = true;
+      const hp = c.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 2400;
+      const bp = c.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.Q.value = 0.7;
+      bp.frequency.setValueAtTime(2600, t0);
+      bp.frequency.exponentialRampToValueAtTime(9000, T);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.5 * vel, T);
+      g.gain.linearRampToValueAtTime(0.0001, T + 0.03);
+      src.connect(hp).connect(bp).connect(g);
+      src.start(t0, Math.random() * 0.5);
+      src.stop(T + 0.06);
+    }
+    g.connect(this.fx);
+    g.connect(this.hall);
+    let done = false;
+    return () => {
+      if (done) return;
+      done = true;
+      const n = c.currentTime;
+      g.gain.cancelScheduledValues(n);
+      g.gain.setTargetAtTime(0, n, 0.02);
+      try {
+        src.stop(n + 0.1);
+      } catch {
+        /* allerede stoppet */
+      }
+    };
+  }
+
+  /**
+   * Avslutningen (sjefen er død), k er steget fra første slag: en stor akkord som holder, en virvel i fjerde slag av
+   * neste takt, og en siste akkord med dobbel crash, pauke og et langt bend på toppen som ringer ut.
+   */
+  endingStep(root: number, k: number, t: number, sd: number) {
+    const r = guitar(root);
+    if (k === 0) {
+      this.choke(t, 0.03);
+      this.powerChord(t, r, 12 * sd, true, 1);
+      this.crash(t, 1, this.fxKit);
+      this.kick(t, 1.1, this.fxKit);
+    } else if (k >= 12 && k < 16) {
+      this.tom(t, 215 - (k - 12) * 34, 1);
+      if (k === 15) this.snare(t, 1);
+    } else if (k === 16) {
+      this.choke(t, 0.02);
+      this.powerChord(t, r, 2.6, true, 1);
+      this.crash(t, 1, this.fxKit);
+      this.crash(t + 0.012, 0.8, this.fxKit);
+      this.kick(t, 1.2, this.fxKit);
+      this.timpani(t, r, 0.8, this.fxKit);
+      const top = fold(r + 24, 62);
+      this.leadNote(t, top - 2, 2.3, 2, 0.85, 0, this.sting());
+    }
+  }
+
+  /** Tremolo på grunntonen det siste slaget før taktstreken (METAL MODE kommer inn, soloen starter på streken). */
+  tremolo(t: number, until: number, root: number, sd: number) {
+    const m = fold(root, 64) + 12;
+    const d = sd / 2;
+    const from = Math.max(t, until - 4 * sd);
+    for (let x = from; x < until - d * 0.5; x += d) this.leadNote(x, m, d * 0.9, 0, 0.4 + (0.45 * (x - from)) / Math.max(d, until - from), 0, this.sting());
+  }
+
+  /** Bølge ryddet: tvillinglick opp akkorden i åttendeler (grunntone, ters, kvint og oktav) med crash. */
+  lick(t: number, root: number, scale: number[], sd: number) {
+    const base = snap(fold(root, 62), scale);
+    [0, 2, 4, 7].forEach((d, i) => {
+      const m = deg(base, d, scale);
+      const len = (i === 3 ? 6 : 2) * sd;
+      this.leadNote(t + i * 2 * sd, m, len * 0.95, 0, 0.8, 0, this.sting());
+      this.leadNote(t + i * 2 * sd + 0.004, deg(m, 2, scale), len * 0.95, 0, 0.55, 0.35, this.sting());
+    });
+    this.crash(t, 0.6, this.fxKit);
+    this.kick(t, 0.9, this.fxKit);
+  }
+
+  /** Nytt nivå: skalaløp opp en oktav i sekstendeler, og toppen holdes med tvillingstemme og crash. */
+  run(t: number, root: number, scale: number[], sd: number) {
+    const base = snap(fold(root, 62), scale);
+    for (let i = 0; i < 8; i++) this.leadNote(t + i * sd, deg(base, i, scale), sd * 1.02, 0, 0.7 + i * 0.02, 0, this.sting());
+    const top = base + 12;
+    this.leadNote(t + 8 * sd, top, 6 * sd, 0, 0.9, 0, this.sting());
+    this.leadNote(t + 8 * sd + 0.004, deg(top, 2, scale), 6 * sd, 0, 0.6, 0.35, this.sting());
+    this.crash(t + 8 * sd, 0.7, this.fxKit);
+    this.kick(t + 8 * sd, 0.9, this.fxKit);
+  }
+
+  /** Et slag i tonearten (FIGHT! og KO): stortromme, crash og en åpen akkord på grunntonen i ett slag. */
+  hit(t: number, root: number, sd: number) {
+    this.powerChord(t, guitar(root), 4 * sd, true, 1);
+    this.crash(t, 0.9, this.fxKit);
+    this.kick(t, 1.1, this.fxKit);
+  }
+
+  // ---------------------------------------------------------------- stingere
+  /** Enorm åpen akkord med crash og stortromme (brettstart). root er grunntonen (E som standard). */
+  bigChord(t: number, root = 40, len = 1.6) {
+    this.powerChord(t, guitar(root), len, true, 1);
+    this.crash(t, 1, this.fxKit);
+    this.kick(t, 1, this.fxKit);
+  }
+
+  /**
+   * Vektarm-dykk: en tone som faller to oktaver og lander etter `land` sekunder (sjefen: på første slag i sjefslåta).
+   * Tonen holder helt til den lander og toner så ut.
+   */
+  diveBomb(t: number, land = 1.35) {
     const c = this.ctx;
     const g = c.createGain();
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(1, t + 0.01);
-    g.gain.setValueAtTime(1, t + 1.0);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 1.4);
-    g.connect(this.lead.input);
+    g.gain.setValueAtTime(1, t + land);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + land + 0.14);
+    g.connect(this.sting());
     const o = c.createOscillator();
     o.type = 'sawtooth';
+    const hold = Math.min(0.25, land * 0.2);
     o.frequency.setValueAtTime(mtof(88), t);
-    o.frequency.setValueAtTime(mtof(88), t + 0.25);
-    o.frequency.exponentialRampToValueAtTime(mtof(40), t + 1.35);
+    o.frequency.setValueAtTime(mtof(88), t + hold);
+    o.frequency.exponentialRampToValueAtTime(mtof(40), t + land);
     const vib = c.createOscillator();
     vib.frequency.value = 9;
     const vg = c.createGain();
@@ -707,16 +1168,16 @@ export class MetalBand {
     o.connect(g);
     o.start(t);
     vib.start(t);
-    o.stop(t + 1.45);
-    vib.stop(t + 1.45);
+    o.stop(t + land + 0.2);
+    vib.stop(t + land + 0.2);
   }
 
-  /** Falsettskrik («AAAAAH!») med formantfiltre for vokalen a, som en sanger fra 1984. */
-  wail(t: number, dur = 1.5) {
+  /** Falsettskrik («AAAAAH!») med formantfiltre for vokalen a, som en sanger fra 1984. pitch er tonen (MIDI). */
+  wail(t: number, dur = 1.5, pitch = 76) {
     const c = this.ctx;
     const src = c.createOscillator();
     src.type = 'sawtooth';
-    const f0 = mtof(76);
+    const f0 = mtof(pitch);
     src.frequency.setValueAtTime(f0 * 0.94, t);
     src.frequency.exponentialRampToValueAtTime(f0, t + 0.12);
     src.frequency.setValueAtTime(f0, t + dur * 0.7);
@@ -729,8 +1190,8 @@ export class MetalBand {
     vib.connect(vg).connect(src.detune);
     const g = c.createGain();
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.9, t + 0.06);
-    g.gain.setValueAtTime(0.9, t + dur - 0.1);
+    g.gain.exponentialRampToValueAtTime(0.65, t + 0.06);
+    g.gain.setValueAtTime(0.65, t + dur - 0.1);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.1);
     for (const [fq, q, amp] of [[850, 8, 1], [1250, 9, 0.6], [2850, 10, 0.35]] as const) {
       const bp = c.createBiquadFilter();
@@ -741,7 +1202,8 @@ export class MetalBand {
       a.gain.value = amp * 2.2;
       src.connect(bp).connect(a).connect(g);
     }
-    g.connect(this.drums);
+    // Utenom trommebussen (før gikk skriket dit), så intensiteten ikke demper det
+    g.connect(this.fx);
     g.connect(this.hall);
     src.start(t);
     vib.start(t);

@@ -459,7 +459,9 @@ export class Game {
     this.input.solo = true;
     this.goDuel({ a: this.heroSide(0), b: this.duelistSide(d), intro: this.duelIntro(d), roundsToWin: 2, arena: d.arena }, (w) => {
       this.menuMode();
-      audio.play('victory');
+      // Seiersmusikk bare når spilleren vant (før spilte den også når spilleren tapte)
+      if (w === 0) audio.play('victory');
+      else audio.defeat();
       this.screens.result(w === 0 ? 'YOU WIN!' : 'YOU LOSE!', w === 0 ? d.name + ' WILL NEED A NEW HOBBY.' : d.name + ' REMAINS SMUG.', [
         { label: 'REMATCH', action: () => this.quickDuel(d) },
         { label: 'TITLE', action: () => this.goTitle() },
@@ -560,7 +562,8 @@ export class Game {
 
   private gameOver(retry: () => void, quip: string) {
     this.menuMode();
-    audio.stop();
+    // Musikken tones ut, og tapslyden kommer i tonearten til låta som spilte
+    audio.defeat();
     // Litt lærdom blir med selv når det går galt
     const xp = Math.floor(W.stats.xp / 2);
     this.awardXp(xp);

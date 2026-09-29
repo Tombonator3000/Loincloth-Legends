@@ -275,7 +275,8 @@ export class Duel {
     W.env = buildArena(W.scene, W.gore, cfg.arena);
     W.gore.bounds = { minX: -12, maxX: 12, minZ: -5, maxZ: 3 };
     this.hud.showDuel(this.roster[0], cfg.b);
-    audio.play('duel');
+    // Duellåta kommer på neste taktstrek med en bro fra det som spilte (frost, kartet), eller med en gang
+    audio.queue('duel');
     audio.ambience('arena');
     this.newRound();
   }
@@ -330,6 +331,9 @@ export class Duel {
   update(dt: number, realDt: number, skip: boolean) {
     this.t += dt;
     const fa = this.fa, fb = this.fb;
+    // Musikken: kamp under introen, hete når de slåss, og sjefsnivå i avgjørende runde
+    const need = this.cfg.roundsToWin - 1;
+    audio.intensity(this.phase !== 'fight' ? 1 : this.wins[0] === need && this.wins[1] === need ? 3 : 2);
     if (this.phase === 'intro') {
       for (const [f, x] of [[fa, -2.8], [fb, 2.8]] as const) {
         const d = x - f.pos.x;
@@ -345,7 +349,7 @@ export class Duel {
         this.phase = 'fight';
         this.t = 0;
         this.hud.announce('FIGHT!', 'fight', 0.9);
-        audio.gong();
+        audio.fight();
         audio.crowd(1);
         W.env?.cheer?.(1);
       }

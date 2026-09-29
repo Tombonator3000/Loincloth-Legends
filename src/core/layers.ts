@@ -264,6 +264,10 @@ export interface Fanfare {
   crowd?: [number, number];
   /** Dukking av musikken: [hvor mye, hvor lenge]. */
   duck: [number, number];
+  /** Vektarmdykk på fanfaregitaren (sekunder etter start). */
+  dive?: number;
+  /** Syntlagene er stemt og flyttes med tonearten (tapslyden). Ellers flyttes bare akkordene og paukene. */
+  tonal?: boolean;
 }
 
 const gongHit = (v: number, at = 0): Hit => ({ g: 'ins_gong', v, at, syn: gongSyn(v * 0.9, at) });
@@ -307,4 +311,18 @@ export const KO_FANFARE: Fanfare = {
   stabs: [[0, 40, 1.2, 1]],
   crowd: [1.2, 0.1],
   duck: [0.45, 0.8],
+};
+
+/**
+ * Tapslyden (game over): fallende kraftakkorder (E, D, C og en lang H som stuper), orgel på H, pauke og gong. Etter
+ * Morbidiums «dod»-stikk (06_musikk.js 386: en fallende orgellinje over pedal, klokke og gong), i metall. Flyttes til
+ * tonearten til låta som spilte (AudioEngine.defeat).
+ */
+export const DEFEAT_FANFARE: Fanfare = {
+  layers: [...organ([HZ.B1, HZ.B2], 2.6, 0.05, 0.96)],
+  hits: [crash(0.35), timp(35, 0.5, 0.96), gongHit(0.45, 1.4)],
+  stabs: [[0, 40, 0.28, 0.9], [0.32, 38, 0.28, 0.85], [0.64, 36, 0.28, 0.8], [0.96, 35, 2.4, 0.9]],
+  dive: 1.0,
+  tonal: true,
+  duck: [0, 0],
 };
