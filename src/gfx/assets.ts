@@ -63,6 +63,8 @@ const HERO_H: Partial<Record<PartKey, number>> = {
   arm: 0.8 + 0.6 * (ARM_L - 1),
   leg: 0.66 + 0.645 * (LEG_L - 1),
 };
+/** Heltenes belte er like bredt som midjen. Hoftedelen skaleres etter beltet, så en lang flik kan henge under. */
+const HERO_BELT_W = 0.5;
 /** Ridedyr: hodet festes i nakken (venstre side av bildet). */
 const BEAST_IDS = new Set(['warhog', 'cluckatrice', 'magmanewt']);
 const BEAST_ANCHOR: Partial<Record<PartKey, [number, number]>> = { head: [0.15, 0.55], body: [0.5, 0.5], tail: [0.92, 0.55], leg: [0.5, 0.06] };
@@ -114,6 +116,23 @@ function trim(img: HTMLImageElement) {
   return out;
 }
 
+/** Bredden på beltet øverst i en hoftedel, i piksler: bredeste rad blant de øverste 8 prosentene. */
+function beltWidth(cv: HTMLCanvasElement) {
+  const rows = Math.max(1, Math.round(cv.height * 0.08));
+  const d = cv.getContext('2d')!.getImageData(0, 0, cv.width, rows).data;
+  let best = 0;
+  for (let y = 0; y < rows; y++) {
+    let x0 = -1, x1 = -1;
+    for (let x = 0; x < cv.width; x++)
+      if (d[(y * cv.width + x) * 4 + 3] > 128) {
+        if (x0 < 0) x0 = x;
+        x1 = x;
+      }
+    if (x0 >= 0) best = Math.max(best, x1 - x0 + 1);
+  }
+  return best;
+}
+
 export async function loadAssets(base = './assets/') {
   let man: Manifest;
   // Åpnet som fil (dobbeltklikk på single-file-bygget): fetch virker ikke der, så dropp PNG-ene
@@ -133,7 +152,11 @@ export async function loadAssets(base = './assets/') {
         .then((img) => {
           const cv = trim(img);
           const beast = BEAST_IDS.has(p.char);
-          const h = p.height ?? (beast ? BEAST_H[p.part] : HERO_IDS.has(p.char) ? HERO_H[p.part] : undefined) ?? DEFAULT_H[p.part] ?? 1;
+          let h = p.height ?? (beast ? BEAST_H[p.part] : HERO_IDS.has(p.char) ? HERO_H[p.part] : undefined) ?? DEFAULT_H[p.part] ?? 1;
+          if (p.height === undefined && p.part === 'pelvis' && HERO_IDS.has(p.char)) {
+            const bw = beltWidth(cv);
+            if (bw > 0) h = Math.min(1.2, Math.max(0.25, (HERO_BELT_W * cv.height) / bw));
+          }
           const w = (cv.width / cv.height) * h;
           const [ax, ay] = p.anchor ?? (beast ? BEAST_ANCHOR[p.part] : undefined) ?? DEFAULT_ANCHOR[p.part] ?? [0.5, 0.5];
           parts.set(p.char + ':' + p.part, { canvas: cv, w, h, ox: ax * w, oy: (1 - ay) * h });

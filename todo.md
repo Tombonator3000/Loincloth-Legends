@@ -73,7 +73,9 @@
 - [ ] Opptil 4 spillere lokalt
 - [ ] Tastebinding og CRT-filter i innstillingene
 - [ ] Del opp JS-bunten (Three.js i egen chunk) hvis lastetiden blir et problem
-- [ ] GitHub Actions: typecheck og bygg på hver push
+- [x] GitHub Actions: typecheck og bygg på hver push, og publisering til GitHub Pages når Pages er slått på
+- [ ] Tom: slå på GitHub Pages (Settings > Pages > Source > GitHub Actions), så kan spillet spilles på https://tombonator3000.github.io/Loincloth-Legends/
+- [ ] Oversett den norske teksten i menyene og kontrollskjermen til engelsk (foreslått som egen oppgave)
 
 ## Ferdig
 - [x] Vertikal slice: brett 1 + duell + menyer (2026-09-29)

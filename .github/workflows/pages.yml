@@ -1,0 +1,58 @@
+# Typecheck og bygg på hver push og pull request. Fra main publiseres spillet til GitHub Pages, men bare når
+# Pages er slått på i repoet (Settings > Pages > Source: GitHub Actions). Før det hoppes publiseringen over.
+name: Bygg og publiser
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  # Ikke avbryt en publisering av main midt i
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+      - name: Last opp bygget til Pages
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - name: Er Pages slått på?
+        id: pages
+        uses: actions/configure-pages@v5
+        continue-on-error: true
+      - name: Publiser
+        id: deploy
+        if: steps.pages.outcome == 'success'
+        uses: actions/deploy-pages@v4
+      - name: Pages er av
+        if: steps.pages.outcome != 'success'
+        run: echo "::notice::GitHub Pages er ikke slått på. Settings > Pages > Source > GitHub Actions, så publiseres spillet ved neste push til main."

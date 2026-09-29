@@ -226,3 +226,12 @@ Karikaturrunden. Tom sendte et referansebilde av Valkyra og vil at spillerfigure
 - Sjekket med Toms bilde uten å committe det: hodet og øksa ble klippet ut lokalt og servert til spillet med page.route i Playwright. Det malte hodet ligger fint i spillets lys (fakkellys og kantlys), men ved siden av den tegnede kroppen blir forskjellen stor. Den nesten ekte looken krever hele settet med deler fra ChatGPT.
 - Ny test tools/tests/textures.mjs later som tre teksturbilder finnes og sjekker at scenen bruker dem (bakke, vei og borgmur).
 - Testbatteriet (textures, looks for alle brett, story, heltebyggeren, arenaen, vold, nattleiren, magi og sjonglering, METAL MODE og alle fem brettene) kjørte uten konsollfeil, bortsett fra Google Fonts-sertifikatet i skyøkten. Brett 1 har 184 tegnekall per bilde på standardnivået.
+
+## 2026-09-29 18:00 (Europe/Oslo)
+Tom spurte om spillet kan spilles fra repoet, og ba om en prompt som forklarer ChatGPT jobben (prompten kommer i neste oppføring).
+- Ren klone-test: en ny klone av GitHub-repoet (dbf2c72) kjørte npm ci, typecheck, build og build:single uten feil. Historietesten spilte gjennom tittel, Hero Forge, kart og første brett med sjef og belønning, looks-testen av brett 1 gikk grønt, og dist-single/index.html virket åpnet direkte som fil (tittelskjerm og brett). Eneste feilmelding var Google Fonts via proxyen i skyøkten.
+- Ny GitHub Actions-flyt (.github/workflows/pages.yml): typecheck og bygg på hver push og pull request. Fra main publiseres dist/ til GitHub Pages, men bare når Pages er slått på (Settings > Pages > Source > GitHub Actions); ellers hoppes publiseringen over med en melding og kjøringen forblir grønn. Pages svarte 404 da jeg sjekket, så den er av nå.
+- README har fått en seksjon "Spill det": nettleseradressen (når Pages er på), klone og kjøre lokalt (Node 20.19+ eller 22.12+, som Vite 8 krever) og enkeltfil-versjonen.
+- Heltenes hoftedel fra PNG skaleres nå etter beltet (0.5 bredt, som midjen) i stedet for til fast høyde, så en lang ringbrynjeflik som Valkyras får plass uten at beltet krymper. Testet med et syntetisk bilde: beltet ble 0.5 bredt og høyden 0.874, som regnet ut.
+- ART_PROMPTS.md bruker nå bare størrelsene ChatGPT kan lage (1024x1024, 1024x1536, 1536x1024). Himmelbildene sto som 3072x1024, og ridedyrets hale og bein hadde størrelser som ikke finnes.
+- Klone-testen fant norsk tekst i spillets menyer og kontrollskjerm (regelen er engelsk i spillet, og pikselfonten mangler Æ, Ø og Å). Lagt fram som egen oppgave.

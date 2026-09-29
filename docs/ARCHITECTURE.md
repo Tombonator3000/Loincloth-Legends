@@ -110,6 +110,8 @@ Ny figur: sett `skin: [hudfarge, ...]` på CharDef hvis huden skal glinse.
 
 De tegnede delene får `paintInk()` etter relieffkartet: blekkstrekene farges med en mørk utgave av fargen ved siden av, så figurene ser malte ut i stedet for tusjtegnet. PNG-erstatninger (malte bilder fra ChatGPT) lages med `reliefTexture(..., painted = true)`: mørke partier er skygger og ikke blekk, så volumet kommer fra omrisset og en svak høyde fra lysheten, og hud gjenkjennes fra fargetonen (`paintedSkin`) i stedet for fra `skin`.
 
+Hoftedelen til heltene skaleres etter beltet når den er PNG (`HERO_BELT_W` og `beltWidth()` i `gfx/assets.ts`): beltet øverst blir like bredt som midjen, og en lang flik får henge så langt den vil. De andre delene skaleres til en fast høyde.
+
 Del `hairback` i manifestet (langt hår) er bare PNG. `Rig.hairBack()` legger den i hodegruppa men bak overkroppen og foran den bakre armen, så håret henger ned bak ryggen og følger hodet (også når hodet kappes av).
 
 ## Bilde og grafikknivå
@@ -203,5 +205,7 @@ Pakk teksturkallet i `texFile(navn, () => prosedyretekstur)` fra `env/common.ts`
 `ui/splash.ts` viser først "PRESS ANY KEY" (nettleseren gir ikke lyd før brukeren har trykket), så faller logoen ned med trommevirvel, solstråler, konfetti og fanfare (`audio.fanfare()`). Den hoppes over i automatiske tester (`navigator.webdriver`) og med `?nosplash`. `?splash` tvinger den frem. Originalbildet ligger i `art/studio/`, og en komprimert versjon i `src/assets/studio-logo.webp` bygges inn i spillet.
 
 ## Testing
+
+GitHub Actions (`.github/workflows/pages.yml`) kjører typecheck og bygg på hver push og pull request, og publiserer `dist/` til GitHub Pages fra main når Pages er slått på i repoet (ellers hoppes publiseringen over med en melding).
 
 `tools/tests/` har Playwright-skript som styrer spillet via `window.__game` og `window.__lib` med faste tidssteg (`game.tick(1/60, false)`), tar skjermbilder og samler konsollfeil. Se `tools/tests/README.md`.

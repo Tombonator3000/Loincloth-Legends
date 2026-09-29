@@ -30,6 +30,7 @@ Trær, steiner, hodeskaller, fjell og bygninger er 3D-modeller laget i kode og t
 7. Start `npm run dev`. Figuren bruker nå dine bilder. Ser en del feil ut, juster `anchor` eller `height` i manifestet.
 
 Tips:
+- ChatGPT lager bilder i tre størrelser: 1024x1024, 1024x1536 (høyt) og 1536x1024 (bredt). Alle templatene under bruker disse.
 - Bildene kan være større enn nødvendig. Lasteren beskjærer gjennomsiktige kanter automatisk og skalerer delen til riktig høyde.
 - Hvis ChatGPT legger på skygge eller bakgrunn, skriv: "Remove the background and the drop shadow, keep only the part on full transparency."
 - Hold figuren **vendt mot høyre** i alle deler. Spillet speiler selv når figuren snur.
@@ -170,7 +171,7 @@ Tom har et godkjent referansebilde av Valkyra (ligger ikke i repoet, repoet er o
 
 ### Høyder for heltene (thrugg og valkyra)
 
-Når du lager PNG-er for `thrugg` eller `valkyra`, bruker spillet disse høydene automatisk (i spillenheter, regnet ut fra `src/gfx/chars/types.ts`): hode 1.1 (med stort hår), hårmanke 1.25, overkropp 1.08, hofte 0.35, arm 0.98, bein 1.06. Karikaturen ligger i selve bildet: tegn hodet, håret, hendene og støvlene store. Ser hodet for lite eller for stort ut i spillet, sett `height` for hodet i manifestet (for eksempel 1.25).
+Når du lager PNG-er for `thrugg` eller `valkyra`, bruker spillet disse høydene automatisk (i spillenheter, regnet ut fra `src/gfx/chars/types.ts`): hode 1.1 (med stort hår), hårmanke 1.25, overkropp 1.08, arm 0.98, bein 1.06. Hoftedelen skaleres etter beltet i stedet: beltet øverst blir 0.5 bredt (like bredt som midjen), så en lang ringbrynjeflik som Valkyras får plass under uten at beltet krymper. Karikaturen ligger i selve bildet: tegn hodet, håret, hendene og støvlene store. Ser hodet for lite eller for stort ut i spillet, sett `height` for hodet i manifestet (for eksempel 1.25).
 
 ---
 
@@ -233,12 +234,12 @@ Grasslandet, sumpen og frosten har en fysisk himmel laget i kode (sol, spredt ly
 
 | Fil | Bruk | Prompt |
 |---|---|---|
-| `sky_grass.png` | Himmel, brett 1 | `Wide panoramic sky background, 3072x1024, seamless left-right. Photorealistic matte painting of a warm late-afternoon sky over rolling hills: orange-gold light, big volumetric clouds lit from below, a pale sun low on the horizon, distant blue mountains with snowy tips at the very bottom. No characters, no text.` |
-| `sky_swamp.png` | Himmel, sumpen | `Wide panoramic sky background, 3072x1024, seamless left-right. Photorealistic murky green-grey overcast swamp sky, low heavy clouds, faint mist bands, silhouettes of dead twisted trees and low hills at the bottom. No characters, no text.` |
-| `sky_frost.png` | Himmel, frosten | `Wide panoramic sky background, 3072x1024, seamless left-right. Photorealistic cold clear winter sky, pale blue to white, jagged snowy mountain range at the bottom, light snowfall, a pale sun. No characters, no text.` |
-| `sky_scorch.png` | Himmel, vulkanlandet | `Wide panoramic sky background, 3072x1024, seamless left-right. Photorealistic hellish volcanic sky, black at the top fading to deep red and orange, ash clouds, a distant erupting volcano with lava, ember sparks. No characters, no text.` |
-| `sky_night.png` | Himmel, nattleiren | `Wide panoramic night sky, 3072x1024, seamless left-right. Photorealistic dark blue night with a big pale moon behind thin clouds, stars, black forest treeline at the bottom. No characters, no text.` |
-| `sky_arena-pit.png` | Himmel over gropa | `Wide panoramic night sky, 3072x1024, seamless left-right. Dark crimson night with thin clouds and a few stars, like the sky above a gladiator pit. No characters, no text.` |
+| `sky_grass.png` | Himmel, brett 1 | `Wide panoramic sky background, 1536x1024, seamless left-right. Photorealistic matte painting of a warm late-afternoon sky over rolling hills: orange-gold light, big volumetric clouds lit from below, a pale sun low on the horizon, distant blue mountains with snowy tips at the very bottom. No characters, no text.` |
+| `sky_swamp.png` | Himmel, sumpen | `Wide panoramic sky background, 1536x1024, seamless left-right. Photorealistic murky green-grey overcast swamp sky, low heavy clouds, faint mist bands, silhouettes of dead twisted trees and low hills at the bottom. No characters, no text.` |
+| `sky_frost.png` | Himmel, frosten | `Wide panoramic sky background, 1536x1024, seamless left-right. Photorealistic cold clear winter sky, pale blue to white, jagged snowy mountain range at the bottom, light snowfall, a pale sun. No characters, no text.` |
+| `sky_scorch.png` | Himmel, vulkanlandet | `Wide panoramic sky background, 1536x1024, seamless left-right. Photorealistic hellish volcanic sky, black at the top fading to deep red and orange, ash clouds, a distant erupting volcano with lava, ember sparks. No characters, no text.` |
+| `sky_night.png` | Himmel, nattleiren | `Wide panoramic night sky, 1536x1024, seamless left-right. Photorealistic dark blue night with a big pale moon behind thin clouds, stars, black forest treeline at the bottom. No characters, no text.` |
+| `sky_arena-pit.png` | Himmel over gropa | `Wide panoramic night sky, 1536x1024, seamless left-right. Dark crimson night with thin clouds and a few stars, like the sky above a gladiator pit. No characters, no text.` |
 | `map.png` | Verdenskartet | `Top-down fantasy world map of an island, 1536x1024, like an old hand-painted fantasy map with ink and watercolour on parchment. West: green grassland with a small castle keep. South-centre: murky swamp with dead trees and a pond. North: snowy mountains and pine forest. East: black volcanic wasteland with a lava river and a volcano. Far east: a dark purple tower on a cliff. A blue river runs from the mountains to the swamp. Sea around the island. NO text, NO labels, NO roads (the game draws them).` |
 
 Kartbildet må ha samme utsnitt som det innebygde kartet: øya fyller bildet, hjemborgen til venstre (vest), tårnet helt til høyre (øst), frost i nord (oppe), sump i sør (nede).
@@ -270,7 +271,7 @@ Eksempel (`public/assets/manifest.json`):
 }
 ```
 
-- `height` er delens høyde i spillenheter. Standard: hode 1.0, hårmanke 1.3, overkropp 0.9, hofte 0.6, arm 0.78, bein 0.92, våpen 1.7. For heltene (`thrugg`, `valkyra`): hode 1.1, hårmanke 1.25, overkropp 1.08, hofte 0.35, arm 0.98, bein 1.06. For ridedyr: kropp 1.3, hode 0.9, hale 0.6, bein 0.75. Store figurer skaleres av spillet selv, så bruk standardverdiene.
+- `height` er delens høyde i spillenheter. Standard: hode 1.0, hårmanke 1.3, overkropp 0.9, hofte 0.6, arm 0.78, bein 0.92, våpen 1.7. For heltene (`thrugg`, `valkyra`): hode 1.1, hårmanke 1.25, overkropp 1.08, arm 0.98, bein 1.06, og hoften skaleres så beltet blir 0.5 bredt (med `height` satt gjelder den i stedet). For ridedyr: kropp 1.3, hode 0.9, hale 0.6, bein 0.75. Store figurer skaleres av spillet selv, så bruk standardverdiene.
 - `anchor` er leddpunktet i det beskårne bildet, `[x, y]` fra 0 til 1 der `y` måles fra toppen. Standard: hode `[0.5, 0.95]`, hårmanke `[0.62, 0.22]`, overkropp `[0.5, 0.96]`, hofte `[0.5, 0.12]`, arm `[0.5, 0.06]`, bein `[0.4, 0.04]`, våpen `[0.5, 0.82]`.
 - `textures` knytter navnene fra teksturlista til filer. Navn spillet ikke kjenner, blir ignorert.
 - `tools/tests/textures.mjs` sjekker at teksturer fra manifestet blir brukt (den later som om tre bilder finnes).
@@ -296,10 +297,10 @@ Asset: BODY of the mount described above. Only the body with the saddle, NO head
 Asset: HEAD of the mount described above. Only the head (and neck for the cluckatrice), facing RIGHT. The neck joint is at the LEFT edge, vertically centred. Canvas 1024x1024, transparent background.
 ```
 ```
-Asset: TAIL of the mount described above. Only the tail, pointing LEFT (backwards). The base of the tail is at the RIGHT edge. Canvas 1536x768, transparent background.
+Asset: TAIL of the mount described above. Only the tail, pointing LEFT (backwards). The base of the tail is at the RIGHT edge. Canvas 1536x1024, transparent background.
 ```
 ```
-Asset: LEG of the mount described above. Only one leg hanging STRAIGHT DOWN, hip joint at the top centre, hoof/claws at the bottom pointing RIGHT. Canvas 768x1024, transparent background.
+Asset: LEG of the mount described above. Only one leg hanging STRAIGHT DOWN, hip joint at the top centre, hoof/claws at the bottom pointing RIGHT. Canvas 1024x1536 (tall), transparent background.
 ```
 
 ---

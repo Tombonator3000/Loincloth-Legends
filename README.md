@@ -10,7 +10,23 @@ Laget med Three.js og TypeScript. All grafikk lages i kode og all lyd syntetiser
 
 Repo: https://github.com/Tombonator3000/Loincloth-Legends
 
-## Kom i gang
+## Spill det
+
+- **I nettleseren, uten å installere noe**: https://tombonator3000.github.io/Loincloth-Legends/ (når GitHub Pages er slått på i repoet: Settings > Pages > Source > GitHub Actions. Hver push til main publiserer da en ny versjon.)
+- **Fra repoet på egen maskin** (trenger Node.js 20.19 eller nyere, eller 22.12 eller nyere):
+
+```bash
+git clone https://github.com/Tombonator3000/Loincloth-Legends
+cd Loincloth-Legends
+npm install
+npm run dev          # åpne http://localhost:5173
+```
+
+- **Som én fil**: `npm run build:single` lager `dist-single/index.html`, som kan åpnes med dobbeltklikk og deles som en vanlig fil.
+
+Styring: se "Kontroller" lenger ned. `?nosplash` i adressen hopper over studiologoen.
+
+## Kom i gang (utvikling)
 
 ```bash
 npm install
