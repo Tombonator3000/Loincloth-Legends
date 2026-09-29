@@ -21,7 +21,8 @@ Repo: https://github.com/Tombonator3000/Loincloth-Legends. Spillet er fra Tom's 
 - `src/data/` skal ikke importere Three.js.
 - Figurgrafikk tegnes prosedyremessig i `src/gfx/chars/`. PNG-er kan erstatte delene via `public/assets/manifest.json`.
 - Ikke legg inn opphavsrettsbeskyttede figurer, navn eller logoer. Alt skal være originalt.
-- All lyd syntetiseres i `src/core/audio.ts`.
+- Lyd går gjennom `src/core/audio.ts`. Den kan være syntetisert i WebAudio, eller opptak og samplede instrumenter som er fri til bruk (CC0), som lydene fra Freesound og instrumentene fra Versilian Community Sample Library (VCSL) i Morbidium. Hver fil føres opp i en kildeliste med tittel, hvem som har spilt den inn og lenke. Den syntetiserte lyden er reserven når en fil ikke kan lastes (for eksempel i enkeltfil-bygget).
+- Gjenbruk går foran å skrive nytt (Tom): se etter ferdig kode i Toms egne repoer (særlig Morbidium) og i prosjektbiblioteket før du lager noe fra bunnen. Sjekk lisens og opphav, og krediter i README.
 - Bruk spilltid (dt i update), ikke `setTimeout`, for ting som påvirker spillet (så pause og slowmo virker).
 - Heltenes proporsjoner (heroiske: lange bein, brede skuldre, mindre hode enn chibi, enorme muskler, bittesmå lendeklær) ligger i `src/gfx/chars/types.ts` og `src/gfx/chars/muscle.ts`.
 - Stil (Tom): ikke tegneserie. Seriøst og filmatisk, som 80-talls fantasyfilmer spilt helt rett, men morsomt og fullt av parodier. Humoren ligger i replikker, situasjoner, navn og parodier, ikke i tegneserieaktig grafikk. Alt som er 3D skal være så godt og så realistisk som mulig. Se `docs/STYLE_TARGET.md`.

@@ -30,6 +30,7 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - 2026-09-29: Tom: ikke tegneserie. Seriøst men morsomt, med mange parodier. Alt som er 3D skal være så bra og ekte som mulig. Figurene skal se malte ut, ikke tegnet med tykk strek.
 - 2026-09-29: Tom: spillerfigurene og fiendene skal være nesten ekte karikatur, som Toms referansebilde av Valkyra (beskrevet i docs/STYLE_TARGET.md). Veien dit er PNG-deler fra ChatGPT etter docs/ART_PROMPTS.md. De tegnede figurene er reserven. Referansebildet ligger ikke i repoet (repoet er offentlig) og skal ikke committes uten at Tom sier ja.
 - 2026-09-29: 3D-verdenen kan få teksturer fra ChatGPT via "textures" i manifestet (navnene står i ART_PROMPTS.md). Et himmelbilde i manifestet går foran den fysiske himmelen.
+- 2026-09-29: Tom: bruk lyder fra Freesound og samplede instrumenter (CC0, som i Morbidium), og prioriter gjenbruk av kode fra egne repoer (Morbidium har iMUSE-aktig musikk, lydbank, blod og figursystem). Regelen om at all lyd syntetiseres er erstattet: syntetisert lyd er reserven.
 - 2026-09-29: Gore-nivå har fire trinn, EXCESSIVE er standard. FAMILY bytter blod mot konfetti og gummiender.
 - 2026-09-29: Teit vold er en del av sjangeren: imp sparker hodet i skjermen, armer ryker (JUST A FLESH WOUND), hodeløse fiender løper rundt.
 - 2026-09-29: Gamepad følger standard mapping. I 2-spiller med én gamepad er gamepaden spiller 2. Berøring styrer alltid spiller 1.
