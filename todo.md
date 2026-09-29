@@ -1,5 +1,16 @@
 # todo.md
 
+## Pågår: 3D-effekter og 80-talls hyllest (runde fra 2026-09-29 12:59)
+- [x] Bildepipeline med HDR, bloom, dybdeskarphet, gradering, vignett, korn og aberrasjon (src/gfx/post.ts)
+- [x] Kvalitetsnivå i innstillingene (AUTO, LOW, MEDIUM, HIGH, ULTRA)
+- [x] Mykt lys og skygger som følger kameraet
+- [ ] Vind, 3D-trær, gress og fallende blader
+- [ ] Partikkelsystem med pooler og HDR-emisjon
+- [ ] Realistisk blodsprut, dekaler, pytter og 3D-gibs
+- [ ] 80-talls figurer: chainmail-bikini, store former, oljeglans, kapper i vinden
+- [ ] 1980s heavy metal: musikk og METAL MODE
+- [ ] Gameplay-hyllest til Golden Axe, Barbarian og Castle Crashers
+
 ## Pågår
 - [ ] Lokalt: bytt ut den utpakkede mappen ~/Utvikling/Loincloth-Legends med en klone av repoet. Mappen har ikke git og har eldre utgaver av log.md, todo.md og memory.md, så den skal ikke pushes fra.
 - [ ] Spilltesting med ekte mennesker: balanse på Gorthak (runde 2 og 3 kan være harde), fiendeskade, antall bølger, priser i butikken og XP-kurven

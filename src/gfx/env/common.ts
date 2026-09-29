@@ -1,9 +1,11 @@
-// Felles byggeklosser for 3D-miljøene: toon-materialer, konturer, teksturer, himmel og rekvisitter.
+// Felles byggeklosser for 3D-miljøene: materialer, konturer, teksturer, himmel, sol med skygger og rekvisitter.
 import * as THREE from 'three';
 import { plainCanvas, unitCanvas, INK, shade } from '../draw';
 import { rand, pick } from '../../core/math';
 import type { Gore } from '../gore';
 import { images } from '../assets';
+import type { Grade } from '../post';
+import { SunShadow } from './sun';
 
 // ---------------------------------------------------------------- materialer
 let gradMap: THREE.DataTexture | null = null;
@@ -16,13 +18,24 @@ export function toonGrad() {
   }
   return gradMap;
 }
-const matCache = new Map<string, THREE.MeshToonMaterial>();
+/**
+ * Stilisert, lyssatt materiale for miljøet (mykt lys, skygger, tåke). Tidligere et trestegs toon-materiale,
+ * derav navnet. Emisjon gis HDR-styrke så bloom tar den (gfx/post.ts).
+ */
+export function lit(p: THREE.MeshStandardMaterialParameters = {}) {
+  return new THREE.MeshStandardMaterial({ roughness: 0.86, metalness: 0, ...p });
+}
+export const EMISSIVE_BOOST = 2.4;
+const matCache = new Map<string, THREE.MeshStandardMaterial>();
 export function toon(color: string, map?: THREE.Texture, emissive?: string) {
   const k = color + (map ? map.uuid : '') + (emissive ?? '');
   let m = matCache.get(k);
   if (!m) {
-    m = new THREE.MeshToonMaterial({ color, gradientMap: toonGrad(), map: map ?? null });
-    if (emissive) m.emissive = new THREE.Color(emissive);
+    m = lit({ color, map: map ?? null });
+    if (emissive) {
+      m.emissive = new THREE.Color(emissive);
+      m.emissiveIntensity = EMISSIVE_BOOST;
+    }
     matCache.set(k, m);
   }
   return m;
@@ -252,9 +265,13 @@ export interface Env {
   update(dt: number, t: number, camX: number): void;
   fogColor: string;
   cheer?(power: number): void;
+  /** Fargegradering og linse for dette miljøet (se gfx/post.ts og env/grades.ts). */
+  grade?: Partial<Grade>;
 }
 
 export interface Look {
+  /** Retning mot sola (skyggene faller motsatt vei). */
+  sunDir?: [number, number, number];
   sky: [string, string, string];
   bg: string;
   fog: [string, number, number];
@@ -276,18 +293,22 @@ export function stageBase(scene: THREE.Scene, length: number, look: Look) {
   g.add(sky(look.sky[0], look.sky[1], look.sky[2], look.biome));
   const hemi = new THREE.HemisphereLight(look.hemi[0], look.hemi[1], look.hemi[2]);
   const sun = new THREE.DirectionalLight(look.sun[0], look.sun[1]);
-  sun.position.set(-20, 30, 20);
-  g.add(hemi, sun);
+  g.add(hemi);
+  const shadow = new SunShadow(g, sun, new THREE.Vector3(...(look.sunDir ?? [-20, 30, 20])));
+  shadow.update(0);
+  updates.push((_dt, _t, camX) => shadow.update(camX + 3));
 
   look.ground.repeat.set(60, 10);
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(length + 140, 60), toon('#ffffff', look.ground));
   ground.rotation.x = -Math.PI / 2;
   ground.position.set(length / 2, 0, -18);
+  ground.userData.noCast = true;
   g.add(ground);
   look.road.repeat.set((length + 60) / 10, 1);
-  const road = new THREE.Mesh(new THREE.PlaneGeometry(length + 60, 8.4), new THREE.MeshToonMaterial({ map: look.road, gradientMap: toonGrad(), alphaTest: 0.5 }));
+  const road = new THREE.Mesh(new THREE.PlaneGeometry(length + 60, 8.4), lit({ map: look.road, alphaTest: 0.5 }));
   road.rotation.x = -Math.PI / 2;
   road.position.set(length / 2, 0.004, 0);
+  road.userData.noCast = true;
   g.add(road);
 
   if (look.sunDisk) {
@@ -314,10 +335,32 @@ export function stageBase(scene: THREE.Scene, length: number, look: Look) {
   return { g, updates };
 }
 
-export function finishEnv(g: THREE.Group, updates: ((dt: number, t: number, camX: number) => void)[], fogColor: string): Env {
+/**
+ * Skru på skygger for alt i en gruppe: lyssatte materialer tar imot og kaster, sprites med alfatest kaster.
+ * Konturskall kaster ikke (de ville gjort skyggene tykkere). userData.noCast på flate ting som bakken.
+ */
+export function applyShadows(root: THREE.Object3D) {
+  root.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (!m.isMesh) return;
+    const mat = (Array.isArray(m.material) ? m.material[0] : m.material) as THREE.Material & { alphaTest?: number; transparent?: boolean };
+    if (mat === inkMat) {
+      m.castShadow = m.receiveShadow = false;
+      return;
+    }
+    const isLit = (mat as THREE.MeshStandardMaterial).isMeshStandardMaterial || (mat as THREE.MeshLambertMaterial).isMeshLambertMaterial;
+    m.receiveShadow = !!isLit;
+    if (m.userData.noCast || mat.transparent) return;
+    m.castShadow = !!isLit || (mat.alphaTest ?? 0) > 0;
+  });
+}
+
+export function finishEnv(g: THREE.Group, updates: ((dt: number, t: number, camX: number) => void)[], fogColor: string, grade?: Partial<Grade>): Env {
+  applyShadows(g);
   return {
     group: g,
     fogColor,
+    grade,
     update(dt, t, camX) {
       for (const u of updates) u(dt, t, camX);
     },

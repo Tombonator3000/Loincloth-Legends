@@ -4,12 +4,13 @@ import { InputManager } from '../core/input';
 import { audio } from '../core/audio';
 import { Gore } from '../gfx/gore';
 import { FX } from '../gfx/fx';
-import { buildArena } from '../gfx/env';
+import { buildArena, type Env } from '../gfx/env';
 import { HUD } from '../ui/hud';
 import { Screens, type Item } from '../ui/screens';
 import { TouchControls } from '../ui/touch';
 import { Splash, wantSplash } from '../ui/splash';
-import { settings, setSettings, onSettings, touchEnabled, GORE_NAMES, GORE_HINTS, type GoreLevel, type TouchMode } from '../core/settings';
+import { settings, setSettings, onSettings, touchEnabled, GORE_NAMES, GORE_HINTS, QUALITY_SETTINGS, QUALITY_HINTS, type GoreLevel, type TouchMode, type QualitySetting } from '../core/settings';
+import { PostFX, autoQuality, type Quality } from '../gfx/post';
 import { W } from '../game/world';
 import { Stage } from '../game/stage';
 import { Duel, type DuelConfig, type DuelSide } from '../game/duel';
@@ -39,6 +40,11 @@ const INTRO = [
   'ONLY THE MIGHTIEST (AVAILABLE) HEROES CAN SAVE HER.',
 ];
 const GAMEOVER_QUIPS = ['YOU DIED. BADLY.', 'THE BARD WILL NOT SING OF THIS.', 'YOUR LOINCLOTH HAS BEEN RECYCLED.', 'VORTHAX IS DOING A LITTLE DANCE.'];
+
+/** AUTO velger ut fra enheten, ellers brukes nivået direkte. */
+function resolveQuality(q: QualitySetting): Quality {
+  return q === 'auto' ? autoQuality() : q;
+}
 
 // ---------------------------------------------------------------- enkle scener
 class TitleScene implements Scene {
@@ -154,6 +160,8 @@ export class Game {
   app = document.getElementById('app')!;
   canvas = document.getElementById('gl') as HTMLCanvasElement;
   renderer: THREE.WebGLRenderer;
+  /** Bildepipelinen: HDR, bloom, dybdeskarphet, gradering (gfx/post.ts). */
+  post: PostFX;
   camera = new THREE.PerspectiveCamera(38, 1, 0.1, 420);
   input = new InputManager();
   gore = new Gore();
@@ -172,11 +180,15 @@ export class Game {
   last = performance.now();
   width = 1;
   height = 1;
+  private qualitySet = false;
 
   constructor() {
-    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, powerPreference: 'high-performance' });
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    const q0 = resolveQuality(settings.quality);
+    // Med etterbehandling har scenemålet egen MSAA, så skjermbufferet trenger ikke kantutjevning.
+    this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: q0 === 'low', powerPreference: 'high-performance' });
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.post = new PostFX(this.renderer);
+    this.post.quality = q0;
     this.fx = new FX(this.app);
     this.hud = new HUD(this.app);
     this.screens = new Screens(this.app);
@@ -187,6 +199,7 @@ export class Game {
     W.gore = this.gore;
     W.fx = this.fx;
     W.camera = this.camera;
+    W.post = this.post;
     W.scene = new THREE.Scene();
     W.rumble = (p, st, wk, ms) => this.input.rumble(p, st, wk, ms);
     this.input.onFirstInteraction = () => audio.init();
@@ -194,6 +207,12 @@ export class Game {
     onSettings((st) => {
       audio.setVolumes(st.music, st.sfx);
       this.gore.level = st.gore;
+      const q = resolveQuality(st.quality);
+      if (q !== this.post.quality || !this.qualitySet) {
+        this.qualitySet = true;
+        this.post.setQuality(q);
+        this.resize();
+      }
     });
     document.querySelector('.rotate-note')?.addEventListener('click', (e) => (e.currentTarget as HTMLElement).classList.add('dismissed'));
     window.addEventListener('resize', () => this.resize());
@@ -212,7 +231,7 @@ export class Game {
   resize() {
     this.width = window.innerWidth;
     this.height = window.innerHeight;
-    this.renderer.setSize(this.width, this.height, false);
+    this.post.setSize(this.width, this.height);
     this.camera.aspect = this.width / Math.max(1, this.height);
     this.camera.fov = this.camera.aspect < 1.2 ? 52 : 38;
     this.camera.updateProjectionMatrix();
@@ -232,6 +251,11 @@ export class Game {
     this.paused = false;
     this.hud.clear();
     this.scene = make();
+    this.post.focus = -1;
+    this.post.hurt = 0;
+    // make() kan ha satt W.env; TypeScript tror den fortsatt er null her
+    const env = (W as { env: Env | null }).env;
+    this.post.setGrade(this.scene.grade ?? env?.grade ?? {}, true);
   }
 
   private menuMode() {
@@ -302,6 +326,11 @@ export class Game {
     const again = (i: number) => this.showSettings(onBack, i);
     const TOUCH: TouchMode[] = ['auto', 'on', 'off'];
     const fs = !!document.fullscreenElement;
+    const cycleQ = (d: number) => {
+      const i = QUALITY_SETTINGS.indexOf(settings.quality);
+      setSettings({ quality: QUALITY_SETTINGS[(i + d + QUALITY_SETTINGS.length) % QUALITY_SETTINGS.length] as QualitySetting });
+      again(7);
+    };
     const cycleGore = (d: number) => {
       setSettings({ gore: (((settings.gore + d) % 4) + 4) % 4 as GoreLevel });
       again(0);
@@ -314,6 +343,7 @@ export class Game {
       { label: 'GAMEPAD RUMBLE: ' + (settings.rumble ? 'ON' : 'OFF'), action: () => { setSettings({ rumble: !settings.rumble }); this.input.rumble(-1, 0.6, 0.6, 200); again(4); }, adjust: () => { setSettings({ rumble: !settings.rumble }); again(4); } },
       { label: 'TOUCH CONTROLS: ' + settings.touch.toUpperCase(), hint: 'AUTO = PÅ TELEFON OG NETTBRETT', action: () => { setSettings({ touch: TOUCH[(TOUCH.indexOf(settings.touch) + 1) % 3] }); again(5); }, adjust: (d) => { setSettings({ touch: TOUCH[(TOUCH.indexOf(settings.touch) + d + 3) % 3] }); again(5); } },
       { label: 'FULLSCREEN: ' + (fs ? 'ON' : 'OFF'), action: () => { this.toggleFullscreen(); setTimeout(() => again(6), 250); } },
+      { label: 'GRAPHICS: ' + settings.quality.toUpperCase() + (settings.quality === 'auto' ? ' (' + this.post.quality.toUpperCase() + ')' : ''), hint: QUALITY_HINTS[settings.quality], action: () => cycleQ(1), adjust: cycleQ },
       { label: 'BACK', action: onBack },
     ];
     this.screens.custom(`<div class="panel settings"><h2>SETTINGS</h2><ul class="menu"></ul><p class="line small">GAMEPAD: A HOPP &middot; X ANGREP &middot; B SPESIAL &middot; Y GRIP &middot; START PAUSE</p></div>`, items, sel, onBack);
@@ -577,7 +607,7 @@ export class Game {
       W.time += realDt;
       this.scene.update(realDt, realDt);
       this.gore.update(realDt);
-      if (render) this.renderer.render(W.scene, this.camera);
+      if (render) this.post.render(W.scene, this.camera, realDt);
       return;
     }
     if (inp.keyPressedOnce('KeyM')) {
@@ -621,7 +651,7 @@ export class Game {
     this.fx.update(realDt, cam, this.width, this.height);
     if (!render) return;
     cam.position.add(this.fx.offset);
-    this.renderer.render(W.scene, cam);
+    this.post.render(W.scene, cam, realDt);
     cam.position.sub(this.fx.offset);
   }
 }

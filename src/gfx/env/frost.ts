@@ -3,11 +3,9 @@ import * as THREE from 'three';
 import { unitCanvas, INK } from '../draw';
 import { rand, pick } from '../../core/math';
 import type { Gore } from '../gore';
-import {
-  M, groundTex, roadTex, stageBase, finishEnv, mountains, pineTree, skullPike, tuftMat, tufts, rock, endGate, bossMarker,
-  canvasTex, skullMat, type Env,
-} from './common';
+import { lit, M, groundTex, roadTex, stageBase, finishEnv, mountains, pineTree, skullPike, tuftMat, tufts, rock, endGate, bossMarker, canvasTex, skullMat, type Env } from './common';
 import type { StageEnvOpts } from './index';
+import { GRADES } from './grades';
 
 export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env {
   const L = o.length;
@@ -43,7 +41,7 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     const sk = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), skullMat());
     sk.position.set(x, 1.3, z);
     g.add(sk);
-    const ice = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.6, 1.4), new THREE.MeshToonMaterial({ color: '#cfefff', transparent: true, opacity: 0.55, depthWrite: false }));
+    const ice = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.6, 1.4), lit({ color: '#cfefff', transparent: true, opacity: 0.55, depthWrite: false, roughness: 0.15 }));
     ice.position.set(x, 1.3, z);
     g.add(ice);
   }
@@ -86,5 +84,5 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     }
   });
   void INK;
-  return finishEnv(g, updates, '#e6f0f8');
+  return finishEnv(g, updates, '#e6f0f8', GRADES.frost);
 }

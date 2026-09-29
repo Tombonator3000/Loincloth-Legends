@@ -7,6 +7,7 @@ import {
   skullPike, tuftMat, tufts, banner, campfire, arrows, rock, endGate, bossMarker, type Env,
 } from './common';
 import type { StageEnvOpts } from './index';
+import { GRADES } from './grades';
 
 export function buildGrass(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env {
   const L = o.length;
@@ -75,5 +76,5 @@ export function buildGrass(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
       for (const f of fires) gore.fire(f, 1, 0.2, 2);
     }
   });
-  return finishEnv(g, updates, '#e9b878');
+  return finishEnv(g, updates, '#e9b878', GRADES.grass);
 }

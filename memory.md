@@ -30,6 +30,8 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - 2026-09-29: Teit vold er en del av sjangeren: imp sparker hodet i skjermen, armer ryker (JUST A FLESH WOUND), hodeløse fiender løper rundt.
 - 2026-09-29: Gamepad følger standard mapping. I 2-spiller med én gamepad er gamepaden spiller 2. Berøring styrer alltid spiller 1.
 - 2026-09-29: Progresjon: XP og nivåer per helt, STR/DEF/MAG/AGI, butikk og trening i hjemborgen (startnoden på kartet), fem kjæledyr.
+- 2026-09-29: Tom ba om skikkelige 3D-effekter på alt (vind, etterbehandling, 3D-trær, partikler, realistisk blod og gibs), å bruke prosjektbiblioteket (github.com/Tombonator3000/prosjektbibliotek) til skills og effekter, og en hyllest til Golden Axe, Barbarian, Castle Crashers og 80-talls B-fantasy med heavy metal. Utseendet går fra flat toon mot et malt diorama: mykt lys, skygger, bloom og dybdeskarphet. Figurene er fortsatt tegnede cutouts med konturstrek.
+- 2026-09-29: Fra prosjektbiblioteket brukes Three.js-skillene til scottstts (MIT) som oppskrift, ikke som installert pakke. Ingen kode er kopiert inn; systemene er skrevet for dette prosjektet.
 - 2026-09-29: Koden ligger på main i GitHub-repoet, pakket ut fra zip-en Tom lastet opp. Grenen `claude/loincloth-legends-v0.3` fra chat-økten ble aldri pushet og finnes ikke. Den utpakkede mappen i ~/Utvikling (uten git) skal ikke pushes fra. Lokalt arbeid skjer i en klone av repoet.
 
 ## Tekniske notater
@@ -57,4 +59,11 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - PNG-høyder for heltedelene er egne for thrugg/valkyra (HERO_H i gfx/assets.ts) fordi proporsjonene er endret.
 - Playwright er ikke en avhengighet i package.json. Installer det separat (`npm i -D playwright`) før testene kjøres.
 - I skyøkter (Claude Code på nett) finnes Playwright 1.56.1 globalt, med Chromium i /opt/pw-browsers. `ln -sfn "$(npm root -g)/playwright" node_modules/playwright` gjør den tilgjengelig for testene uten å endre package.json.
+- Bildepipelinen ligger i `src/gfx/post.ts` (PostFX). Scenen tegnes i lineær HDR, så bloom, dybdeskarphet, eksponering, tonemapping (én gang), gradering og linseeffekter. Materialer skal ikke tonemappe selv når pipelinen er på (Three gjør det bare mot skjermen, altså i LOW).
+- Egne ShaderMaterial må ha `#include <tonemapping_fragment>` og `#include <colorspace_fragment>` til slutt og sRGB-teksturer, ellers blir fargene feil i en av modusene.
+- Gradering per miljø: `grade` på Env (fra `src/gfx/env/grades.ts`) eller på Scene (kartet). Settes ved scenebytte i Game.setScene.
+- Grafikknivå: `gfxState.quality` og `qualityRank()` i post.ts leses av kode som bygger innhold (skyggekart, tetthet). Innstillingen heter `quality` i settings (AUTO, LOW, MEDIUM, HIGH, ULTRA).
+- `lit()` og `toon()` i env/common.ts gir MeshStandardMaterial (navnet toon er historisk). `applyShadows(group)` kalles i finishEnv, arenaen og tårnet. `userData.noCast` på bakke og vei.
+- Sola (`SunShadow` i env/sun.ts) følger kameraet og låser skyggeboksen til tekselrutenettet. Oppdateres fra env.update med camX.
+- `tools/tests/looks.mjs` tar faste skjermbilder for sammenligning. Kontaktark: se log.md for hvordan (Pillow i skyøkten).
 - I skyøkter laster ikke headless Chromium Google Fonts (sertifikatfeil via proxyen). `net::ERR_CERT_AUTHORITY_INVALID` i testloggen kommer derfra og er ikke en feil i spillet.

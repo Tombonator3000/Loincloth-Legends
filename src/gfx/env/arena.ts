@@ -3,8 +3,10 @@ import * as THREE from 'three';
 import { unitCanvas } from '../draw';
 import { rand } from '../../core/math';
 import { FIRE, ICEFIRE, GHOSTFIRE, type Gore } from '../gore';
-import { M, toon, sky, stoneTex, tileTex, sandTex, canvasTex, skullMat, type Env } from './common';
+import { applyShadows, lit, M, toon, sky, stoneTex, tileTex, sandTex, canvasTex, skullMat, type Env } from './common';
 import { vorthaxSprite, princessSprite, crowdTex } from './sprites';
+import { GRADES } from './grades';
+import { SunShadow } from './sun';
 
 export type ArenaTheme = 'pit' | 'ice' | 'bone';
 
@@ -37,8 +39,8 @@ export function buildArena(scene: THREE.Scene, gore: Gore, theme: ArenaTheme = '
   g.add(sky(T.sky[0], T.sky[1], T.sky[2], 'arena-' + theme));
   const hemi = new THREE.HemisphereLight(T.hemi[0], T.hemi[1], T.hemi[2]);
   const key = new THREE.DirectionalLight('#ffe8d0', 1.4);
-  key.position.set(4, 18, 12);
-  g.add(hemi, key);
+  g.add(hemi);
+  new SunShadow(g, key, new THREE.Vector3(4, 18, 12), 16, 12).update(0, -2);
 
   const ft = tileTex(T.floor[0], T.floor[1]);
   ft.repeat.set(7, 7);
@@ -56,7 +58,7 @@ export function buildArena(scene: THREE.Scene, gore: Gore, theme: ArenaTheme = '
 
   const wt = stoneTex(T.wall[0], T.wall[1], 64, 40);
   wt.repeat.set(10, 1);
-  const wall = new THREE.Mesh(new THREE.CylinderGeometry(13, 13, 3.4, 40, 1, true, Math.PI * 0.5 + 0.05, Math.PI - 0.1), new THREE.MeshToonMaterial({ map: wt, side: THREE.BackSide }));
+  const wall = new THREE.Mesh(new THREE.CylinderGeometry(13, 13, 3.4, 40, 1, true, Math.PI * 0.5 + 0.05, Math.PI - 0.1), lit({ map: wt, side: THREE.BackSide }));
   wall.position.set(0, 1.7, -3);
   wall.rotation.y = Math.PI;
   g.add(wall);
@@ -73,7 +75,7 @@ export function buildArena(scene: THREE.Scene, gore: Gore, theme: ArenaTheme = '
   const tiers: THREE.Mesh[] = [];
   for (let i = 0; i < 3; i++) {
     const r = 13.6 + i * 1.6;
-    const step = new THREE.Mesh(new THREE.CylinderGeometry(r + 0.8, r + 0.8, 0.6, 40, 1, true, Math.PI * 0.5, Math.PI), new THREE.MeshToonMaterial({ color: T.step, side: THREE.DoubleSide }));
+    const step = new THREE.Mesh(new THREE.CylinderGeometry(r + 0.8, r + 0.8, 0.6, 40, 1, true, Math.PI * 0.5, Math.PI), lit({ color: T.step, side: THREE.DoubleSide }));
     step.position.set(0, 3.4 + i * 1.2, -3);
     step.rotation.y = Math.PI;
     g.add(step);
@@ -143,6 +145,7 @@ export function buildArena(scene: THREE.Scene, gore: Gore, theme: ArenaTheme = '
   }
   for (let i = 0; i < 26; i++) gore.splat(rand(-9, 9), rand(-3, 1.2), rand(0.3, 1.0));
 
+  applyShadows(g);
   scene.add(g);
   let acc = 0;
   let snowAcc = 0;
@@ -150,6 +153,7 @@ export function buildArena(scene: THREE.Scene, gore: Gore, theme: ArenaTheme = '
   return {
     group: g,
     fogColor: T.bg,
+    grade: GRADES[theme],
     cheer(p: number) {
       cheer = Math.max(cheer, p);
     },

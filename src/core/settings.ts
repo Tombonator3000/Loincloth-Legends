@@ -1,4 +1,4 @@
-// Innstillinger som lagres lokalt: gore-nivå, lydnivå, risting, rumble og berøringskontroller.
+// Innstillinger som lagres lokalt: gore-nivå, lydnivå, risting, rumble, berøringskontroller og grafikknivå.
 // Ingen Three.js her, så modulen kan brukes fra både core, gfx og app.
 
 export type GoreLevel = 0 | 1 | 2 | 3;
@@ -11,6 +11,16 @@ export const GORE_HINTS = [
 ] as const;
 
 export type TouchMode = 'auto' | 'on' | 'off';
+/** Grafikknivå. AUTO velger ut fra enheten (se gfx/post.ts). */
+export type QualitySetting = 'auto' | 'low' | 'medium' | 'high' | 'ultra';
+export const QUALITY_SETTINGS: QualitySetting[] = ['auto', 'low', 'medium', 'high', 'ultra'];
+export const QUALITY_HINTS: Record<QualitySetting, string> = {
+  auto: 'PICKS A LEVEL FOR THIS DEVICE',
+  low: 'NO POST EFFECTS. FOR POTATOES.',
+  medium: 'BLOOM, GRADING, SHADOWS',
+  high: 'ADDS DEPTH OF FIELD AND SHARPER SHADOWS',
+  ultra: 'EVERYTHING. BRING A FAN.',
+};
 
 export interface Settings {
   gore: GoreLevel;
@@ -19,12 +29,13 @@ export interface Settings {
   shake: boolean;
   rumble: boolean;
   touch: TouchMode;
+  quality: QualitySetting;
 }
 
 const KEY = 'loincloth-legends-settings-v1';
 
 export function defaultSettings(): Settings {
-  return { gore: 2, music: 0.7, sfx: 0.9, shake: true, rumble: true, touch: 'auto' };
+  return { gore: 2, music: 0.7, sfx: 0.9, shake: true, rumble: true, touch: 'auto', quality: 'auto' };
 }
 
 function load(): Settings {
@@ -41,6 +52,7 @@ function load(): Settings {
       shake: typeof o.shake === 'boolean' ? o.shake : d.shake,
       rumble: typeof o.rumble === 'boolean' ? o.rumble : d.rumble,
       touch: o.touch === 'on' || o.touch === 'off' || o.touch === 'auto' ? o.touch : d.touch,
+      quality: QUALITY_SETTINGS.includes(o.quality as QualitySetting) ? (o.quality as QualitySetting) : d.quality,
     };
   } catch {
     return d;

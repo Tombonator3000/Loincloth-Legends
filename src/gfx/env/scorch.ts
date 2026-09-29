@@ -7,6 +7,7 @@ import {
   M, lavaRockTex, roadTex, stageBase, finishEnv, mountains, deadTree, skullPike, rock, endGate, bossMarker, canvasTex, type Env,
 } from './common';
 import type { StageEnvOpts } from './index';
+import { GRADES } from './grades';
 
 export function buildScorch(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env {
   const L = o.length;
@@ -95,5 +96,5 @@ export function buildScorch(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): En
     }
     for (let i = 0; i < lights.length; i++) lights[i].intensity = 14 + Math.sin(t * 5 + i) * 3;
   });
-  return finishEnv(g, updates, '#4a1a10');
+  return finishEnv(g, updates, '#4a1a10', GRADES.scorch);
 }

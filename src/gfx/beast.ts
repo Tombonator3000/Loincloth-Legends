@@ -30,7 +30,7 @@ function asset(def: BeastDef, key: string, pd: PartDef) {
     if (ov) pd = { w: ov.w, h: ov.h, ox: ov.ox, oy: ov.oy, draw: () => {} };
     const cv = ov ? ov.canvas : unitCanvas(pd.w, pd.h, pd.ox, pd.oy, 140, pd.draw);
     const tex = new THREE.CanvasTexture(cv);
-    tex.colorSpace = THREE.NoColorSpace;
+    tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 4;
     const geo = new THREE.PlaneGeometry(pd.w, pd.h);
     geo.translate(pd.w / 2 - pd.ox, pd.h / 2 - pd.oy, 0);

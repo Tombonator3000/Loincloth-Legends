@@ -20,7 +20,8 @@ export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
     if (ov) def = { w: ov.w, h: ov.h, ox: ov.ox, oy: ov.oy, draw: () => {} };
     const cv = ov ? ov.canvas : unitCanvas(def.w, def.h, def.ox, def.oy, PPU, def.draw);
     const tex = new THREE.CanvasTexture(cv);
-    tex.colorSpace = THREE.NoColorSpace;
+    // sRGB: sampleren dekoder til lineært lys, så figurene passer inn i HDR-pipelinen (gfx/post.ts)
+    tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 4;
     tex.minFilter = THREE.LinearMipmapLinearFilter;
     const geo = new THREE.PlaneGeometry(def.w, def.h);
@@ -93,6 +94,8 @@ void main() {
   vec3 col = c.rgb * tint;
   col = mix(col, flashColor, flash);
   gl_FragColor = vec4(col, c.a * opacity);
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
 }`;
 
 export function partMaterial(tex: THREE.Texture, tint = 1) {

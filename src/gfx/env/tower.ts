@@ -3,8 +3,10 @@ import * as THREE from 'three';
 import { plainCanvas, INK } from '../draw';
 import { rand, pick } from '../../core/math';
 import { GHOSTFIRE, type Gore } from '../gore';
-import { M, toon, tileTex, stoneTex, canvasTex, skullMat, bossMarker, endGate, type Env } from './common';
+import { applyShadows, M, toon, tileTex, stoneTex, canvasTex, skullMat, bossMarker, endGate, type Env } from './common';
 import type { StageEnvOpts } from './index';
+import { GRADES } from './grades';
+import { SunShadow } from './sun';
 
 const POSTERS = [
   ['EVIL', 'IT\'S A LIFESTYLE'],
@@ -23,8 +25,9 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   scene.fog = new THREE.Fog('#140a1c', 22, 80);
   g.add(new THREE.HemisphereLight('#c8a8ff', '#1a1020', 1.1));
   const key = new THREE.DirectionalLight('#e8d8ff', 0.8);
-  key.position.set(-10, 20, 20);
-  g.add(key);
+  const keyShadow = new SunShadow(g, key, new THREE.Vector3(-10, 20, 20));
+  keyShadow.update(0);
+  updates.push((_dt, _t, camX) => keyShadow.update(camX + 3));
 
   const ft = tileTex('#3a3048', '#1a1420');
   ft.repeat.set(L / 4, 6);
@@ -165,9 +168,11 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     for (let i = 0; i < lights.length; i++) lights[i].intensity = 11 + Math.sin(t * 9 + i * 2) * 2;
     if (Math.random() < dt * 4) gore.ambient(camX + rand(-10, 10), rand(1, 6), rand(-4, 2), rand(-0.1, 0.1), rand(-0.1, 0.1), pick(['#c080ff', '#ffffff']), 0.05, 4, true);
   });
+  applyShadows(g);
   return {
     group: g,
     fogColor: '#140a1c',
+    grade: GRADES.tower,
     update(dt, t, camX) {
       for (const u of updates) u(dt, t, camX);
     },

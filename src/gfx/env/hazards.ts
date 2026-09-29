@@ -1,7 +1,7 @@
 // Tegning av farer i brettene: piggrop, myr, råk i isen, lavapøl og piggfelle.
 import * as THREE from 'three';
 import { plainCanvas } from '../draw';
-import { toon, inkMat, canvasTex } from './common';
+import { lit, toon, inkMat, canvasTex } from './common';
 import { rand } from '../../core/math';
 import type { Gore } from '../gore';
 import type { HazardDef } from '../../data/hazards';
@@ -56,8 +56,8 @@ function poolTex(key: string, inner: string, mid: string, outer: string, specks:
   return t;
 }
 
-function pool(g: THREE.Group, h: HazardDef, tex: THREE.Texture, lit: boolean, y = 0.02) {
-  const mat = lit ? new THREE.MeshBasicMaterial({ map: tex, alphaTest: 0.5 }) : new THREE.MeshToonMaterial({ map: tex, alphaTest: 0.5 });
+function pool(g: THREE.Group, h: HazardDef, tex: THREE.Texture, glowing: boolean, y = 0.02) {
+  const mat = glowing ? new THREE.MeshBasicMaterial({ map: tex, alphaTest: 0.5 }) : lit({ map: tex, alphaTest: 0.5 });
   const m = new THREE.Mesh(new THREE.PlaneGeometry(h.w * 1.08, h.d * 1.25), mat);
   m.rotation.x = -Math.PI / 2;
   m.position.set(h.x, y, h.z);
@@ -179,7 +179,7 @@ export function buildHazard(g: THREE.Group, gore: Gore, h: HazardDef): HazardVis
         c.strokeRect(2, 2, 124, 124);
       }), false);
       texCache.set('grate', tex);
-      const plate = new THREE.Mesh(new THREE.PlaneGeometry(h.w, h.d), new THREE.MeshToonMaterial({ map: tex }));
+      const plate = new THREE.Mesh(new THREE.PlaneGeometry(h.w, h.d), lit({ map: tex }));
       plate.rotation.x = -Math.PI / 2;
       plate.position.set(h.x, 0.015, h.z);
       grp.add(plate);

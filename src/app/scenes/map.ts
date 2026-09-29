@@ -14,6 +14,7 @@ import { DUELISTS } from '../../data/duelists';
 import { audio } from '../../core/audio';
 import { showTraining } from '../camp';
 import { petMesh } from '../../gfx/pets';
+import { GRADES } from '../../gfx/env/grades';
 
 export function nodeOpen(completed: Set<string>, n: MapNode) {
   return n.requires.every((r) => completed.has(r));
@@ -28,6 +29,7 @@ export class MapScene implements Scene {
   walk: { from: THREE.Vector3; to: THREE.Vector3; t: number; len: number; node: MapNode } | null = null;
   panel: HTMLDivElement;
   camPos = new THREE.Vector3();
+  grade = GRADES.map;
   pets: { mesh: THREE.Mesh; owner: Fighter; pos: THREE.Vector3; flies: boolean }[] = [];
 
   constructor(private game: Game, private onEnter: (n: MapNode) => void) {
@@ -186,6 +188,8 @@ export class MapScene implements Scene {
     const cam = this.game.camera;
     cam.position.copy(this.camPos);
     cam.lookAt(this.camPos.x, 0, this.camPos.z - 15);
+    // Fokus på bakken der kameraet ser (kartet ligger flatt, ikke i planet z = 0)
+    if (W.post) W.post.focus = Math.hypot(21, 15);
   }
 
   exit() {

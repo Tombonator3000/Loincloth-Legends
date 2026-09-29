@@ -8,6 +8,7 @@ import {
   bossMarker, canvasTex, type Env,
 } from './common';
 import type { StageEnvOpts } from './index';
+import { GRADES } from './grades';
 
 export function buildSwamp(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env {
   const L = o.length;
@@ -105,5 +106,5 @@ export function buildSwamp(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     }
     void t;
   });
-  return finishEnv(g, updates, '#8a9a78');
+  return finishEnv(g, updates, '#8a9a78', GRADES.swamp);
 }
