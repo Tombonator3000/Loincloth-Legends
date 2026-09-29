@@ -6,7 +6,7 @@ Et spill fra **Tom's Happy Happy Funtimes Emporium**.
 
 2.5D fantasy-brawler i nettleseren. Castle Crashers og Golden Axe møter Barbarian: sidescroller-brett med horder av fiender, ridedyr og farer, og mellom brettene en brutal 1v1 duell der ett riktig hugg tar hodet av motstanderen. 80-talls klisjeer, humor og altfor mye blod.
 
-Laget med Three.js og TypeScript. All grafikk lages i kode og all lyd syntetiseres, så prosjektet trenger ingen asset-filer (bortsett fra studiologoen). PNG-grafikk fra ChatGPT kan byttes inn del for del (figurer i nesten ekte karikaturstil og teksturer til 3D-verdenen, se `docs/ART_PROMPTS.md`).
+Laget med Three.js og TypeScript. All grafikk lages i kode, og lyden er syntetisert med CC0-opptak lagt oppå der de finnes, så spillet virker uten andre filer enn studiologoen. PNG-grafikk fra ChatGPT kan byttes inn del for del (figurer i nesten ekte karikaturstil og teksturer til 3D-verdenen, se `docs/ART_PROMPTS.md`).
 
 Repo: https://github.com/Tombonator3000/Loincloth-Legends
 
@@ -80,6 +80,22 @@ M = lyd av/på. I 1-spiller kan du også bruke piltaster + Z/X/C/V. Med én game
 - `tools/tests/README.md` Playwright-tester
 - `AGENTS.md` og `CLAUDE.md` regler for AI-agenter
 - `memory.md`, `todo.md`, `log.md` hukommelse, plan og historikk
+
+## Gjenbruk og takk
+
+Loincloth Legends bygger på kode og ideer fra Toms egne spill og fra åpne kilder.
+
+**Toms egne prosjekter**
+- Morbidium (Tombonator3000/morbidium): bildeverktøyene for ChatGPT-grafikk (maler, klipping, bakgrunn, sømmer og innboks i `tools/process_art.py` og `tools/make_templates.py`) og variasjonen i fiendene (`src/game/foes.ts`).
+
+**Kode og teknikker fra andre**
+- Gresset og vinden (`src/gfx/env/meadow.ts`, `src/gfx/wind.ts`) er tilpasset fra stylized-meadow-grass i Threejs-Awesome-Graphics-Agent-Skills av Scott Sun (MIT), som bygger på stylized-scene av Andre Elias (MIT). Pakken var også oppskrift for etterbehandling, sol og skygger, partikler og trær.
+- three.js (MIT): motoren, Sky-tillegget og tonekurvene i `src/gfx/post.ts`.
+- Hash etter Dave Hoskins, «Hash without Sine» (MIT).
+- Ben Golus (whiteout-blanding i `src/gfx/env/surface.ts`), Felzenszwalb og Huttenlocher (avstandsfeltet i `src/gfx/charlight.ts`) og mulberry32 (fri).
+- Skrifttyper fra Google Fonts: Metal Mania, Press Start 2P og VT323 (SIL Open Font License 1.1).
+
+Lisenstekstene ligger i `public/LICENSES/` og i `THIRD_PARTY_LICENSES.md` i bygget. Hele gjennomgangen av opphav og lisenser står i `docs/GJENBRUK.md`.
 
 ## Lisens og rettigheter
 
