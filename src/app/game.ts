@@ -15,6 +15,7 @@ import { screenFX } from '../gfx/screenfx';
 import { QualityGovernor, PerfMeter, lighter } from './perf';
 import { skyLight } from '../gfx/envlight';
 import { wind } from '../gfx/wind';
+import { STAGE_CAM } from '../gfx/stagecam';
 import { W } from '../game/world';
 import { Stage } from '../game/stage';
 import { Duel, type DuelConfig, type DuelSide } from '../game/duel';
@@ -134,16 +135,18 @@ class StageScene implements Scene {
     if (sup.lives || sup.potions) setTimeout(() => game.toast(`SUPPLIES: +${sup.lives} LIFE, +${sup.potions * 2} POTIONS`), 600);
     game.hud.visible(true);
     game.screens.hide();
-    game.camera.position.set(this.stage.camX, 4.6, 13.8);
+    game.camera.position.set(this.stage.camX, STAGE_CAM.y, STAGE_CAM.z);
   }
   update(dt: number, realDt: number) {
     const st = this.stage;
     st.update(dt);
     const cam = this.game.camera;
     cam.position.x += (st.camX - cam.position.x) * Math.min(1, realDt * 8);
-    cam.position.y = 4.6;
-    cam.position.z = cam.aspect < 1.2 ? 16 : 13.8;
-    cam.lookAt(cam.position.x, 2.0, 0);
+    // Kjemper i bildet: kameraet trekker seg bakover og ser litt høyere
+    const pull = st.camPull;
+    cam.position.y = STAGE_CAM.y + pull * STAGE_CAM.pullY;
+    cam.position.z = (cam.aspect < 1.2 ? STAGE_CAM.zNarrow : STAGE_CAM.z) + pull * STAGE_CAM.pullZ;
+    cam.lookAt(cam.position.x, STAGE_CAM.lookY + pull * STAGE_CAM.pullY, 0);
     if (st.done) {
       const r = st.done;
       st.done = '';

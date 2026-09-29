@@ -53,6 +53,8 @@ export class FX {
   timeScale = 1;
   slowTimer = 0;
   offset = new THREE.Vector3();
+  /** Kameraets x fra forrige bilde (innleste replikker panoreres etter hvor figuren står). */
+  private camX = 0;
   private arcTex = arcTexture();
   private swooshes: Swoosh[] = [];
   private texts: FloatText[] = [];
@@ -178,6 +180,8 @@ export class FX {
   }
 
   text(pos: THREE.Vector3, msg: string, cls = '', life = 1.0) {
+    // Snakkebobler leses inn når det finnes en innspilt replikk (docs/STEMMER.md), fra siden figuren står på
+    if (cls.includes('speech')) audio.voice(msg, (pos.x - this.camX) / 9);
     const el = document.createElement('div');
     el.className = 'ftext ' + cls;
     el.textContent = msg;
@@ -345,6 +349,7 @@ export class FX {
   }
 
   update(realDt: number, camera: THREE.Camera, width: number, height: number) {
+    this.camX = camera.position.x;
     this.updateGlass(realDt, camera);
     // Tidsskala
     if (this.slowTimer > 0) {

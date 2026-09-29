@@ -17,11 +17,11 @@ export const GRADES: Record<string, G> = {
     shadowTint: [0.9, 1.0, 1.0], highlightTint: [1.03, 1.03, 0.9], tint: 0.4, vignette: 0.45, grain: 0.35,
     bloom: 1.1, threshold: 0.85, knee: 0.45, dofFar: 0.85, dofNear: 0.65,
   },
-  // Kaldt lys: blå skygger, litt varm sol, høy terskel så snøen ikke gløder
+  // Blåtimen i passet (konseptbilde 4): dype blå skygger, varme høylys fra faklene, bloom på ilden men ikke snøen
   frost: {
-    exposure: 0.95, contrast: 1.05, saturation: 1.0, vibrance: 0.1, lift: [0.0, 0.01, 0.03], gain: [1.0, 1.0, 1.02],
-    shadowTint: [0.9, 0.95, 1.1], highlightTint: [1.03, 1.01, 0.97], tint: 0.4, vignette: 0.3, grain: 0.22,
-    bloom: 0.7, threshold: 1.15, knee: 0.4, dofFar: 0.7, dofNear: 0.55,
+    exposure: 1.05, contrast: 1.1, saturation: 0.96, vibrance: 0.12, lift: [0.0, 0.012, 0.04], gain: [1.0, 1.0, 1.03],
+    shadowTint: [0.85, 0.92, 1.16], highlightTint: [1.08, 1.0, 0.9], tint: 0.5, vignette: 0.45, grain: 0.26,
+    bloom: 1.0, threshold: 0.95, knee: 0.5, dofFar: 0.75, dofNear: 0.55,
   },
   // Helvetesild: varme skygger, lava som gløder
   scorch: {

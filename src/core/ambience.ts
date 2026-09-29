@@ -4,12 +4,21 @@
 //   reserve laget av støy og oscillatorer. Når opptaket blir klart, glir reserven ut og opptaket inn.
 // - Et nytt biom glir over i det neste (lag som finnes i begge, blir liggende).
 // - Bålknitring blir sterkere og flytter seg til siden når kameraet går forbi et bål (Env.fires, satt fra Stage).
-// - Av og til en kråke over gresset, en ugle ved nattleiren eller en frosk i myra (spilltid, så pause virker).
+//   Fossesus gjør det samme ved fossene (Env.waters).
+// - Av og til en kråke over gresset, en ugle ved nattleiren, en frosk i myra, eller ulv, vindkast og is som knaker i
+//   frostpasset (spilltid, så pause virker).
 import type { SoundBank, Voice } from './soundbank';
 import type { Layer, LayerPlayer } from './layers';
 
 /** Syntetiske reserver. */
-export type AmbSynth = 'wind' | 'crickets' | 'fire' | 'drips' | 'drone' | 'rumble' | 'murmur';
+export type AmbSynth = 'wind' | 'crickets' | 'fire' | 'drips' | 'drone' | 'rumble' | 'murmur' | 'water';
+
+/** Lyder som kommer fra et sted på brettet og blir sterkere nær det: bål og fosser. */
+const NEAR = {
+  fire: { file: 'amb_baal', syn: 'fire' as AmbSynth, v: 0.75 },
+  water: { file: 'amb_foss', syn: 'water' as AmbSynth, v: 0.7 },
+};
+type NearKind = keyof typeof NEAR;
 
 export interface AmbLayer {
   /** Gruppe i lydbanken (sløyfe). */
@@ -58,6 +67,11 @@ export const AMB_EVENTS: Record<string, AmbEvent[]> = {
   grass: [{ g: 'kraake', v: 0.22, lp: 3500, every: [9, 20], syn: CROW }],
   night: [{ g: 'ugle', v: 0.3, lp: 3500, every: [12, 26], syn: OWL }],
   swamp: [{ g: 'frosk', v: 0, every: [7, 16], syn: FROG }],
+  frost: [
+    { g: 'ulv', v: 0.16, lp: 2400, every: [20, 42] },
+    { g: 'vindkast', v: 0.32, every: [8, 18] },
+    { g: 'isknak', v: 0.12, lp: 4500, every: [14, 30] },
+  ],
 };
 
 interface AmbVoice {
@@ -74,10 +88,12 @@ export class Ambience {
   private voices = new Map<string, AmbVoice>();
   private biome: string | null = null;
   private buffers: Partial<Record<'white' | 'brown' | 'crickets' | 'fire' | 'drips', AudioBuffer>> = {};
-  private fireK = 0;
-  private firePan = 0;
-  private fireT = 0;
-  private fireSet: [number, number] = [-1, 0];
+  /** Nærhet (0 til 1), panorering og sist satte verdier for bål og fosser. */
+  private near: Record<NearKind, { k: number; pan: number; set: [number, number] }> = {
+    fire: { k: 0, pan: 0, set: [-1, 0] },
+    water: { k: 0, pan: 0, set: [-1, 0] },
+  };
+  private nearT = 0;
   private eventT: number[] = [];
 
   constructor(private ctx: AudioContext, dest: AudioNode, private bank: SoundBank, private player: LayerPlayer) {
@@ -99,7 +115,7 @@ export class Ambience {
   set(biome: string | null) {
     if (biome === this.biome) return;
     this.biome = biome;
-    this.fireK = 0;
+    this.near.fire.k = this.near.water.k = 0;
     this.eventT = (AMB_EVENTS[biome ?? ''] ?? []).map((e) => rnd(e.every[0] * 0.5, e.every[1]));
     this.apply();
   }
@@ -110,17 +126,20 @@ export class Ambience {
   }
 
   /**
-   * Hvert bilde fra Stage: hvor nær nærmeste bål er (0 til 1) og hvor det er (panorering), og enkeltlydene.
-   * Bålet oppdateres fire ganger i sekundet, som i Morbidium.
+   * Hvert bilde fra Stage: hvor nær nærmeste bål og foss er (0 til 1) og hvor de er (panorering), og enkeltlydene.
+   * Nærheten oppdateres fire ganger i sekundet, som i Morbidium.
    */
-  tick(dt: number, fire = 0, pan = 0) {
+  tick(dt: number, fire = 0, pan = 0, water = 0, wpan = 0) {
     if (!this.biome) return;
-    this.fireK = fire;
-    this.firePan = pan;
-    this.fireT -= dt;
-    if (this.fireT <= 0) {
-      this.fireT = 0.25;
-      this.applyFire();
+    this.near.fire.k = fire;
+    this.near.fire.pan = pan;
+    this.near.water.k = water;
+    this.near.water.pan = wpan;
+    this.nearT -= dt;
+    if (this.nearT <= 0) {
+      this.nearT = 0.25;
+      this.applyNear('fire');
+      this.applyNear('water');
     }
     const ev = AMB_EVENTS[this.biome] ?? [];
     ev.forEach((e, i) => {
@@ -178,33 +197,37 @@ export class Ambience {
       v.stop(3);
       this.voices.delete(k);
     }
-    this.applyFire();
+    this.applyNear('fire');
+    this.applyNear('water');
   }
 
-  /** Bålknitring etter avstand: opptaket når det er klart, ellers den syntetiske knitringen. */
-  private applyFire() {
+  /** Bål eller foss etter avstand: opptaket når det er klart, ellers den syntetiske reserven. */
+  private applyNear(kind: NearKind) {
     const now = this.ctx.currentTime;
-    const on = this.biome !== null && this.fireK > 0.01;
-    const key = this.bank.has('amb_baal') ? 'near:f:amb_baal' : 'near:s:fire';
+    const N = NEAR[kind], st = this.near[kind];
+    const on = this.biome !== null && st.k > 0.01;
+    // Samme navn som lagene: near:f:<fil> er opptaket, near:s:<reserve> er synthen
+    const fileKey = 'near:f:' + N.file, synKey = 'near:s:' + N.syn;
+    const key = this.bank.has(N.file) ? fileKey : synKey;
     for (const [k, v] of this.voices) {
-      if (!k.startsWith('near:') || (on && k === key)) continue;
+      if ((k !== fileKey && k !== synKey) || (on && k === key)) continue;
       v.stop(1.5);
       this.voices.delete(k);
     }
     if (!on) return;
     let v = this.voices.get(key);
     if (!v) {
-      const made = key === 'near:f:amb_baal' ? this.fileVoice('amb_baal', undefined, true) : this.synthVoice('fire', true);
+      const made = key === fileKey ? this.fileVoice(N.file, undefined, true) : this.synthVoice(N.syn, true);
       if (!made) return;
       v = made;
       this.voices.set(key, v);
-      this.fireSet = [-1, 0];
+      st.set = [-1, 0];
     }
     // Bare når noe har endret seg, så automasjonen ikke hoper seg opp
-    if (Math.abs(this.fireK - this.fireSet[0]) < 0.02 && Math.abs(this.firePan - this.fireSet[1]) < 0.03) return;
-    this.fireSet = [this.fireK, this.firePan];
-    v.g.gain.setTargetAtTime(0.75 * this.fireK, now, 0.6);
-    v.pan?.pan.setTargetAtTime(this.firePan, now, 0.5);
+    if (Math.abs(st.k - st.set[0]) < 0.02 && Math.abs(st.pan - st.set[1]) < 0.03) return;
+    st.set = [st.k, st.pan];
+    v.g.gain.setTargetAtTime(N.v * st.k, now, 0.6);
+    v.pan?.pan.setTargetAtTime(st.pan, now, 0.5);
   }
 
   private fileVoice(group: string, lp?: number, panned = false): AmbVoice | null {
@@ -276,6 +299,14 @@ export class Ambience {
         lfo(0.21, 0.2, a2.gain);
         loop(this.buffer('white'), 0.97).connect(f2).connect(a2).connect(g);
       }
+    } else if (kind === 'water') {
+      // Fossesus: hvit støy mellom 250 og 1600 Hz som svulmer litt
+      const hp = filter('highpass', 250, 0.7);
+      const lp = filter('lowpass', 1600, 0.7);
+      const amp = c.createGain();
+      amp.gain.value = 0.9;
+      lfo(0.17, 0.15, amp.gain);
+      loop(this.buffer('white')).connect(hp).connect(lp).connect(amp).connect(g);
     } else if (kind === 'drone') {
       // Tre ustemte sagtenner på E1 og H1 gjennom et lavpass som puster (Morbidiums drone, stemt til E)
       const lp = filter('lowpass', 220, 1.2);

@@ -119,6 +119,8 @@ interface Fountain {
   col: BloodKind;
 }
 
+const SAND_DUST = '#c9b48a';
+
 export class Gore {
   group = new THREE.Group();
   /** Bloddråper på GPU (landing beregnes når de slippes ut). */
@@ -129,6 +131,10 @@ export class Gore {
   vfx = new VFX();
   /** Kameraets x (for lyspoolen). Settes av Game hver frame. */
   camX = 0;
+  /** Fargen på støvet som virvles opp fra bakken (sand som standard, snø på frostbrettet). Settes av miljøet. */
+  dustColor = SAND_DUST;
+  /** Partikler rundt foten per fottrinn (dobbelt når figuren løper). 0 = ingen; snøen i frosten sparkes opp. */
+  stepDust = 0;
   debris: Debris[] = [];
   fountains: Fountain[] = [];
   private gibTex = new Map<GibKind, THREE.MeshBasicMaterial>();
@@ -257,7 +263,7 @@ export class Gore {
     this.vfx.ambient(x, y, z, vx, vy, color, size, life, glow, grav);
   }
 
-  dust(pos: THREE.Vector3, count: number, color = '#c9b48a') {
+  dust(pos: THREE.Vector3, count: number, color = this.dustColor) {
     this.vfx.dust(pos, count, color);
   }
 
@@ -481,6 +487,8 @@ export class Gore {
     this.fountains.length = 0;
     this.timers.length = 0;
     this.litres = 0;
+    this.dustColor = SAND_DUST;
+    this.stepDust = 0;
   }
 }
 

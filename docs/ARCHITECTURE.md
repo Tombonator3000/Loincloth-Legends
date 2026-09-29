@@ -49,7 +49,9 @@ gfx/               Grafikk
   env/             Miljø: common, grass, swamp, frost, scorch, tower, night (nattleiren), arena, worldmap, sprites, hazards, index (register)
                    sun (sol med skygger), grades (gradering per biom), trees (3D-trær), meadow (gress), leaffall (blader),
                    atmos (tåkelag og lyssøyler), textures (støyteksturer med normalkart, og bilder fra manifestet),
-                   surface (triplanar overflatedetalj på alle miljømaterialer)
+                   surface (triplanar overflatedetalj på alle miljømaterialer, valgfritt snø på flater som vender opp),
+                   props (fyrfat, krigsbanner, runesteiner, klipper, fossefall, taubro, istapper, ruiner, taugjerde)
+  stagecam.ts      Kameraet på brettene (høyde, avstand, punktet det ser mot, og hvor langt det trekker seg for kjemper)
   noise.ts         Flisbar Perlin- og Worley-støy og fbm, brukt av teksturene, fjellene og 3D-steinene
   envlight.ts      Miljøkart fra himmelen (PMREM), så metall og våte flater speiler himmelen
   post.ts          Bildepipeline: HDR, bloom, SSAO, dybdeskarphet, eksponering, tonemapping, gradering, linseeffekter, grafikknivå
@@ -168,6 +170,7 @@ Legg en `Species` i `SPECIES` (`env/trees.ts`): lengde, radius, seksjoner, barn,
 2. Legg til en `FoeDef` i `data/enemies.ts` med `behavior`, `attack`, `range` og eventuelt `proj`.
 3. Bruk id-en i bølgene i `data/levels.ts`.
 Bare fargevariant? Bruk en eksisterende `char` og sett `tint` (se `frostskel`).
+Kjempe? Lag en `CharDef` med stor `scale` som arver delene fra en vanlig figur (`inherit`, se `bigtroll` i `gfx/chars/wilds.ts`). Store figurer tegnes med flere piksler per enhet og like tynn strek på skjermen (`rig.ts`). Sett `poise` på `FoeDef` (han tar skade, men blir verken slått tilbake eller ned før han har tatt så stor andel av livet, da vakler han), og gi angrepet `quake` (bakken rister der slaget treffer). Kameraet trekker seg bakover mens en figur større enn 1.8 er i bildet (`Stage.camPull`, avstandene i `gfx/stagecam.ts`).
 
 ### Ny sjef
 1. Lag figuren (eller gjenbruk en med `scale` og `tint`).
@@ -179,6 +182,7 @@ Nytt trekk som ikke finnes: legg det til i `BossMoveKind` og i `exec()` i `game/
 1. Lag `gfx/env/<biom>.ts` med en `build<Biom>(scene, gore, opts)` som returnerer `Env`. Bruk `stageBase` og hjelperne i `common.ts`.
 2. Registrer den i `STAGE_BUILDERS` i `gfx/env/index.ts`.
 3. Bruk biom-id-en i en `LevelDef`.
+Rekvisittene i `env/props.ts` kan brukes i alle biomer: `brazier()` gir ild, lys, varmeflimmer og knitring (returnerer punktet flammene skal komme fra), `warBanner()` bølger i vinden, `cliff()` returnerer høyden på toppen så ruiner, bro og fossefall kan settes der. Sett `gore.dustColor` hvis støvet fra bakken ikke er sand (snø i frosten).
 
 ### Nytt brett
 Legg til en `LevelDef` i `data/levels.ts`. Bølger skrives kompakt: `w(at, maxAlive, 'skeleton:R:0.2 hogman:L:1.0', { title, say })`. Farer legges inn med `hz(kind, x, z, bredde, dybde)`, og ryttere med `[bølgeindeks, fiende, ridedyr]`. Finalen er en sjef, en duell eller `{ type: 'dawn' }` (ferdig når bølgene er over og ingen fiender er igjen). `nightCamp: true` gir nattleir-reglene: heltene sover ved start, tyvnisser stjeler krukker, og krukkene blir forsyninger (`Game.campSupplies`).
@@ -228,13 +232,19 @@ Alle lyder går gjennom `core/audio.ts`. Metodene (`swish`, `hit`, `splat`, `bon
 - `core/soundbank.ts` er Morbidiums Lydbank som TypeScript-modul. Den pakker ut filene i bakgrunnen (effektene først, så slagverket og til slutt stemningen), velger en tilfeldig variant uten å gjenta den forrige, spiller høyst fem per gruppe på 80 ms og måler stillheten foran i hver MP3.
 - Filene ligger i `public/assets/sound/` med `sound.json` (utdrag av Morbidiums `lyd.json`, samme feltnavn: `gruppe`, `type`, `sloyfe`, `rot`) og `KILDER.md` (tittel, innspiller og lenke per fil). Gruppen er filnavnet uten `_2`, `_3` osv.
 - Dukking: `audio.duck(mengde, sekunder, tid)` senker musikken under store smell (tunge slag, eksplosjoner, torden, gong, tunge fiender som lander og fanfarene). `audio.setPaused()` demper den mens spillet står på pause (kalles fra `Game.tick`). I METAL MODE dukker den bare litt.
-- Stemning: `audio.ambience(biom)` fra `Stage` og `Duel` (`'arena'`), og `null` i `dispose()`. Lagene per biom står i `AMBIENCE` i `core/ambience.ts`, og enkeltlydene (kråke, ugle, frosk) i `AMB_EVENTS`. `campfire()` legger bålet i `Env.fires`, og `Stage` sender avstanden til nærmeste bål med `audio.ambienceTick(dt, nærhet, panorering)`.
+- Stemning: `audio.ambience(biom)` fra `Stage` og `Duel` (`'arena'`), og `null` i `dispose()`. Lagene per biom står i `AMBIENCE` i `core/ambience.ts`, og enkeltlydene (kråke, ugle, frosk, og ulv, vindkast og isknak i frosten) i `AMB_EVENTS`. `campfire()` og `brazier()` legger ilden i `Env.fires`, `waterfall()` legger fossen i `Env.waters`, og `Stage` sender avstanden til nærmeste bål og foss med `audio.ambienceTick(dt, bål, panorering, foss, panorering)`. Lydene med sted står i `NEAR` i ambience.ts.
+- Fottrinn: `Fighter` spiller `audio.step()` to ganger per gangsyklus for heltene og kjempene. Underlaget (`audio.surface`: gress, stein, vann eller sno) settes av `Stage` per biom og av `Duel` per arena, og lyden er `fot_<underlag>` i lydbanken. Kjempene får et dunk under og rister skjermen. `gore.stepDust` gir snø rundt foten (frosten).
+- Kjempene: `audio.warHorn()` og `audio.roar(størrelse, forsinkelse)` når en fiende med `poise` kommer inn. `iceCrack()` i råka, `clang()` (sverdklang) på blokkerte slag, `crowd()` med publikum i arenaen, og trollene brøler når de skriker.
+- Replikker: `audio.voice(tekst, panorering, alt)` spiller en innlest replikk hvis lydbanken har `voiceId(tekst)` (v_ og teksten med små bokstaver og understreker). Den kalles fra `HUD.announce`, `HUD.say`, snakkeboblene i `FX.text` og mellomscenene, så en ny replikk trenger ingen kode, bare fila. `alt` er en egen versjon (`_f` for heltinnene). Manus, stemmebeskrivelser og filnavn: `docs/STEMMER.md`.
 - Fanfarer: `audio.streak(antall)` for drapsrekkene, `bossSlain()`, `knockout()` og `chainBroken()` (trist trombone når en rekke på 10 eller mer ryker fordi en helt blir truffet). De er data i `core/layers.ts`: syntlag (orgel, kor, klokker, torden, applaus), slagverk (VCSL-opptaket eller syntlag som reserve) og kraftakkorder på en egen `MetalBand` på effektbussen.
 
 ### Ny lyd fra lydbanken
-1. Legg MP3-filen (mono, klippet og normalisert, som fra Morbidiums `tools/lag_lyd.py`) i `public/assets/sound/`.
-2. Legg raden i `sound.json` (minst `gruppe` og `type`, og `sloyfe` for sløyfer) og i `KILDER.md` (tittel, innspiller og lenke). Bare CC0.
-3. Bruk gruppen i en lydmetode med `this.rec([[gruppe, nivå, tonehøyde, gørr]], synthnivå)`, eller i `AMBIENCE` for en stemningssløyfe. Sjekk med `tools/tests/soundbank.mjs`.
+1. Finn en CC0-lyd på Freesound og legg raden i `FREESOUND` i `tools/make_sounds.py` (navn, id, bruker, tittel), med klipp og nivå i `OPT` om den trenger det.
+2. Kjør `python3 tools/make_sounds.py --bare <navn>`. Verktøyet sjekker CC0-lisensen på lydens egen side, klipper, normaliserer, koder MP3 i `public/assets/sound/` og skriver `sound.json` og `KILDER.md`. De andre lydene blir liggende som de er. Krever numpy og imageio-ffmpeg.
+3. Bruk gruppen i en lydmetode med `this.rec([[gruppe, nivå, tonehøyde, gørr]], synthnivå)`, eller i `AMBIENCE` for en stemningssløyfe. Sjekk med `tools/tests/soundbank.mjs` og `tools/tests/frostsound.mjs`.
+
+### Ny innlest replikk
+Lag stemmen i VoiceStudio etter `docs/STEMMER.md`, legg WAV-fila i `voice/inbox/` med navnet fra manuset og kjør `python3 tools/make_sounds.py --stemmer`. Replikken spilles når teksten vises.
 
 ## Musikk: dirigenten
 

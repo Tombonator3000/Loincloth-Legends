@@ -21,7 +21,7 @@ import type { HeroConfig } from '../gfx/chars/hero';
 import { FOES, DEATH_BARKS } from '../data/enemies';
 import { BOSSES } from '../data/bosses';
 import type { LevelDef, SpawnDef, WaveDef } from '../data/levels';
-import { audio } from '../core/audio';
+import { audio, type Surface } from '../core/audio';
 import type { Level } from '../core/conductor';
 import { rand, pick, chance } from '../core/math';
 import { settings } from '../core/settings';
@@ -51,6 +51,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   bossDone = false;
   camX = 0;
   halfW = 9;
+  /** 0..1: kameraet trekker seg bakover og opp når en kjempe er i bildet, så hodet hans får plass (app/game.ts). */
+  camPull = 0;
   lockX: number | null = null;
   waveIdx = 0;
   wave: WaveDef | null = null;
@@ -138,6 +140,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     audio.intensity(0);
     audio.stinger('chord');
     audio.ambience(level.biome);
+    // Fottrinnene: snø i frosten, vann i myra, stein i vulkanlandet og tårnet, ellers gress og jord
+    audio.surface = ({ frost: 'sno', swamp: 'vann', scorch: 'stein', tower: 'stein' } as Record<string, Surface>)[level.biome] ?? 'gress';
   }
 
   get twoP() {
@@ -188,6 +192,12 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     foe.f.addTo(W.scene);
     foe.f.onDeath = (_f, killer, style) => this.foeDied(foe, killer, style);
     this.foes.push(foe);
+    // En kjempe varsles med krigshorn og brøler når han kommer inn
+    if (def.poise) {
+      audio.warHorn();
+      audio.roar(foe.f.size, 1.4);
+      W.fx.shake(0.25);
+    }
     if (this.barkCd <= 0 && chance(0.45)) {
       this.barkCd = 2.5;
       setTimeout(() => {
@@ -248,7 +258,13 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
       screenFX.dive(0.03 + Math.min(this.streak, 15) * 0.006);
     }
     // B-film-replikker etter lange rekker
-    if (hero && QUIP_STREAKS.includes(this.streak)) this.hud.say(hero.name, pick(hero.cfg.body === 1 ? [...HERO_QUIPS, ...HEROINE_QUIPS] : HERO_QUIPS), 2.4);
+    if (hero && QUIP_STREAKS.includes(this.streak)) {
+      const fem = hero.cfg.body === 1;
+      const quip = pick(fem ? [...HERO_QUIPS, ...HEROINE_QUIPS] : HERO_QUIPS);
+      this.hud.say(hero.name, quip, 2.4, false);
+      // Damene har egne opptak (v_<replikk>_f) når de finnes
+      audio.voice(quip, 0, fem ? 'f' : undefined);
+    }
     // Av og til flyr hodet rett i skjermen
     if (style === 'decap' && f.headDebris && hero && this.glassCd <= 0 && !W.fx.headOnGlass && chance([0.12, 0.1, 0.22, 0.38][settings.gore])) {
       this.glassCd = 9;
@@ -551,6 +567,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
       this.camX += (target - this.camX) * Math.min(1, dt * 4);
     }
     if (this.introT < 1.2) this.camX = Math.max(this.camX, -1);
+    const giant = this.foes.some((f) => f.f.alive && f.f.size > 1.8 && this.onScreen(f.f.pos.x, 3)) || (!!this.boss?.f.alive && this.boss.f.size > 1.7);
+    this.camPull += ((giant ? 1 : 0) - this.camPull) * Math.min(1, dt * 1.2);
     this.bounds.minX = this.camX - this.halfW + 0.7;
     this.bounds.maxX = Math.min(this.camX + this.halfW - 0.7, this.L - 1);
 
@@ -752,18 +770,23 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     audio.intensity(this.mood);
   }
 
-  /** Stemningen: hvor nær nærmeste bål er kameraet (0 til 1), og på hvilken side. */
+  /** Stemningen: hvor nær nærmeste bål og nærmeste foss er kameraet (0 til 1), og på hvilken side. */
   private ambienceTick(dt: number) {
-    let near = 0;
-    let pan = 0;
-    for (const p of W.env?.fires ?? []) {
-      const k = 1 - Math.hypot(p.x - this.camX, (p.z + 1) * 0.6) / 13;
-      if (k > near) {
-        near = k;
-        pan = Math.max(-0.7, Math.min(0.7, (p.x - this.camX) / 9));
+    const nearest = (list: THREE.Vector3[] | undefined, reach: number) => {
+      let near = 0, pan = 0;
+      for (const p of list ?? []) {
+        const k = 1 - Math.hypot(p.x - this.camX, (p.z + 1) * 0.6) / reach;
+        if (k > near) {
+          near = k;
+          pan = Math.max(-0.7, Math.min(0.7, (p.x - this.camX) / 9));
+        }
       }
-    }
-    audio.ambienceTick(dt, near * near, pan);
+      return [near * near, pan] as const;
+    };
+    const [fire, pan] = nearest(W.env?.fires, 13);
+    // Fossene står langt bak, så de høres lenger unna
+    const [water, wpan] = nearest(W.env?.waters, 22);
+    audio.ambienceTick(dt, fire, pan, water, wpan);
   }
 
   /** Tyvnissene i nattleiren napper krukker fra heltene de løper forbi (høyst to hver). */

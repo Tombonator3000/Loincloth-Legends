@@ -53,11 +53,15 @@ export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
       if (h) ov = resized(ov, h);
       def = { w: ov.w, h: ov.h, ox: ov.ox, oy: ov.oy, draw: () => {} };
     }
+    // Store figurer (sjefer, kjempetrollet) tegnes med flere piksler per enhet, så de ikke blir uskarpe, og med
+    // tynnere strek i enheter, så streken er like tykk på skjermen som hos de vanlige figurene
+    const big = Math.max(1, ch.scale / 1.2);
+    const ppu = Math.round(PPU * big);
     // Tynnere strek enn standard: figurene skal se malte ut, ikke tegnet (docs/STYLE_TARGET.md)
-    const cv = ov ? ov.canvas : unitCanvas(def.w, def.h, def.ox, def.oy, PPU, def.draw, INK_W);
+    const cv = ov ? ov.canvas : unitCanvas(def.w, def.h, def.ox, def.oy, ppu, def.draw, INK_W / big);
     // Normal- og glanskart ut fra tegningen (volum, muskelfurer, olje på huden), se gfx/charlight.ts.
     // Lages før strekene farges, fordi relieffet bruker blekkstrekene som furer.
-    const relief = reliefTexture(cv, ov ? cv.width / def.w : PPU, ch.skin, !!ov);
+    const relief = reliefTexture(cv, ov ? cv.width / def.w : ppu, ch.skin, !!ov);
     if (!ov) paintInk(cv);
     const tex = new THREE.CanvasTexture(cv);
     // sRGB: sampleren dekoder til lineært lys, så figurene passer inn i HDR-pipelinen (gfx/post.ts)

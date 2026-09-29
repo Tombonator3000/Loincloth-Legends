@@ -112,6 +112,7 @@ export class Hazard {
         f.sinkRate = 1.1;
         f.rig.setTint([0.7, 0.88, 1.35]);
         audio.splash();
+        audio.iceCrack();
         for (let i = 0; i < 26; i++) W.gore.ambient(f.pos.x + rand(-0.4, 0.4), 0.2, f.pos.z + rand(-0.3, 0.3), rand(-2.5, 2.5), rand(3, 7), pick(['#ffffff', '#bfe3ff', '#6fa8dc']), rand(0.1, 0.24), 1, false, 16);
         break;
       case 'lava':
@@ -150,6 +151,7 @@ export class Hazard {
       screenFX.hurt = Math.max(screenFX.hurt, 0.6);
     } else if (d.kind === 'bog' || d.kind === 'icehole') {
       audio.splash();
+      if (d.kind === 'icehole') audio.iceCrack(0.8);
       screenFX.hurt = Math.max(screenFX.hurt, 0.4);
       screenFX.wet.plash(0.5);
     } else {

@@ -503,7 +503,7 @@ Pets:
 Sky prompts:
 - grass: warm late-afternoon sky over rolling country: orange-gold light, big volumetric clouds lit from below, a soft sun low above the horizon a little right of centre, veiled by thin cloud, distant blue hills in haze along the horizon.
 - swamp: murky green-grey overcast sky, low heavy clouds, faint mist bands, dead twisted trees and low hills in silhouette along the horizon.
-- frost: cold clear winter sky, pale blue fading to white at the horizon, a pale low sun a little left of centre behind thin haze, jagged snowy peaks along the horizon, light snowfall.
+- frost: blue hour just after sunset in a high mountain pass: deep blue sky, a faint warm glow low on the horizon a little right of centre where the sun went down, the first few stars high up, jagged snowy peaks along the horizon in cold blue shadow, light snowfall. No sun disc.
 - scorch: hellish volcanic sky, black at the top fading to deep red and orange at the horizon, heavy ash clouds lit from below, the glow of a distant eruption low on the horizon, drifting embers.
 - night: dark blue night with thin clouds and a few stars, a big pale full moon a little left of centre low above the horizon, veiled by thin cloud, a black forest treeline along the horizon.
 - arena-pit: dark crimson night sky above a gladiator pit, thin clouds, a few stars.

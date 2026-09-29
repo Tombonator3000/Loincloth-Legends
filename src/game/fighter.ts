@@ -617,7 +617,12 @@ export class Fighter {
       this.vel.x = this.wantVX;
       this.vel.z = this.wantVZ;
       if (this.state !== 'block' && this.state !== 'crouch' && this.state !== 'flee') this.state = want ? 'walk' : 'idle';
-      if (want) this.walkPh += dt * (this.running ? 13 : 9.5) * Math.min(1.4, Math.hypot(this.wantVX, this.wantVZ) / Math.max(1, this.speed));
+      if (want) {
+        const ph0 = this.walkPh;
+        this.walkPh += dt * (this.running ? 13 : 9.5) * Math.min(1.4, Math.hypot(this.wantVX, this.wantVZ) / Math.max(1, this.speed));
+        // To trinn per gangsyklus. Bare heltene og kjempene høres, ellers blir det bare tramping
+        if ((this.player >= 0 || this.size > 1.8) && Math.floor(this.walkPh / Math.PI) !== Math.floor(ph0 / Math.PI)) this.footstep();
+      }
     } else if (this.onGround && this.state !== 'roll' && !(this.state === 'attack' && a?.lunge) && !(this.headlessT > 0)) {
       const f = Math.exp(-(this.state === 'dead' ? 6 : 8) * dt);
       this.vel.x *= f;
@@ -638,6 +643,15 @@ export class Fighter {
       }
     }
     this.animate(dt);
+  }
+
+  /** Et fottrinn: lyd etter underlaget, litt snø eller støv rundt foten, og kjempene får bakken til å riste. */
+  private footstep() {
+    const cam = W.camera;
+    audio.step(this.size, cam ? (this.pos.x - cam.position.x) / 9 : 0, this.running);
+    const puff = W.gore.stepDust * (this.running ? 2 : 1);
+    if (puff > 0) W.gore.dust(this.pos, Math.round(puff * (this.size > 1.8 ? 4 : 1)));
+    if (this.size > 1.8) W.fx.shake(0.1);
   }
 
   land() {

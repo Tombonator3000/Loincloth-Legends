@@ -22,6 +22,11 @@ export interface FoeDef {
   projCd?: [number, number];
   tint?: [number, number, number];
   scale?: number;
+  /**
+   * Tåler så mye skade (andel av maks liv) før han vakler. Til da biter ikke slagene: han tar skaden, men blir
+   * verken slått tilbake eller slått ned (kjemper som kjempetrollet).
+   */
+  poise?: number;
   poseMod?: Partial<Pose>;
   barks: string[];
 }
@@ -41,6 +46,11 @@ const frogLeap: AttackDef = {
   wind: P.jumpW, strike: { armF: 1.5, weapon: -3.0, torso: -0.4, legF: 0.2, legB: -0.6 }, death: ['normal'], swoosh: 'side',
 };
 const trollSmash: AttackDef = { ...ENEMY_ATK.hog, id: 'trollsmash', dmg: 16, reach: 2.2, startup: 0.75 };
+// Kjempetrollet slår i bakken: langt opptrekk, lang rekkevidde, og bakken rister (quake i game/foes.ts)
+const giantSlam: AttackDef = {
+  ...ENEMY_ATK.hog, id: 'giantslam', dmg: 20, reach: 2.5, zr: 1.3, startup: 1.05, recovery: 1.0, launch: 8, push: 7, stun: 0.8, quake: 3.2,
+  word: ['KRA-THOOM!', 'AVALANCHE!', 'BONK.'],
+};
 const emberSlash: AttackDef = { ...ENEMY_ATK.skel, id: 'emberslash', dmg: 8, startup: 0.36 };
 
 export const FOES: Record<string, FoeDef> = {
@@ -76,6 +86,11 @@ export const FOES: Record<string, FoeDef> = {
   troll: {
     id: 'troll', char: 'troll', name: 'ICE TROLL', hp: 95, speed: 1.6, gold: 8, behavior: 'brute', attack: trollSmash, range: 1.9, proj: 'snowball', projCd: [4, 6],
     barks: ['TROLL HUNGRY!', 'YOU LOOK CRUNCHY!', 'ME HATE WINTER. ME HATE YOU MORE.'],
+  },
+  bigtroll: {
+    id: 'bigtroll', char: 'bigtroll', name: 'AVALANCHE TROLL', hp: 320, speed: 1.25, gold: 25, behavior: 'brute', attack: giantSlam, range: 2.7,
+    proj: 'snowball', projCd: [5, 8], poise: 0.14,
+    barks: ['ME NOT BIG. YOU SMALL.', 'MAMA CALL ME LITTLE BJORN!', 'ME SIT ON YOU. NOTHING PERSONAL.', 'WHO ORDERED BARBARIAN? ME ORDERED BARBARIAN.'],
   },
   fireimp: {
     id: 'fireimp', char: 'fireimp', name: 'FIRE IMP', hp: 24, speed: 3.3, gold: 3, behavior: 'ranged', attack: ENEMY_ATK.stab, range: 5.8, proj: 'fireball', projCd: [1.8, 2.8],

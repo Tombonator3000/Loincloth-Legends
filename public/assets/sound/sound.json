@@ -44,6 +44,21 @@
   "tittel": "Water drops with reverb",
   "type": "amb"
  },
+ "amb_foss": {
+  "bruker": "VKProduktion",
+  "gruppe": "amb_foss",
+  "id": 215711,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 9.3,
+  "side": "https://freesound.org/people/VKProduktion/sounds/215711/",
+  "sloyfe": [
+   0.15,
+   9.15
+  ],
+  "tittel": "Waterfall 02 (loop).MP3",
+  "type": "amb"
+ },
  "amb_natt": {
   "bruker": "FreethinkerAnon",
   "gruppe": "amb_natt",
@@ -74,6 +89,30 @@
   "tittel": "Wind Gust",
   "type": "amb"
  },
+ "brol": {
+  "bruker": "FK_Prod",
+  "gruppe": "brol",
+  "id": 188949,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 2.2,
+  "side": "https://freesound.org/people/FK_Prod/sounds/188949/",
+  "sloyfe": false,
+  "tittel": "Monster Growl Ashtur.wav",
+  "type": "sfx"
+ },
+ "brol_2": {
+  "bruker": "DylanTheFish",
+  "gruppe": "brol",
+  "id": 449820,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 2.2,
+  "side": "https://freesound.org/people/DylanTheFish/sounds/449820/",
+  "sloyfe": false,
+  "tittel": "Monster Growl.wav",
+  "type": "sfx"
+ },
  "die": {
   "bruker": "DylanTheFish",
   "gruppe": "die",
@@ -84,6 +123,102 @@
   "side": "https://freesound.org/people/DylanTheFish/sounds/417994/",
   "sloyfe": false,
   "tittel": "Body fall.wav",
+  "type": "sfx"
+ },
+ "fot_gress": {
+  "bruker": "OwlStorm",
+  "gruppe": "fot_gress",
+  "id": 151235,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 0.35,
+  "side": "https://freesound.org/people/OwlStorm/sounds/151235/",
+  "sloyfe": false,
+  "tittel": "Grassy Footstep 4",
+  "type": "sfx"
+ },
+ "fot_gress_2": {
+  "bruker": "morganpurkis",
+  "gruppe": "fot_gress",
+  "id": 396016,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 0.35,
+  "side": "https://freesound.org/people/morganpurkis/sounds/396016/",
+  "sloyfe": false,
+  "tittel": "Rustling Grass 4.wav",
+  "type": "sfx"
+ },
+ "fot_sno": {
+  "bruker": "cabled_mess",
+  "gruppe": "fot_sno",
+  "id": 384424,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 0.38,
+  "side": "https://freesound.org/people/cabled_mess/sounds/384424/",
+  "sloyfe": false,
+  "tittel": "Footstep in the snow_04 [RAW]",
+  "type": "sfx"
+ },
+ "fot_sno_2": {
+  "bruker": "Nox_Sound",
+  "gruppe": "fot_sno",
+  "id": 613849,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 0.38,
+  "side": "https://freesound.org/people/Nox_Sound/sounds/613849/",
+  "sloyfe": false,
+  "tittel": "Footsteps_Mountain_Boots_Snow_Walk_Mono.wav",
+  "type": "sfx"
+ },
+ "fot_stein": {
+  "bruker": "Yoyodaman234",
+  "gruppe": "fot_stein",
+  "id": 166508,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 0.3,
+  "side": "https://freesound.org/people/Yoyodaman234/sounds/166508/",
+  "sloyfe": false,
+  "tittel": "concrete footstep 2",
+  "type": "sfx"
+ },
+ "fot_stein_2": {
+  "bruker": "matth3wc04",
+  "gruppe": "fot_stein",
+  "id": 690006,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 0.122,
+  "side": "https://freesound.org/people/matth3wc04/sounds/690006/",
+  "sloyfe": false,
+  "tittel": "Concrete Footstep 2.mp3",
+  "type": "sfx"
+ },
+ "fot_vann": {
+  "bruker": "Breviceps",
+  "gruppe": "fot_vann",
+  "id": 450621,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 0.144,
+  "side": "https://freesound.org/people/Breviceps/sounds/450621/",
+  "sloyfe": false,
+  "tittel": "Step into water puddle / wade",
+  "type": "sfx"
+ },
+ "fot_vann_2": {
+  "bruker": "Robo9418",
+  "gruppe": "fot_vann",
+  "id": 841834,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 0.4,
+  "side": "https://freesound.org/people/Robo9418/sounds/841834/",
+  "sloyfe": false,
+  "tittel": "Small Puddle Splash",
   "type": "sfx"
  },
  "gore": {
@@ -259,6 +394,54 @@
   "sloyfe": null,
   "type": "ins"
  },
+ "isknak": {
+  "bruker": "j_p_higgins",
+  "gruppe": "isknak",
+  "id": 262635,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 0.546,
+  "side": "https://freesound.org/people/j_p_higgins/sounds/262635/",
+  "sloyfe": false,
+  "tittel": "Ice Crack 1",
+  "type": "sfx"
+ },
+ "isknak_2": {
+  "bruker": "timbreknight",
+  "gruppe": "isknak",
+  "id": 342546,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 1.291,
+  "side": "https://freesound.org/people/timbreknight/sounds/342546/",
+  "sloyfe": false,
+  "tittel": "Ice cracking",
+  "type": "sfx"
+ },
+ "klang": {
+  "bruker": "spycrah",
+  "gruppe": "klang",
+  "id": 471095,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 0.653,
+  "side": "https://freesound.org/people/spycrah/sounds/471095/",
+  "sloyfe": false,
+  "tittel": "Sword clash 1.wav",
+  "type": "sfx"
+ },
+ "klang_2": {
+  "bruker": "JohnBuhr",
+  "gruppe": "klang",
+  "id": 326868,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 0.326,
+  "side": "https://freesound.org/people/JohnBuhr/sounds/326868/",
+  "sloyfe": false,
+  "tittel": "Sword_Clash (7).wav",
+  "type": "sfx"
+ },
  "knas": {
   "bruker": "clif_creates",
   "gruppe": "knas",
@@ -305,6 +488,42 @@
   "side": "https://freesound.org/people/qubodup/sounds/813115/",
   "sloyfe": false,
   "tittel": "Crow Caw",
+  "type": "sfx"
+ },
+ "krigshorn": {
+  "bruker": "adharca",
+  "gruppe": "krigshorn",
+  "id": 539956,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 3.6,
+  "side": "https://freesound.org/people/adharca/sounds/539956/",
+  "sloyfe": false,
+  "tittel": "war horn.wav",
+  "type": "sfx"
+ },
+ "publikum": {
+  "bruker": "Krizin",
+  "gruppe": "publikum",
+  "id": 651646,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 3.4,
+  "side": "https://freesound.org/people/Krizin/sounds/651646/",
+  "sloyfe": false,
+  "tittel": "Crowd Cheer 5",
+  "type": "sfx"
+ },
+ "publikum_2": {
+  "bruker": "BerlinGameScene",
+  "gruppe": "publikum",
+  "id": 267249,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 3.189,
+  "side": "https://freesound.org/people/BerlinGameScene/sounds/267249/",
+  "sloyfe": false,
+  "tittel": "BerlinGameScene.com Crowd Cheer 1",
   "type": "sfx"
  },
  "rive": {
@@ -521,6 +740,42 @@
   "side": "https://freesound.org/people/Gamba_Studio/sounds/447211/",
   "sloyfe": false,
   "tittel": "Buhos.wav",
+  "type": "sfx"
+ },
+ "ulv": {
+  "bruker": "JoseAgudelo",
+  "gruppe": "ulv",
+  "id": 472402,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 4.0,
+  "side": "https://freesound.org/people/JoseAgudelo/sounds/472402/",
+  "sloyfe": false,
+  "tittel": "22_Lobo_aullando.wav",
+  "type": "sfx"
+ },
+ "ulv_2": {
+  "bruker": "BrainClaim",
+  "gruppe": "ulv",
+  "id": 267179,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 4.0,
+  "side": "https://freesound.org/people/BrainClaim/sounds/267179/",
+  "sloyfe": false,
+  "tittel": "Scary Ghost Wolf Howling.wav",
+  "type": "sfx"
+ },
+ "vindkast": {
+  "bruker": "sqeeeek",
+  "gruppe": "vindkast",
+  "id": 381853,
+  "kilde": "Freesound",
+  "lisens": "CC0 1.0",
+  "sek": 1.592,
+  "side": "https://freesound.org/people/sqeeeek/sounds/381853/",
+  "sloyfe": false,
+  "tittel": "wind_gust_short_sqeeeek.wav",
   "type": "sfx"
  },
  "zap": {

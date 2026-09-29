@@ -61,6 +61,8 @@ export interface AttackDef {
   air?: boolean;
   heavy?: boolean;
   armor?: boolean;
+  /** Slaget ryster bakken i denne radiusen når det treffer bakken: støv og snø, risting og en sjokkbølge. */
+  quake?: number;
   spin?: boolean;
   hpCost?: number;
   projectile?: boolean;

@@ -64,6 +64,11 @@ export interface SurfaceOpts {
   albedo?: number;
   /** Hvor mye ruheten varierer. */
   rough?: number;
+  /**
+   * Snø på flatene som vender opp (0..1): legger seg der normalen i verden peker opp, med ujevn kant fra
+   * detaljkartet, glatter ut ujevnhetene og gjør overflaten matt. Brukes på frostbrettet.
+   */
+  snow?: number;
 }
 
 const VERT_HEAD = /* glsl */ `
@@ -84,6 +89,7 @@ const FRAG_HEAD = /* glsl */ `
 uniform sampler2D uSurfN;
 uniform sampler2D uSurfG;
 uniform vec4 uSurf;
+uniform float uSnow;
 varying vec3 vSurfPos;
 varying vec3 vSurfN;`;
 // Vekter og detaljkart samples én gang, så brukes de til farge, ruhet og normal
@@ -94,20 +100,27 @@ sfW /= (sfW.x + sfW.y + sfW.z);
 vec2 sfUX = vSurfPos.zy * uSurf.x;
 vec2 sfUY = vSurfPos.xz * uSurf.x;
 vec2 sfUZ = vSurfPos.xy * uSurf.x;
-vec4 sfG = texture2D(uSurfG, sfUX) * sfW.x + texture2D(uSurfG, sfUY) * sfW.y + texture2D(uSurfG, sfUZ) * sfW.z;`;
+vec4 sfG = texture2D(uSurfG, sfUX) * sfW.x + texture2D(uSurfG, sfUY) * sfW.y + texture2D(uSurfG, sfUZ) * sfW.z;
+float sfSnow = 0.0;
+#ifdef SURF_SNOW
+sfSnow = smoothstep(0.42, 0.62, sfNrm.y + (sfG.r - 0.5) * 0.45 + (sfG.b - 0.5) * 0.2) * uSnow;
+#endif`;
 const FRAG_ALBEDO = /* glsl */ `
-diffuseColor.rgb *= (1.0 + (sfG.r - 0.5) * uSurf.z) * (1.0 - (1.0 - sfG.b) * uSurf.z * 0.6);`;
+diffuseColor.rgb *= (1.0 + (sfG.r - 0.5) * uSurf.z) * (1.0 - (1.0 - sfG.b) * uSurf.z * 0.6);
+diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.86, 0.9, 0.95) * (0.94 + sfG.r * 0.12), sfSnow);`;
 const FRAG_ROUGH = /* glsl */ `
-roughnessFactor = clamp(roughnessFactor * (1.0 + (sfG.g - 0.5) * uSurf.w), 0.04, 1.0);`;
+roughnessFactor = clamp(roughnessFactor * (1.0 + (sfG.g - 0.5) * uSurf.w), 0.04, 1.0);
+roughnessFactor = mix(roughnessFactor, 0.8, sfSnow);`;
 // Triplanar normal med «whiteout»-blanding per projeksjon (Ben Golus), i verdensrom og tilbake til kamerarom
 const FRAG_NORMAL = /* glsl */ `
 {
   vec3 tX = texture2D(uSurfN, sfUX).xyz * 2.0 - 1.0;
   vec3 tY = texture2D(uSurfN, sfUY).xyz * 2.0 - 1.0;
   vec3 tZ = texture2D(uSurfN, sfUZ).xyz * 2.0 - 1.0;
-  tX.xy *= uSurf.y;
-  tY.xy *= uSurf.y;
-  tZ.xy *= uSurf.y;
+  float sfAmt = uSurf.y * (1.0 - sfSnow * 0.75);
+  tX.xy *= sfAmt;
+  tY.xy *= sfAmt;
+  tZ.xy *= sfAmt;
   vec3 nW = normalize((vec4(normal, 0.0) * viewMatrix).xyz);
   vec3 bX = vec3(tX.xy + nW.zy, abs(tX.z) * nW.x);
   vec3 bY = vec3(tY.xy + nW.xz, abs(tY.z) * nW.y);
@@ -121,10 +134,13 @@ export function withSurface(mat: THREE.MeshStandardMaterial, o: SurfaceOpts = {}
   if (gfxState.quality === 'low') return mat;
   const m = detailMaps();
   const v = new THREE.Vector4(o.scale ?? 0.55, o.normal ?? 0.7, o.albedo ?? 0.45, o.rough ?? 0.35);
+  const snow = o.snow ?? 0;
+  if (snow > 0) mat.defines = { ...mat.defines, SURF_SNOW: '' };
   mat.onBeforeCompile = (sh) => {
     sh.uniforms.uSurfN = { value: m.n };
     sh.uniforms.uSurfG = { value: m.g };
     sh.uniforms.uSurf = { value: v };
+    sh.uniforms.uSnow = { value: snow };
     sh.vertexShader = sh.vertexShader
       .replace('#include <common>', '#include <common>' + VERT_HEAD)
       .replace('#include <project_vertex>', '#include <project_vertex>' + VERT_BODY);
@@ -135,7 +151,7 @@ export function withSurface(mat: THREE.MeshStandardMaterial, o: SurfaceOpts = {}
       .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>' + FRAG_ROUGH)
       .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>' + FRAG_NORMAL);
   };
-  mat.customProgramCacheKey = () => 'surface';
+  mat.customProgramCacheKey = () => (snow > 0 ? 'surface-snow' : 'surface');
   mat.userData.surface = v;
   return mat;
 }

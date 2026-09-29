@@ -170,6 +170,8 @@ export class Screens {
   }
 
   cutscene(title: string, lines: [string, string][], onDone: () => void) {
+    // Replikkene leses inn etter hverandre der det finnes innspilte stemmer (docs/STEMMER.md)
+    audio.voice(lines.map(([, t]) => t));
     this.set(`<div class="cut"><h2>${title}</h2>${lines.map(([w, t]) => `<p><b>${w}:</b> ${t}</p>`).join('')}<div class="skip">F / ENTER / TRYKK: FORTSETT</div></div>`, 'dim');
     this.onConfirm = onDone;
   }

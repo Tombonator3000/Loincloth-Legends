@@ -41,6 +41,16 @@ const mtof = (m: number) => 440 * Math.pow(2, (m - 69) / 12);
 
 /** Et opptak oppå en syntlyd: [gruppe i lydbanken, nivå, tonehøyde, gørr (hoppes over på FAMILY)]. */
 type Rec = [group: string, vol: number, pitch?: number, gory?: boolean];
+
+/**
+ * Navnet en innlest replikk har i lydbanken: v_ og teksten med små bokstaver, der alt som ikke er bokstav eller tall
+ * blir én understrek (høyst 60 tegn). "THEY ARE BLUE. THAT IS THE ONLY DIFFERENCE." blir
+ * v_they_are_blue_that_is_the_only_difference. Stemmemanuset (docs/STEMMER.md) bruker samme regel.
+ */
+export function voiceId(text: string) {
+  return 'v_' + text.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 60).replace(/_+$/, '');
+}
+export type Surface = 'gress' | 'stein' | 'vann' | 'sno';
 /** Musikknivået mens spillet står på pause. */
 const DIM = 0.4;
 
@@ -180,6 +190,8 @@ export class AudioEngine {
   private lastThunder = -1;
   /** Kort uttoning av musikken ved game over (tilbake til 1 når en ny låt starter). */
   private fadeG!: GainNode;
+  /** Underlaget fottrinnene går på (fot_<underlag> i lydbanken): gress, stein, vann eller sno. Settes per brett og arena. */
+  surface: Surface = 'gress';
 
   /**
    * Dirigenten spiller gjennom denne: metalbandet (BandPerformer) i metal-stilen og 8-bit-synthen ellers. Gongen og
@@ -354,9 +366,12 @@ export class AudioEngine {
     this.amb?.set(biome);
   }
 
-  /** Hvert bilde fra brettet: hvor nær nærmeste bål er (0 til 1) og til hvilken side, og enkeltlydene i stemningen. */
-  ambienceTick(dt: number, fire = 0, pan = 0) {
-    this.amb?.tick(dt, fire, pan);
+  /**
+   * Hvert bilde fra brettet: hvor nær nærmeste bål og nærmeste foss er (0 til 1) og til hvilken side, og
+   * enkeltlydene i stemningen.
+   */
+  ambienceTick(dt: number, fire = 0, pan = 0, water = 0, wpan = 0) {
+    this.amb?.tick(dt, fire, pan, water, wpan);
   }
 
   toggleMute() {
@@ -493,8 +508,10 @@ export class AudioEngine {
     }
   }
 
+  /** Stål mot stål (blokkerte slag): sverdklang fra lydbanken oppå de syntetiske overtonene. */
   clang() {
     if (!this.ok('clang', 0.05)) return;
+    const out = this.rec([['klang', 0.5]], 0.4, rand(0.94, 1.08));
     const c = this.ctx!;
     const t = c.currentTime;
     for (const [fr, a] of [[1180, 0.25], [1770, 0.18], [2630, 0.12], [3900, 0.08]] as const) {
@@ -503,7 +520,7 @@ export class AudioEngine {
       o.frequency.value = fr * rand(0.97, 1.03);
       const g = c.createGain();
       this.env(g, t, 0.002, a, 0.35);
-      o.connect(g).connect(this.sfx);
+      o.connect(g).connect(out);
       o.start(t);
       o.stop(t + 0.4);
     }
@@ -513,11 +530,147 @@ export class AudioEngine {
     f.frequency.value = 3000;
     const g = c.createGain();
     this.env(g, t, 0.001, 0.4, 0.05);
-    n.connect(f).connect(g).connect(this.sfx);
+    n.connect(f).connect(g).connect(out);
+  }
+
+  /**
+   * Fottrinn på underlaget brettet har (surface). size over 1.8 er en kjempe: dypere, tyngre og med et dunk under.
+   * pan er -1 til 1 etter hvor figuren står i bildet.
+   */
+  step(size = 1, pan = 0, running = false) {
+    const giant = size > 1.8;
+    if (!this.ok(giant ? 'stepBig' : 'step', giant ? 0.12 : 0.07)) return;
+    const vol = (giant ? 0.75 : running ? 0.26 : 0.18) * rand(0.8, 1.1);
+    const pitch = (giant ? 0.62 : 1) * rand(0.9, 1.12);
+    const c = this.ctx!;
+    const t = c.currentTime;
+    if (this.bank.has('fot_' + this.surface)) this.bank.play('fot_' + this.surface, { vol, pitch, pan: clamp(pan, -0.8, 0.8) });
+    else {
+      // Reserven: et kort, filtrert knas
+      const n = this.noiseSrc(t, 0.09);
+      const f = c.createBiquadFilter();
+      f.type = 'bandpass';
+      f.frequency.value = (this.surface === 'sno' ? 2600 : this.surface === 'stein' ? 1800 : this.surface === 'vann' ? 900 : 1300) * pitch;
+      f.Q.value = 1.2;
+      const g = c.createGain();
+      this.env(g, t, 0.004, vol * 0.5, 0.08);
+      n.connect(f).connect(g).connect(this.sfx);
+    }
+    if (giant) {
+      const o = c.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(70, t);
+      o.frequency.exponentialRampToValueAtTime(32, t + 0.25);
+      const g = c.createGain();
+      this.env(g, t, 0.006, 0.55, 0.3);
+      o.connect(g).connect(this.sfx);
+      o.start(t);
+      o.stop(t + 0.4);
+    }
+  }
+
+  /** Kjempebrøl: monsterbrøl fra lydbanken, ellers en dyp, knurrende sagtann gjennom lavpass. at er sekunder fra nå. */
+  roar(size = 2.5, at = 0) {
+    if (!this.ok('roar', 0.8)) return;
+    const pitch = clamp(1.25 - size * 0.15, 0.7, 1.05);
+    const out = this.rec([['brol', 0.95]], 0.3, pitch, at);
+    this.duck(0.35, 1.2, at);
+    const c = this.ctx!;
+    const t = c.currentTime + at;
+    const o = c.createOscillator();
+    o.type = 'sawtooth';
+    o.frequency.setValueAtTime(70 * pitch, t);
+    o.frequency.linearRampToValueAtTime(95 * pitch, t + 0.5);
+    o.frequency.exponentialRampToValueAtTime(48 * pitch, t + 1.8);
+    const lfo = c.createOscillator();
+    lfo.frequency.value = 23;
+    const lg = c.createGain();
+    lg.gain.value = 14;
+    lfo.connect(lg).connect(o.frequency);
+    const f = c.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.value = 700;
+    f.Q.value = 3;
+    const g = c.createGain();
+    this.env(g, t, 0.15, 0.45, 1.7);
+    o.connect(f).connect(g).connect(out);
+    o.start(t);
+    lfo.start(t);
+    o.stop(t + 2);
+    lfo.stop(t + 2);
+  }
+
+  /** Krigshorn (en kjempe er på vei): opptaket, ellers to sagtenner i kvint med sakte ansats gjennom lavpass. */
+  warHorn(at = 0) {
+    if (!this.ok('horn', 2)) return;
+    const out = this.rec([['krigshorn', 0.7]], 0.3, 1, at);
+    const c = this.ctx!;
+    const t = c.currentTime + at;
+    for (const [fr, v] of [[98, 0.22], [147, 0.14]] as const) {
+      const o = c.createOscillator();
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(fr * 0.94, t);
+      o.frequency.linearRampToValueAtTime(fr, t + 0.35);
+      const f = c.createBiquadFilter();
+      f.type = 'lowpass';
+      f.frequency.setValueAtTime(300, t);
+      f.frequency.linearRampToValueAtTime(1300, t + 0.6);
+      f.frequency.linearRampToValueAtTime(600, t + 2.8);
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(v, t + 0.4);
+      g.gain.setValueAtTime(v, t + 2.2);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 3.2);
+      o.connect(f).connect(g).connect(out);
+      o.start(t);
+      o.stop(t + 3.3);
+    }
+  }
+
+  /**
+   * Innleste replikker (VoiceStudio, docs/STEMMER.md): spiller de av linjene som finnes i lydbanken, den ene etter
+   * den andre, og dukker musikken mens de snakker. Linjer uten fil hoppes over (teksten vises uansett). alt velger en
+   * egen stemme for samme replikk når den finnes (v_<replikk>_<alt>). Gir hvor mange som spilte.
+   */
+  voice(lines: string | string[], pan = 0, alt?: string): number {
+    if (!this.ctx) return 0;
+    let at = 0, n = 0;
+    for (const text of Array.isArray(lines) ? lines : [lines]) {
+      // alt er en egen stemme for samme replikk (f = heltinnene), ellers den vanlige
+      let g = voiceId(text);
+      if (alt && this.bank.has(g + '_' + alt)) g += '_' + alt;
+      if (!this.bank.has(g)) continue;
+      const len = this.bank.buffer(g)?.duration ?? 2;
+      this.bank.play(g, { vol: 1, pan: clamp(pan, -0.6, 0.6), t: this.ctx.currentTime + at });
+      this.duck(0.3, len, at);
+      at += len + 0.35;
+      n++;
+    }
+    return n;
+  }
+
+  /** Is som knaker og sprekker (råk i isen, tunge landinger i frosten). */
+  iceCrack(vol = 1) {
+    if (!this.ok('ice', 0.25)) return;
+    const out = this.rec([['isknak', 0.7 * vol]], 0.3, rand(0.9, 1.1));
+    const c = this.ctx!;
+    const t = c.currentTime;
+    for (let i = 0; i < 4; i++) {
+      const tt = t + i * rand(0.04, 0.12);
+      const n = this.noiseSrc(tt, 0.03);
+      const f = c.createBiquadFilter();
+      f.type = 'highpass';
+      f.frequency.value = rand(1800, 4200);
+      const g = c.createGain();
+      this.env(g, tt, 0.001, 0.35 * vol, 0.03);
+      n.connect(f).connect(g).connect(out);
+    }
   }
 
   scream(voice: Voice = 'hero') {
     if (!this.ok('scream', 0.12)) return;
+    // Troll har ekte brøl under den syntetiske stemmen
+    const out = voice === 'troll' ? this.rec([['brol', 0.6]], 0.6, rand(1.05, 1.25)) : this.sfx;
     const c = this.ctx!;
     const t = c.currentTime;
     const base = { hero: 180, heroine: 380, skeleton: 520, pig: 260, cultist: 300, gnome: 700, brute: 110, imp: 600, zombie: 140, frog: 420, troll: 90, wizard: 240, boar: 200, rooster: 900, newt: 330 }[voice] * rand(0.9, 1.15);
@@ -544,7 +697,7 @@ export class AudioEngine {
     this.env(g, t, 0.02, 0.28, dur);
     o.connect(f1).connect(g);
     o.connect(f2).connect(g);
-    g.connect(this.sfx);
+    g.connect(out);
     o.start(t);
     lfo.start(t);
     o.stop(t + dur + 0.1);
@@ -708,6 +861,7 @@ export class AudioEngine {
 
   crowd(intensity = 1) {
     if (!this.ok('crowd', 0.5)) return;
+    const out = this.rec([['publikum', clamp(0.3 * intensity, 0.1, 0.45)]], 0.35, rand(0.95, 1.05));
     const c = this.ctx!;
     const t = c.currentTime;
     const dur = 1.6;
@@ -720,7 +874,7 @@ export class AudioEngine {
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(0.35 * intensity, t + 0.25);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    n.connect(f).connect(g).connect(this.sfx);
+    n.connect(f).connect(g).connect(out);
   }
 
   /** Gong (når ingen musikk går; ellers kommer den på slaget med fight() og sjefen): VCSL-gongen, og musikken dukker. */

@@ -61,7 +61,7 @@ Castle Crashers-inspirert 3D-kart over en øy. Heltene (og kjæledyrene) går la
 |---|---|---|---|---|
 | Gress (solnedgang) | Palisader, telt, bål, hodeskaller på stokker | Skeletons, Hogmen, Cultists, Potion Gnomes | Piggroper med blodige staker | Skjelett og hogman på krigsvillsvin |
 | Sump | Tåke, råtne trær, siv, lysende sopp, ildfluer | Bog Zombies, Frogmen | Myr som suger ned | Frogman og zombie på kakatrisse |
-| Frost | Snøfall, furutrær, iskrystaller, runesteiner | Frost Skeletons, Ice Trolls | Råk i isen | Frostskjeletter på villsvin og kakatrisse |
+| Frost | Blåtimen i et fjellpass (konseptbilde 4): klippevegger med snø, fossefall, taubro, ruiner, fyrfat med ild, fillete krigsbannere med hornet hodeskalle, runesteiner, istapper, taugjerde og tett snøfall | Frost Skeletons, Ice Trolls, Avalanche Troll (kjempe midtveis) | Råk i isen | Frostskjeletter på villsvin og kakatrisse |
 | Vulkan | Lavaelv, obsidianpigger, brennende trær | Fire Imps, Ember Skeletons | Lavapøler | Ildimp og glødeskjelett på magma-salamander |
 | Tårn (innendørs) | Rødt teppe, søyler, hengende bur, onde plakater | Dark Cultists, Hog Guards, alt annet | Piggfeller i gulvet (spretter opp i takt) | Alle tre ridedyrene |
 
@@ -139,6 +139,7 @@ Mann eller dame, og alle deler kan kombineres fritt:
 - Berserk-spinn uten potions, koster litt HP
 - Pickups: stekt kylling, halvspist skinke, potions, gull, egg fra kampkyllingen
 - Kameraet låses per bølge. GO-pil når bølgen er ryddet
+- **Kjemper** (Avalanche Troll i frostpasset): over dobbelt så høye som heltene. Slagene biter ikke før de har tatt en viss andel av livet i skade, da vakler de (STAGGERED!). Bakkeslaget rister skjermen og virvler opp snø, og kameraet trekker seg bakover mens kjempen er i bildet. For tunge til å gripes
 - **METAL MODE**: en felles måler øverst fylles av drap (mer for halshugging, eksplosjoner og miljødrap, og for lange drapsrekker). Når den er full, spiller bandet en gitarsolo med dobbel stortromme, en falsettsanger skriker, våpnene brenner, heltene slår 60 prosent hardere og lynet slår ned i fiendene. Varer i 12 sekunder.
 
 ## 11. Nivåer, butikk og kjæledyr
@@ -172,6 +173,8 @@ Gore (FAMILY, NORMAL, EXCESSIVE, PLEASE SEEK HELP), musikk, musikkstil (HEAVY ME
 
 ## 14. Lyd
 
+Frostpasset har fottrinn i snøen, fossesus som blir sterkere nær fossene, ulv, vindkast og is som knaker, og kjempetrollet kommer med krigshorn, brøl og tunge trinn som rister skjermen. Alle helter og kjemper har fottrinn etter underlaget (gress, stein, vann, snø). Replikkene kan leses inn med stemmer laget i VoiceStudio (stemmedesign, ingen kloning av ekte stemmer); manuset står i docs/STEMMER.md, og spillet spiller en replikk så snart fila finnes.
+
 Lydeffektene er syntetisert i WebAudio (sverdsus, treff, splat, klang, overdrevne skrik med ulik stemme per figurtype, mynter, gong, publikum, fjærlyd for armer, vått smell og skli-hvin for hodet i skjermen, ild, plask, fres, sirkusfanfare for studiologoen), med ekte opptak lagt oppå der de finnes: slag, knas, sprut, riving, stikk, fall, torden og zap fra Freesound, og gong, bekken og pauker fra VCSL, alle CC0. Lydbanken og stemningen er hentet fra Toms Morbidium. Syntlyden ligger under og tar over når en fil ikke er lastet (og i enkeltfil-bygget). RECORDED SOUNDS i innstillingene slår opptakene av. Lyn høres ut som torden, ikke som eksplosjoner. Musikken dukker under store smell og på pause. Hvert brett har sin egen stemning under musikken: vind og kråker i grasslandet, drypp og drone i sumpen, vind i frosten, bål og buldring i vulkanlandet, sirisser og bål i nattleiren, drone i tårnet og publikumsmumling i arenaen. Drapsrekkene får fanfarer som trappes opp med gitar, pauker, orgel, kor, gong, torden og publikum, og en lang rekke som ryker får en trist trombone. M slår lyd av/på.
 
 Musikken er 80-talls heavy metal, også syntetisert: to rytmegitarer panorert ut til hver side gjennom forvrengning og et høyttalerkabinett, palm mute og galopp, bassgitar, trommer med dobbel stortromme og gated reverb på skarptromma, og leadgitar med vibrato, bend, ekko og tvillingharmonier. Hvert brett har sin egen låt: episk tittellåt, galopp på veien, seig doom i sumpen, speed metal i frosten, frygisk thrash i Scorchlands, og dobbel stortromme i dueller, sjefer og tårnet. Brettene starter med en stor åpen akkord, og sjefene kommer inn med et vektarmdykk. De gamle 8-bit-låtene kan velges i innstillingene. Alle riff og melodier er skrevet for spillet.
@@ -203,3 +206,5 @@ Videre:
 5. **Co-op-gjenoppliving**: bær en falt partner til et alter, eller del kyllingen.
 6. **Flere kroppstyper**: dverg, halvtroll, og en helt som bare er en veldig sint gnome.
 7. **Online co-op** og Steam Deck.
+8. **Fra konseptbilde 4**: kast fiender ned i juvet bak taugjerdet, istapper som faller når noe smeller i klippene, fyrfat som kan veltes (ild på bakken), og kjempetrollet som kaster heltene.
+9. **Flere kjemper**: en kjempe per land (sumpkjempe, lavakjempe) med egne bakkeslag.

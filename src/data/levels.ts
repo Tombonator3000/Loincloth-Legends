@@ -91,7 +91,7 @@ export const LEVELS: Record<string, LevelDef> = {
     waves: [
       w(8, 4, 'frostskel:R:0.2 frostskel:L:0.8 frostskel:R:1.4 frostskel:R:2.2', { title: 'FROST SKELETONS!', say: ['NARRATOR', 'THEY ARE BLUE. THAT IS THE ONLY DIFFERENCE.'] }),
       w(34, 4, 'troll:R:0.3 frostskel:L:0.9 frostskel:R:1.6 gnome:L:2.0 cultist:R:2.6', { title: 'ICE TROLL!', say: ['NARRATOR', 'HE THROWS SNOWBALLS THE SIZE OF COWS.'] }),
-      w(62, 5, 'troll:L:0.3 frostskel:R:0.8 frostskel:R:1.3 cultist:R:2.0 frostskel:L:2.8'),
+      w(62, 5, 'bigtroll:R:0.4 frostskel:L:0.9 frostskel:L:1.5 cultist:R:2.4 frostskel:R:3.0', { title: 'AVALANCHE TROLL!', say: ['NARRATOR', 'HIS MOTHER CALLS HIM LITTLE BJORN. NOBODY ELSE DOES. TWICE.'] }),
       w(90, 6, 'troll:R:0.3 troll:L:1.2 frostskel:R:1.8 frostskel:L:2.4 cultist:R:3.0 gnome:R:3.4', { title: 'AVALANCHE OF IDIOTS!' }),
     ],
     barrels: [[20, 'chicken'], [48, 'potion'], [74, 'gold'], [100, 'ham']],

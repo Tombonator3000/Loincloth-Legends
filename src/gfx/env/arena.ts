@@ -35,6 +35,8 @@ const THEMES: Record<ArenaTheme, {
 export function buildArena(scene: THREE.Scene, gore: Gore, theme: ArenaTheme = 'pit'): Env {
   const T = THEMES[theme];
   const g = new THREE.Group();
+  // Snøføyka på is-arenaen, sand ellers
+  if (theme === 'ice') gore.dustColor = '#e8f0f8';
   scene.background = new THREE.Color(T.bg);
   scene.fog = new THREE.Fog(T.bg, 26, 70);
   g.add(sky(T.sky[0], T.sky[1], T.sky[2], 'arena-' + theme));

@@ -1,5 +1,17 @@
 # todo.md
 
+## Frostpasset som konseptbilde 4 (fra 2026-09-29 22:23)
+- [x] Kameraet nærmere og lavere (gfx/stagecam.ts), og det trekker seg bakover når en kjempe er i bildet
+- [x] Avalanche Troll: kjempe med rustning til han vakler, bakkeslag som rister, midtveis i frostpasset (tools/tests/giant.mjs)
+- [x] Blåtimen: dypblå himmel med varmt bånd i horisonten, blå tåke, ny gradering
+- [x] Klippevegger med snø, fossefall med dis, taubro, ruiner, fyrfat med ild, lys og varmeflimmer, fillete krigsbannere med hornet hodeskalle, runesteiner i 3D (noen gløder), istapper, taugjerde, snø på steinene, snøføyke og tettere snøfall
+- [ ] Tom: lag trollet i ChatGPT (troll_*.png). Kjempetrollet arver delene, så begge får den nye stilen
+- [ ] Krigsbanneret som eget bilde fra ChatGPT (trenger en ny kategori i process_art.py, ikke flisbar tekstur)
+- [ ] Gameplay fra bildet: kast fiender i juvet, istapper som faller, fyrfat som kan veltes, kjempen kaster helter
+- [x] Flere lyder: snøtrinn og fottrinn per underlag, isknak, vindkast, fossesus, trollbrøl, krigshorn, ulv, sverdklang og publikum (21 nye CC0-opptak, tools/make_sounds.py)
+- [x] Stemmemanus for VoiceStudio (docs/STEMMER.md, 175 replikker) og innlesing i spillet (audio.voice, voice/inbox/, make_sounds.py --stemmer)
+- [ ] Tom: lag replikkene i VoiceStudio, prioritet A først (fortelleren, utropene, sjefene og kjempetrollet)
+
 ## Gjenbruk fra Morbidium (docs/GJENBRUK.md)
 - [x] Lydbank med CC0-opptak, torden og zap, dukking, stemning per biom, fanfarer for drapsrekker, RECORDED SOUNDS
 - [x] Dirigent: låtbytte på taktstreken med bro, intensitetslag, METAL MODE, sjef, seier, tap og innslag i takt
@@ -7,7 +19,7 @@
 - [x] Automatisk grafikkvalitet, gjenoppretting av WebGL, ?perf, lyspool uten blinking, sårede drypper blod, SSAO lar lava lyse
 - [x] Bildeverktøy og maler for ChatGPT, fiendevariasjon, kreditering (README, public/LICENSES, THIRD_PARTY_LICENSES.md)
 - [ ] Tom: lytt på musikken og lydene på ekte høyttalere og si hva som skal justeres
-- [ ] Senere fra rapporten: ro (musikken trekker seg tilbake), seierslåt som slutter, kunngjørerstemme, fottrinn per underlag, lyder fra riktig side, flere Freesound-lyder med lag_lyd.py (sverdklang, publikum, ulv, krigshorn), lava som flyter, varsel på bakken før angrep, fugleflokker, snø og mose på steiner, Playwright i CI
+- [ ] Senere fra rapporten: ro (musikken trekker seg tilbake), seierslåt som slutter, lyder fra riktig side, lava som flyter, varsel på bakken før angrep, fugleflokker, mose på steiner, Playwright i CI (fottrinn per underlag, sverdklang, publikum, ulv, krigshorn, snø på steiner og stemmemanus er gjort)
 - [ ] CREDITS-skjerm i spillet (src/data/credits.ts), så også enkeltfil-bygget bærer krediteringen
 
 ## Pågår: nesten ekte karikatur (Toms Valkyra-bilde, fra 2026-09-29 17:05)
@@ -36,7 +48,7 @@
 - [x] Mykt lys og skygger som følger kameraet
 - [x] Vind, 3D-trær, gress og fallende blader, tåkelag og lyssøyler
 - [x] Slå sammen statiske mesher per materiale (palisade, steiner, piler, staker): brett 1 fra 475 til 222 tegnekall på HIGH
-- [ ] Biomene mot konseptbildene (docs/STYLE_TARGET.md): fakler og fyrfat, lyn, blodmåne, lavafall, demonslott, ruiner, fossefall, våte gulv, mørke silhuetter i forgrunnen
+- [ ] Biomene mot konseptbildene (docs/STYLE_TARGET.md): lyn, blodmåne, lavafall, demonslott, våte gulv (fyrfat, ruiner, fossefall og forgrunn er gjort i frostpasset, rekvisittene i env/props.ts kan brukes i de andre)
 - [x] Heroiske proporsjoner på figurene (lange bein og armer, høyere overkropp, mindre hode)
 - [ ] Dverg-helt (kroppstype i heltebyggeren, gyllen øks som i konseptbildet)
 - [ ] Damekroppen: smalere liv og bredere hofter (i dag er silhuetten nesten lik mannens)

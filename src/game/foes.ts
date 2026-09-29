@@ -7,6 +7,7 @@ import type { Hero } from './hero';
 import type { Projectiles, ProjKind } from './projectiles';
 import type { FoeDef } from '../data/enemies';
 import { audio } from '../core/audio';
+import { screenFX } from '../gfx/screenfx';
 import { rand, chance } from '../core/math';
 
 export interface FoeWorld {
@@ -54,6 +55,7 @@ export class Foe {
   dir = 1;
   escaped = false;
   leapCd = rand(1, 2.5);
+  quaked = false;
 
   constructor(public def: FoeDef, x: number, z: number, hpMul = 1) {
     // Litt variasjon per fiende, etter oppskriftssystemet i Toms Morbidium: størrelse og en svak fargetone, så en bølge
@@ -65,6 +67,37 @@ export class Foe {
     this.f = new Fighter(def.char, 'enemy', { hp: def.hp * hpMul, speed: def.speed * rand(0.9, 1.1), tint, scale, poseMod: def.poseMod });
     this.f.label = def.name;
     this.f.pos.set(x, 0, z);
+    if (def.poise) this.givePoise(def.poise);
+  }
+
+  /** Kjemper: slagene biter ikke før han har tatt poise av livet sitt i skade, da vakler han (som sjefene). */
+  private givePoise(poise: number) {
+    const f = this.f;
+    let taken = 0;
+    f.armored = true;
+    f.onArmorHit = (dmg) => {
+      taken += dmg;
+      if (taken < poise * f.maxHp || !f.alive) return;
+      taken = 0;
+      f.armored = false;
+      f.hurt(0.9, 0);
+      f.flash(0.2);
+      W.fx.text(f.headPoint().add(new THREE.Vector3(0, 0.8, 0)), 'STAGGERED!', 'word');
+    };
+  }
+
+  /** Bakken rister der et tungt slag (AttackDef.quake) treffer: snø og støv spruter, sjokkbølge og risting. */
+  private quake(r: number) {
+    const f = this.f;
+    const at = new THREE.Vector3(f.pos.x + f.facing * 1.6 * f.size, 0.15, f.pos.z);
+    W.gore.dust(at, 26);
+    for (let i = 0; i < 10; i++) {
+      const a = (i / 10) * Math.PI * 2;
+      W.gore.dust(new THREE.Vector3(at.x + Math.cos(a) * r * 0.45, 0.1, at.z + Math.sin(a) * r * 0.25), 3);
+    }
+    W.fx.shake(0.55);
+    screenFX.shock(at, 0.7, 0.7, 1.2);
+    audio.thud(f.size, true);
   }
 
   get kind() {
@@ -95,6 +128,13 @@ export class Foe {
       if (this.def.proj) fireProjectile(st.proj, f, this.def.proj, f.facing);
     }
     if (f.state === 'attack' && f.phase() === 'active') this.thrown = true;
+    // Kjempene: rustningen kommer tilbake når vaklingen er over, og bakkeslaget rister når det treffer
+    if (this.def.poise && !f.armored && f.state !== 'hurt') f.armored = true;
+    if (f.state === 'attack' && f.atk?.quake && f.phase() === 'active' && !this.quaked) {
+      this.quaked = true;
+      this.quake(f.atk.quake);
+    }
+    if (f.state !== 'attack') this.quaked = false;
 
     // Froskemannen: angrep i lufta
     if (this.def.behavior === 'jumper' && f.state === 'jump' && !f.airAttackUsed && f.vel.y < 2) {

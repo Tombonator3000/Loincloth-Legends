@@ -281,5 +281,13 @@ const fireimp: CharDef = {
   },
 };
 
-export const WILDS: CharDef[] = [zombie, frogman, troll, fireimp];
+// ---------------------------------------------------------------- KJEMPETROLLET
+// Konseptbilde 4: et istroll som rager over heltene. Samme tegning som istrollet, over dobbelt så stort. PNG-delene
+// arves fra istrollet til det finnes egne (bigtroll_*.png), og de tegnede delene får flere piksler per enhet (rig.ts).
+const bigtroll: CharDef = {
+  ...troll, id: 'bigtroll', name: 'AVALANCHE TROLL', scale: 2.6, color: '#3a5a80',
+  inherit: { leg: 'troll', arm: 'troll', pelvis: 'troll', torso: 'troll', head: 'troll', weapon: 'troll' },
+};
+
+export const WILDS: CharDef[] = [zombie, frogman, troll, bigtroll, fireimp];
 export { frogLeg, frogArm, FR };

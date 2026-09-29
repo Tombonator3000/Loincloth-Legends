@@ -1,5 +1,6 @@
 // HUD i ren DOM: spillerpaneler, duell-bars, kunngjøringer, dialog.
 import { headCanvas } from '../gfx/rig';
+import { audio } from '../core/audio';
 import type { CharId } from '../gfx/chars';
 import type { Fighter } from '../game/fighter';
 
@@ -235,6 +236,8 @@ export class HUD {
   }
 
   announce(text: string, cls = '', dur = 1.5, sub = '') {
+    // Innlest utrop når det finnes (FIGHT!, METAL MODE!, AVALANCHE TROLL! osv., se docs/STEMMER.md)
+    audio.voice(text);
     this.ann.className = 'announce ' + cls;
     this.ann.innerHTML = `<div class="a-main">${text}</div>${sub ? `<div class="a-sub">${sub}</div>` : ''}`;
     void this.ann.offsetWidth;
@@ -242,7 +245,9 @@ export class HUD {
     this.annT = dur;
   }
 
-  say(speaker: string, text: string, dur = 3) {
+  /** voice = false når kallstedet leser replikken inn selv (heltenes replikker har egen damestemme). */
+  say(speaker: string, text: string, dur = 3, voice = true) {
+    if (voice) audio.voice(text);
     this.sayEl.innerHTML = `<b>${speaker}</b><span>${text}</span>`;
     this.sayEl.classList.remove('show');
     void this.sayEl.offsetWidth;

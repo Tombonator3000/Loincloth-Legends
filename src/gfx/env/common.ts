@@ -10,6 +10,7 @@ import { images } from '../assets';
 import type { Grade } from '../post';
 import { SunShadow } from './sun';
 import { screenFX } from '../screenfx';
+import { STAGE_CAM } from '../stagecam';
 import { withSurface, type SurfaceOpts } from './surface';
 import { groundTexture, roadTexture, stoneTexture, tileTexture, sandTexture, woodTexture, lavaRockTexture, imageTexture } from './textures';
 
@@ -235,6 +236,8 @@ export interface Env {
   grade?: Partial<Grade>;
   /** Bålene på brettet (satt av campfire()). Stemningen knitrer sterkere nær dem (core/ambience.ts). */
   fires?: THREE.Vector3[];
+  /** Fossene (satt av waterfall() i props.ts). Fossesuset blir sterkere nær dem. */
+  waters?: THREE.Vector3[];
   /** Regn, 0..1: vanndråper treffer glasset og renner (gfx/screenwet.ts). Ingen brett har regn ennå. */
   rain?: number;
 }
@@ -413,6 +416,7 @@ export function finishEnv(g: THREE.Group, updates: ((dt: number, t: number, camX
     fogColor,
     grade,
     fires: g.userData.fires as THREE.Vector3[] | undefined,
+    waters: g.userData.waters as THREE.Vector3[] | undefined,
     update(dt, t, camX) {
       for (const u of updates) u(dt, t, camX);
     },
@@ -441,7 +445,8 @@ export function foreground(g: THREE.Group, length: number, kinds: FgProp[] = ['s
   const ball = new THREE.IcosahedronGeometry(1, 1);
   const rockG = new THREE.DodecahedronGeometry(1, 0);
   for (let x = -12; x < length + 12; x += rand(every[0], every[1])) {
-    const z = rand(7.6, 9.2);
+    // Like foran kameraet, så nær at bare toppene stikker opp nederst i bildet
+    const z = STAGE_CAM.z - rand(3.8, 5.0);
     switch (pick(kinds)) {
       case 'spikes':
         for (let i = 0; i < 5; i++) put(cone, x + rand(-0.7, 0.7), 0.5, z + rand(-0.3, 0.3), rand(-0.35, 0.35), 0, rand(-0.45, 0.45), rand(0.07, 0.13), rand(0.9, 1.9), rand(0.07, 0.13));
@@ -575,14 +580,15 @@ function rockGeometries() {
 const colorMats = new Map<string, THREE.MeshStandardMaterial>();
 /** Materiale med toppunktfarger (stein, bein), delt per farge og ruhet. */
 function vcMat(color: string, roughness: number, surf: SurfaceOpts) {
-  const k = color + roughness;
+  const k = color + roughness + (surf.snow ? 's' + surf.snow : '');
   let m = colorMats.get(k);
   if (!m) colorMats.set(k, (m = lit({ color, vertexColors: true, roughness }, surf)));
   return m;
 }
 
-export function rock(g: THREE.Group, x: number, z: number, size: number, cols = ['#8a8378', '#77706a', '#9a9288']) {
-  const r = new THREE.Mesh(pick(rockGeometries()), vcMat(pick(cols), 0.92, { scale: 1.3, normal: 1.1, albedo: 0.55 }));
+/** Kampestein. snow legger snø på toppen (0..1, se surface.ts). */
+export function rock(g: THREE.Group, x: number, z: number, size: number, cols = ['#8a8378', '#77706a', '#9a9288'], snow = 0) {
+  const r = new THREE.Mesh(pick(rockGeometries()), vcMat(pick(cols), 0.92, { scale: 1.3, normal: 1.1, albedo: 0.55, snow }));
   r.position.set(x, size * 0.16, z);
   r.scale.setScalar(size);
   r.rotation.y = rand(0, Math.PI * 2);

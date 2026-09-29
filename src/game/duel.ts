@@ -279,6 +279,8 @@ export class Duel {
     // Duellåta kommer på neste taktstrek med en bro fra det som spilte (frost, kartet), eller med en gang
     audio.queue('duel');
     audio.ambience('arena');
+    // Fottrinnene: snø og is på is-arenaen, stein ellers
+    audio.surface = cfg.arena === 'ice' ? 'sno' : 'stein';
     this.newRound();
   }
 

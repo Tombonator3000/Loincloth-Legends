@@ -22,3 +22,10 @@ art/inbox/*
 
 # Arbeidskopier for agenter (git worktree), aldri i repoet
 .claude/worktrees/
+
+# Mellomlager for tools/make_sounds.py
+.soundcache/
+
+# Replikker fra VoiceStudio før de er tatt inn (tools/make_sounds.py --stemmer)
+voice/inbox/*
+!voice/inbox/LESMEG.md

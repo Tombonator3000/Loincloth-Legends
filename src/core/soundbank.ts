@@ -13,7 +13,8 @@
 /** Metadata per fil, som i Morbidiums lyd.json (feltnavnene er beholdt, så radene kan kopieres rett over). */
 export interface SoundMeta {
   gruppe: string;
-  type: 'sfx' | 'ins' | 'amb';
+  /** voice = innleste replikker (v_<replikk>, se docs/STEMMER.md), pakkes ut sist. */
+  type: 'sfx' | 'ins' | 'amb' | 'voice';
   sek?: number;
   /** Sløyfepunkter i sekunder (etter stillheten foran), eller false/null for engangslyder. */
   sloyfe?: [number, number] | false | null;
@@ -108,7 +109,7 @@ export class SoundBank {
         this.meta = meta;
         this.groups = {};
         for (const k in meta) (this.groups[meta[k].gruppe] ??= []).push(k);
-        const pri = (k: string) => ({ sfx: 0, ins: 1, amb: 2 })[meta[k].type] ?? 3;
+        const pri = (k: string) => ({ sfx: 0, ins: 1, amb: 2, voice: 3 })[meta[k].type] ?? 3;
         const names = Object.keys(meta).sort((a, b) => pri(a) - pri(b));
         this.total = names.length;
         let i = 0;

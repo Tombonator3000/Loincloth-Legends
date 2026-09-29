@@ -22,6 +22,7 @@ Repo: https://github.com/Tombonator3000/Loincloth-Legends. Spillet er fra Tom's 
 - Figurgrafikk tegnes prosedyremessig i `src/gfx/chars/`. PNG-er kan erstatte delene via `public/assets/manifest.json`.
 - Ikke legg inn opphavsrettsbeskyttede figurer, navn eller logoer. Alt skal være originalt.
 - Lyd går gjennom `src/core/audio.ts`. Den kan være syntetisert i WebAudio, eller opptak og samplede instrumenter som er fri til bruk (CC0), som lydene fra Freesound og instrumentene fra Versilian Community Sample Library (VCSL) i Morbidium. Hver fil føres opp i en kildeliste med tittel, hvem som har spilt den inn og lenke. Den syntetiserte lyden er reserven når en fil ikke kan lastes (for eksempel i enkeltfil-bygget).
+- Stemmer: replikkene lages med stemmedesign i VoiceStudio (en beskrivelse av stemmen), eller med Toms egen stemme. Aldri kloning av ekte personer uten skriftlig tillatelse. VoiceStudio er AGPL-3.0 og brukes bare som verktøy; ingen kode derfra inn i repoet. Manus og filnavn: `docs/STEMMER.md`.
 - Gjenbruk går foran å skrive nytt (Tom): se etter ferdig kode i Toms egne repoer (særlig Morbidium) og i prosjektbiblioteket før du lager noe fra bunnen. Sjekk lisens og opphav, og krediter i README.
 - Bruk spilltid (dt i update), ikke `setTimeout`, for ting som påvirker spillet (så pause og slowmo virker).
 - Heltenes proporsjoner (heroiske: lange bein, brede skuldre, mindre hode enn chibi, enorme muskler, bittesmå lendeklær) ligger i `src/gfx/chars/types.ts` og `src/gfx/chars/muscle.ts`.

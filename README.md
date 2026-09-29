@@ -44,11 +44,12 @@ npm run typecheck
 - **Hero Forge**: lag din egen helt (mann eller dame) fra deler. Heroiske 80-talls kropper med altfor store muskler, ringbrynjebikini, røde støvler og bittesmå lendeklær.
 - **Grafikk**: HDR-bilde med bloom, SSAO, dybdeskarphet og fargegradering per brett, fysisk himmel med miljølys, eksponentiell tåke, støyteksturer med normalkart, 3D-steiner og hodeskaller, myke skygger, 3D-trær og gress i vinden, GPU-partikler, lyn og eksplosjoner, blod som lander og tørker inn, 3D-gibs, figurer som tar lys fra fakler og lyn, og mørke silhuetter i forgrunnen. Fem grafikknivåer (AUTO til ULTRA).
 - **Heavy metal**: 80-talls metal syntetisert i nettleseren (vrengte gitarer, dobbel stortromme, tvillinggitarer og solo), én låt per brett. En dirigent bytter låt på taktstreken og trapper bandet opp når fiendene kommer. De gamle 8-bit-låtene kan velges i innstillingene.
-- **Lyd**: ekte opptak av slag, knas, sprut og torden (CC0) oppå synthen, stemning per brett og fanfarer for drapsrekker.
+- **Lyd**: ekte opptak av slag, knas, sprut, torden, sverdklang, publikum, krigshorn, trollbrøl, ulv og fossesus (CC0) oppå synthen, fottrinn etter underlaget, stemning per brett og fanfarer for drapsrekker. Replikkene kan leses inn med stemmer laget i VoiceStudio (manus i docs/STEMMER.md).
 - **Skjerm**: blod og vann som treffer glasset og renner, sjokkbølger, kameradykk, årer ved lav helse, varmeflimmer og automatisk grafikkvalitet.
 - **METAL MODE**: drap og lemlestelse fyller en måler. Full måler gir gitarsolo, brennende våpen, hardere slag og lyn som slår ned i fiendene.
 - **Verdenskart** i 3D med fem biomer, stier, låste noder og fremgang som lagres.
 - **Fem brett** med egne fiender, farer (pigger, myr, råk, lava, piggfeller) og fiender som kommer ridende. Finale per brett: fire sjefer og én duell til døden.
+- **Frostpasset i blåtimen**: klippevegger med snø, fossefall, taubro, ruiner, fyrfat med ild, fillete krigsbannere med hornet hodeskalle, runesteiner som gløder, istapper og tett snøfall. Midtveis kommer Avalanche Troll, en kjempe over dobbelt så høy som heltene, som rister bakken og får kameraet til å trekke seg bakover.
 - **Nattleir** som i Golden Axe: heltene sover ved bålet mens tyvnisser napper krukkene deres.
 - **Magi** i tre varianter (meteorregn, forfedrenes skrik og tordenguden), sterkere jo flere krukker. Sjonglering i lufta og B-film-replikker.
 - **Grep og kast**: ta tak i fiender, kne dem, kast dem i andre fiender (bowling) eller rett i lava.
