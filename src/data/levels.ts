@@ -53,7 +53,7 @@ export const LEVELS: Record<string, LevelDef> = {
     finale: { type: 'boss', boss: 'hogmother' }, bossSign: 'MAMA\'S KITCHEN',
   },
   swamp: {
-    id: 'swamp', name: 'STAGE 2', subtitle: 'THE SWAMP OF MOIST REGRET', biome: 'swamp', length: 125, music: 'stage',
+    id: 'swamp', name: 'STAGE 2', subtitle: 'THE SWAMP OF MOIST REGRET', biome: 'swamp', length: 125, music: 'swamp',
     intro: 'IT SMELLS LIKE A WET DOG ATE ANOTHER WET DOG.',
     waves: [
       w(8, 4, 'zombie:R:0.2 zombie:R:0.9 zombie:L:1.5 frogman:R:2.6', { title: 'ZOMBIES!', say: ['NARRATOR', 'SLOW, STUPID, AND STICKY. LIKE A MONDAY.'] }),
@@ -67,7 +67,7 @@ export const LEVELS: Record<string, LevelDef> = {
     finale: { type: 'boss', boss: 'croakus' }, bossSign: 'ROYAL POND',
   },
   frost: {
-    id: 'frost', name: 'STAGE 3', subtitle: 'FROSTBITE PASS', biome: 'frost', length: 125, music: 'stage',
+    id: 'frost', name: 'STAGE 3', subtitle: 'FROSTBITE PASS', biome: 'frost', length: 125, music: 'frost',
     intro: 'SO COLD THAT EVEN THE LOINCLOTHS WEAR LOINCLOTHS.',
     waves: [
       w(8, 4, 'frostskel:R:0.2 frostskel:L:0.8 frostskel:R:1.4 frostskel:R:2.2', { title: 'FROST SKELETONS!', say: ['NARRATOR', 'THEY ARE BLUE. THAT IS THE ONLY DIFFERENCE.'] }),
@@ -81,7 +81,7 @@ export const LEVELS: Record<string, LevelDef> = {
     finale: { type: 'duel', duelist: 'kaldor' }, gateTitle: 'THE FROZEN PIT >>>', gateSub: 'KALDOR AWAITS. BRING A SCARF.',
   },
   scorch: {
-    id: 'scorch', name: 'STAGE 4', subtitle: 'THE SCORCHLANDS', biome: 'scorch', length: 130, music: 'stage',
+    id: 'scorch', name: 'STAGE 4', subtitle: 'THE SCORCHLANDS', biome: 'scorch', length: 130, music: 'scorch',
     intro: 'THE FLOOR IS LAVA. THIS IS NOT A GAME. WELL, IT IS A GAME.',
     waves: [
       w(8, 4, 'emberskel:R:0.2 emberskel:L:0.8 fireimp:R:1.4 emberskel:R:2.2', { title: 'FIRE IMPS!', say: ['NARRATOR', 'SMALL, RED AND THROWING FIRE. LIKE A TODDLER WITH A TORCH.'] }),

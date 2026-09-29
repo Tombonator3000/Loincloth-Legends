@@ -208,6 +208,7 @@ export class Game {
     this.input.onPad = (msg) => this.toast(msg + (this.twoP ? ' (1 PAD = PLAYER 2, 2 PADS = P1 + P2)' : ''));
     onSettings((st) => {
       audio.setVolumes(st.music, st.sfx);
+      audio.setStyle(st.musicStyle);
       this.gore.level = st.gore;
       const q = resolveQuality(st.quality);
       if (q !== this.post.quality || !this.qualitySet) {
@@ -325,29 +326,43 @@ export class Game {
   showSettings(onBack: () => void, sel = 0) {
     const pct = (v: number) => Math.round(v * 100) + '%';
     const step = (v: number, d: number) => Math.max(0, Math.min(1, Math.round((v + d * 0.1) * 10) / 10));
-    const again = (i: number) => this.showSettings(onBack, i);
     const TOUCH: TouchMode[] = ['auto', 'on', 'off'];
     const fs = !!document.fullscreenElement;
-    const cycleQ = (d: number) => {
-      const i = QUALITY_SETTINGS.indexOf(settings.quality);
-      setSettings({ quality: QUALITY_SETTINGS[(i + d + QUALITY_SETTINGS.length) % QUALITY_SETTINGS.length] as QualitySetting });
-      again(7);
+    // Hver rad får vite sin egen plass, så menyen tegnes på nytt med riktig rad valgt
+    const items: Item[] = [];
+    const row = (make: (again: () => void) => Item) => {
+      const i = items.length;
+      items.push(make(() => this.showSettings(onBack, i)));
     };
-    const cycleGore = (d: number) => {
-      setSettings({ gore: (((settings.gore + d) % 4) + 4) % 4 as GoreLevel });
-      again(0);
-    };
-    const items: Item[] = [
-      { label: 'GORE: ' + GORE_NAMES[settings.gore], hint: GORE_HINTS[settings.gore], action: () => cycleGore(1), adjust: cycleGore },
-      { label: 'MUSIC: ' + pct(settings.music), action: () => { setSettings({ music: settings.music >= 1 ? 0 : step(settings.music, 1) }); again(1); }, adjust: (d) => { setSettings({ music: step(settings.music, d) }); again(1); } },
-      { label: 'SOUND FX: ' + pct(settings.sfx), action: () => { setSettings({ sfx: settings.sfx >= 1 ? 0 : step(settings.sfx, 1) }); audio.hit(); again(2); }, adjust: (d) => { setSettings({ sfx: step(settings.sfx, d) }); audio.hit(); again(2); } },
-      { label: 'SCREEN SHAKE: ' + (settings.shake ? 'ON' : 'OFF'), action: () => { setSettings({ shake: !settings.shake }); again(3); }, adjust: () => { setSettings({ shake: !settings.shake }); again(3); } },
-      { label: 'GAMEPAD RUMBLE: ' + (settings.rumble ? 'ON' : 'OFF'), action: () => { setSettings({ rumble: !settings.rumble }); this.input.rumble(-1, 0.6, 0.6, 200); again(4); }, adjust: () => { setSettings({ rumble: !settings.rumble }); again(4); } },
-      { label: 'TOUCH CONTROLS: ' + settings.touch.toUpperCase(), hint: 'AUTO = PÅ TELEFON OG NETTBRETT', action: () => { setSettings({ touch: TOUCH[(TOUCH.indexOf(settings.touch) + 1) % 3] }); again(5); }, adjust: (d) => { setSettings({ touch: TOUCH[(TOUCH.indexOf(settings.touch) + d + 3) % 3] }); again(5); } },
-      { label: 'FULLSCREEN: ' + (fs ? 'ON' : 'OFF'), action: () => { this.toggleFullscreen(); setTimeout(() => again(6), 250); } },
-      { label: 'GRAPHICS: ' + settings.quality.toUpperCase() + (settings.quality === 'auto' ? ' (' + this.post.quality.toUpperCase() + ')' : ''), hint: QUALITY_HINTS[settings.quality], action: () => cycleQ(1), adjust: cycleQ },
-      { label: 'BACK', action: onBack },
-    ];
+    row((again) => {
+      const cycle = (d: number) => {
+        setSettings({ gore: ((((settings.gore + d) % 4) + 4) % 4) as GoreLevel });
+        again();
+      };
+      return { label: 'GORE: ' + GORE_NAMES[settings.gore], hint: GORE_HINTS[settings.gore], action: () => cycle(1), adjust: cycle };
+    });
+    row((again) => ({ label: 'MUSIC: ' + pct(settings.music), action: () => { setSettings({ music: settings.music >= 1 ? 0 : step(settings.music, 1) }); again(); }, adjust: (d) => { setSettings({ music: step(settings.music, d) }); again(); } }));
+    row((again) => {
+      const flip = () => {
+        setSettings({ musicStyle: settings.musicStyle === 'metal' ? 'chip' : 'metal' });
+        again();
+      };
+      return { label: 'MUSIC STYLE: ' + (settings.musicStyle === 'metal' ? 'HEAVY METAL' : '8-BIT'), hint: settings.musicStyle === 'metal' ? 'DISTORTION, DOUBLE KICK, GUITAR SOLOS' : 'THE OLD CHIPTUNES', action: flip, adjust: flip };
+    });
+    row((again) => ({ label: 'SOUND FX: ' + pct(settings.sfx), action: () => { setSettings({ sfx: settings.sfx >= 1 ? 0 : step(settings.sfx, 1) }); audio.hit(); again(); }, adjust: (d) => { setSettings({ sfx: step(settings.sfx, d) }); audio.hit(); again(); } }));
+    row((again) => ({ label: 'SCREEN SHAKE: ' + (settings.shake ? 'ON' : 'OFF'), action: () => { setSettings({ shake: !settings.shake }); again(); }, adjust: () => { setSettings({ shake: !settings.shake }); again(); } }));
+    row((again) => ({ label: 'GAMEPAD RUMBLE: ' + (settings.rumble ? 'ON' : 'OFF'), action: () => { setSettings({ rumble: !settings.rumble }); this.input.rumble(-1, 0.6, 0.6, 200); again(); }, adjust: () => { setSettings({ rumble: !settings.rumble }); again(); } }));
+    row((again) => ({ label: 'TOUCH CONTROLS: ' + settings.touch.toUpperCase(), hint: 'AUTO = PÅ TELEFON OG NETTBRETT', action: () => { setSettings({ touch: TOUCH[(TOUCH.indexOf(settings.touch) + 1) % 3] }); again(); }, adjust: (d) => { setSettings({ touch: TOUCH[(TOUCH.indexOf(settings.touch) + d + 3) % 3] }); again(); } }));
+    row((again) => ({ label: 'FULLSCREEN: ' + (fs ? 'ON' : 'OFF'), action: () => { this.toggleFullscreen(); setTimeout(again, 250); } }));
+    row((again) => {
+      const cycle = (d: number) => {
+        const i = QUALITY_SETTINGS.indexOf(settings.quality);
+        setSettings({ quality: QUALITY_SETTINGS[(i + d + QUALITY_SETTINGS.length) % QUALITY_SETTINGS.length] as QualitySetting });
+        again();
+      };
+      return { label: 'GRAPHICS: ' + settings.quality.toUpperCase() + (settings.quality === 'auto' ? ' (' + this.post.quality.toUpperCase() + ')' : ''), hint: QUALITY_HINTS[settings.quality], action: () => cycle(1), adjust: cycle };
+    });
+    items.push({ label: 'BACK', action: onBack });
     this.screens.custom(`<div class="panel settings"><h2>SETTINGS</h2><ul class="menu"></ul><p class="line small">GAMEPAD: A HOPP &middot; X ANGREP &middot; B SPESIAL &middot; Y GRIP &middot; START PAUSE</p></div>`, items, sel, onBack);
   }
 

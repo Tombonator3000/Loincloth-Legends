@@ -269,6 +269,39 @@ html, body {
 .s-n { font-family: var(--f-num); font-size: 13px; color: var(--bone); text-shadow: 2px 2px 0 var(--ink); }
 .s-l { font-family: var(--f-display); font-size: clamp(30px, 3.6vw, 52px); color: var(--blood-hi); text-shadow: 3px 3px 0 var(--ink); line-height: 1; }
 
+/* ---------------------------------------------------------------- METAL MODE */
+.metal-meter {
+  position: absolute;
+  top: calc(18px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.metal-meter.show { display: flex; }
+.mm-label {
+  font-family: var(--f-display);
+  font-size: 22px;
+  letter-spacing: 0.06em;
+  color: var(--steel);
+  -webkit-text-stroke: 1px var(--ink);
+  text-shadow: 2px 2px 0 var(--blood);
+  line-height: 1;
+}
+.mm-bar { width: clamp(100px, 16vw, 230px); height: 12px; background: #1a0a04; }
+.mm-bar .fill { background: linear-gradient(90deg, #6d1a00, #ff5a00 55%, #ffd35a); transition: width 0.15s; }
+.metal-meter.on .mm-label { color: #ffd35a; animation: metalpulse 0.23s infinite alternate; }
+.metal-meter.on .mm-bar .fill { background: linear-gradient(90deg, #ff2a00, #ffd35a 60%, #ffffff); animation: pulse 0.2s infinite alternate; }
+@keyframes metalpulse { to { transform: scale(1.14) rotate(-3deg); text-shadow: 0 0 12px #ff7a1a, 2px 2px 0 var(--blood); } }
+.announce.metal .a-main {
+  background: linear-gradient(180deg, #fff6c0, #ffd35a 30%, #ff6a00 55%, #b31a00 75%, #ffd35a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: drop-shadow(4px 4px 0 var(--ink)) drop-shadow(0 0 18px rgba(255, 120, 20, 0.8));
+}
+
 /* ---------------------------------------------------------------- sjef */
 .bossbar {
   position: absolute;
@@ -431,7 +464,7 @@ html, body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .logo, .go.show, .press, .bar .fill.low, .dtimer.low { animation: none; }
+  .logo, .go.show, .press, .bar .fill.low, .dtimer.low, .metal-meter.on .mm-label, .metal-meter.on .mm-bar .fill { animation: none; }
   .announce, .say, .streak { transition: none; }
 }
 

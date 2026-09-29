@@ -23,6 +23,9 @@ node tools/tests/mobile.mjs http://localhost:4173/ ./shots                # tele
 node tools/tests/gamepad.mjs http://localhost:4173/                       # falsk gamepad: stikke, knapper, grep og rumble
 node tools/tests/splash.mjs http://localhost:4173/ ./shots                # oppstartslogoen (tvinges frem med ?splash)
 node tools/tests/settings.mjs http://localhost:4173/ ./shots              # innstillingsmenyen, gore-nivå, FAMILY mot PLEASE SEEK HELP
+node tools/tests/looks.mjs http://localhost:4173/ ./shots all             # faste skjermbilder av alle brett med tegnekall og trekanter (QUALITY=low osv.)
+node tools/tests/metal.mjs http://localhost:4173/ ./shots all 14 shred    # metal-låtene rendret offline: WAV, spektrogram, nivå, klipping (shred = også med solo)
+node tools/tests/metalmode.mjs http://localhost:4173/ ./shots             # METAL MODE: måleren fylles av drap, solo, skadebonus, lyn og brennende våpen
 ```
 
 Skriptene skriver ut tilstand og eventuelle konsollfeil (`LOGS:`). Tom logg betyr ingen feil.

@@ -38,6 +38,7 @@ game/              Spillogikk
   boss.ts          Sjef-AI (trekk: melee, charge, slam, leap, shoot, summon, teleport, tongue, rain)
   projectiles.ts   Prosjektiler og områdeskade
   stage.ts         Generisk brett bygget fra en LevelDef
+  metalmode.ts     METAL MODE: måler som fylles av drap, så solo, skadebonus, lyn og brennende våpen
   duel.ts          1v1 duell i Barbarian-stil, tag team, oppryddings-imp som sparker hodet i skjermen
   items.ts         Pickups (også egg) og tønner
   world.ts         Delte referanser (scene, gore, fx, kamera, statistikk, rumble)
@@ -65,6 +66,8 @@ ui/                HUD og menyer (ren DOM)
   touch.ts         Berøringskontroller: flytende stikke, fire knapper, pause
   splash.ts        Oppstartslogo for Tom's Happy Happy Funtimes Emporium
 core/              Input (tastatur, gamepad, berøring), lyd (WebAudio-synth), innstillinger, matte
+  audio.ts         Lydeffekter, 8-bit-låtene og avspilling (sekvenser med setInterval og WebAudio-tid)
+  metal.ts         Heavy metal: gitarforsterkere, trommer, bass, leadgitar, låtene og soloen i METAL MODE
 assets/            Bilder som bygges inn i spillet (studio-logo.webp)
 ```
 
@@ -114,7 +117,7 @@ Legg en `Species` i `SPECIES` (`env/trees.ts`): lengde, radius, seksjoner, barn,
 
 ## Innstillinger og gore-nivå
 
-`core/settings.ts` lagrer gore-nivå, lydnivå, risting, rumble og berøringsmodus (`loincloth-legends-settings-v1`). `Game` lytter med `onSettings` og setter `Gore.level` og lydnivåene. Gore-nivået skalerer partikler, gibs, fontener og blod på skjermen. FAMILY bytter blod mot konfetti og gibs mot gummiender, blomster og stjerner.
+`core/settings.ts` lagrer gore-nivå, lydnivå, musikkstil (heavy metal eller 8-bit), risting, rumble og berøringsmodus (`loincloth-legends-settings-v1`). `Game` lytter med `onSettings` og setter `Gore.level`, lydnivåene og musikkstilen. Nye felt må også inn i `load()` med sjekk, ellers forsvinner de. Radene i innstillingsmenyen legges inn med `row()`, som gir hver rad sin egen plass, så nye valg kan settes inn hvor som helst. Gore-nivået skalerer partikler, gibs, fontener og blod på skjermen. FAMILY bytter blod mot konfetti og gibs mot gummiender, blomster og stjerner.
 
 ## Input
 
@@ -170,6 +173,9 @@ Legg til en `DuelistDef` i `data/duelists.ts`. `char: '@player'` gir en ond tvil
 1. Legg navnet til i riktig liste i `HERO_OPTIONS` (`gfx/chars/hero.ts`).
 2. Tegn varianten i tilsvarende funksjon (`helmet`, `beard`, `torsoPart` osv., eller i `muscle.ts`).
 3. Skal den låses opp? Legg den i `PART_LOCKS` og som `reward.unlock` på en kartnode, og gjerne i `SHOP`.
+
+### Ny metal-låt
+Legg en `track({...})` i `METAL_TRACKS` (`core/metal.ts`). Riffet skrives som tekst med ett tegn per sekstendedel (`riff(start, 'e-eee-eee-eee-ee', R)`: liten bokstav er palm mute, stor er åpen akkord, `-` holder, `.` er pause). Melodien skrives som `melody(start, 'E5:4 G5:2^2 B5:8/D6')` (lengde i sekstendeler, `^n` bend, `/X` egen andrestemme, `/-` ingen). `twin` gir tvillinggitar i terser ut fra `scale`, og soloen i METAL MODE bruker skalaen og grunntonene i riffet. Sett `music` i LevelDef til låtnavnet. Finnes ikke navnet i 8-bit-låtene, brukes `CHIP_FALLBACK` i `audio.ts`. Sjekk med `tools/tests/metal.mjs` (WAV, spektrogram, nivå og klipping).
 
 ### Ny grafikk fra ChatGPT
 Se `docs/ART_PROMPTS.md`. Filene legges i `public/assets/`, og `manifest.json` sier hvilken figur og del de tilhører.

@@ -1,5 +1,11 @@
 // All lyd er syntetisert med WebAudio. Ingen lydfiler.
+// Musikken er heavy metal (core/metal.ts) eller de gamle 8-bit-låtene (TRACKS under), valgt i innstillingene.
 import { rand } from './math';
+import { MetalBand, METAL_TRACKS, type MetalTrack } from './metal';
+
+export type MusicStyle = 'metal' | 'chip';
+/** Låter som bare finnes som metal. 8-bit bruker da en av de gamle. */
+const CHIP_FALLBACK: Record<string, string> = { swamp: 'stage', frost: 'stage', scorch: 'stage' };
 
 type Voice = 'hero' | 'heroine' | 'skeleton' | 'pig' | 'cultist' | 'gnome' | 'brute' | 'imp' | 'zombie' | 'frog' | 'troll' | 'wizard' | 'boar' | 'rooster' | 'newt';
 
@@ -102,6 +108,9 @@ export class AudioEngine {
   muted = false;
   private last: Record<string, number> = {};
   private track: Track | null = null;
+  private metal: MetalTrack | null = null;
+  private band: MetalBand | null = null;
+  private style: MusicStyle = 'metal';
   private trackName = '';
   private step = 0;
   private nextTime = 0;
@@ -140,6 +149,7 @@ export class AudioEngine {
     this.music = c.createGain();
     this.music.gain.value = 0.314 * this.volMusic;
     this.music.connect(this.master);
+    this.band = new MetalBand(c, this.music);
     const len = c.sampleRate * 1.5;
     this.noise = c.createBuffer(1, len, c.sampleRate);
     const d = this.noise.getChannelData(0);
@@ -825,21 +835,55 @@ export class AudioEngine {
   }
 
   // ---------- Musikk ----------
+  /** Bytt mellom heavy metal og 8-bit. Låten som spiller starter på nytt i den nye stilen. */
+  setStyle(style: MusicStyle) {
+    if (style === this.style) return;
+    this.style = style;
+    if (this.trackName) this.play(this.trackName, true);
+  }
+
+  get musicStyle() {
+    return this.style;
+  }
+
   play(name: string, force = false) {
     if (this.trackName === name && !force && this.timer !== null) return;
     this.trackName = name;
-    this.track = TRACKS[name] ?? null;
+    this.metal = this.style === 'metal' ? METAL_TRACKS[name] ?? null : null;
+    this.track = this.metal ? null : TRACKS[name] ?? TRACKS[CHIP_FALLBACK[name]] ?? null;
     if (!this.ctx) return;
     this.stopTimer();
-    if (!this.track) return;
+    if (!this.track && !this.metal) return;
     this.step = 0;
     this.nextTime = this.ctx.currentTime + 0.08;
     this.timer = window.setInterval(() => this.schedule(), 25);
   }
 
+  /** METAL MODE: gitarsolo, dobbel stortromme og crash på hver takt (bare i metal-stilen). */
+  metalMode(on: boolean) {
+    if (!this.band || !this.ctx) return;
+    this.band.shred = on;
+    if (on && this.style === 'metal') {
+      const t = this.ctx.currentTime + 0.02;
+      this.band.crash(t);
+      this.band.wail(t + 0.05, 1.3);
+    }
+  }
+
+  /** Korte metal-innslag: stor akkord (brettstart), vektarmdykk (sjef) og skrik. Stille i 8-bit-stilen. */
+  stinger(kind: 'chord' | 'dive' | 'wail') {
+    if (this.style !== 'metal' || !this.band || !this.ok('stinger-' + kind, 0.5)) return;
+    const t = this.ctx!.currentTime + 0.02;
+    if (kind === 'chord') this.band.bigChord(t);
+    else if (kind === 'dive') this.band.diveBomb(t);
+    else this.band.wail(t);
+  }
+
   stop() {
     this.trackName = '';
     this.track = null;
+    this.metal = null;
+    if (this.band) this.band.shred = false;
     this.stopTimer();
   }
 
@@ -850,11 +894,14 @@ export class AudioEngine {
 
   private schedule() {
     const c = this.ctx;
-    const tr = this.track;
+    const tr = this.metal ?? this.track;
     if (!c || !tr) return;
     const stepDur = 60 / tr.bpm / 4;
+    // Etter en pause i fanen (setInterval sover) hopper vi fram i stedet for å spille alt som ble liggende igjen
+    if (this.nextTime < c.currentTime - 0.25) this.nextTime = c.currentTime + 0.02;
     while (this.nextTime < c.currentTime + 0.12) {
-      this.playStep(tr, this.step % tr.steps, this.nextTime, stepDur);
+      if (this.metal && this.band) this.band.playStep(this.metal, this.step % this.metal.steps, this.nextTime, stepDur);
+      else if (this.track) this.playStep(this.track, this.step % this.track.steps, this.nextTime, stepDur);
       this.nextTime += stepDur;
       this.step++;
     }

@@ -43,6 +43,9 @@ export class HUD {
   private bossFill: HTMLElement;
   private bossGhost: HTMLElement;
   private bossGhostV = 1;
+  private metalEl: HTMLDivElement;
+  private metalFill: HTMLElement;
+  private metalOn = false;
   private panels: { hp: HTMLElement; ghost: HTMLElement; lives: HTMLElement; pots: HTMLElement; gold: HTMLElement; root: HTMLElement; lastPots: number; ghostV: number }[] = [];
   private duelEls: { hpA: HTMLElement; hpB: HTMLElement; gA: HTMLElement; gB: HTMLElement; pipsA: HTMLElement; pipsB: HTMLElement; timer: HTMLElement; gvA: number; gvB: number } | null = null;
   private annT = 0;
@@ -69,7 +72,11 @@ export class HUD {
     this.bossEl.innerHTML = '<div class="b-skull"></div><div class="b-info"><div class="b-name"></div><div class="bar big"><i class="ghost"></i><i class="fill"></i></div></div>';
     this.bossFill = this.bossEl.querySelector('.fill')!;
     this.bossGhost = this.bossEl.querySelector('.ghost')!;
-    this.root.append(this.top, this.ann, this.sayEl, this.goEl, this.streakEl, this.bossEl);
+    this.metalEl = document.createElement('div');
+    this.metalEl.className = 'metal-meter';
+    this.metalEl.innerHTML = '<div class="mm-label">METAL</div><div class="bar mm-bar"><i class="fill"></i></div>';
+    this.metalFill = this.metalEl.querySelector('.fill')!;
+    this.root.append(this.top, this.ann, this.sayEl, this.goEl, this.streakEl, this.bossEl, this.metalEl);
     setInterval(() => this.tick(0.1), 100);
   }
 
@@ -98,7 +105,19 @@ export class HUD {
     this.goEl.classList.remove('show');
     this.streakEl.classList.remove('show');
     this.bossEl.classList.remove('show');
+    this.metalEl.classList.remove('show', 'on');
+    this.metalOn = false;
     this.annT = this.sayT = this.streakT = 0;
+  }
+
+  /** METAL MODE-måleren øverst på midten. v fra 0 til 1, on mens det brenner. */
+  metal(v: number, on: boolean) {
+    this.metalEl.classList.add('show');
+    this.metalFill.style.width = (v * 100).toFixed(1) + '%';
+    if (on !== this.metalOn) {
+      this.metalOn = on;
+      this.metalEl.classList.toggle('on', on);
+    }
   }
 
   showBoss(name: string, title: string) {

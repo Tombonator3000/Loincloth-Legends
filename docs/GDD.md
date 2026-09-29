@@ -135,6 +135,7 @@ Mann eller dame, og alle deler kan kombineres fritt:
 - Berserk-spinn uten potions, koster litt HP
 - Pickups: stekt kylling, halvspist skinke, potions, gull, egg fra kampkyllingen
 - Kameraet låses per bølge. GO-pil når bølgen er ryddet
+- **METAL MODE**: en felles måler øverst fylles av drap (mer for halshugging, eksplosjoner og miljødrap, og for lange drapsrekker). Når den er full, spiller bandet en gitarsolo med dobbel stortromme, en falsettsanger skriker, våpnene brenner, heltene slår 60 prosent hardere og lynet slår ned i fiendene. Varer i 12 sekunder.
 
 ## 11. Nivåer, butikk og kjæledyr
 
@@ -153,7 +154,7 @@ Mann eller dame, og alle deler kan kombineres fritt:
 
 ## 12. Innstillinger
 
-Gore (FAMILY, NORMAL, EXCESSIVE, PLEASE SEEK HELP), musikk, lydeffekter, skjermristing, gamepad-rumble, berøringskontroller (auto, på, av) og fullskjerm. FAMILY gjør blod om til konfetti og gibs til gummiender.
+Gore (FAMILY, NORMAL, EXCESSIVE, PLEASE SEEK HELP), musikk, musikkstil (HEAVY METAL eller 8-BIT), lydeffekter, skjermristing, gamepad-rumble, berøringskontroller (auto, på, av) og fullskjerm. FAMILY gjør blod om til konfetti og gibs til gummiender.
 
 ## 13. Humor
 
@@ -166,7 +167,9 @@ Gore (FAMILY, NORMAL, EXCESSIVE, PLEASE SEEK HELP), musikk, lydeffekter, skjermr
 
 ## 14. Lyd
 
-Alt syntetisert i WebAudio: sverdsus, treff, splat, klang, tegneserie-skrik (ulik stemme per figurtype), mynter, gong, publikum, fjærlyd for armer, vått smell og skli-hvin for hodet i skjermen, ild, plask, fres, sirkusfanfare for studiologoen. Enkel 80-talls synth-musikk. M slår lyd av/på.
+Alt syntetisert i WebAudio: sverdsus, treff, splat, klang, tegneserie-skrik (ulik stemme per figurtype), mynter, gong, publikum, fjærlyd for armer, vått smell og skli-hvin for hodet i skjermen, ild, plask, fres, sirkusfanfare for studiologoen. M slår lyd av/på.
+
+Musikken er 80-talls heavy metal, også syntetisert: to rytmegitarer panorert ut til hver side gjennom forvrengning og et høyttalerkabinett, palm mute og galopp, bassgitar, trommer med dobbel stortromme og gated reverb på skarptromma, og leadgitar med vibrato, bend, ekko og tvillingharmonier. Hvert brett har sin egen låt: episk tittellåt, galopp på veien, seig doom i sumpen, speed metal i frosten, frygisk thrash i Scorchlands, og dobbel stortromme i dueller, sjefer og tårnet. Brettene starter med en stor åpen akkord, og sjefene kommer inn med et vektarmdykk. De gamle 8-bit-låtene kan velges i innstillingene. Alle riff og melodier er skrevet for spillet.
 
 ## 15. Kontroller
 

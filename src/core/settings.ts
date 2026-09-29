@@ -22,9 +22,13 @@ export const QUALITY_HINTS: Record<QualitySetting, string> = {
   ultra: 'EVERYTHING. BRING A FAN.',
 };
 
+export type MusicStyleSetting = 'metal' | 'chip';
+
 export interface Settings {
   gore: GoreLevel;
   music: number;
+  /** Heavy metal (standard) eller de gamle 8-bit-låtene. */
+  musicStyle: MusicStyleSetting;
   sfx: number;
   shake: boolean;
   rumble: boolean;
@@ -35,7 +39,7 @@ export interface Settings {
 const KEY = 'loincloth-legends-settings-v1';
 
 export function defaultSettings(): Settings {
-  return { gore: 2, music: 0.7, sfx: 0.9, shake: true, rumble: true, touch: 'auto', quality: 'auto' };
+  return { gore: 2, music: 0.7, musicStyle: 'metal', sfx: 0.9, shake: true, rumble: true, touch: 'auto', quality: 'auto' };
 }
 
 function load(): Settings {
@@ -48,6 +52,7 @@ function load(): Settings {
     return {
       gore: typeof o.gore === 'number' && o.gore >= 0 && o.gore <= 3 ? (Math.floor(o.gore) as GoreLevel) : d.gore,
       music: num(o.music, d.music),
+      musicStyle: o.musicStyle === 'chip' || o.musicStyle === 'metal' ? o.musicStyle : d.musicStyle,
       sfx: num(o.sfx, d.sfx),
       shake: typeof o.shake === 'boolean' ? o.shake : d.shake,
       rumble: typeof o.rumble === 'boolean' ? o.rumble : d.rumble,

@@ -26,6 +26,7 @@ import { rand, pick, chance } from '../core/math';
 import { settings } from '../core/settings';
 import { xpForFoe, XP_BOSS, type HeroProgress } from '../data/progress';
 import type { HUD } from '../ui/hud';
+import { MetalMode, METAL } from './metalmode';
 
 const Z_MIN = -2.6;
 const Z_MAX = 2.6;
@@ -72,6 +73,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   readonly bossLock: number;
   private hpMul: number;
   private finishT = -1;
+  /** METAL MODE-måleren (game/metalmode.ts). */
+  metal = new MetalMode();
 
   constructor(public hud: HUD, public level: LevelDef, configs: HeroConfig[], inputs: PlayerInput[], progress: HeroProgress[] = [], supplies = { lives: 0, potions: 0 }) {
     this.L = level.length;
@@ -104,6 +107,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     hud.showBrawler(this.heroes);
     hud.announce(level.name, 'stage', 2.4, level.subtitle);
     audio.play(level.music);
+    audio.stinger('chord');
   }
 
   get twoP() {
@@ -204,6 +208,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     this.streak++;
     this.streakT = 3;
     W.stats.bestStreak = Math.max(W.stats.bestStreak, this.streak);
+    if (hero) this.metal.onKill(style, !!f.envKill, this.streak);
     const labels: Record<number, string> = { 3: 'CARNAGE', 6: 'MASSACRE', 10: 'EXCESSIVE', 15: 'PLEASE SEEK HELP', 22: 'THE BARD WILL SING OF THIS', 30: 'WAR CRIMES (FANTASY)' };
     if (labels[this.streak]) {
       this.hud.streak(this.streak, labels[this.streak]);
@@ -415,6 +420,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     this.hud.announce(def.name, 'boss', 2.6, def.title);
     audio.play('duel');
     audio.gong();
+    audio.stinger('dive');
     def.intro.forEach(([who, text], i) => setTimeout(() => this.hud.say(who, text, 2.2), 900 + i * 2300));
   }
 
@@ -600,10 +606,12 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
       }
       return true;
     });
+    this.metal.update(dt, this);
     this.hud.updateBrawler(this.heroes);
   }
 
   private onFoeHit(h: Hero, t: Fighter, killed: boolean) {
+    this.metal.add(METAL.hit);
     const foe = this.foes.find((f) => f.f === t);
     if (foe?.def.behavior === 'runner' && !killed) {
       foe.hits++;
@@ -655,6 +663,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   }
 
   dispose() {
+    this.metal.stop();
     Fighter.onThrownLand = null;
     for (const m of this.mounts) m.remove();
     for (const p of this.pets) p.remove();

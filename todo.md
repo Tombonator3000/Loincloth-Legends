@@ -18,7 +18,11 @@
 - [ ] Kapper, hår og lendeklær som svaier i vinden (egne deler med vind fra gfx/wind.ts)
 - [ ] Figurene tar imot skygge fra miljøet (trær og vegger), uten at de skygger på seg selv
 - [ ] Miljøbalanse for figurlyset: svakere himmel- og nøkkellys der fakler og lyn skal farge figurene (arena, tårn, lava)
-- [ ] 1980s heavy metal: musikk og METAL MODE
+- [x] 1980s heavy metal: syntetisert metal-band, egen låt per brett, stingere, MUSIC STYLE (metal eller 8-bit) i innstillingene
+- [x] METAL MODE: måler, gitarsolo, falsettskrik, brennende våpen, skadebonus og lyn
+- [ ] METAL MODE i duellene (egen måler per side?) og et eget sjefsriff
+- [ ] Tittelskjerm som et albumomslag fra 1985 (krom-logo, lyn, blodmåne)
+- [ ] Lytt gjennom metal-miksen på ekte høyttalere og juster (Tom)
 - [ ] Gameplay-hyllest til Golden Axe, Barbarian og Castle Crashers
 
 ## Pågår

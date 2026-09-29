@@ -164,7 +164,8 @@ export class Projectiles {
           if (p.t > 0.05) {
             const x = p.marker!.position.x;
             const z = p.marker!.position.z;
-            for (let i = 0; i < 26; i++) g.flare(new THREE.Vector3(x + rand(-0.25, 0.25), i * 0.45, z), 0.55, '#bfe8ff', 0.25);
+            // Et ekte lyn fra himmelen (gfx/vfx.ts) med gnister, sjokkbølge og lysglimt
+            g.vfx.lightning(new THREE.Vector3(x + rand(-1.5, 1.5), 14, z - 2), new THREE.Vector3(x, 0.05, z));
             W.fx.flash('#cfe8ff', 0.25, 0.15);
             audio.boom(0.6);
             p.pos.set(x, 0.5, z);
