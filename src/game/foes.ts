@@ -56,7 +56,13 @@ export class Foe {
   leapCd = rand(1, 2.5);
 
   constructor(public def: FoeDef, x: number, z: number, hpMul = 1) {
-    this.f = new Fighter(def.char, 'enemy', { hp: def.hp * hpMul, speed: def.speed * rand(0.9, 1.1), tint: def.tint, scale: def.scale, poseMod: def.poseMod });
+    // Litt variasjon per fiende, etter oppskriftssystemet i Toms Morbidium: størrelse og en svak fargetone, så en bølge
+    // av samme type ikke ser klonet ut. Tonen tas i trinn, så hodet som klasker i skjermen (headImage) har få varianter.
+    const base = def.tint ?? [1, 1, 1];
+    const k = 0.9 + Math.floor(rand(0, 5)) * 0.04, warm = (Math.floor(rand(0, 5)) - 2) * 0.02;
+    const tint: [number, number, number] = [base[0] * k * (1 + warm), base[1] * k, base[2] * k * (1 - warm)];
+    const scale = (def.scale ?? 1) * rand(0.92, 1.08);
+    this.f = new Fighter(def.char, 'enemy', { hp: def.hp * hpMul, speed: def.speed * rand(0.9, 1.1), tint, scale, poseMod: def.poseMod });
     this.f.label = def.name;
     this.f.pos.set(x, 0, z);
   }
