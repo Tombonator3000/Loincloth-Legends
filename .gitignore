@@ -15,3 +15,7 @@ Thumbs.db
 .vite/
 .env
 .env.*
+
+# Bilder fra ChatGPT: bare de behandlede filene i public/assets kommer i git
+art/inbox/*
+!art/inbox/LESMEG.md

@@ -19,14 +19,20 @@ Trær, steiner, hodeskaller, fjell og bygninger er 3D-modeller laget i kode og t
 
 ---
 
+## Ta imot bildene (verktøy fra Morbidium)
+
+Legg bildene fra ChatGPT i `art/inbox/` og kjør `python3 tools/process_art.py` (krever Pillow). Skriptet er gjenbrukt fra Toms Morbidium: det fjerner magenta hjelpelinjer og ensfarget bakgrunn når ChatGPT ikke fikk til gjennomsiktighet, klipper ark i ruter, beskjærer og skalerer ned delene, retter sømmene i teksturer og himmelbilder, lagrer alt som WebP i `public/assets/` og skriver manifestet selv. Originalene flyttes til `art/inbox/behandlet/` og kommer ikke i git. Filnavnet bestemmer hva bildet er: `valkyra_head.png`, `tex_ground_grass.png`, `sky_scorch.png`, `pet_rat.png`, `map.png`.
+
+**Ark: en hel fiende i ett bilde.** Last opp `docs/maler/mal_figur.png` til ChatGPT og be om alle seks delene i rutene (HEAD, TORSO, PELVIS øverst, ARM, LEG, WEAPON nederst), med merkene for leddene som guide. Lagre bildet som `figur_<id>.png` (for eksempel `figur_skeleton.png`), så klipper skriptet det i `skeleton_head` og så videre. Samme stil og lys i alle delene, og seks bestillinger blir én. Rutene er rundt 500 piksler, nok for fiender og sjefer. Heltene lages fortsatt del for del i full størrelse. `docs/maler/mal_ni_ting.png` gir ni ting i ett bilde (`ark__navn__navn...png`). Malene lages på nytt med `python3 tools/make_templates.py`.
+
 ## Slik gjør du det (figurer)
 
 1. Start en ny samtale i ChatGPT. Lim inn **STIL-BLOKKEN** under som første melding.
 2. Lag først et **helfigursbilde** av figuren med REFERENCE-templatet, og bli fornøyd med det før du går videre. For Valkyra finnes bildet allerede: last det opp og skriv "This is the approved reference for VALKYRA. Match it exactly in every asset."
 3. Lag delene én og én: HEAD, HAIRBACK (bare ved langt hår), TORSO, PELVIS, ARM, LEG og WEAPON. Last opp referansebildet sammen med hver bestilling.
 4. Be alltid om **transparent bakgrunn** og PNG. Last ned bildet.
-5. Lagre filene i `public/assets/` med filnavnet fra lista (for eksempel `valkyra_head.png`).
-6. Legg til en linje i `public/assets/manifest.json` per fil (kopier `public/assets/manifest.example.json`).
+5. Lagre filene i `art/inbox/` med filnavnet fra lista (for eksempel `valkyra_head.png`).
+6. Kjør `python3 tools/process_art.py`. Den lager de ferdige filene i `public/assets/` og skriver manifestet.
 7. Start `npm run dev`. Figuren bruker nå dine bilder. Ser en del feil ut, juster `anchor` eller `height` i manifestet.
 
 Tips:
