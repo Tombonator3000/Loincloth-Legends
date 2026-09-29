@@ -232,6 +232,8 @@ export interface Env {
   cheer?(power: number): void;
   /** Fargegradering og linse for dette miljøet (se gfx/post.ts og env/grades.ts). */
   grade?: Partial<Grade>;
+  /** Bålene på brettet (satt av campfire()). Stemningen knitrer sterkere nær dem (core/ambience.ts). */
+  fires?: THREE.Vector3[];
 }
 
 export interface Look {
@@ -407,6 +409,7 @@ export function finishEnv(g: THREE.Group, updates: ((dt: number, t: number, camX
     group: g,
     fogColor,
     grade,
+    fires: g.userData.fires as THREE.Vector3[] | undefined,
     update(dt, t, camX) {
       for (const u of updates) u(dt, t, camX);
     },
@@ -683,7 +686,10 @@ export function campfire(g: THREE.Group, x: number, z: number, gore?: Gore) {
     g.add(log);
   }
   gore?.vfx.lights.source(new THREE.Vector3(x, 1.2, z + 0.5), '#ff8a3a', 10, 9, 0.35);
-  return new THREE.Vector3(x, 0.3, z);
+  const at = new THREE.Vector3(x, 0.3, z);
+  // Lydkilde for stemningen (finishEnv legger listen på Env.fires)
+  ((g.userData.fires ??= []) as THREE.Vector3[]).push(at);
+  return at;
 }
 
 export function arrows(g: THREE.Group, length: number, n = 40) {

@@ -275,7 +275,9 @@ export class Duel {
     W.env = buildArena(W.scene, W.gore, cfg.arena);
     W.gore.bounds = { minX: -12, maxX: 12, minZ: -5, maxZ: 3 };
     this.hud.showDuel(this.roster[0], cfg.b);
-    audio.play('duel');
+    // Duellåta kommer på neste taktstrek med en bro fra det som spilte (frost, kartet), eller med en gang
+    audio.queue('duel');
+    audio.ambience('arena');
     this.newRound();
   }
 
@@ -329,6 +331,9 @@ export class Duel {
   update(dt: number, realDt: number, skip: boolean) {
     this.t += dt;
     const fa = this.fa, fb = this.fb;
+    // Musikken: kamp under introen, hete når de slåss, og sjefsnivå i avgjørende runde
+    const need = this.cfg.roundsToWin - 1;
+    audio.intensity(this.phase !== 'fight' ? 1 : this.wins[0] === need && this.wins[1] === need ? 3 : 2);
     if (this.phase === 'intro') {
       for (const [f, x] of [[fa, -2.8], [fb, 2.8]] as const) {
         const d = x - f.pos.x;
@@ -344,7 +349,7 @@ export class Duel {
         this.phase = 'fight';
         this.t = 0;
         this.hud.announce('FIGHT!', 'fight', 0.9);
-        audio.gong();
+        audio.fight();
         audio.crowd(1);
         W.env?.cheer?.(1);
       }
@@ -426,7 +431,7 @@ export class Duel {
     this.winner = loser === this.fa ? 1 : 0;
     const w = this.winner === 0 ? this.fa : this.fb;
     this.wins[this.winner]++;
-    audio.crowd(1.2);
+    audio.knockout();
     W.env?.cheer?.(1);
     W.fx.slowmo(0.25, 1.4);
     if (decap || loser.deathStyle === 'headsplode' || loser.deathStyle === 'explode') W.fx.screenBlood(decap ? 10 : 6);
@@ -455,7 +460,7 @@ export class Duel {
     this.hud.say('VORTHAX', 'TIME\'S UP! I\'M BORED. ZAP.', 2);
     const p = loser.headPoint();
     for (let i = 0; i < 20; i++) W.gore.flare(new THREE.Vector3(p.x + rand(-0.3, 0.3), p.y + i * 0.5, 0.2), 0.6, '#9fd8ff', 0.3);
-    audio.boom(1.2);
+    audio.thunder(1.2);
     W.fx.flash('#cfe8ff', 0.8, 0.3);
     const other = loser === this.fa ? this.fb : this.fa;
     applyHit(other, loser, LIGHTNING, 9999);
@@ -567,6 +572,7 @@ export class Duel {
   }
 
   dispose() {
+    audio.ambience(null);
     this.fa?.remove();
     this.fb?.remove();
     this.imp?.remove();

@@ -69,9 +69,13 @@ ui/                HUD og menyer (ren DOM)
   screens.ts       Menyer og skjermer (også custom-paneler med justerbare valg)
   touch.ts         Berøringskontroller: flytende stikke, fire knapper, pause
   splash.ts        Oppstartslogo for Tom's Happy Happy Funtimes Emporium
-core/              Input (tastatur, gamepad, berøring), lyd (WebAudio-synth), innstillinger, matte
-  audio.ts         Lydeffekter, 8-bit-låtene og avspilling (sekvenser med setInterval og WebAudio-tid)
-  metal.ts         Heavy metal: gitarforsterkere, trommer, bass, leadgitar, låtene og soloen i METAL MODE
+core/              Input (tastatur, gamepad, berøring), lyd (WebAudio-synth og CC0-opptak), innstillinger, matte
+  audio.ts         Lydeffekter, 8-bit-låtene og musikk-API-et (play, queue, intensity, innslag), dukking
+  conductor.ts     Dirigenten: låtbytte på taktstreken med bro, intensitetslag, METAL MODE i takt, innslag på slaget
+  metal.ts         Heavy metal: gitarforsterkere, trommer, bass, leadgitar, låtene, soloen, lagbussene og broen
+  soundbank.ts     Lydbanken: CC0-opptak fra public/assets/sound/ oppå synthen (fra Morbidium)
+  layers.ts        Lagspiller for syntlyd, torden, zap og fanfarene for drapsrekker, sjef og knockout
+  ambience.ts      Stemning per biom (sløyfer med syntetisk reserve, bål i nærheten, fugler)
 assets/            Bilder som bygges inn i spillet (studio-logo.webp)
 ```
 
@@ -134,7 +138,7 @@ Legg en `Species` i `SPECIES` (`env/trees.ts`): lengde, radius, seksjoner, barn,
 
 ## Innstillinger og gore-nivå
 
-`core/settings.ts` lagrer gore-nivå, lydnivå, musikkstil (heavy metal eller 8-bit), risting, rumble og berøringsmodus (`loincloth-legends-settings-v1`). `Game` lytter med `onSettings` og setter `Gore.level`, lydnivåene og musikkstilen. Nye felt må også inn i `load()` med sjekk, ellers forsvinner de. Radene i innstillingsmenyen legges inn med `row()`, som gir hver rad sin egen plass, så nye valg kan settes inn hvor som helst. Gore-nivået skalerer partikler, gibs, fontener og blod på skjermen. FAMILY bytter blod mot konfetti og gibs mot gummiender, blomster og stjerner.
+`core/settings.ts` lagrer gore-nivå, lydnivå, musikkstil (heavy metal eller 8-bit), innspilte lyder (RECORDED SOUNDS), risting, rumble og berøringsmodus (`loincloth-legends-settings-v1`). `Game` lytter med `onSettings` og setter `Gore.level`, lydnivåene og musikkstilen. Nye felt må også inn i `load()` med sjekk, ellers forsvinner de. Radene i innstillingsmenyen legges inn med `row()`, som gir hver rad sin egen plass, så nye valg kan settes inn hvor som helst. Gore-nivået skalerer partikler, gibs, fontener og blod på skjermen. FAMILY bytter blod mot konfetti og gibs mot gummiender, blomster og stjerner.
 
 ## Input
 
@@ -192,13 +196,43 @@ Legg til en `DuelistDef` i `data/duelists.ts`. `char: '@player'` gir en ond tvil
 3. Skal den låses opp? Legg den i `PART_LOCKS` og som `reward.unlock` på en kartnode, og gjerne i `SHOP`.
 
 ### Ny metal-låt
-Legg en `track({...})` i `METAL_TRACKS` (`core/metal.ts`). Riffet skrives som tekst med ett tegn per sekstendedel (`riff(start, 'e-eee-eee-eee-ee', R)`: liten bokstav er palm mute, stor er åpen akkord, `-` holder, `.` er pause). Melodien skrives som `melody(start, 'E5:4 G5:2^2 B5:8/D6')` (lengde i sekstendeler, `^n` bend, `/X` egen andrestemme, `/-` ingen). `twin` gir tvillinggitar i terser ut fra `scale`, og soloen i METAL MODE bruker skalaen og grunntonene i riffet. Sett `music` i LevelDef til låtnavnet. Finnes ikke navnet i 8-bit-låtene, brukes `CHIP_FALLBACK` i `audio.ts`. Sjekk med `tools/tests/metal.mjs` (WAV, spektrogram, nivå og klipping).
+Legg en `track({...})` i `METAL_TRACKS` (`core/metal.ts`). Første riffnote er tonika: dirigenten legger broen, første slag og innslagene i tonearten ut fra den og `scale`. Riffet skrives som tekst med ett tegn per sekstendedel (`riff(start, 'e-eee-eee-eee-ee', R)`: liten bokstav er palm mute, stor er åpen akkord, `-` holder, `.` er pause). Melodien skrives som `melody(start, 'E5:4 G5:2^2 B5:8/D6')` (lengde i sekstendeler, `^n` bend, `/X` egen andrestemme, `/-` ingen). `twin` gir tvillinggitar i terser ut fra `scale`, og soloen i METAL MODE bruker skalaen og grunntonene i riffet. Sett `music` i LevelDef til låtnavnet. Finnes ikke navnet i 8-bit-låtene, brukes `CHIP_FALLBACK` i `audio.ts`. Sjekk med `tools/tests/metal.mjs` (WAV, spektrogram, nivå og klipping).
 
 ### Ny grafikk fra ChatGPT
 Se `docs/ART_PROMPTS.md`. Filene legges i `public/assets/`, og `manifest.json` sier hvilken figur og del de tilhører.
 
 ### Ny tekstur som kan byttes med et bilde
 Pakk teksturkallet i `texFile(navn, () => prosedyretekstur)` fra `env/common.ts`, og før opp navnet og en prompt i teksturlista i `docs/ART_PROMPTS.md`. Finnes navnet under `textures` i manifestet, lager `imageTexture()` (i `env/textures.ts`) tekstur og normalkart fra bildet. Valg: `fringe` gir ujevn gjennomsiktig kant øverst og nederst (veier), `glow` lager glødekart av de lyse oransje partiene (lava), og `tint` lar fargen fra kallstedet tone bildet (ellers vises bildet i egne farger). Teksturene hentes fra en felles cache, og hvert kall får en kopi med egen `repeat` som deler bildedata og GPU-tekstur med originalen.
+
+## Lyd: lydbank, dukking og stemning
+
+Alle lyder går gjennom `core/audio.ts`. Metodene (`swish`, `hit`, `splat`, `bones`, `thud`, `gong`, `coin`, `thunder` og de andre) er syntetisert, og `rec()` legger innspilte CC0-lyder fra lydbanken oppå når filen er lastet. Synthen blir da liggende under på 20 til 40 prosent. Til en fil er klar, når den feiler, når RECORDED SOUNDS er av, og alltid i enkeltfil-bygget og fra `file://` (der virker ikke fetch), spiller synthen alene. Lyn skal bruke `thunder(styrke, avstand)`, ikke `boom()`, som er eksplosjoner. På FAMILY hoppes gørr, knas, riving og stikk over (merket med `true` i `rec()`-listene).
+
+- `core/soundbank.ts` er Morbidiums Lydbank som TypeScript-modul. Den pakker ut filene i bakgrunnen (effektene først, så slagverket og til slutt stemningen), velger en tilfeldig variant uten å gjenta den forrige, spiller høyst fem per gruppe på 80 ms og måler stillheten foran i hver MP3.
+- Filene ligger i `public/assets/sound/` med `sound.json` (utdrag av Morbidiums `lyd.json`, samme feltnavn: `gruppe`, `type`, `sloyfe`, `rot`) og `KILDER.md` (tittel, innspiller og lenke per fil). Gruppen er filnavnet uten `_2`, `_3` osv.
+- Dukking: `audio.duck(mengde, sekunder, tid)` senker musikken under store smell (tunge slag, eksplosjoner, torden, gong, tunge fiender som lander og fanfarene). `audio.setPaused()` demper den mens spillet står på pause (kalles fra `Game.tick`). I METAL MODE dukker den bare litt.
+- Stemning: `audio.ambience(biom)` fra `Stage` og `Duel` (`'arena'`), og `null` i `dispose()`. Lagene per biom står i `AMBIENCE` i `core/ambience.ts`, og enkeltlydene (kråke, ugle, frosk) i `AMB_EVENTS`. `campfire()` legger bålet i `Env.fires`, og `Stage` sender avstanden til nærmeste bål med `audio.ambienceTick(dt, nærhet, panorering)`.
+- Fanfarer: `audio.streak(antall)` for drapsrekkene, `bossSlain()`, `knockout()` og `chainBroken()` (trist trombone når en rekke på 10 eller mer ryker fordi en helt blir truffet). De er data i `core/layers.ts`: syntlag (orgel, kor, klokker, torden, applaus), slagverk (VCSL-opptaket eller syntlag som reserve) og kraftakkorder på en egen `MetalBand` på effektbussen.
+
+### Ny lyd fra lydbanken
+1. Legg MP3-filen (mono, klippet og normalisert, som fra Morbidiums `tools/lag_lyd.py`) i `public/assets/sound/`.
+2. Legg raden i `sound.json` (minst `gruppe` og `type`, og `sloyfe` for sløyfer) og i `KILDER.md` (tittel, innspiller og lenke). Bare CC0.
+3. Bruk gruppen i en lydmetode med `this.rec([[gruppe, nivå, tonehøyde, gørr]], synthnivå)`, eller i `AMBIENCE` for en stemningssløyfe. Sjekk med `tools/tests/soundbank.mjs`.
+
+## Musikk: dirigenten
+
+`core/conductor.ts` spiller musikken i takt, inspirert av iMUSE (LucasArts) og tilpasset fra Morbidium (`src/06_musikk.js`). Dirigenten planlegger 0,12 sekunder fram på lydklokka (setInterval i `AudioEngine.schedule`, etter Chris Wilsons «A Tale of Two Clocks») og spiller gjennom en `Performer`: `BandPerformer` for metalbandet, og 8-bit-synthen i `AudioEngine`. LL har 16 steg (sekstendeler) i takta. Spillet går på spilltid som før; det er bare lyden som venter på slaget.
+
+- `audio.play(låt)`: med en gang, for menyene og brettstart. Det som klinger fra forrige låt, kveles (`MetalBand.choke`).
+- `audio.queue(låt, 'bar' | 'beat')`: på neste taktstrek (minst ett helt slag fram) eller neste slag. Det siste slaget er en bro: tammevirvel, kvintakkord på dominanten i den nye tonearten, og bassen går opp mot den nye grunntonen. Et bekken svulmer (VCSL `ins_bekken_1` når det er lastet, ellers en baklengs crash i synth) til toppen treffer første slag, der stortromme, crash, en stor akkord og en pauke lander. Duellen bruker queue, så frost og menyene glir over i duellåta.
+- `audio.intensity(0 til 3)` settes hvert bilde fra `Stage.update` (0 rolig mellom bølgene, 1 kamp, 2 hete med mange fiender, en rytter eller en helt under 30 prosent, 3 sjef) og fra `Duel.update`. Lagene går opp på neste slag og ned på neste taktstrek, og brettet venter 2,5 sekunder spilltid før det går ned. `MetalBand` har egne busser for rytmegitarene, leadgitaren, bassen og trommene, og et ekstralag med dobbel stortromme og crash på hver takt (hete) og kor og pauker (sjef). Nivåene står i `MIX` i `metal.ts`. Tempoet øker 2 og 4 prosent ved hete og sjef.
+- `audio.metalMode(på)`: inn på neste slag (crash, skrik og tremolo fram til taktstreken), soloen starter på taktstreken, og ut på neste taktstrek.
+- Sjefen: `audio.bossArrives(låt)` legger byttet på en taktstrek minst 1,4 sekunder fram, så stupingen lander på første slag med gong og stor akkord, og intensiteten går til 3. `audio.bossDefeated()` gir en kort avslutning fra neste slag og så seiersmusikken. `audio.defeat()` (game over og tapt duell) toner musikken ut og spiller tapslyden i tonearten.
+- Innslag på neste slag og i tonearten: `waveCleared()`, `levelUp()`, `fight()`, `knockout()` og `stinger()`. Uten musikk som går, spilles de med en gang som før.
+- Etter en pause i fanen hopper dirigenten fram i hele steg, så takten og et bytte som venter, står.
+- `audio.conductor.events` og `stats` er til testene. `tools/tests/imuse.mjs` rendrer dirigenten med en simulert klokke i en OfflineAudioContext og sjekker også spillet med den ekte lydklokka.
+
+Ny 8-bit-låt: legg `scale` (tonehøydeklassene) i `TRACKS` i `audio.ts`. Grunntonene regnes ut fra bassen.
 
 ## Oppstartslogo
 

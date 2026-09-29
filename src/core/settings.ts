@@ -1,4 +1,4 @@
-// Innstillinger som lagres lokalt: gore-nivå, lydnivå, risting, rumble, berøringskontroller og grafikknivå.
+// Innstillinger som lagres lokalt: gore-nivå, lydnivå, innspilte lyder, risting, rumble, berøringskontroller og grafikknivå.
 // Ingen Three.js her, så modulen kan brukes fra både core, gfx og app.
 
 export type GoreLevel = 0 | 1 | 2 | 3;
@@ -30,6 +30,8 @@ export interface Settings {
   /** Heavy metal (standard) eller de gamle 8-bit-låtene. */
   musicStyle: MusicStyleSetting;
   sfx: number;
+  /** Innspilte lyder (CC0) oppå synthen (core/soundbank.ts). Av = bare synth. */
+  recorded: boolean;
   shake: boolean;
   rumble: boolean;
   touch: TouchMode;
@@ -39,7 +41,7 @@ export interface Settings {
 const KEY = 'loincloth-legends-settings-v1';
 
 export function defaultSettings(): Settings {
-  return { gore: 2, music: 0.7, musicStyle: 'metal', sfx: 0.9, shake: true, rumble: true, touch: 'auto', quality: 'auto' };
+  return { gore: 2, music: 0.7, musicStyle: 'metal', sfx: 0.9, recorded: true, shake: true, rumble: true, touch: 'auto', quality: 'auto' };
 }
 
 function load(): Settings {
@@ -54,6 +56,7 @@ function load(): Settings {
       music: num(o.music, d.music),
       musicStyle: o.musicStyle === 'chip' || o.musicStyle === 'metal' ? o.musicStyle : d.musicStyle,
       sfx: num(o.sfx, d.sfx),
+      recorded: typeof o.recorded === 'boolean' ? o.recorded : d.recorded,
       shake: typeof o.shake === 'boolean' ? o.shake : d.shake,
       rumble: typeof o.rumble === 'boolean' ? o.rumble : d.rumble,
       touch: o.touch === 'on' || o.touch === 'off' || o.touch === 'auto' ? o.touch : d.touch,
