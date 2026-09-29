@@ -7,11 +7,17 @@
 - [x] Vind, 3D-trær, gress og fallende blader, tåkelag og lyssøyler
 - [ ] Slå sammen statiske mesher per materiale (palisade, steiner, piler osv.) så MEDIUM får færre tegnekall
 - [ ] Biomene mot konseptbildene (docs/STYLE_TARGET.md): fakler og fyrfat, lyn, blodmåne, lavafall, demonslott, ruiner, fossefall, våte gulv, mørke silhuetter i forgrunnen
-- [ ] Heroiske proporsjoner på figurene (vanlig hodestørrelse, lange bein), dverg-helt
+- [x] Heroiske proporsjoner på figurene (lange bein og armer, høyere overkropp, mindre hode)
+- [ ] Dverg-helt (kroppstype i heltebyggeren, gyllen øks som i konseptbildet)
+- [ ] Damekroppen: smalere liv og bredere hofter (i dag er silhuetten nesten lik mannens)
 - [ ] HUD i konseptstil: portretter i gullramme, magikrukker, gullteller
 - [x] Partikkelsystem på GPU med pooler og HDR-emisjon, lyn, eksplosjoner og lyspool
 - [x] Realistisk blodsprut, flekker med våt glans, pytter som vokser og 3D-gibs
-- [ ] 80-talls figurer: chainmail-bikini, store former, oljeglans, kapper i vinden
+- [x] 80-talls figurer: ringbrynjebikini (topp og truse), røde støvler, Valkyra-preset, større brystrustning
+- [x] Lys på figurene: relieffkart fra tegningene, oljeglans på huden, blankt stål og gull, kantlys i motlys, farget lys fra fakler, lyn og eksplosjoner, skygger fra sola
+- [ ] Kapper, hår og lendeklær som svaier i vinden (egne deler med vind fra gfx/wind.ts)
+- [ ] Figurene tar imot skygge fra miljøet (trær og vegger), uten at de skygger på seg selv
+- [ ] Miljøbalanse for figurlyset: svakere himmel- og nøkkellys der fakler og lyn skal farge figurene (arena, tårn, lava)
 - [ ] 1980s heavy metal: musikk og METAL MODE
 - [ ] Gameplay-hyllest til Golden Axe, Barbarian og Castle Crashers
 

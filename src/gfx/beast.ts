@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { unitCanvas } from './draw';
 import { getOverride } from './assets';
 import { partMaterial } from './rig';
+import { reliefTexture } from './charlight';
 import { damp } from '../core/math';
 import type { BeastDef } from './chars/beasts';
 import type { PartDef } from './chars/types';
@@ -21,7 +22,7 @@ const KEYS = Object.keys(BEAST_NEUTRAL) as (keyof BeastPose)[];
 
 type Part = 'legFF' | 'legBF' | 'tail' | 'body' | 'head' | 'legFN' | 'legBN';
 
-const cache = new Map<string, { tex: THREE.Texture; geo: THREE.PlaneGeometry }>();
+const cache = new Map<string, { tex: THREE.Texture; relief: THREE.Texture; geo: THREE.PlaneGeometry }>();
 function asset(def: BeastDef, key: string, pd: PartDef) {
   const k = def.id + ':' + key;
   let a = cache.get(k);
@@ -32,9 +33,10 @@ function asset(def: BeastDef, key: string, pd: PartDef) {
     const tex = new THREE.CanvasTexture(cv);
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 4;
+    const relief = reliefTexture(cv, ov ? cv.width / pd.w : 140);
     const geo = new THREE.PlaneGeometry(pd.w, pd.h);
     geo.translate(pd.w / 2 - pd.ox, pd.h / 2 - pd.oy, 0);
-    a = { tex, geo };
+    a = { tex, relief, geo };
     cache.set(k, a);
   }
   return a;
@@ -57,11 +59,12 @@ export class BeastRig {
     const J = def.joints;
     const mk = (name: Part, key: string, pd: PartDef, x: number, y: number, z: number, shade = 1) => {
       const a = asset(def, key, pd);
-      const m = partMaterial(a.tex, shade);
+      const m = partMaterial(a.tex, shade, a.relief);
       m.uniforms.tint.value.setRGB(shade * tint[0], shade * tint[1], shade * tint[2]);
       this.mats.push(m);
       const mesh = new THREE.Mesh(a.geo, m);
       mesh.frustumCulled = false;
+      mesh.castShadow = true;
       const grp = new THREE.Group();
       grp.position.set(x, y, z);
       grp.add(mesh);

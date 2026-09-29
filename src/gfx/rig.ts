@@ -5,10 +5,11 @@ import { getChar, type CharDef, type CharId, type PartDef, type PartName } from 
 import { unitCanvas } from './draw';
 import { getOverride } from './assets';
 import { damp } from '../core/math';
+import { charMaterial, reliefTexture } from './charlight';
 
 const PPU = 150;
 
-type Asset = { tex: THREE.Texture; geo: THREE.PlaneGeometry; canvas: HTMLCanvasElement };
+type Asset = { tex: THREE.Texture; relief: THREE.Texture; geo: THREE.PlaneGeometry; canvas: HTMLCanvasElement };
 const cache = new Map<string, Asset>();
 
 export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
@@ -24,9 +25,11 @@ export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 4;
     tex.minFilter = THREE.LinearMipmapLinearFilter;
+    // Normal- og glanskart ut fra tegningen (volum, muskelfurer, olje på huden), se gfx/charlight.ts
+    const relief = reliefTexture(cv, ov ? cv.width / def.w : PPU, ch.skin);
     const geo = new THREE.PlaneGeometry(def.w, def.h);
     geo.translate(def.w / 2 - def.ox, def.h / 2 - def.oy, 0);
-    a = { tex, geo, canvas: cv };
+    a = { tex, relief, geo, canvas: cv };
     cache.set(k, a);
   }
   return a;
@@ -70,49 +73,15 @@ export function purgeChar(id: CharId) {
   for (const [k, a] of cache) {
     if (!k.startsWith(id + ':')) continue;
     a.tex.dispose();
+    a.relief.dispose();
     a.geo.dispose();
     cache.delete(k);
   }
 }
 
-const VERT = /* glsl */ `
-varying vec2 vUv;
-void main() {
-  vUv = uv;
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-}`;
-const FRAG = /* glsl */ `
-uniform sampler2D map;
-uniform vec3 tint;
-uniform float flash;
-uniform vec3 flashColor;
-uniform float opacity;
-varying vec2 vUv;
-void main() {
-  vec4 c = texture2D(map, vUv);
-  if (c.a < 0.06) discard;
-  vec3 col = c.rgb * tint;
-  col = mix(col, flashColor, flash);
-  gl_FragColor = vec4(col, c.a * opacity);
-  #include <tonemapping_fragment>
-  #include <colorspace_fragment>
-}`;
-
-export function partMaterial(tex: THREE.Texture, tint = 1) {
-  return new THREE.ShaderMaterial({
-    uniforms: {
-      map: { value: tex },
-      tint: { value: new THREE.Color(tint, tint, tint) },
-      flash: { value: 0 },
-      flashColor: { value: new THREE.Color(1, 1, 1) },
-      opacity: { value: 1 },
-    },
-    vertexShader: VERT,
-    fragmentShader: FRAG,
-    side: THREE.DoubleSide,
-    alphaToCoverage: true,
-    transparent: false,
-  });
+/** Lyssatt materiale for en figurdel (se gfx/charlight.ts). Uten relieffkart blir delen flat. */
+export function partMaterial(tex: THREE.Texture, tint = 1, relief: THREE.Texture | null = null) {
+  return charMaterial(tex, relief, tint);
 }
 
 export interface Pose {
@@ -174,13 +143,14 @@ export class Rig {
     const [key, pd, parent, [x, y], tint] = spec[name];
     if (!pd || !parent) return null;
     const a = partAsset(def, key, pd);
-    const m = partMaterial(a.tex, tint);
+    const m = partMaterial(a.tex, tint, a.relief);
     m.userData.shade = tint;
     m.uniforms.tint.value.setRGB(tint * this.tint[0], tint * this.tint[1], tint * this.tint[2]);
     m.uniforms.flash.value = this.flashV;
     this.mats.push(m);
     const mesh = new THREE.Mesh(a.geo, m);
     mesh.frustumCulled = false;
+    mesh.castShadow = true;
     const grp = new THREE.Group();
     grp.position.set(x, y, Z[name]);
     grp.add(mesh);

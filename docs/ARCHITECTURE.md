@@ -49,6 +49,7 @@ gfx/               Grafikk
   post.ts          Bildepipeline: HDR, bloom, dybdeskarphet, eksponering, tonemapping, gradering, linseeffekter, grafikknivå
   wind.ts          Felles vindfelt (uniformer, GLSL, windifyTree) som trær, gress og blader deler
   rig.ts           Cutout-rigg for mennesker (hver kroppsdel er et plan med pivot i leddet), restore og setTint
+  charlight.ts     Lys på figurene: relieffkart (normal og glans) fra tegningene og figurskyggeleggeren
   beast.ts         Rigg for ridedyr (kropp, hode, hale, 2 eller 4 bein)
   pets.ts          Sprites for kjæledyr
   gore.ts          Blod, gibs, flekker, fontener. Gore-nivå (FAMILY gir konfetti og gummiender). Sender gnister, ild og røyk til vfx
@@ -90,7 +91,15 @@ Avhengigheter går én vei: `app` bruker `game`, `gfx`, `data`, `ui`. `game` bru
 
 ## Proporsjoner
 
-Heltene bygges av `gfx/chars/muscle.ts`: stort hode (`HEAD_SCALE`), korte bein (`HERO_HIP_Y`), brede skuldre og enorme armer (`HERO_BIG_J`). `scalePart()` skalerer en del rundt leddet uten at konturstreken blir tykkere. Thrugg og Valkyra i `classic.ts` er bygget med heltebyggeren, så presetene har samme proporsjoner.
+Heltene bygges av `gfx/chars/muscle.ts` med målene i `gfx/chars/types.ts`: lange bein (`LEG_L`, `HERO_HIP_Y`), lange armer (`ARM_L`), høyere overkropp (`TORSO_Y` via `stretchY()`), hodet litt for lite (`HEAD_SCALE`), brede skuldre og enorme armer (`HERO_BIG_J`). `scalePart()` skalerer en del rundt leddet uten at konturstreken blir tykkere, og `stretchY()` strekker bare i høyden. Thrugg og Valkyra i `classic.ts` er bygget med heltebyggeren, så presetene har samme proporsjoner.
+
+## Lys på figurene
+
+Figurdelene er flate tegninger, så `gfx/charlight.ts` lager et relieffkart per del når tegningen lages (`reliefTexture` i `rig.ts` og `beast.ts`): hver flate mellom blekkstrekene blir en pute (avstandsfelt til blekk og kontur), pluss en slak bue over hele delen. R og G er normalen, B er glansstyrke og A glanstype (matt stoff og lær, hud med olje, metall). Hud gjenkjennes fra `skin` på CharDef (hudfargene og mørkere nyanser av dem), stål og gull fra fargen.
+
+Materialet (`charMaterial`, brukt via `partMaterial`) er en ShaderMaterial med `lights: true`, så det tar scenens egne lys: himmel (HemisphereLight), sol og nøkkellys (DirectionalLight) og de fire punktlysene fra `LightPool` (fakler, lava, lyn, eksplosjoner). Ingen egen kobling trengs når et miljø legger til lys. Det gir myk diffus, glans (olje på huden, farget glans på metall), kantlys når lyset kommer bakfra og en svak kant av himmelfarge. `charUniforms` styrer balansen for alle figurer (forsterkning, omgivelseslys, fyllys fra kamerasiden, olje, kantlys, relieff). Materialet har `map` satt så skyggepasset alfatester riktig, og delene har `castShadow`.
+
+Ny figur: sett `skin: [hudfarge, ...]` på CharDef hvis huden skal glinse. PNG-erstatninger får relieffkart på samme måte.
 
 ## Bilde og grafikknivå
 

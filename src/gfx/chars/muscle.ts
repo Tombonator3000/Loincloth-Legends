@@ -1,7 +1,7 @@
-// Overdrevne 80-talls barbarkropper: enorme armer, brede skuldre, korte bein og altfor lite tøy.
+// Overdrevne 80-talls barbarkropper: enorme armer, brede skuldre, lange bein og altfor lite tøy.
 // Brukes av heltebyggeren og av muskelbunter som Gorthak. Alt tegnes i enhetsrom med pivot i leddet.
 import { Pen, INK, shade, blobPath, rrectPath } from '../draw';
-import type { PartDef } from './types';
+import { ARM_L, LEG_L, type PartDef } from './types';
 
 type C = CanvasRenderingContext2D;
 const TAU = Math.PI * 2;
@@ -22,6 +22,19 @@ export function scalePart(d: PartDef, s: number): PartDef {
       p.lw = lw / s;
       d.draw(p);
       p.lw = lw;
+      p.c.restore();
+    },
+  };
+}
+
+/** Strekk en del i høyden rundt leddet (lengre overkropp). Konturen blir litt tykkere på vannrette streker. */
+export function stretchY(d: PartDef, k: number): PartDef {
+  return {
+    w: d.w, h: d.h * k, ox: d.ox, oy: d.oy * k,
+    draw: (p) => {
+      p.c.save();
+      p.c.scale(1, k);
+      d.draw(p);
       p.c.restore();
     },
   };
@@ -81,14 +94,15 @@ export function femChest(p: Pen, skin: string, sd: string, top: TopKind, cloth: 
   p.shape(body, null);
   const mat = top === 'fur' ? MAT.fur : top === 'leather' ? MAT.leather : top === 'chain' ? MAT.chain : MAT.silver;
   const dark = shade(mat, -0.3);
-  const bB = (c: C) => c.ellipse(-0.04, 0.46, 0.19, 0.18, 0, 0, TAU);
-  const bF = (c: C) => c.ellipse(0.25, 0.45, 0.215, 0.2, 0, 0, TAU);
+  // Omslagsproporsjoner fra 80-tallet: store, runde og alltid godt dekket av rustningen
+  const bB = (c: C) => c.ellipse(-0.05, 0.455, 0.212, 0.2, 0, 0, TAU);
+  const bF = (c: C) => c.ellipse(0.265, 0.445, 0.24, 0.224, 0, 0, TAU);
   // Stropper over skuldrene
   p.limbs([[[0.24, 0.6, 0.14, 0.76], 0.024], [[-0.06, 0.6, -0.17, 0.74], 0.024]], top === 'plate' ? MAT.leather : mat);
   p.shaded(bB, mat, dark, (c) => c.rect(-0.35, 0.26, 0.13, 0.42));
   p.shaded(bF, mat, dark, (c) => c.rect(0.0, 0.24, 0.1, 0.44));
   if (top === 'chain') {
-    for (const [cx, cy, r] of [[-0.04, 0.46, 0.18], [0.25, 0.45, 0.2]] as const)
+    for (const [cx, cy, r] of [[-0.05, 0.455, 0.2], [0.265, 0.445, 0.224]] as const)
       p.clipTo((c) => c.ellipse(cx, cy, r, r, 0, 0, TAU), () => {
         let row = 0;
         for (let y = cy - r; y < cy + r; y += 0.05, row++)
@@ -99,42 +113,50 @@ export function femChest(p: Pen, skin: string, sd: string, top: TopKind, cloth: 
     p.fur(-0.2, 0.44, 0.28, 0.05, 9, MAT.furL, -1);
   }
   if (top === 'plate') {
-    p.ell(0.25, 0.45, 0.055, 0.055, MAT.gold);
-    p.ell(-0.04, 0.46, 0.045, 0.045, MAT.gold);
+    p.ell(0.265, 0.445, 0.06, 0.06, MAT.gold);
+    p.ell(-0.05, 0.455, 0.05, 0.05, MAT.gold);
     // Magepanser under
     p.shape((c) => rrectPath(c, -0.2, 0.02, 0.44, 0.22, 0.05), MAT.steel);
     p.line([-0.18, 0.13, 0.22, 0.13], 0.016, shade(MAT.steel, -0.35));
   }
   // Glans
-  p.shape((c) => c.ellipse(0.31, 0.52, 0.07, 0.045, -0.5, 0, TAU), 'rgba(255,255,255,0.45)', false);
-  p.shape((c) => c.ellipse(0.01, 0.52, 0.045, 0.032, -0.5, 0, TAU), 'rgba(255,255,255,0.3)', false);
+  p.shape((c) => c.ellipse(0.33, 0.52, 0.078, 0.05, -0.5, 0, TAU), 'rgba(255,255,255,0.45)', false);
+  p.shape((c) => c.ellipse(0.0, 0.52, 0.05, 0.035, -0.5, 0, TAU), 'rgba(255,255,255,0.3)', false);
   // Bånd under
-  p.limbs([[[-0.18, 0.28, 0.42, 0.27], 0.026]], top === 'plate' ? MAT.gold : mat);
+  p.limbs([[[-0.2, 0.275, 0.45, 0.262], 0.026]], top === 'plate' ? MAT.gold : mat);
   void cloth;
 }
 
 // ---------------------------------------------------------------- armer
 export type Shoulder = 'skin' | 'fur' | 'leather' | 'chain' | 'plate' | 'spikes';
 
-/** Enorme armer: biceps som grapefrukt, Popeye-underarmer og knyttnever på størrelse med hodet til en gnom. */
-export function muscleArm(skin: string, sd: string, m: number, shoulder: Shoulder, bracer: string, cloth: string): PartDef {
+/**
+ * Enorme armer: biceps som grapefrukt, Popeye-underarmer og knyttnever på størrelse med hodet til en gnom.
+ * A = lengdefaktor (heroiske proporsjoner). Leddene flyttes, mens radier, knyttneve og skulder beholder formen.
+ */
+export function muscleArm(skin: string, sd: string, m: number, shoulder: Shoulder, bracer: string, cloth: string, A = ARM_L): PartDef {
+  const y = (v: number) => v * A;
+  const ry = 0.6 + 0.4 * A;
+  const extra = 0.6 * (A - 1);
   return {
-    w: 0.92, h: 1.0, ox: 0.44, oy: 0.76,
+    w: 0.92, h: 1.0 + extra, ox: 0.44, oy: 0.76 + extra,
     draw: (p) => {
-      p.shaded((c) => c.ellipse(-0.07, -0.13, 0.1 * m, 0.105 * m, 0.25, 0, TAU), skin, sd, (c) => c.rect(-0.4, -0.4, 0.3, 0.6));
-      p.limbs([[[0, 0, 0.02, -0.25], 0.115 * m], [[0.02, -0.25, 0.03, -0.46], 0.092 * m]], skin);
-      p.shaded((c) => c.ellipse(0.075, -0.13, 0.135 * m, 0.118 * m, -0.25, 0, TAU), skin, sd, (c) => c.rect(-0.3, -0.4, 0.3, 0.6));
-      p.shape((c) => c.ellipse(0.12, -0.1, 0.045 * m, 0.03 * m, -0.4, 0, TAU), 'rgba(255,255,255,0.3)', false);
-      p.shaded((c) => c.ellipse(0.045, -0.345, 0.122 * m, 0.1 * m, 0.1, 0, TAU), skin, sd, (c) => c.rect(-0.3, -0.6, 0.3, 0.5));
+      p.shaded((c) => c.ellipse(-0.07, y(-0.13), 0.1 * m, 0.105 * m * ry, 0.25, 0, TAU), skin, sd, (c) => c.rect(-0.4, y(-0.4), 0.3, 0.6 * A));
+      p.limbs([[[0, 0, 0.02, y(-0.25)], 0.115 * m], [[0.02, y(-0.25), 0.03, y(-0.46)], 0.092 * m]], skin);
+      p.shaded((c) => c.ellipse(0.075, y(-0.13), 0.135 * m, 0.118 * m * ry, -0.25, 0, TAU), skin, sd, (c) => c.rect(-0.3, y(-0.4), 0.3, 0.6 * A));
+      p.shape((c) => c.ellipse(0.12, y(-0.1), 0.045 * m, 0.03 * m * ry, -0.4, 0, TAU), 'rgba(255,255,255,0.3)', false);
+      p.shaded((c) => c.ellipse(0.045, y(-0.345), 0.122 * m, 0.1 * m * ry, 0.1, 0, TAU), skin, sd, (c) => c.rect(-0.3, y(-0.6), 0.3, 0.5 * A));
       // Blodåre (for mye trening)
-      p.shape((c) => { c.moveTo(0.1, -0.06); c.quadraticCurveTo(0.14, -0.14, 0.09, -0.2); }, null, true, 0.012);
+      p.shape((c) => { c.moveTo(0.1, y(-0.06)); c.quadraticCurveTo(0.14, y(-0.14), 0.09, y(-0.2)); }, null, true, 0.012);
       const bw = 0.27 * m;
-      p.rrect(0.035 - bw / 2, -0.49, bw, 0.1, 0.03, bracer);
-      p.line([0.035 - bw / 2 + 0.02, -0.44, 0.035 + bw / 2 - 0.02, -0.44], 0.016, shade(bracer, -0.4));
-      if (shoulder === 'spikes') for (const y of [-0.45, -0.41]) p.poly([0.035 + bw / 2, y - 0.02, 0.035 + bw / 2 + 0.09, y, 0.035 + bw / 2, y + 0.02], '#d8d8d8');
-      p.ell(0.035, -0.555, 0.118 * m, 0.105 * m, skin);
-      p.line([0.07, -0.5, 0.14, -0.53], 0.016);
-      p.line([0.07, -0.56, 0.145, -0.58], 0.016);
+      const by = y(-0.49);
+      p.rrect(0.035 - bw / 2, by, bw, 0.1, 0.03, bracer);
+      p.line([0.035 - bw / 2 + 0.02, by + 0.05, 0.035 + bw / 2 - 0.02, by + 0.05], 0.016, shade(bracer, -0.4));
+      if (shoulder === 'spikes') for (const yy of [by + 0.04, by + 0.08]) p.poly([0.035 + bw / 2, yy - 0.02, 0.035 + bw / 2 + 0.09, yy, 0.035 + bw / 2, yy + 0.02], '#d8d8d8');
+      const fy = by - 0.065;
+      p.ell(0.035, fy, 0.118 * m, 0.105 * m, skin);
+      p.line([0.07, fy + 0.055, 0.14, fy + 0.025], 0.016);
+      p.line([0.07, fy - 0.005, 0.145, fy - 0.025], 0.016);
       // Skulder
       switch (shoulder) {
         case 'plate':
@@ -144,7 +166,7 @@ export function muscleArm(skin: string, sd: string, m: number, shoulder: Shoulde
           break;
         case 'fur':
           p.blob([-0.18, 0.06, -0.08, 0.14, 0.1, 0.13, 0.19, 0.02, 0.12, -0.12, -0.12, -0.12], MAT.fur);
-          for (const [x, y] of [[-0.1, -0.06], [0.0, 0.0], [0.1, -0.05]]) p.line([x, y, x + 0.03, y - 0.06], 0.016, MAT.furL);
+          for (const [x, yy] of [[-0.1, -0.06], [0.0, 0.0], [0.1, -0.05]]) p.line([x, yy, x + 0.03, yy - 0.06], 0.016, MAT.furL);
           break;
         case 'leather':
           p.shaded((c) => c.ellipse(0.0, -0.01, 0.17 * m, 0.14 * m, 0, 0, TAU), MAT.vest, MAT.leatherL, (c) => c.rect(-0.3, -0.3, 0.2, 0.5));
@@ -152,7 +174,7 @@ export function muscleArm(skin: string, sd: string, m: number, shoulder: Shoulde
           break;
         case 'chain':
           p.shaded((c) => c.ellipse(0.0, -0.03, 0.165 * m, 0.15 * m, 0, 0, TAU), MAT.chain, shade(MAT.chain, -0.3), (c) => c.rect(-0.3, -0.3, 0.2, 0.5));
-          for (let y = 0.04; y > -0.14; y -= 0.05) p.line([-0.12, y, 0.12, y], 0.01, shade(MAT.chain, -0.45));
+          for (let yy = 0.04; yy > -0.14; yy -= 0.05) p.line([-0.12, yy, 0.12, yy], 0.01, shade(MAT.chain, -0.45));
           break;
         case 'spikes':
           p.shaded((c) => c.ellipse(0.0, -0.01, 0.19 * m, 0.16 * m, 0, 0, TAU), '#2c2c36', '#1a1a22', (c) => c.rect(-0.3, -0.3, 0.2, 0.5));
@@ -167,36 +189,46 @@ export function muscleArm(skin: string, sd: string, m: number, shoulder: Shoulde
 }
 
 // ---------------------------------------------------------------- bein
-export type Footwear = 'fur' | 'leather' | 'greaves' | 'sandals' | 'darkgreaves';
+export type Footwear = 'fur' | 'leather' | 'greaves' | 'sandals' | 'darkgreaves' | 'redboots';
 
-/** Korte, tjukke bein med lår som trestammer. Foten slutter på y = -0.645 (se HERO_HIP_Y). */
-export function muscleLeg(skin: string, sd: string, m: number, foot: Footwear, cloth: string): PartDef {
+/**
+ * Tjukke bein med lår som trestammer. L = lengdefaktor (heroiske proporsjoner): lengden skaleres,
+ * men foten beholder høyden sin. Foten slutter på y = -0.645 * L (se HERO_HIP_Y).
+ */
+export function muscleLeg(skin: string, sd: string, m: number, foot: Footwear, cloth: string, L = LEG_L): PartDef {
+  const y = (v: number) => v * L;
+  const bottom = -0.645 * L;
+  const extra = 0.645 * (L - 1);
+  const ry = 0.55 + 0.45 * L;
   return {
-    w: 0.7, h: 0.82, ox: 0.3, oy: 0.7,
+    w: 0.7, h: 0.82 + extra, ox: 0.3, oy: 0.7 + extra,
     draw: (p) => {
+      const sole = (w: number, col: string) => p.rrect(-0.14, bottom, w, 0.13, 0.06, col);
       const calf = (col: string, colD: string) => {
-        p.limbs([[[0.03, -0.26, 0.02, -0.48], 0.105 * m]], col);
-        p.shaded((c) => c.ellipse(-0.03, -0.35, 0.1 * m, 0.1 * m, 0.2, 0, TAU), col, colD, (c) => c.rect(-0.3, -0.6, 0.25, 0.5));
+        p.limbs([[[0.03, y(-0.26), 0.02, y(-0.48)], 0.105 * m]], col);
+        p.shaded((c) => c.ellipse(-0.03, y(-0.35), 0.1 * m, 0.1 * m * ry, 0.2, 0, TAU), col, colD, (c) => c.rect(-0.3, y(-0.6), 0.25, 0.5 * L));
       };
       const thigh = (col: string, colD: string) => {
-        p.limbs([[[0, 0, 0.03, -0.26], 0.14 * m]], col);
-        p.shaded((c) => c.ellipse(0.06, -0.12, 0.125 * m, 0.14 * m, -0.1, 0, TAU), col, colD, (c) => c.rect(-0.3, -0.4, 0.27, 0.5));
-        p.shape((c) => { c.moveTo(0.02, -0.02); c.quadraticCurveTo(0.12, -0.12, 0.06, -0.24); }, null, true, 0.012);
+        p.limbs([[[0, 0, 0.03, y(-0.26)], 0.14 * m]], col);
+        p.shaded((c) => c.ellipse(0.06, y(-0.12), 0.125 * m, 0.14 * m * ry, -0.1, 0, TAU), col, colD, (c) => c.rect(-0.3, y(-0.4), 0.27, 0.5 * L));
+        p.shape((c) => { c.moveTo(0.02, y(-0.02)); c.quadraticCurveTo(0.12, y(-0.12), 0.06, y(-0.24)); }, null, true, 0.012);
       };
+      // Punkter i støvelen: y skaleres, bortsett fra helt nederst der foten sitter
+      const ys = (pts: number[]) => pts.map((v, i) => (i % 2 ? Math.max(y(v), bottom + 0.1) : v));
       switch (foot) {
         case 'fur':
           calf(skin, sd);
           thigh(skin, sd);
-          p.blob([-0.14, -0.33, 0.02, -0.3, 0.16, -0.33, 0.17, -0.55, 0.0, -0.58, -0.15, -0.55], MAT.fur);
-          p.fur(-0.16, 0.18, -0.33, 0.06, 7, MAT.furL, 1);
-          p.rrect(-0.14, -0.645, 0.44, 0.13, 0.06, MAT.leather);
+          p.blob(ys([-0.14, -0.33, 0.02, -0.3, 0.16, -0.33, 0.17, -0.55, 0.0, -0.58, -0.15, -0.55]), MAT.fur);
+          p.fur(-0.16, 0.18, y(-0.33), 0.06, 7, MAT.furL, 1);
+          sole(0.44, MAT.leather);
           break;
         case 'leather':
           calf(shade(cloth, -0.35), shade(cloth, -0.5));
           thigh(skin, sd);
-          p.blob([-0.14, -0.2, 0.14, -0.2, 0.16, -0.56, -0.15, -0.56], MAT.leatherL);
-          p.line([-0.13, -0.25, 0.14, -0.25], 0.03, MAT.leather);
-          p.rrect(-0.14, -0.645, 0.44, 0.13, 0.06, MAT.leather);
+          p.blob(ys([-0.14, -0.2, 0.14, -0.2, 0.16, -0.56, -0.15, -0.56]), MAT.leatherL);
+          p.line([-0.13, y(-0.25), 0.14, y(-0.25)], 0.03, MAT.leather);
+          sole(0.44, MAT.leather);
           break;
         case 'greaves':
         case 'darkgreaves': {
@@ -204,26 +236,38 @@ export function muscleLeg(skin: string, sd: string, m: number, foot: Footwear, c
           const stL = foot === 'greaves' ? MAT.silver : '#4a4a5a';
           calf(st, shade(st, -0.3));
           thigh(skin, sd);
-          p.ell(0.05, -0.27, 0.095, 0.08, stL);
-          p.rrect(-0.14, -0.645, 0.46, 0.16, 0.05, st);
-          p.line([0.08, -0.63, 0.08, -0.5], 0.018, shade(st, -0.3));
+          p.ell(0.05, y(-0.27), 0.095, 0.08, stL);
+          p.rrect(-0.14, bottom, 0.46, 0.16, 0.05, st);
+          p.line([0.08, bottom + 0.015, 0.08, bottom + 0.145], 0.018, shade(st, -0.3));
           break;
         }
         case 'sandals':
           calf(skin, sd);
           thigh(skin, sd);
-          p.limbs([[[0.02, -0.48, 0.02, -0.56], 0.08 * m]], skin);
-          p.blob([-0.1, -0.54, 0.1, -0.54, 0.29, -0.59, 0.28, -0.63, -0.11, -0.63], skin);
-          p.rrect(-0.13, -0.655, 0.45, 0.045, 0.02, MAT.leather);
-          for (const y of [-0.38, -0.45, -0.52, -0.59]) p.line([-0.08, y, 0.1, y - 0.04], 0.018, MAT.leather);
+          p.limbs([[[0.02, y(-0.48), 0.02, bottom + 0.09], 0.08 * m]], skin);
+          p.blob([-0.1, bottom + 0.105, 0.1, bottom + 0.105, 0.29, bottom + 0.055, 0.28, bottom + 0.015, -0.11, bottom + 0.015], skin);
+          p.rrect(-0.13, bottom - 0.01, 0.45, 0.045, 0.02, MAT.leather);
+          for (const t of [0.26, 0.4, 0.55, 0.7]) p.line([-0.08, y(-0.3) + (bottom - y(-0.3)) * t, 0.1, y(-0.3) + (bottom - y(-0.3)) * t - 0.04], 0.018, MAT.leather);
           break;
+        case 'redboots': {
+          // Høye røde lærstøvler til over kneet, med brettet kant og hæl (80-talls krigerske)
+          const red = '#b3141c', redD = '#6d0a10', redL = '#e0404a';
+          thigh(skin, sd);
+          calf(red, redD);
+          p.shaded((c) => blobPath(c, ys([-0.13, -0.2, 0.15, -0.21, 0.15, -0.56, -0.14, -0.56])), red, redD, (c) => c.rect(-0.3, y(-0.6), 0.2, 0.5 * L));
+          p.shape((c) => rrectPath(c, -0.15, y(-0.21), 0.32, 0.075, 0.03), redL);
+          p.shape((c) => c.ellipse(0.08, y(-0.36), 0.025, 0.09, 0.1, 0, TAU), 'rgba(255,255,255,0.35)', false);
+          p.rrect(-0.14, bottom, 0.46, 0.13, 0.06, red);
+          p.rrect(-0.15, bottom - 0.02, 0.1, 0.06, 0.02, redD);
+          break;
+        }
       }
     },
   };
 }
 
 // ---------------------------------------------------------------- lendeklær
-export type Loins = 'loincloth' | 'kilt' | 'skirt' | 'tassets' | 'dark';
+export type Loins = 'loincloth' | 'kilt' | 'skirt' | 'tassets' | 'dark' | 'chainkini';
 
 /** Bittesmå lendeklær. Mest belte, litt pels, og en flik som gjør sitt beste. */
 export function tinyLoins(kind: Loins, cloth: string, fur = MAT.fur): PartDef {
@@ -260,6 +304,25 @@ export function tinyLoins(kind: Loins, cloth: string, fur = MAT.fur): PartDef {
           p.rrect(0.02, -0.2, 0.2, 0.24, 0.03, '#2c2c36');
           p.line([0.04, -0.17, 0.2, -0.17], 0.024, '#b3141c');
           break;
+        case 'chainkini': {
+          // Ringbrynje-truse med en kort flik av ringer foran, og et gullbelte med kjede
+          const b = (c: C) => blobPath(c, [-0.25, 0.05, 0.25, 0.05, 0.23, -0.07, 0.1, -0.165, -0.06, -0.165, -0.22, -0.08]);
+          p.shaded(b, MAT.chain, shade(MAT.chain, -0.3), (c) => c.rect(-0.4, -0.3, 0.24, 0.4));
+          p.clipTo(b, () => {
+            let row = 0;
+            for (let yy = -0.17; yy < 0.06; yy += 0.045, row++)
+              for (let x = -0.26; x < 0.26; x += 0.055) p.shape((c) => c.arc(x + (row % 2 ? 0.027 : 0), yy, 0.024, Math.PI, 0), null, true, 0.009);
+          });
+          p.shape(b, null);
+          const flap = (c: C) => blobPath(c, [0.05, 0.02, 0.21, 0.02, 0.2, -0.2, 0.13, -0.24, 0.06, -0.2]);
+          p.shaded(flap, MAT.chain, shade(MAT.chain, -0.35), (c) => c.rect(0.0, -0.3, 0.08, 0.4));
+          p.clipTo(flap, () => {
+            for (let yy = -0.22; yy < 0.03; yy += 0.045) p.line([0.05, yy, 0.21, yy], 0.009, shade(MAT.chain, -0.45));
+          });
+          p.shape(flap, null);
+          p.shape((c) => c.ellipse(0.15, -0.06, 0.02, 0.07, 0.1, 0, TAU), 'rgba(255,255,255,0.4)', false);
+          break;
+        }
       }
       p.rrect(-0.28, -0.005, 0.56, 0.105, 0.03, MAT.leather);
       p.ell(0.14, 0.047, 0.07, 0.06, MAT.gold);

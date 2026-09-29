@@ -1,7 +1,7 @@
 // Heltebyggeren: setter sammen en figur fra valgte deler (kropp, ansikt, hår, skjegg, hjelm, rustning, våpen).
 import { Pen, INK, shade, blobPath, polyPath } from '../draw';
-import { HERO_BIG_J, HERO_HIP_Y, HEAD_SCALE, skinD, type CharDef, type PartDef } from './types';
-import { maleChest, femChest, maleTorsoPath, muscleArm, muscleLeg, tinyLoins, scalePart, type TopKind, type Shoulder, type Footwear, type Loins } from './muscle';
+import { HERO_BIG_J, HERO_HIP_Y, HEAD_SCALE, TORSO_Y, skinD, type CharDef, type PartDef } from './types';
+import { maleChest, femChest, maleTorsoPath, muscleArm, muscleLeg, tinyLoins, scalePart, stretchY, type TopKind, type Shoulder, type Footwear, type Loins } from './muscle';
 
 export interface HeroConfig {
   name: string;
@@ -35,8 +35,8 @@ export const HERO_OPTIONS: Record<Exclude<keyof HeroConfig, 'name'>, string[]> =
   beard: ['NONE', 'STUBBLE', 'FULL BEARD', 'BRAIDED BEARD', 'MUSTACHE'],
   helmet: ['NONE', 'HORNED', 'WINGED', 'BEAST SKULL', 'CROWN', 'GREAT HELM', 'HEADBAND'],
   torso: ['BARE', 'FUR MANTLE', 'LEATHER', 'CHAINMAIL', 'PLATE'],
-  pelvis: ['FUR LOINCLOTH', 'KILT', 'BATTLE SKIRT', 'TASSETS'],
-  boots: ['FUR BOOTS', 'LEATHER BOOTS', 'GREAVES', 'SANDALS'],
+  pelvis: ['FUR LOINCLOTH', 'KILT', 'BATTLE SKIRT', 'TASSETS', 'CHAINMAIL BRIEFS'],
+  boots: ['FUR BOOTS', 'LEATHER BOOTS', 'GREAVES', 'SANDALS', 'RED BOOTS'],
   weapon: ['SWORD', 'AXE', 'WARHAMMER', 'SPIKED CLUB'],
   cloth: ['BROWN', 'CRIMSON', 'ROYAL BLUE', 'FOREST', 'PURPLE', 'BLACK', 'GOLD'],
   magic: ['METEOR STORM', 'ANCESTRAL SCREAM'],
@@ -44,7 +44,8 @@ export const HERO_OPTIONS: Record<Exclude<keyof HeroConfig, 'name'>, string[]> =
 
 export const PRESETS: Record<string, HeroConfig> = {
   thrugg: { name: 'THRUGG', body: 0, skin: 1, face: 0, hair: 1, hairColor: 0, beard: 1, helmet: 1, torso: 1, pelvis: 0, boots: 0, weapon: 0, cloth: 0, magic: 0 },
-  valkyra: { name: 'VALKYRA', body: 1, skin: 0, face: 1, hair: 4, hairColor: 3, beard: 0, helmet: 2, torso: 4, pelvis: 2, boots: 0, weapon: 1, cloth: 2, magic: 1 },
+  // Chainmail-bikini, røde støvler og flammerødt hår, rett fra et 80-talls bokomslag (konseptbildene)
+  valkyra: { name: 'VALKYRA', body: 1, skin: 0, face: 1, hair: 2, hairColor: 5, beard: 0, helmet: 6, torso: 3, pelvis: 4, boots: 4, weapon: 0, cloth: 1, magic: 1 },
 };
 
 const M = {
@@ -358,8 +359,8 @@ function torsoPart(cfg: HeroConfig): PartDef {
 }
 
 const SHOULDERS: Shoulder[] = ['skin', 'fur', 'leather', 'chain', 'plate'];
-const FEET: Footwear[] = ['fur', 'leather', 'greaves', 'sandals'];
-const LOINS: Loins[] = ['loincloth', 'kilt', 'skirt', 'tassets'];
+const FEET: Footwear[] = ['fur', 'leather', 'greaves', 'sandals', 'redboots'];
+const LOINS: Loins[] = ['loincloth', 'kilt', 'skirt', 'tassets', 'chainkini'];
 
 function armPart(cfg: HeroConfig): PartDef {
   const skin = SKINS[cfg.skin] ?? SKINS[0];
@@ -458,12 +459,13 @@ export function buildHeroDef(cfg: HeroConfig, slot: number): CharDef {
     leg: legPart(cfg),
     arm: armPart(cfg),
     pelvis: pelvisPart(cfg),
-    torso: torsoPart(cfg),
+    torso: stretchY(torsoPart(cfg), TORSO_Y),
     head: scalePart(headPart(cfg), HEAD_SCALE),
     weapon: weaponPart(cfg.weapon),
     blood: 'red',
     voice: fem ? 'heroine' : 'hero',
     color: CLOTHS[cfg.cloth] ?? CLOTHS[0],
+    skin: [SKINS[cfg.skin] ?? SKINS[0]],
   };
 }
 

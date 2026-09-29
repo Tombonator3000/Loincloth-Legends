@@ -1,7 +1,7 @@
 // De opprinnelige figurene: to helter, fire fiender, duell-mesteren og imp-vaktmesteren.
 import { INK, shade, blobPath, polyPath, rrectPath } from '../draw';
-import { HERO_J, HERO_BIG_J, HERO_HIP_Y, skinD, type CharDef } from './types';
-import { maleChest, muscleArm, muscleLeg, tinyLoins, scalePart } from './muscle';
+import { HERO_J, HERO_BIG_J, HERO_HIP_Y, TORSO_Y, skinD, type CharDef } from './types';
+import { maleChest, muscleArm, muscleLeg, tinyLoins, scalePart, stretchY } from './muscle';
 import { buildHeroDef, PRESETS } from './hero';
 
 // ---------------------------------------------------------------- THRUGG og VALKYRA
@@ -92,7 +92,7 @@ const skeleton: CharDef = {
 // ---------------------------------------------------------------- HOGMAN
 const HG = { green: '#7d9b45', belly: '#b7c67c', snout: '#e59aa0', tusk: '#fff6de', iron: '#6f757c', leather: '#5b3a1e', cloth: '#6b5a3a', wood: '#8b5a2b' };
 const hogman: CharDef = {
-  id: 'hogman', name: 'HOGMAN', scale: 1.12, hipY: 0.74,
+  id: 'hogman', name: 'HOGMAN', skin: [HG.green, HG.belly, HG.snout], scale: 1.12, hipY: 0.74,
   joints: { hipF: [0.1, 0], hipB: [-0.1, 0], neck: [0.1, 0.8], shF: [0.2, 0.66], shB: [-0.2, 0.68], hand: [0, -0.6] },
   blood: 'red', voice: 'pig', color: '#7d9b45',
   leg: {
@@ -174,7 +174,7 @@ const hogman: CharDef = {
 // ---------------------------------------------------------------- CULTIST
 const CU = { robe: '#4b2470', robeL: '#6d3aa0', trim: '#d4a63a', skin: '#c9c2b0', eye: '#ffe34a', dark: '#2c2536' };
 const cultist: CharDef = {
-  id: 'cultist', name: 'CULTIST', scale: 0.9, hipY: 0.82, joints: { ...HERO_J, shF: [0.12, 0.64], shB: [-0.12, 0.66] },
+  id: 'cultist', name: 'CULTIST', skin: [CU.skin], scale: 0.9, hipY: 0.82, joints: { ...HERO_J, shF: [0.12, 0.64], shB: [-0.12, 0.66] },
   blood: 'red', voice: 'cultist', color: '#6d3aa0',
   leg: {
     w: 0.5, h: 0.98, ox: 0.18, oy: 0.88,
@@ -238,7 +238,7 @@ const cultist: CharDef = {
 // ---------------------------------------------------------------- GNOME
 const GN = { coat: '#2f5fb3', hat: '#c62b2b', skin: '#f0b48e', beard: '#f4f4f4', pants: '#6b4a2b', shoe: '#3b2414', sack: '#a88a55' };
 const gnome: CharDef = {
-  id: 'gnome', name: 'POTION GNOME', scale: 0.62, hipY: 0.46,
+  id: 'gnome', name: 'POTION GNOME', skin: [GN.skin], scale: 0.62, hipY: 0.46,
   joints: { hipF: [0.06, 0], hipB: [-0.06, 0], neck: [0.02, 0.5], shF: [0.12, 0.42], shB: [-0.12, 0.42], hand: [0, -0.38] },
   blood: 'red', voice: 'gnome', color: '#c62b2b',
   leg: {
@@ -294,12 +294,12 @@ const gnome: CharDef = {
 const GK = { armor: '#2c2c36', armorL: '#4a4a5a', trim: '#b3141c', horn: '#e8dcc0', eye: '#ff2a1a', gold: '#d9a933', wood: '#3a2616', steel: '#8e98a4' };
 const GK_SKIN = '#c08a62';
 const gorthak: CharDef = {
-  id: 'gorthak', name: 'GORTHAK', scale: 1.08, hipY: HERO_HIP_Y, joints: { ...HERO_BIG_J, neck: [0.02, 0.8] },
-  blood: 'red', voice: 'brute', color: '#8a0e14',
+  id: 'gorthak', name: 'GORTHAK', scale: 1.08, hipY: HERO_HIP_Y, joints: { ...HERO_BIG_J, neck: [0.02, 0.8 * TORSO_Y] },
+  blood: 'red', voice: 'brute', color: '#8a0e14', skin: [GK_SKIN],
   leg: muscleLeg(GK_SKIN, skinD(GK_SKIN), 1.1, 'darkgreaves', GK.armor),
   arm: muscleArm(GK_SKIN, skinD(GK_SKIN), 1.6, 'spikes', GK.armor, GK.trim),
   pelvis: tinyLoins('dark', GK.trim, '#2c2c36'),
-  torso: {
+  torso: stretchY({
     w: 1.34, h: 1.06, ox: 0.67, oy: 0.1,
     draw: (p) => {
       maleChest(p, GK_SKIN, skinD(GK_SKIN), false);
@@ -319,7 +319,7 @@ const gorthak: CharDef = {
       p.shaded(pad, GK.armorL, GK.armor, (c) => c.rect(-0.7, 0.5, 0.25, 0.6));
       for (const x of [-0.5, -0.34, -0.2]) p.poly([x - 0.045, 0.93, x, 1.1, x + 0.045, 0.93], '#cfcfcf');
     },
-  },
+  }, TORSO_Y),
   head: scalePart({
     w: 1.5, h: 1.3, ox: 0.74, oy: 0.14,
     draw: (p) => {
@@ -335,7 +335,7 @@ const gorthak: CharDef = {
       p.line([-0.28, 0.6, 0.0, 0.76, 0.36, 0.64], 0.035, GK.trim);
       p.shape((c) => { c.moveTo(0.26, 0.64); c.quadraticCurveTo(0.8, 0.7, 0.72, 1.14); c.quadraticCurveTo(0.6, 0.86, 0.14, 0.78); c.closePath(); }, GK.horn);
     },
-  }, 1.22),
+  }, 0.92),
   weapon: {
     w: 1.3, h: 2.3, ox: 0.65, oy: 0.44,
     draw: (p) => {
@@ -357,7 +357,7 @@ const gorthak: CharDef = {
 // ---------------------------------------------------------------- CLEANUP IMP
 const IM = { skin: '#6fae3e', overall: '#556b8f', cap: '#3a4f7a', eye: '#ffe14a', mop: '#cfc8b6', stick: '#9a6a38' };
 const imp: CharDef = {
-  id: 'imp', name: 'CLEANUP IMP', scale: 0.72, hipY: 0.5,
+  id: 'imp', name: 'CLEANUP IMP', skin: [IM.skin], scale: 0.72, hipY: 0.5,
   joints: { hipF: [0.06, 0], hipB: [-0.06, 0], neck: [0.02, 0.54], shF: [0.12, 0.44], shB: [-0.12, 0.44], hand: [0, -0.4] },
   blood: 'green', voice: 'imp', color: '#6fae3e',
   leg: {

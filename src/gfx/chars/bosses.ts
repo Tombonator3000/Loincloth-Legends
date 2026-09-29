@@ -188,7 +188,7 @@ const magmor: CharDef = {
 // ---------------------------------------------------------------- VORTHAX
 const VX = { robe: '#5b2a86', robeD: '#3a1a5a', trim: '#e8b83a', skin: '#d8c2a8', beard: '#d9d9d9', eye: '#ff3b2f', orb: '#44e0ff', wood: '#4a2e18' };
 const vorthax: CharDef = {
-  id: 'vorthax', name: 'VORTHAX', scale: 1.15, hipY: 0.82, joints: { ...HERO_J, shF: [0.12, 0.64], shB: [-0.12, 0.66] },
+  id: 'vorthax', name: 'VORTHAX', skin: [VX.skin], scale: 1.15, hipY: 0.82, joints: { ...HERO_J, shF: [0.12, 0.64], shB: [-0.12, 0.66] },
   blood: 'red', voice: 'wizard', color: '#5b2a86',
   leg: {
     w: 0.5, h: 0.98, ox: 0.18, oy: 0.88,

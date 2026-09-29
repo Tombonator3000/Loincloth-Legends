@@ -25,7 +25,8 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - 2026-09-29: To spillere i duell = tag team (bytter per runde).
 - 2026-09-29: Studioet heter Tom's Happy Happy Funtimes Emporium. Oppstartslogoen bruker Toms eget bilde (art/studio/). Ikke endre logoen uten å bli bedt om det.
 - 2026-09-29: Repo: https://github.com/Tombonator3000/Loincloth-Legends. Prosjektet skal videre i Claude Code derfra.
-- 2026-09-29: Proporsjoner (v0.3): stort hode på liten kropp, altfor store muskler, bittesmå lendeklær. Damene får overdreven 80-talls-rustning og former, men er alltid fullt dekket og komiske, ikke seksualiserte.
+- 2026-09-29: Proporsjoner (v0.3): stort hode på liten kropp, altfor store muskler, bittesmå lendeklær.
+- 2026-09-29: Proporsjoner (v0.4, konseptbildene): heroiske kropper med lange bein (LEG_L), lange armer (ARM_L), høyere overkropp (TORSO_Y) og mindre hode (HEAD_SCALE) i chars/types.ts. Tom vil ha 80-talls fantasy med ringbrynjebikini og store former på damene. Regel: tegneseriestil med humor, tydelig voksne, aldri nakenhet.
 - 2026-09-29: Gore-nivå har fire trinn, EXCESSIVE er standard. FAMILY bytter blod mot konfetti og gummiender.
 - 2026-09-29: Teit vold er en del av sjangeren: imp sparker hodet i skjermen, armer ryker (JUST A FLESH WOUND), hodeløse fiender løper rundt.
 - 2026-09-29: Gamepad følger standard mapping. I 2-spiller med én gamepad er gamepaden spiller 2. Berøring styrer alltid spiller 1.
@@ -36,7 +37,7 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - 2026-09-29: Koden ligger på main i GitHub-repoet, pakket ut fra zip-en Tom lastet opp. Grenen `claude/loincloth-legends-v0.3` fra chat-økten ble aldri pushet og finnes ikke. Den utpakkede mappen i ~/Utvikling (uten git) skal ikke pushes fra. Lokalt arbeid skjer i en klone av repoet.
 
 ## Tekniske notater
-- Figurmaterialer bruker egen ShaderMaterial med `flash` og `tint` uniforms for treff-blink.
+- Figurmaterialer bruker egen ShaderMaterial med `flash` og `tint` uniforms for treff-blink. Den er lyssatt (`lights: true`, se `src/gfx/charlight.ts`) og tar scenens lys automatisk.
 - Alpha-to-coverage + MSAA gir myke kanter på cutout-figurene uten sortering av transparens.
 - Koordinater: X bortover, Y opp, Z mot kamera. Spillbeltet i brettene er Z fra -2.6 til 2.6.
 - Duellen går på en linje (Z = +-0.12 for å unngå at delene fletter seg).
@@ -75,3 +76,6 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - GLSL ES 3.0 har reserverte ord som `patch`, `sample`, `filter`, `input`, `output`. Ikke bruk dem som variabelnavn.
 - `tools/tests/looks.mjs` tar faste skjermbilder for sammenligning og skriver tegnekall og trekanter per frame. Kontaktark: se log.md for hvordan (Pillow i skyøkten).
 - I skyøkter laster ikke headless Chromium Google Fonts (sertifikatfeil via proxyen). `net::ERR_CERT_AUTHORITY_INVALID` i testloggen kommer derfra og er ikke en feil i spillet.
+- Figurlys: relieffkartet lages fra tegningen i `reliefTexture` (DataTexture, rad 0 er nederste rad fordi DataTexture ikke vendes). Kanten regnes fra innsiden av blekkstreken, ellers havner rundingen og glansen under det svarte. Balansen styres av `charUniforms` (`__lib.charUniforms` i testene). ShaderMaterial med `lights: true` trenger alle uniformene fra `UniformsLib.lights`.
+- Skyggepasset i Three bruker `material.map` og alfatest 0.5 (når alphaToCoverage er på), også for ShaderMaterial. Derfor har figurmaterialet `map` satt som egenskap. `customDepthMaterial` får overskrevet `map` av Three, så den veien virker ikke uten mer arbeid.
+- Blå eller røde punktlys på hud blir blekere enn lyset (albedo ganger lys). Vil et miljø ha tydelig farget lys på figurene, må himmel- og nøkkellyset være svakere der (som i konseptbildene).

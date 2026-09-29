@@ -14,9 +14,10 @@ En 2.5D fantasy-brawler der Castle Crashers møter Golden Axe, og der brettene e
 
 ## 2. Visuell stil (3D/2D hybrid)
 
-- **Verden i 3D**: Lav-poly miljø med toon-shading og svarte konturer. Kamera fra siden med litt helning, som gir dybde (Golden Axe-beltet) og parallakse.
+- **Verden i 3D**: Lyssatt miljø med sol og skygger, prosedyrelagde 3D-trær og gress i vinden, tåkelag og HDR-bilde med bloom, dybdeskarphet og fargegradering per brett (målet er beskrevet i `docs/STYLE_TARGET.md`). Kamera fra siden med litt helning, som gir dybde (Golden Axe-beltet) og parallakse.
 - **Figurer i 2D**: Papirdukke-rigger der hver kroppsdel er et eget tegnet plan. Delene kan falle av hver for seg.
-- **Proporsjoner**: Stort hode på liten kropp. Mennene har altfor store muskler (biceps som grapefrukt, sekspakk, bryst som skjold), damene har overdreven 80-talls-rustning (pelsbikini, ringbrynjebikini og "boob plate"). Alle har bittesmå lendeklær og korte, tjukke bein.
+- **Proporsjoner**: Heroiske kropper som på 80-talls fantasy-omslag: lange bein, brede skuldre og et hode som er litt for lite. Mennene har altfor store muskler (biceps som grapefrukt, sekspakk, bryst som skjold), damene har overdreven 80-talls-rustning og former (pelsbikini, ringbrynjebikini med røde støvler og "boob plate"). Alt i tegneseriestil med humor, tydelig voksne, aldri nakenhet. Alle har bittesmå lendeklær.
+- **Lys på figurene**: Delene får normal- og glanskart laget fra tegningen (avrundede flater mellom blekkstrekene, olje på huden, blankt stål og gull). Figurene tar lys fra sol, himmel, fakler, lyn og eksplosjoner, får kantlys i motlys og kaster skygge (`src/gfx/charlight.ts`).
 - **Grafikk**: Tegnes prosedyremessig i kode i dag. PNG-er fra ChatGPT kan erstatte del for del (se `docs/ART_PROMPTS.md`).
 - **Gore**: Blodpartikler, gibs med fysikk, flekker som blir liggende, blodfontener, blod på skjermen, slowmo ved dødsstøt.
 

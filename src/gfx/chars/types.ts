@@ -32,16 +32,26 @@ export interface CharDef {
   voice: Voice;
   /** Farge til portrett-bakgrunn i HUD. */
   color: string;
+  /** Hudfarger (hex). Huden får oljeglans i lyset (se gfx/charlight.ts); mørkere nyanser regnes med. */
+  skin?: string[];
   /** Deler som deles med en annen figur (PNG-erstatninger hentes da fra den figuren). */
   inherit?: Partial<Record<'leg' | 'arm' | 'pelvis' | 'torso' | 'head' | 'weapon', CharId>>;
 }
 
 export const HERO_J: Joints = { hipF: [0.07, 0], hipB: [-0.08, 0], neck: [0.03, 0.78], shF: [0.15, 0.66], shB: [-0.15, 0.68], hand: [0, -0.6] };
-/** Heltene etter ombyggingen: stort hode, kort kropp, brede skuldre og korte bein (se muscle.ts). */
-export const HERO_BIG_J: Joints = { hipF: [0.08, 0], hipB: [-0.08, 0], neck: [0.03, 0.8], shF: [0.42, 0.56], shB: [-0.41, 0.58], hand: [0.035, -0.5] };
-export const HERO_HIP_Y = 0.64;
-/** Hvor mye større hodet tegnes enn resten (Castle Crashers-proporsjoner, bare mer). */
-export const HEAD_SCALE = 1.3;
+/**
+ * Heroiske proporsjoner (konseptbildene, se docs/STYLE_TARGET.md): lengre bein og armer og mindre hode enn
+ * de gamle chibi-kroppene, men samme tegnestil. Totalhøyden på skjermen er omtrent den samme.
+ */
+export const LEG_L = 1.62;
+export const ARM_L = 1.3;
+/** Overkroppen strekkes litt i høyden (se stretchY i muscle.ts). */
+export const TORSO_Y = 1.14;
+/** Heltene: brede skuldre, lange bein, store armer (se muscle.ts). */
+export const HERO_BIG_J: Joints = { hipF: [0.08, 0], hipB: [-0.08, 0], neck: [0.03, 0.8 * TORSO_Y], shF: [0.42, 0.56 * TORSO_Y], shB: [-0.41, 0.58 * TORSO_Y], hand: [0.035, -0.5 * ARM_L] };
+export const HERO_HIP_Y = 0.645 * LEG_L - 0.005;
+/** Hvor stort hodet tegnes i forhold til resten (var 1.3 med chibi-proporsjoner). */
+export const HEAD_SCALE = 0.84;
 export const skinD = (s: string) => shade(s, -0.22);
 
 export function heroLeg(skin: string, pants: string | null, boot: string, bootTrim: string, foot: string): PartDef {

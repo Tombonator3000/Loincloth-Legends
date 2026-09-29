@@ -5,7 +5,7 @@ import { HERO_J, type CharDef } from './types';
 // ---------------------------------------------------------------- BOG ZOMBIE
 const ZB = { skin: '#8fae7a', rot: '#5d7a4a', cloth: '#6b5b4a', pants: '#4a4238', eye: '#fff36a', bone: '#efe8d2' };
 const zombie: CharDef = {
-  id: 'zombie', name: 'BOG ZOMBIE', scale: 0.9, hipY: 0.82, joints: { ...HERO_J, neck: [0.1, 0.72], shF: [0.18, 0.6], shB: [-0.06, 0.62] },
+  id: 'zombie', name: 'BOG ZOMBIE', skin: [ZB.skin, ZB.rot], scale: 0.9, hipY: 0.82, joints: { ...HERO_J, neck: [0.1, 0.72], shF: [0.18, 0.6], shB: [-0.06, 0.62] },
   blood: 'green', voice: 'zombie', color: '#5d7a4a',
   leg: {
     w: 0.56, h: 1.0, ox: 0.22, oy: 0.9,
@@ -94,7 +94,7 @@ function frogArm(): CharDef['arm'] {
   };
 }
 const frogman: CharDef = {
-  id: 'frogman', name: 'FROGMAN', scale: 0.9, hipY: 0.72, joints: { ...HERO_J, neck: [0.08, 0.66], shF: [0.16, 0.58], shB: [-0.1, 0.6] },
+  id: 'frogman', name: 'FROGMAN', skin: [FR.skin, FR.belly], scale: 0.9, hipY: 0.72, joints: { ...HERO_J, neck: [0.08, 0.66], shF: [0.16, 0.58], shB: [-0.1, 0.6] },
   blood: 'red', voice: 'frog', color: '#3f7a2e',
   leg: frogLeg(),
   arm: frogArm(),
@@ -152,7 +152,7 @@ const frogman: CharDef = {
 // ---------------------------------------------------------------- ISTROLL
 const TR = { fur: '#e6edf2', furD: '#aebfd0', skin: '#7ea0c8', skinD: '#5a7aa0', tusk: '#fffbe8', ice: '#bfe8ff', iceD: '#6fb4e0', leather: '#4a3a30' };
 const troll: CharDef = {
-  id: 'troll', name: 'ICE TROLL', scale: 1.2, hipY: 0.76,
+  id: 'troll', name: 'ICE TROLL', skin: [TR.skin], scale: 1.2, hipY: 0.76,
   joints: { hipF: [0.1, 0], hipB: [-0.1, 0], neck: [0.14, 0.8], shF: [0.22, 0.66], shB: [-0.18, 0.7], hand: [0, -0.62] },
   blood: 'red', voice: 'troll', color: '#5a7aa0',
   leg: {
@@ -226,7 +226,7 @@ const troll: CharDef = {
 // ---------------------------------------------------------------- ILD-IMP
 const FI = { skin: '#d8402a', skinD: '#9a2418', horn: '#2a1a14', wing: '#5a1a14', eye: '#ffe34a', fire: '#ffb02e' };
 const fireimp: CharDef = {
-  id: 'fireimp', name: 'FIRE IMP', scale: 0.72, hipY: 0.52,
+  id: 'fireimp', name: 'FIRE IMP', skin: [FI.skin], scale: 0.72, hipY: 0.52,
   joints: { hipF: [0.06, 0], hipB: [-0.06, 0], neck: [0.04, 0.54], shF: [0.12, 0.44], shB: [-0.1, 0.46], hand: [0, -0.4] },
   blood: 'lava', voice: 'imp', color: '#9a2418',
   leg: {
