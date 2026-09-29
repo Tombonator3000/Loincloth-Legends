@@ -111,7 +111,7 @@ Ny figur: sett `skin: [hudfarge, ...]` på CharDef hvis huden skal glinse. PNG-e
 
 Kode som bygger innhold leser `gfxState.quality` eller `qualityRank()` (0 LOW til 3 ULTRA) for tetthet på gress, antall blader og størrelse på skyggekart. Miljøene bruker `lit()`/`toon()` (MeshStandardMaterial) og `applyShadows()`. Sola (`SunShadow`) følger kameraet.
 
-Målbildet for grafikken står i `docs/STYLE_TARGET.md`. `foreground(g, L, typer, farge)` i `env/common.ts` legger mørke silhuetter nederst i forgrunnen (pigger, hodeskaller, kors, steiner, bein) slått sammen til ett mesh.
+Målbildet for grafikken står i `docs/STYLE_TARGET.md`. Små statiske rekvisitter legges i `staticGroup(g)` (paliser, piler, steiner, hodeskaller på stake gjør det allerede) og slås sammen per materiale og bit langs x i `finishEnv`, så de koster noen få tegnekall. Ting som flyttes eller animeres skal ligge direkte i gruppa. `foreground(g, L, typer, farge)` i `env/common.ts` legger mørke silhuetter nederst i forgrunnen (pigger, hodeskaller, kors, steiner, bein) slått sammen til ett mesh.
 
 ### Nytt tre eller ny art
 Legg en `Species` i `SPECIES` (`env/trees.ts`): lengde, radius, seksjoner, barn, vinkler, knudrethet og blader per nivå. Bruk den med `new Forest(art).add(x, z, skala)` og `forest.build()` i biomet.

@@ -4,6 +4,8 @@ import { chromium } from 'playwright';
 const [url, out, scenario] = process.argv.slice(2);
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+// Tunge brett i SwiftShader kan bruke mer enn 30 sekunder på et skjermbilde når maskinen er opptatt
+page.setDefaultTimeout(120000);
 const logs = [];
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') logs.push(m.type() + ': ' + m.text()); });
 page.on('pageerror', (e) => logs.push('pageerror: ' + e.message + '\n' + e.stack));

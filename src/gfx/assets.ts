@@ -1,6 +1,7 @@
 // Valgfri PNG-grafikk som erstatter prosedyretegningen.
 // Legg filer i public/assets/ og beskriv dem i public/assets/manifest.json (se docs/ART_PROMPTS.md).
 // Finnes ikke manifestet, brukes den prosedyretegnede grafikken som før.
+import { HEAD_SCALE, TORSO_Y, ARM_L, LEG_L } from './chars/types';
 
 export interface PartOverride { canvas: HTMLCanvasElement; w: number; h: number; ox: number; oy: number }
 
@@ -44,7 +45,14 @@ const DEFAULT_H: Record<PartKey, number> = {
 };
 /** Heltene (stort hode, korte bein, store armer) har egne standardhøyder. */
 const HERO_IDS = new Set(['thrugg', 'valkyra']);
-const HERO_H: Partial<Record<PartKey, number>> = { head: 1.3, torso: 0.95, pelvis: 0.35, arm: 0.8, leg: 0.66 };
+/** Høydene følger de heroiske proporsjonene i chars/types.ts (arm og bein strekkes, hodet krymper). */
+const HERO_H: Partial<Record<PartKey, number>> = {
+  head: HEAD_SCALE,
+  torso: 0.95 * TORSO_Y,
+  pelvis: 0.35,
+  arm: 0.8 + 0.6 * (ARM_L - 1),
+  leg: 0.66 + 0.645 * (LEG_L - 1),
+};
 /** Ridedyr: hodet festes i nakken (venstre side av bildet). */
 const BEAST_IDS = new Set(['warhog', 'cluckatrice', 'magmanewt']);
 const BEAST_ANCHOR: Partial<Record<PartKey, [number, number]>> = { head: [0.15, 0.55], body: [0.5, 0.5], tail: [0.92, 0.55], leg: [0.5, 0.06] };

@@ -25,9 +25,14 @@ npm run typecheck
 ## Hva er med
 
 - **Oppstartslogo** for Tom's Happy Happy Funtimes Emporium: trommevirvel, sirkusfanfare, solstråler og konfetti.
-- **Hero Forge**: lag din egen helt (mann eller dame) fra deler. Stort hode på liten kropp, altfor store muskler, overdreven 80-talls-rustning og bittesmå lendeklær.
+- **Hero Forge**: lag din egen helt (mann eller dame) fra deler. Heroiske 80-talls kropper med altfor store muskler, ringbrynjebikini, røde støvler og bittesmå lendeklær.
+- **Grafikk**: HDR-bilde med bloom, dybdeskarphet og fargegradering per brett, myke skygger, 3D-trær og gress i vinden, GPU-partikler, lyn og eksplosjoner, blod som lander og tørker inn, 3D-gibs, figurer som tar lys fra fakler og lyn, og mørke silhuetter i forgrunnen. Fem grafikknivåer (AUTO til ULTRA).
+- **Heavy metal**: 80-talls metal syntetisert i nettleseren (vrengte gitarer, dobbel stortromme, tvillinggitarer og solo), én låt per brett. De gamle 8-bit-låtene kan velges i innstillingene.
+- **METAL MODE**: drap og lemlestelse fyller en måler. Full måler gir gitarsolo, brennende våpen, hardere slag og lyn som slår ned i fiendene.
 - **Verdenskart** i 3D med fem biomer, stier, låste noder og fremgang som lagres.
 - **Fem brett** med egne fiender, farer (pigger, myr, råk, lava, piggfeller) og fiender som kommer ridende. Finale per brett: fire sjefer og én duell til døden.
+- **Nattleir** som i Golden Axe: heltene sover ved bålet mens tyvnisser napper krukkene deres.
+- **Magi** i tre varianter (meteorregn, forfedrenes skrik og tordenguden), sterkere jo flere krukker. Sjonglering i lufta og B-film-replikker.
 - **Grep og kast**: ta tak i fiender, kne dem, kast dem i andre fiender (bowling) eller rett i lava.
 - **Ridedyr**: War Hog (stormløp), Cluckatrice (halesvip) og Magma Newt (ildpust). Slå av rytteren og sitt opp selv.
 - **Teit vold**: impen sparker avkappede hoder rett i skjermen, der de klasker og sklir sakte ned med en hvinende lyd. Armer ryker av og spretter vekk ("IT'S JUST A FLESH WOUND!"), og hodeløse fiender løper rundt en stund.

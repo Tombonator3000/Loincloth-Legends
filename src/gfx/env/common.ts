@@ -351,7 +351,61 @@ export function applyShadows(root: THREE.Object3D) {
   });
 }
 
+/**
+ * Gruppe for statiske rekvisitter (paliser, piler, steiner, staker). Alt her slås sammen per materiale og bit
+ * langs x i finishEnv, så hundrevis av små mesher blir noen få tegnekall. Ikke legg ting som animeres her.
+ */
+export function staticGroup(g: THREE.Group) {
+  let s = g.userData.static as THREE.Group | undefined;
+  if (!s) {
+    s = new THREE.Group();
+    g.add(s);
+    g.userData.static = s;
+  }
+  return s;
+}
+
+/** Slå sammen statiske mesher (se staticGroup). Bitene langs x beholder litt utsnittsfjerning. */
+export function mergeStatic(g: THREE.Group, chunk = 30) {
+  const s = g.userData.static as THREE.Group | undefined;
+  if (!s) return;
+  s.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(s.matrixWorld).invert();
+  const buckets = new Map<string, { mat: THREE.Material; geos: THREE.BufferGeometry[]; noCast: boolean }>();
+  const meshes: THREE.Mesh[] = [];
+  s.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (m.isMesh && !Array.isArray(m.material)) meshes.push(m);
+  });
+  const box = new THREE.Box3();
+  const m4 = new THREE.Matrix4();
+  for (const m of meshes) {
+    const geo = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone();
+    for (const k of Object.keys(geo.attributes)) if (k !== 'position' && k !== 'normal' && k !== 'uv') geo.deleteAttribute(k);
+    if (!geo.getAttribute('uv')) geo.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(geo.getAttribute('position').count * 2), 2));
+    geo.applyMatrix4(m4.multiplyMatrices(inv, m.matrixWorld));
+    geo.computeBoundingBox();
+    box.copy(geo.boundingBox!);
+    const ci = Math.floor((box.min.x + box.max.x) / 2 / chunk);
+    const mat = m.material as THREE.Material;
+    const noCast = !!m.userData.noCast;
+    const key = mat.uuid + ':' + ci + (noCast ? ':n' : '');
+    let b = buckets.get(key);
+    if (!b) buckets.set(key, (b = { mat, geos: [], noCast }));
+    b.geos.push(geo);
+  }
+  s.clear();
+  for (const b of buckets.values()) {
+    const merged = mergeGeometries(b.geos);
+    if (!merged) continue;
+    const mesh = new THREE.Mesh(merged, b.mat);
+    if (b.noCast) mesh.userData.noCast = true;
+    s.add(mesh);
+  }
+}
+
 export function finishEnv(g: THREE.Group, updates: ((dt: number, t: number, camX: number) => void)[], fogColor: string, grade?: Partial<Grade>): Env {
+  mergeStatic(g);
   applyShadows(g);
   return {
     group: g,
@@ -430,20 +484,21 @@ export function mountains(g: THREE.Group, length: number, cols: string[], cap: s
 }
 
 export function stakeWall(g: THREE.Group, x0: number, x1: number, z: number, gaps: [number, number][] = [], cols = ['#7a5230', '#6b4526', '#855a36']) {
+  const sg = staticGroup(g);
   for (let x = x0; x < x1; x += 0.5) {
     if (gaps.some(([a, b]) => x > a && x < b)) continue;
     const h = rand(2.4, 3.4);
     const s = M(new THREE.CylinderGeometry(0.22, 0.26, h, 6), pick(cols), x + rand(-0.05, 0.05), h / 2, z + rand(-0.2, 0.2), 0.06);
     s.rotation.z = rand(-0.08, 0.08);
     s.add(M(new THREE.ConeGeometry(0.22, 0.6, 6), shade(cols[0], 0.15), 0, h / 2 + 0.3, 0, 0.06));
-    g.add(s);
+    sg.add(s);
   }
 }
 
 export function rock(g: THREE.Group, x: number, z: number, size: number, cols = ['#8a8378', '#77706a', '#9a9288']) {
   const r = M(new THREE.DodecahedronGeometry(size, 0), pick(cols), x, size * 0.4, z, 0.06);
   r.rotation.set(rand(0, 3), rand(0, 3), 0);
-  g.add(r);
+  staticGroup(g).add(r);
   return r;
 }
 
@@ -462,10 +517,11 @@ export function skullMat() {
 }
 
 export function skullPike(g: THREE.Group, gore: Gore, x: number, z: number) {
-  g.add(M(new THREE.CylinderGeometry(0.06, 0.06, 2.6, 5), '#5a3a20', x, 1.3, z, 0.08));
+  const sg = staticGroup(g);
+  sg.add(M(new THREE.CylinderGeometry(0.06, 0.06, 2.6, 5), '#5a3a20', x, 1.3, z, 0.08));
   const sk = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.7), skullMat());
   sk.position.set(x, 2.7, z + 0.08);
-  g.add(sk);
+  sg.add(sk);
   gore.stain(x, z + 0.3, 0.5);
 }
 
@@ -497,11 +553,12 @@ export function campfire(g: THREE.Group, x: number, z: number, gore?: Gore) {
 
 export function arrows(g: THREE.Group, length: number, n = 40) {
   const geo = new THREE.CylinderGeometry(0.025, 0.025, 1, 4);
+  const sg = staticGroup(g);
   for (let i = 0; i < n; i++) {
     const a = M(geo, '#7a5230', rand(0, length), 0.35, rand(-3, 4), 0.1);
     a.rotation.set(rand(-0.4, 0.4), 0, rand(-0.6, 0.6));
     a.add(M(new THREE.ConeGeometry(0.07, 0.2, 3), '#e8e0d0', 0, 0.5, 0, 0.1));
-    g.add(a);
+    sg.add(a);
   }
 }
 

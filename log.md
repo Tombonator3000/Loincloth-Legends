@@ -193,3 +193,9 @@ Merk: tidspunktene fra 10:53 til 11:57 er rekonstruert fra når filene sist ble 
 - HUD i konseptstil: portrettet har gullring og et P1/P2-merke, livsbaren har gullkant, magikrukkene er små flasker i blått, rødt og grønt, og gullet vises med en mynt. Panelet har fått en gyllen innerkant.
 - Mørke silhuetter nederst i forgrunnen i alle seks brettmiljøene (pigger, hodeskaller på stake, kors, steiner og beinhauger, ulike per biom), slått sammen til ett mesh per brett. De står så lavt og glissent at de ikke dekker kampen.
 - Tittelskjermen: lynet slår ned bak de to kjempene med noen sekunders mellomrom, med glimt og torden, som et albumomslag fra 1986.
+
+## 2026-09-29 15:46 (Europe/Oslo)
+- Færre tegnekall: statiske rekvisitter (palisaden, pilene i bakken, steiner og hodeskaller på stake) legges i en egen gruppe og slås sammen per materiale og 30 enheter langs x når miljøet er ferdig bygget (staticGroup og mergeStatic i env/common.ts). Konturskallene slås sammen på samme måte. Brett 1 gikk fra 475 til 222 tegnekall per bilde på HIGH og fra 441 til 215 på MEDIUM, med samme bilde.
+- PNG-høydene for thrugg og valkyra (HERO_H i gfx/assets.ts) regnes nå ut fra proporsjonskonstantene i chars/types.ts, så PNG-er Tom legger inn får riktig størrelse med de nye kroppene. ART_PROMPTS.md er oppdatert med de heroiske proporsjonene, den nye regelen for kvinnefigurene og en ny Valkyra-prompt (ringbrynjebikini, røde støvler, rødt hår).
+- README.md har fått grafikken, heavy metal, METAL MODE, nattleiren og magien i funksjonslista.
+- Hele testbatteriet (20 skript) kjørte uten konsollfeil. Nivåtesten tidsavbrøt på et tungt skjermbilde når to nettlesere delte CPU-en, så scenarios.mjs har fått 120 sekunders tidsgrense, og den gikk gjennom alle fem brettene.

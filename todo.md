@@ -5,7 +5,7 @@
 - [x] Kvalitetsnivå i innstillingene (AUTO, LOW, MEDIUM, HIGH, ULTRA)
 - [x] Mykt lys og skygger som følger kameraet
 - [x] Vind, 3D-trær, gress og fallende blader, tåkelag og lyssøyler
-- [ ] Slå sammen statiske mesher per materiale (palisade, steiner, piler osv.) så MEDIUM får færre tegnekall
+- [x] Slå sammen statiske mesher per materiale (palisade, steiner, piler, staker): brett 1 fra 475 til 222 tegnekall på HIGH
 - [ ] Biomene mot konseptbildene (docs/STYLE_TARGET.md): fakler og fyrfat, lyn, blodmåne, lavafall, demonslott, ruiner, fossefall, våte gulv, mørke silhuetter i forgrunnen
 - [x] Heroiske proporsjoner på figurene (lange bein og armer, høyere overkropp, mindre hode)
 - [ ] Dverg-helt (kroppstype i heltebyggeren, gyllen øks som i konseptbildet)
@@ -47,7 +47,7 @@
 - [ ] Rekvisitter og ikoner som PNG
 - [ ] Vis tittelbilde og sjef-VS-kort fra assets
 - [ ] Rydd opp geometri/materialer når scener byttes (liten minnelekkasje ved mange omstarter)
-- [ ] Slå sammen statisk miljø-geometri (palisaden) for færre draw calls
+- [ ] Flere rekvisitter inn i staticGroup (telt, bannere, bål, tårnets møbler) for enda færre tegnekall
 - [ ] Taleboblene og kunngjøringer bruker sanntid, ikke spilltid (merkes bare i slowmo)
 - [ ] Flere kroppstyper i heltebyggeren (dverg, halvtroll, sint gnome)
 - [ ] Opptil 4 spillere lokalt
