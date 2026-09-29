@@ -4,6 +4,7 @@
 // (threejs-shadow-systems i prosjektbiblioteket).
 import * as THREE from 'three';
 import { tierOf, gfxState } from '../post';
+import { sunUniforms } from '../wind';
 
 const UP = new THREE.Vector3(0, 1, 0);
 
@@ -26,6 +27,9 @@ export class SunShadow {
     this.dir = dir.clone().normalize();
     this.xAxis.crossVectors(UP, this.dir).normalize();
     this.yAxis.crossVectors(this.dir, this.xAxis).normalize();
+    // Vegetasjonen bruker sola til gjennomskinnelige blader og gress i motlys
+    sunUniforms.uSunDirW.value.copy(this.dir);
+    sunUniforms.uSunCol.value.copy(light.color).multiplyScalar(Math.min(1.6, light.intensity) * 0.65);
     const size = tierOf(gfxState.quality).shadows;
     this.on = size > 0;
     group.add(light, light.target);

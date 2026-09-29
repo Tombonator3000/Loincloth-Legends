@@ -4,9 +4,13 @@ import { plainCanvas } from '../draw';
 import { rand, pick } from '../../core/math';
 import type { Gore } from '../gore';
 import {
-  M, toon, groundTex, roadTex, stageBase, finishEnv, mountains, deadTree, skullPike, tuftMat, tufts, rock, endGate,
+  M, toon, groundTex, roadTex, stageBase, finishEnv, mountains, skullPike, rock, endGate,
   bossMarker, canvasTex, type Env,
 } from './common';
+import { Forest, SPECIES } from './trees';
+import { Meadow } from './meadow';
+import { fogLayers } from './atmos';
+import { wind } from '../wind';
 import type { StageEnvOpts } from './index';
 import { GRADES } from './grades';
 
@@ -14,6 +18,7 @@ export function buildSwamp(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   const L = o.length;
   const { g, updates } = stageBase(scene, L, {
     biome: 'swamp',
+    sunDir: [-0.35, 0.65, -0.6],
     sky: ['#3d4a32', '#8f9e7a', '#aab694'], bg: '#8a9a78', fog: ['#8a9a78', 16, 85],
     hemi: ['#d8e6c0', '#3a3a28', 1.45], sun: ['#e8f0d0', 1.2],
     ground: groundTex('#4a4a2a', ['#56562e', '#3e3e22', '#5a5230'], '#2e3a1a'),
@@ -50,7 +55,24 @@ export function buildSwamp(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     g.add(pad);
   }
 
-  for (let x = -6; x < L + 6; x += rand(5, 9)) deadTree(g, x, rand(-11, -6.5), rand(0.9, 1.5), pick(['#3a3226', '#2e2a20']), '#6a7a3a');
+  // Knudrete sumptrær med hengende mose, noen står i vannet
+  wind.set(0.45, 1, 0.2, 0.4);
+  const trees = new Forest(SPECIES.swamp, 3);
+  for (let x = -6; x < L + 6; x += rand(5, 9)) trees.add(x, rand(-11, -6.8), rand(0.9, 1.3));
+  for (let x = -20; x < L + 20; x += rand(4, 8)) trees.add(x, rand(-30, -15), rand(1.1, 1.6), undefined, false);
+  g.add(trees.build());
+  // Siv langs vannkanten og i forgrunnen
+  const reeds = new Meadow({ bands: [[4.35, 8.6, 5], [-7.2, -4.4, 9]], height: [0.6, 1.4], base: '#2e3a1a', tip: '#8a8a44', dry: '#a08a4a', blades: 3, width: 0.06, bend: 0.6 });
+  g.add(reeds.mesh);
+  const mist = fogLayers(g, L, '#b8c8a0', [
+    { z: -5.2, h: 2.2, opacity: 0.4, drift: 1.2 },
+    { z: -12, h: 5, opacity: 0.5, drift: 0.8 },
+    { z: -26, h: 10, opacity: 0.6, drift: 0.5 },
+  ]);
+  updates.push((dt, _t, camX) => {
+    reeds.update(camX);
+    mist(dt);
+  });
   for (let x = 10; x < L; x += rand(12, 20)) skullPike(g, gore, x, rand(-4.4, -3.6));
 
   // Lysende sopp
@@ -86,7 +108,6 @@ export function buildSwamp(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     g.add(col);
   }
 
-  tufts(g, L, tuftMat(['#6a7a3a', '#8a8a4a', '#5a6a2a', '#7a6a3a']), 1.8);
   for (let x = 0; x < L; x += rand(8, 14)) rock(g, x, pick([rand(4, 6), rand(-6, -3.8)]), rand(0.4, 0.9), ['#5a5a4a', '#4a4a3e']);
   for (let i = 0; i < L / 5; i++) gore.splat(rand(0, L), rand(-2.4, 2.4), rand(0.3, 0.9), pick(['red', 'green'] as const));
 

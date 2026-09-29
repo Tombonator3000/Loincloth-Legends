@@ -7,7 +7,7 @@ Repo: https://github.com/Tombonator3000/Loincloth-Legends. Spillet er fra Tom's 
 1. Les `memory.md` (prosjektets hukommelse og viktige beslutninger).
 2. Les `todo.md` (hva som gjenstår).
 3. Les de siste oppføringene i `log.md`.
-4. Design: `docs/GDD.md`. Arkitektur og oppskrifter: `docs/ARCHITECTURE.md`. Grafikk: `docs/ART_PROMPTS.md`.
+4. Design: `docs/GDD.md`. Arkitektur og oppskrifter: `docs/ARCHITECTURE.md`. Grafikk: `docs/ART_PROMPTS.md`. Målbildet for grafikken: `docs/STYLE_TARGET.md`.
 
 ## Mens du jobber
 - Logg alt du gjør i `log.md` med tidsstempel (format: `## YYYY-MM-DD HH:MM (Europe/Oslo)`).

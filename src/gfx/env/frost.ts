@@ -3,7 +3,11 @@ import * as THREE from 'three';
 import { unitCanvas, INK } from '../draw';
 import { rand, pick } from '../../core/math';
 import type { Gore } from '../gore';
-import { lit, M, groundTex, roadTex, stageBase, finishEnv, mountains, pineTree, skullPike, tuftMat, tufts, rock, endGate, bossMarker, canvasTex, skullMat, type Env } from './common';
+import { lit, M, groundTex, roadTex, stageBase, finishEnv, mountains, skullPike, rock, endGate, bossMarker, canvasTex, skullMat, type Env } from './common';
+import { Forest, SPECIES, withSnow } from './trees';
+import { Meadow } from './meadow';
+import { fogLayers } from './atmos';
+import { wind } from '../wind';
 import type { StageEnvOpts } from './index';
 import { GRADES } from './grades';
 
@@ -11,6 +15,7 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   const L = o.length;
   const { g, updates } = stageBase(scene, L, {
     biome: 'frost',
+    sunDir: [-0.35, 0.5, -0.8],
     sky: ['#5f90cc', '#cfe4f5', '#eef6fb'], bg: '#dfeef8', fog: ['#e6f0f8', 30, 115],
     hemi: ['#f0f8ff', '#7a8aa0', 1.7], sun: ['#ffffff', 1.6],
     ground: groundTex('#e8f0f6', ['#d8e4ee', '#f6fafc', '#cad8e6'], null),
@@ -19,8 +24,25 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   });
   mountains(g, L, ['#8a9ab0', '#7a8aa4', '#96a6bc'], '#ffffff', -105, 14, 30);
 
-  for (let x = -6; x < L + 6; x += rand(3, 6)) pineTree(g, x, rand(-12, -7), rand(0.9, 1.6), true);
-  for (let x = 4; x < L; x += rand(14, 22)) pineTree(g, x, rand(4.4, 5.2), rand(0.28, 0.4), true);
+  // Snødekt furuskog i rader, små furuer i forgrunnen
+  wind.set(0.9, 1, 0.15, 0.8);
+  const pines = new Forest(withSnow(SPECIES.pine), 3);
+  for (let x = -6; x < L + 6; x += rand(3.5, 6.5)) pines.add(x, rand(-13, -7.5), rand(0.8, 1.25));
+  for (let x = -20; x < L + 20; x += rand(3, 5.5)) pines.add(x, rand(-34, -17), rand(1.0, 1.5), undefined, false);
+  // Små, snødekte busker av furu i forgrunnen (lave nok til ikke å dekke kampen)
+  for (let x = 4; x < L; x += rand(14, 22)) pines.add(x, rand(5.2, 6.2), rand(0.14, 0.2));
+  g.add(pines.build());
+  const frostGrass = new Meadow({ bands: [[4.4, 7.5, 3], [-7, -4.4, 3]], height: [0.18, 0.4], base: '#5a6a6a', tip: '#dfe8ee', dry: '#c8d0d6', blades: 3 });
+  g.add(frostGrass.mesh);
+  const mist = fogLayers(g, L, '#e8f2fa', [
+    { z: -8, h: 4, opacity: 0.3, drift: 1.4 },
+    { z: -16, h: 8, opacity: 0.45, drift: 1 },
+    { z: -33, h: 16, opacity: 0.55, drift: 0.6 },
+  ]);
+  updates.push((dt, _t, camX) => {
+    frostGrass.update(camX);
+    mist(dt);
+  });
   for (let x = 12; x < L; x += rand(14, 20)) skullPike(g, gore, x, rand(-4.4, -3.6));
 
   // Iskrystaller
@@ -68,7 +90,6 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   tw.add(M(new THREE.ConeGeometry(2.2, 2, 4), '#f2f6fa', 0, 7.6, 0, 0.05));
   g.add(tw);
 
-  tufts(g, L, tuftMat(['#8a9a8a', '#a8b4a8', '#6a7a6a']), 0.6);
   for (let x = 0; x < L; x += rand(6, 12)) rock(g, x, pick([rand(4, 6), rand(-6, -3.8)]), rand(0.4, 1.0), ['#9aa6b4', '#b8c4d0']);
   for (let i = 0; i < L / 5; i++) gore.splat(rand(0, L), rand(-2.4, 2.4), rand(0.3, 0.9));
 

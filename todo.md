@@ -4,7 +4,11 @@
 - [x] Bildepipeline med HDR, bloom, dybdeskarphet, gradering, vignett, korn og aberrasjon (src/gfx/post.ts)
 - [x] Kvalitetsnivå i innstillingene (AUTO, LOW, MEDIUM, HIGH, ULTRA)
 - [x] Mykt lys og skygger som følger kameraet
-- [ ] Vind, 3D-trær, gress og fallende blader
+- [x] Vind, 3D-trær, gress og fallende blader, tåkelag og lyssøyler
+- [ ] Slå sammen statiske mesher per materiale (palisade, steiner, piler osv.) så MEDIUM får færre tegnekall
+- [ ] Biomene mot konseptbildene (docs/STYLE_TARGET.md): fakler og fyrfat, lyn, blodmåne, lavafall, demonslott, ruiner, fossefall, våte gulv, mørke silhuetter i forgrunnen
+- [ ] Heroiske proporsjoner på figurene (vanlig hodestørrelse, lange bein), dverg-helt
+- [ ] HUD i konseptstil: portretter i gullramme, magikrukker, gullteller
 - [ ] Partikkelsystem med pooler og HDR-emisjon
 - [ ] Realistisk blodsprut, dekaler, pytter og 3D-gibs
 - [ ] 80-talls figurer: chainmail-bikini, store former, oljeglans, kapper i vinden

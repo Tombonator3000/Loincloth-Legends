@@ -44,6 +44,10 @@ game/              Spillogikk
 gfx/               Grafikk
   chars/           Figurer: types, muscle (overdrevne kropper), classic, wilds, bosses, hero (heltebygger), beasts (ridedyr), index (register)
   env/             Miljø: common, grass, swamp, frost, scorch, tower, arena, worldmap, sprites, hazards, index (register)
+                   sun (sol med skygger), grades (gradering per biom), trees (3D-trær), meadow (gress), leaffall (blader),
+                   atmos (tåkelag og lyssøyler)
+  post.ts          Bildepipeline: HDR, bloom, dybdeskarphet, eksponering, tonemapping, gradering, linseeffekter, grafikknivå
+  wind.ts          Felles vindfelt (uniformer, GLSL, windifyTree) som trær, gress og blader deler
   rig.ts           Cutout-rigg for mennesker (hver kroppsdel er et plan med pivot i leddet), restore og setTint
   beast.ts         Rigg for ridedyr (kropp, hode, hale, 2 eller 4 bein)
   pets.ts          Sprites for kjæledyr
@@ -84,6 +88,17 @@ Avhengigheter går én vei: `app` bruker `game`, `gfx`, `data`, `ui`. `game` bru
 ## Proporsjoner
 
 Heltene bygges av `gfx/chars/muscle.ts`: stort hode (`HEAD_SCALE`), korte bein (`HERO_HIP_Y`), brede skuldre og enorme armer (`HERO_BIG_J`). `scalePart()` skalerer en del rundt leddet uten at konturstreken blir tykkere. Thrugg og Valkyra i `classic.ts` er bygget med heltebyggeren, så presetene har samme proporsjoner.
+
+## Bilde og grafikknivå
+
+`gfx/post.ts` eier det endelige bildet. Scenen tegnes i lineær HDR med MSAA, så bloom, dybdeskarphet, eksponering, tonemapping (én gang), gradering og linseeffekter. LOW tegner rett til skjermen uten etterbehandling. Graderingen settes per miljø (`grade` på Env, fra `env/grades.ts`) eller per scene (kartet). `W.post` gir tilgang fra spillkoden (aberrasjon ved store treff, rød kant ved lite liv, lysglimt).
+
+Kode som bygger innhold leser `gfxState.quality` eller `qualityRank()` (0 LOW til 3 ULTRA) for tetthet på gress, antall blader og størrelse på skyggekart. Miljøene bruker `lit()`/`toon()` (MeshStandardMaterial) og `applyShadows()`. Sola (`SunShadow`) følger kameraet.
+
+Målbildet for grafikken står i `docs/STYLE_TARGET.md`.
+
+### Nytt tre eller ny art
+Legg en `Species` i `SPECIES` (`env/trees.ts`): lengde, radius, seksjoner, barn, vinkler, knudrethet og blader per nivå. Bruk den med `new Forest(art).add(x, z, skala)` og `forest.build()` i biomet.
 
 ## Innstillinger og gore-nivå
 

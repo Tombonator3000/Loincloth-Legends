@@ -4,8 +4,11 @@ import { plainCanvas } from '../draw';
 import { rand, pick } from '../../core/math';
 import type { Gore } from '../gore';
 import {
-  M, lavaRockTex, roadTex, stageBase, finishEnv, mountains, deadTree, skullPike, rock, endGate, bossMarker, canvasTex, type Env,
+  M, lavaRockTex, roadTex, stageBase, finishEnv, mountains, skullPike, rock, endGate, bossMarker, canvasTex, type Env,
 } from './common';
+import { Forest, SPECIES, burnt } from './trees';
+import { fogLayers } from './atmos';
+import { wind } from '../wind';
 import type { StageEnvOpts } from './index';
 import { GRADES } from './grades';
 
@@ -13,6 +16,7 @@ export function buildScorch(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): En
   const L = o.length;
   const { g, updates } = stageBase(scene, L, {
     biome: 'scorch',
+    sunDir: [0.3, 0.5, -0.8],
     sky: ['#1a0808', '#8a2a10', '#e0602a'], bg: '#3a1410', fog: ['#4a1a10', 30, 110],
     hemi: ['#ffb080', '#2a1010', 1.3], sun: ['#ffb070', 1.5],
     ground: lavaRockTex(),
@@ -69,12 +73,24 @@ export function buildScorch(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): En
     sp.rotation.z = rand(-0.4, 0.4);
     g.add(sp);
   }
+  // Brente trær som gløder i toppen
+  wind.set(0.5, 1, 0.1, 0.6);
   const burning: THREE.Vector3[] = [];
+  const charred = new Forest(burnt(SPECIES.dead), 3);
   for (let x = 4; x < L; x += rand(12, 18)) {
     const z = rand(-10, -8.5);
-    deadTree(g, x, z, rand(0.9, 1.3), '#1e1614');
-    burning.push(new THREE.Vector3(x, 4, z));
+    const s = rand(0.85, 1.15);
+    charred.add(x, z, s);
+    burning.push(new THREE.Vector3(x, 4.6 * s, z));
   }
+  for (let x = -20; x < L + 20; x += rand(6, 12)) charred.add(x, rand(-30, -16), rand(1.0, 1.4), undefined, false);
+  g.add(charred.build());
+  const smoke = fogLayers(g, L, '#7a3420', [
+    { z: -7, h: 3, opacity: 0.25, drift: 1.2 },
+    { z: -15, h: 8, opacity: 0.4, drift: 0.8 },
+    { z: -40, h: 18, opacity: 0.5, drift: 0.5 },
+  ]);
+  updates.push((dt) => smoke(dt));
   for (let x = 10; x < L; x += rand(10, 16)) skullPike(g, gore, x, rand(-4.4, -3.6));
   for (let x = 0; x < L; x += rand(7, 12)) rock(g, x, pick([rand(4, 6), rand(-6, -3.8)]), rand(0.4, 1.0), ['#2a2226', '#3a3036']);
   for (let i = 0; i < L / 5; i++) gore.splat(rand(0, L), rand(-2.4, 2.4), rand(0.3, 0.9));

@@ -9,7 +9,7 @@ export const GRADES: Record<string, G> = {
   grass: {
     exposure: 1.0, contrast: 1.06, saturation: 1.04, vibrance: 0.1, lift: [0.015, 0.0, 0.03], gain: [1.02, 1.0, 0.97],
     shadowTint: [0.93, 0.92, 1.08], highlightTint: [1.04, 1.0, 0.93], tint: 0.35, vignette: 0.38, grain: 0.28,
-    bloom: 0.7, threshold: 1.0, knee: 0.5, dofFar: 0.8, dofNear: 0.65,
+    bloom: 0.7, threshold: 1.0, knee: 0.5, dofFar: 0.4, dofNear: 0.65,
   },
   // Grønn, tung og fuktig: gulgrønne høylys, blågrønne skygger
   swamp: {

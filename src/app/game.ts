@@ -11,6 +11,7 @@ import { TouchControls } from '../ui/touch';
 import { Splash, wantSplash } from '../ui/splash';
 import { settings, setSettings, onSettings, touchEnabled, GORE_NAMES, GORE_HINTS, QUALITY_SETTINGS, QUALITY_HINTS, type GoreLevel, type TouchMode, type QualitySetting } from '../core/settings';
 import { PostFX, autoQuality, type Quality } from '../gfx/post';
+import { wind } from '../gfx/wind';
 import { W } from '../game/world';
 import { Stage } from '../game/stage';
 import { Duel, type DuelConfig, type DuelSide } from '../game/duel';
@@ -642,6 +643,7 @@ export class Game {
 
     const simDt = this.paused ? 0 : this.fx.hitstop > 0 ? 0 : realDt * this.fx.timeScale;
     W.time += simDt;
+    wind.update(simDt);
     if (!this.paused && !blocked) this.scene.update(simDt, realDt);
 
     const cam = this.camera;

@@ -7,6 +7,7 @@ import { applyShadows, M, toon, tileTex, stoneTex, canvasTex, skullMat, bossMark
 import type { StageEnvOpts } from './index';
 import { GRADES } from './grades';
 import { SunShadow } from './sun';
+import { fogLayers, godRays } from './atmos';
 
 const POSTERS = [
   ['EVIL', 'IT\'S A LIFESTYLE'],
@@ -153,6 +154,14 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     });
   }
   for (let i = 0; i < L / 6; i++) gore.splat(rand(0, L), rand(-2.4, 2.4), rand(0.3, 0.9));
+
+  // Månelys som faller skrått inn gjennom vinduene, og støv som henger i lufta
+  const moon = godRays(g, Array.from({ length: Math.ceil((L + 12) / 8) }, (_, i) => -4 + i * 8 + 4.8), -4.9, '#8a7aff', 0.38, 12, 2.2, 0.16);
+  const dust = fogLayers(g, L, '#4a3a70', [{ z: -4.3, h: 11, opacity: 0.14, drift: 0.3 }]);
+  updates.push((dt) => {
+    moon(dt);
+    dust(dt);
+  });
 
   if (o.finale === 'duel') endGate(g, gore, L - 4, o.gateTitle ?? 'THRONE ROOM >>>', o.gateSub ?? 'KNOCK FIRST', '#4a4058', '#5b2a86');
   if (o.finale === 'boss' && o.bossX !== undefined) bossMarker(g, gore, o.bossX - 3, o.bossSign ?? 'THRONE ROOM');

@@ -8,16 +8,6 @@ import type { Grade } from '../post';
 import { SunShadow } from './sun';
 
 // ---------------------------------------------------------------- materialer
-let gradMap: THREE.DataTexture | null = null;
-export function toonGrad() {
-  if (!gradMap) {
-    const d = new Uint8Array([90, 170, 255]);
-    gradMap = new THREE.DataTexture(d, 3, 1, THREE.RedFormat);
-    gradMap.minFilter = gradMap.magFilter = THREE.NearestFilter;
-    gradMap.needsUpdate = true;
-  }
-  return gradMap;
-}
 /**
  * Stilisert, lyssatt materiale for miljøet (mykt lys, skygger, tåke). Tidligere et trestegs toon-materiale,
  * derav navnet. Emisjon gis HDR-styrke så bloom tar den (gfx/post.ts).
@@ -312,9 +302,14 @@ export function stageBase(scene: THREE.Scene, length: number, look: Look) {
   g.add(road);
 
   if (look.sunDisk) {
-    const sd = new THREE.Mesh(new THREE.CircleGeometry(9, 32), new THREE.MeshBasicMaterial({ color: look.sunDisk, fog: false }));
-    sd.position.set(40, 20, -160);
+    // Sola følger kameraet (den er uendelig langt unna) og lyser sterkt nok til å gi bloom
+    const sd = new THREE.Mesh(new THREE.CircleGeometry(9, 32), new THREE.MeshBasicMaterial({ color: new THREE.Color(look.sunDisk).multiplyScalar(2.2), fog: false }));
+    const dx = look.sunDir ? look.sunDir[0] / Math.max(0.2, -look.sunDir[2]) * 160 : 40;
+    sd.position.set(dx, 20, -160);
     g.add(sd);
+    updates.push((_dt, _t, camX) => {
+      sd.position.x = camX + dx;
+    });
   }
   if (look.clouds) {
     const cloudT = canvasTex(cloudCanvas(look.clouds), false);
@@ -390,42 +385,6 @@ export function stakeWall(g: THREE.Group, x0: number, x1: number, z: number, gap
   }
 }
 
-export function deadTree(g: THREE.Group, x: number, z: number, s: number, col = '#4a3526', moss: string | null = null) {
-  const t = new THREE.Group();
-  t.position.set(x, 0, z);
-  t.scale.setScalar(s);
-  t.add(M(new THREE.CylinderGeometry(0.25, 0.45, 5, 6), col, 0, 2.5, 0, 0.08));
-  for (let i = 0; i < 4; i++) {
-    const b = M(new THREE.CylinderGeometry(0.06, 0.16, 2.2, 5), col, 0, 0, 0, 0.08);
-    b.position.set(rand(-0.4, 0.4), rand(2.8, 4.6), 0);
-    b.rotation.z = rand(-1.1, 1.1);
-    b.rotation.x = rand(-0.3, 0.3);
-    t.add(b);
-    if (moss) {
-      const mo = new THREE.Mesh(new THREE.PlaneGeometry(0.3, rand(1, 2)), toon(moss));
-      mo.position.set(b.position.x + rand(-0.5, 0.5), b.position.y - 0.8, 0.3);
-      t.add(mo);
-    }
-  }
-  g.add(t);
-  return t;
-}
-
-export function pineTree(g: THREE.Group, x: number, z: number, s: number, snow: boolean) {
-  const t = new THREE.Group();
-  t.position.set(x, 0, z);
-  t.scale.setScalar(s);
-  t.add(M(new THREE.CylinderGeometry(0.18, 0.28, 1.6, 6), '#4a3526', 0, 0.8, 0, 0.08));
-  for (let i = 0; i < 3; i++) {
-    const r = 1.6 - i * 0.4;
-    const cone = M(new THREE.ConeGeometry(r, 2.0, 7), '#2f5a3a', 0, 1.8 + i * 1.1, 0, 0.06);
-    if (snow) cone.add(M(new THREE.ConeGeometry(r * 0.72, 1.0, 7), '#f2f6fa', 0, 0.55, 0, 0));
-    t.add(cone);
-  }
-  g.add(t);
-  return t;
-}
-
 export function rock(g: THREE.Group, x: number, z: number, size: number, cols = ['#8a8378', '#77706a', '#9a9288']) {
   const r = M(new THREE.DodecahedronGeometry(size, 0), pick(cols), x, size * 0.4, z, 0.06);
   r.rotation.set(rand(0, 3), rand(0, 3), 0);
@@ -453,24 +412,6 @@ export function skullPike(g: THREE.Group, gore: Gore, x: number, z: number) {
   sk.position.set(x, 2.7, z + 0.08);
   g.add(sk);
   gore.splat(x, z + 0.3, 0.5);
-}
-
-export function tuftMat(cols: string[]) {
-  const t = canvasTex(unitCanvas(1.2, 0.8, 0.6, 0, 80, (p) => {
-    for (let i = 0; i < 9; i++) {
-      const x = -0.5 + i * 0.12;
-      p.poly([x - 0.05, 0, x + rand(-0.15, 0.15), rand(0.35, 0.75), x + 0.05, 0], pick(cols));
-    }
-  }), false);
-  return new THREE.MeshBasicMaterial({ map: t, alphaTest: 0.5, side: THREE.DoubleSide });
-}
-
-export function tufts(g: THREE.Group, length: number, mat: THREE.Material, density = 1) {
-  for (let x = -4; x < length + 10; x += rand(1.5, 4) / density) {
-    const t = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.8), mat);
-    t.position.set(x, 0.4, pick([rand(3.2, 5.5), rand(-3.6, -3.0)]));
-    g.add(t);
-  }
 }
 
 export function banner(g: THREE.Group, x: number, z: number, cloth: string, emblem: string) {

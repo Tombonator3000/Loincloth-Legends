@@ -22,9 +22,18 @@ const run = (sec, keys = [], taps = []) => page.evaluate(({ sec, keys, taps }) =
 }, { sec, keys, taps });
 const shot = async (n) => {
   const t0 = Date.now();
-  await page.evaluate(() => window.__game.tick(1 / 60, true));
+  // Summer tegnekall og trekanter over hele framen (skygger, scene og etterbehandling)
+  const info = await page.evaluate(() => {
+    const r = window.__game.renderer;
+    r.info.autoReset = false;
+    r.info.reset();
+    window.__game.tick(1 / 60, true);
+    const o = { calls: r.info.render.calls, tris: r.info.render.triangles };
+    r.info.autoReset = true;
+    return o;
+  });
   await page.screenshot({ path: `${out}/${prefix}-${n}.png` });
-  console.log('shot', n, Date.now() - t0, 'ms');
+  console.log('shot', n, Date.now() - t0, 'ms', 'calls', info.calls, 'tris', info.tris);
 };
 const ev = (fn, arg) => page.evaluate(fn, arg);
 

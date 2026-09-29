@@ -31,6 +31,7 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - 2026-09-29: Gamepad følger standard mapping. I 2-spiller med én gamepad er gamepaden spiller 2. Berøring styrer alltid spiller 1.
 - 2026-09-29: Progresjon: XP og nivåer per helt, STR/DEF/MAG/AGI, butikk og trening i hjemborgen (startnoden på kartet), fem kjæledyr.
 - 2026-09-29: Tom ba om skikkelige 3D-effekter på alt (vind, etterbehandling, 3D-trær, partikler, realistisk blod og gibs), å bruke prosjektbiblioteket (github.com/Tombonator3000/prosjektbibliotek) til skills og effekter, og en hyllest til Golden Axe, Barbarian, Castle Crashers og 80-talls B-fantasy med heavy metal. Utseendet går fra flat toon mot et malt diorama: mykt lys, skygger, bloom og dybdeskarphet. Figurene er fortsatt tegnede cutouts med konturstrek.
+- 2026-09-29: Tom sendte konseptbilder som mål (beskrevet i docs/STYLE_TARGET.md): mørkt og dramatisk 16-bit-malt uttrykk, heroiske proporsjoner, chainmail-bikini, fakler, lyn, blodmåne, lava, mørke silhuetter i forgrunnen. Bildene ligger ikke i repoet.
 - 2026-09-29: Fra prosjektbiblioteket brukes Three.js-skillene til scottstts (MIT) som oppskrift, ikke som installert pakke. Ingen kode er kopiert inn; systemene er skrevet for dette prosjektet.
 - 2026-09-29: Koden ligger på main i GitHub-repoet, pakket ut fra zip-en Tom lastet opp. Grenen `claude/loincloth-legends-v0.3` fra chat-økten ble aldri pushet og finnes ikke. Den utpakkede mappen i ~/Utvikling (uten git) skal ikke pushes fra. Lokalt arbeid skjer i en klone av repoet.
 
@@ -65,5 +66,8 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - Grafikknivå: `gfxState.quality` og `qualityRank()` i post.ts leses av kode som bygger innhold (skyggekart, tetthet). Innstillingen heter `quality` i settings (AUTO, LOW, MEDIUM, HIGH, ULTRA).
 - `lit()` og `toon()` i env/common.ts gir MeshStandardMaterial (navnet toon er historisk). `applyShadows(group)` kalles i finishEnv, arenaen og tårnet. `userData.noCast` på bakke og vei.
 - Sola (`SunShadow` i env/sun.ts) følger kameraet og låser skyggeboksen til tekselrutenettet. Oppdateres fra env.update med camX.
-- `tools/tests/looks.mjs` tar faste skjermbilder for sammenligning. Kontaktark: se log.md for hvordan (Pillow i skyøkten).
+- Vind: `src/gfx/wind.ts`. Alle materialer som svaier deler `windUniforms`. Trær bruker `windifyTree()` og attributtet aWind (grennivå, bladspiss, fase); samme patch må ligge på `customDepthMaterial`, ellers står skyggene stille. Egne programnøkler per variant (bark, blad, dybde), ellers kan Three gjenbruke feil program.
+- Trær: `Forest` i `env/trees.ts` (arter i SPECIES, `withSnow`, `burnt`). Prototypene bufres per art, variant og grafikknivå. Gress: `Meadow` (følger kameraet via uCamX, må oppdateres fra env.update). Tåke og stråler: `fogLayers` og `godRays` i `env/atmos.ts`.
+- GLSL ES 3.0 har reserverte ord som `patch`, `sample`, `filter`, `input`, `output`. Ikke bruk dem som variabelnavn.
+- `tools/tests/looks.mjs` tar faste skjermbilder for sammenligning og skriver tegnekall og trekanter per frame. Kontaktark: se log.md for hvordan (Pillow i skyøkten).
 - I skyøkter laster ikke headless Chromium Google Fonts (sertifikatfeil via proxyen). `net::ERR_CERT_AUTHORITY_INVALID` i testloggen kommer derfra og er ikke en feil i spillet.

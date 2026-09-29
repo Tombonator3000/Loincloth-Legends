@@ -337,7 +337,7 @@ export class PostFX {
   private goal: Grade = makeGrade();
   /** Avstand langs synslinjen til fokusplanet. Negativ = regn ut fra planet z = 0. */
   focus = -1;
-  focusRange = 3.6;
+  focusRange = 5;
   /** Kromatisk aberrasjon (settes ved store treff og synker av seg selv). */
   aberration = 0;
   /** Rød kant når helten nesten er død (0..1). */
