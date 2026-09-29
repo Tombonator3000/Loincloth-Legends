@@ -1,7 +1,10 @@
-// Blod, gibs, flekker på bakken og blodfontener. Gnister, flammer, glør, røyk og støv går til GPU-partiklene i vfx.ts.
+// Blod, gibs, flekker på bakken og blodfontener. Dråpene og flekkene er på GPU (blood.ts), gibsene er 3D (gibs.ts).
+// Gnister, flammer, glør, røyk og støv går til GPU-partiklene i vfx.ts.
 import * as THREE from 'three';
-import { VFX } from './vfx';
-import { plainCanvas, unitCanvas, INK, shade } from './draw';
+import { VFX, K } from './vfx';
+import { BloodDrops, BloodDecals } from './blood';
+import { makeGib, type Gib3D } from './gibs';
+import { unitCanvas, INK, shade } from './draw';
 import { rand, pick, chance } from '../core/math';
 import { audio } from '../core/audio';
 import { goreMul, type GoreLevel } from '../core/settings';
@@ -20,39 +23,6 @@ function tex(cv: HTMLCanvasElement) {
   const t = new THREE.CanvasTexture(cv);
   t.colorSpace = THREE.SRGBColorSpace;
   return t;
-}
-
-const circleTex = () =>
-  tex(plainCanvas(64, 64, (c) => {
-    c.fillStyle = '#fff';
-    c.beginPath();
-    c.arc(32, 32, 28, 0, Math.PI * 2);
-    c.fill();
-  }));
-
-function splatTex(seed: number, drips: boolean) {
-  return tex(plainCanvas(128, 128, (c) => {
-    c.fillStyle = '#fff';
-    const blob = (x: number, y: number, r: number) => {
-      c.beginPath();
-      const n = 10;
-      for (let i = 0; i <= n; i++) {
-        const a = (i / n) * Math.PI * 2;
-        const rr = r * (0.75 + 0.35 * Math.sin(a * 3 + seed) * Math.cos(a * 2 + seed * 2));
-        const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr;
-        if (i === 0) c.moveTo(px, py);
-        else c.lineTo(px, py);
-      }
-      c.fill();
-    };
-    blob(64, 64, drips ? 26 : 34);
-    const k = drips ? 14 : 10;
-    for (let i = 0; i < k; i++) {
-      const a = (i / k) * Math.PI * 2 + seed;
-      const d = rand(30, 58);
-      blob(64 + Math.cos(a) * d, 64 + Math.sin(a) * d * (drips ? 0.5 : 1), rand(3, 9));
-    }
-  }));
 }
 
 type GibKind = 'meat' | 'meat2' | 'bone' | 'eye' | 'rib' | 'green' | 'skull' | 'rock' | 'duck' | 'flower' | 'star';
@@ -112,114 +82,6 @@ function gibCanvas(kind: GibKind) {
   });
 }
 
-interface Particle {
-  x: number; y: number; z: number;
-  vx: number; vy: number; vz: number;
-  life: number; max: number; size: number; grav: number; drag: number;
-  r: number; g: number; b: number;
-  decal: number; // sannsynlighet for flekk ved bakketreff (blod)
-  grow: number;
-  kind?: BloodKind;
-}
-
-class ParticlePool {
-  mesh: THREE.InstancedMesh;
-  list: Particle[] = [];
-  private m = new THREE.Matrix4();
-  private q = new THREE.Quaternion();
-  private s = new THREE.Vector3();
-  private p = new THREE.Vector3();
-  private c = new THREE.Color();
-  constructor(public max: number, mat: THREE.Material) {
-    this.mesh = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), mat, max);
-    this.mesh.frustumCulled = false;
-    this.mesh.count = 0;
-    this.mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    this.mesh.setColorAt(0, new THREE.Color(1, 1, 1));
-  }
-  add(p: Particle) {
-    if (this.list.length >= this.max) this.list.shift();
-    this.list.push(p);
-  }
-  update(dt: number, onGround: (p: Particle) => void, camQ: THREE.Quaternion) {
-    const L = this.list;
-    let w = 0;
-    for (let i = 0; i < L.length; i++) {
-      const p = L[i];
-      p.life -= dt;
-      if (p.life <= 0) continue;
-      p.vy -= p.grav * dt;
-      const d = Math.exp(-p.drag * dt);
-      p.vx *= d; p.vz *= d;
-      if (p.drag > 0) p.vy *= d;
-      p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt;
-      p.size += p.grow * dt;
-      if (p.y <= 0.02 && p.vy < 0 && p.grav > 0) {
-        onGround(p);
-        continue;
-      }
-      L[w++] = p;
-    }
-    L.length = w;
-    this.q.copy(camQ);
-    for (let i = 0; i < w; i++) {
-      const p = L[i];
-      const k = Math.min(1, p.life / (p.max * 0.35));
-      const sz = Math.max(0.001, p.size * (0.4 + 0.6 * k));
-      this.p.set(p.x, p.y, p.z);
-      this.s.set(sz, sz, sz);
-      this.m.compose(this.p, this.q, this.s);
-      this.mesh.setMatrixAt(i, this.m);
-      this.c.setRGB(p.r, p.g, p.b, THREE.SRGBColorSpace);
-      this.mesh.setColorAt(i, this.c);
-    }
-    this.mesh.count = w;
-    this.mesh.instanceMatrix.needsUpdate = true;
-    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
-  }
-  clear() {
-    this.list.length = 0;
-    this.mesh.count = 0;
-  }
-}
-
-class DecalPool {
-  mesh: THREE.InstancedMesh;
-  idx = 0;
-  count = 0;
-  private m = new THREE.Matrix4();
-  private e = new THREE.Euler();
-  private q = new THREE.Quaternion();
-  constructor(public max: number, map: THREE.Texture, y: number) {
-    const mat = new THREE.MeshBasicMaterial({ map, alphaTest: 0.5, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 });
-    const geo = new THREE.PlaneGeometry(1, 1);
-    geo.rotateX(-Math.PI / 2);
-    geo.translate(0, y, 0);
-    this.mesh = new THREE.InstancedMesh(geo, mat, max);
-    this.mesh.frustumCulled = false;
-    this.mesh.count = 0;
-    this.mesh.renderOrder = 1;
-    this.mesh.setColorAt(0, new THREE.Color(1, 1, 1));
-  }
-  add(x: number, z: number, sx: number, sz: number, rot: number, col: THREE.Color) {
-    this.e.set(0, rot, 0);
-    this.q.setFromEuler(this.e);
-    this.m.compose(new THREE.Vector3(x, 0, z), this.q, new THREE.Vector3(sx, 1, sz));
-    this.mesh.setMatrixAt(this.idx, this.m);
-    this.mesh.setColorAt(this.idx, col);
-    this.idx = (this.idx + 1) % this.max;
-    this.count = Math.min(this.max, this.count + 1);
-    this.mesh.count = this.count;
-    this.mesh.instanceMatrix.needsUpdate = true;
-    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
-  }
-  clear() {
-    this.idx = 0;
-    this.count = 0;
-    this.mesh.count = 0;
-  }
-}
-
 export interface Debris {
   obj: THREE.Object3D;
   vel: THREE.Vector3;
@@ -242,6 +104,8 @@ export interface Debris {
   onBounce?: (d: Debris) => void;
   /** Styres av noe annet (f.eks. hodet som flyr mot skjermen). Fysikken hoppes over. */
   held?: boolean;
+  /** Spinn rundt alle tre akser (3D-gibs). Ellers spinner delen bare i bildeplanet. */
+  spinV?: THREE.Vector3;
 }
 
 interface Fountain {
@@ -257,17 +121,20 @@ interface Fountain {
 
 export class Gore {
   group = new THREE.Group();
-  blood: ParticlePool;
+  /** Bloddråper på GPU (landing beregnes når de slippes ut). */
+  drops: BloodDrops;
+  /** Blodflekker og pytter på bakken. */
+  decals: BloodDecals;
   /** GPU-partikler, lyn og lyspool (gnister, ild, røyk, magi). */
   vfx = new VFX();
   /** Kameraets x (for lyspoolen). Settes av Game hver frame. */
   camX = 0;
-  splats: DecalPool;
-  drips: DecalPool;
   debris: Debris[] = [];
   fountains: Fountain[] = [];
   private gibTex = new Map<GibKind, THREE.MeshBasicMaterial>();
   private gibGeo = new THREE.PlaneGeometry(0.5, 0.5);
+  private timers: { t: number; fn: () => void }[] = [];
+  private clock = 0;
   camQ = new THREE.Quaternion();
   bounds = { minX: -1e9, maxX: 1e9, minZ: -1e9, maxZ: 1e9 };
   /** Sum av blod sølt (for statistikk og humor). */
@@ -286,11 +153,13 @@ export class Gore {
   private col = new THREE.Color();
 
   constructor() {
-    const ct = circleTex();
-    this.blood = new ParticlePool(2600, new THREE.MeshBasicMaterial({ map: ct, alphaTest: 0.5 }));
-    this.splats = new DecalPool(700, splatTex(1.3, false), 0.012);
-    this.drips = new DecalPool(500, splatTex(4.1, true), 0.014);
-    this.group.add(this.blood.mesh, this.splats.mesh, this.drips.mesh, this.vfx.group);
+    this.decals = new BloodDecals(1400);
+    this.drops = new BloodDrops(3600, (l) => {
+      if (!l.decal) return;
+      this.col.setRGB(l.r, l.g, l.b).multiplyScalar(rand(0.8, 1));
+      this.landSplat(l.x, l.z, l.size, l.vx, l.vz, this.col);
+    });
+    this.group.add(this.drops.pool.mesh, this.decals.mesh, this.vfx.group);
   }
 
   private gibMat(kind: GibKind) {
@@ -313,16 +182,32 @@ export class Gore {
     return Math.floor(v) + (Math.random() < v % 1 ? 1 : 0);
   }
 
+  /** Kjør noe etter en stund i spilltid (pytter som vokser fram når liket ligger stille). */
+  later(delay: number, fn: () => void) {
+    this.timers.push({ t: this.clock + delay, fn });
+  }
+
   // ---------------------------------------------------------------- partikler
   drop(x: number, y: number, z: number, vx: number, vy: number, vz: number, size: number, kind: BloodKind = 'red', life = 2) {
     const c = this.bloodColor(kind);
     if (kind === 'lava') {
       // Glødende lava faller som HDR-dråper (GPU), kjøles mot mørk rød
-      this.vfx.glow.emit(x, y, z, vx, vy, vz, 0, -16, 0, life, 0.4, size * 1.8, size * 1.2, 0.02, c.r * 5, c.g * 3.5, c.b * 2, 4, 0.6, 0.08, 0.02, 0);
+      this.vfx.glow.emit(x, y, z, vx, vy, vz, 0, -16, 0, life, 0.4, size * 1.8, size * 1.2, 0.02, c.r * 5, c.g * 3.5, c.b * 2, K.DOT, 0.6, 0.08, 0.02, 0);
       return;
     }
-    const decal = this.level === 0 ? 0.15 : this.level === 1 ? 0.3 : 0.5;
-    this.blood.add({ x, y, z, vx, vy, vz, life, max: life, size: this.level === 0 ? size * 0.8 : size, grav: 16, drag: 0.4, r: c.r, g: c.g, b: c.b, decal, grow: 0, kind });
+    const decal = chance(this.level === 0 ? 0.15 : this.level === 1 ? 0.3 : 0.5);
+    this.drops.emit(x, y, z, vx, vy, vz, this.level === 0 ? size * 0.8 : size, c.r, c.g, c.b, life, 0.4, decal);
+  }
+
+  /** Glødende blodsprut ved treff (lysende rødt, som i konseptbildene). */
+  private glowSpurt(pos: THREE.Vector3, dirX: number, dirY: number, n: number, speed: number) {
+    if (this.family) return;
+    for (let i = 0; i < n; i++) {
+      const a = Math.atan2(dirY, dirX) + rand(-0.5, 0.5);
+      const sp = speed * rand(0.6, 1.3);
+      this.vfx.glow.emit(pos.x, pos.y, pos.z + 0.08, Math.cos(a) * sp, Math.sin(a) * sp, rand(-1, 1), 0, -10, 0,
+        rand(0.12, 0.28), 2.5, 0.07, 0.03, 0.045, 3.2, 0.12, 0.08, K.SPARK, 0.6, 0.0, 0.0, 0);
+    }
   }
 
   /** Blodsprut i en retning (dir normalisert i xy). */
@@ -334,6 +219,7 @@ export class Gore {
       const sp = speed * rand(0.35, 1.15);
       this.drop(pos.x + rand(-0.05, 0.05), pos.y + rand(-0.05, 0.05), pos.z + rand(-0.05, 0.05), Math.cos(a) * sp, Math.sin(a) * sp, rand(-1.4, 1.4), size * rand(0.5, 1.4), kind, rand(1.2, 2.4));
     }
+    if (kind === 'red') this.glowSpurt(pos, dirX, dirY, Math.ceil(count / 5), speed);
   }
 
   burst(pos: THREE.Vector3, count: number, speed = 7, size = 0.1, kind: BloodKind = 'red') {
@@ -345,11 +231,12 @@ export class Gore {
       const sp = speed * rand(0.3, 1);
       this.drop(pos.x, pos.y, pos.z, Math.cos(a) * sp, Math.abs(Math.sin(a)) * sp * up + rand(1, 4), rand(-2.5, 2.5), size * rand(0.5, 1.6), kind, rand(1.2, 2.6));
     }
-    // Tåke av blod (små dråper som henger litt)
-    for (let i = 0; i < count / 3; i++) {
-      const c = this.bloodColor(kind);
-      this.blood.add({ x: pos.x + rand(-0.2, 0.2), y: pos.y + rand(-0.2, 0.2), z: pos.z, vx: rand(-1, 1), vy: rand(0, 1.5), vz: 0, life: 0.5, max: 0.5, size: rand(0.12, 0.3), grav: 2, drag: 2, r: c.r, g: c.g, b: c.b, decal: 0, grow: 0.3 });
+    // Tåke av blod som henger litt i lufta
+    if (!this.family && kind !== 'lava') {
+      const mist = kind === 'green' ? '#3a6a1a' : '#5a0010';
+      for (let i = 0; i < count / 6; i++) this.vfx.puff(pos.x, pos.y + rand(-0.2, 0.2), pos.z, 0.5, rand(0, 0.6), mist, 0.25, 0.7, 0.6, 0.2);
     }
+    if (kind === 'red') this.glowSpurt(pos, 0, 1, Math.ceil(count / 6), speed);
   }
 
   // Gnister, glimt, ild, stemning og støv er GPU-partikler (vfx.ts). Signaturene er beholdt så spillkoden er uendret.
@@ -375,16 +262,55 @@ export class Gore {
   }
 
   // ---------------------------------------------------------------- flekker
+  private sizeFor(size: number) {
+    return size * [0.45, 0.8, 1, 1.3][this.level];
+  }
+
+  private inBounds(x: number) {
+    return x >= this.bounds.minX && x <= this.bounds.maxX;
+  }
+
+  /** Flekk der en dråpe landet: avlang i treffretningen når den kom fort, ellers rund. */
+  private landSplat(x: number, z: number, dropSize: number, vx: number, vz: number, c: THREE.Color) {
+    if (!this.inBounds(x)) return;
+    z = Math.max(this.bounds.minZ, Math.min(this.bounds.maxZ, z));
+    const size = this.sizeFor(dropSize * rand(3, 5.5));
+    const hs = Math.hypot(vx, vz);
+    if (hs > 1.2) {
+      const len = size * (1 + Math.min(2.2, hs * 0.22));
+      this.decals.add(x, z, len, size * rand(0.8, 1), Math.atan2(-vz, vx), c, 6 + Math.floor(Math.random() * 4));
+    } else {
+      this.decals.add(x, z, size, size * rand(0.8, 1.1), rand(0, Math.PI * 2), c, chance(0.8) ? Math.floor(Math.random() * 6) : 10 + Math.floor(Math.random() * 2));
+    }
+  }
+
+  /** Fersk blodflekk. */
   splat(x: number, z: number, size: number, kind: BloodKind = 'red') {
-    if (x < this.bounds.minX || x > this.bounds.maxX) return;
-    if (this.level === 0) size *= 0.45;
-    else if (this.level === 1) size *= 0.8;
-    else if (this.level === 3) size *= 1.3;
+    if (!this.inBounds(x)) return;
+    size = this.sizeFor(size);
     z = Math.max(this.bounds.minZ, Math.min(this.bounds.maxZ, z));
     const c = kind === 'lava' ? this.col.set('#2a1410') : this.bloodColor(kind);
     c.multiplyScalar(rand(0.75, 1));
-    if (chance(0.5)) this.splats.add(x, z, size * rand(0.8, 1.3), size * rand(0.6, 1.1), rand(0, Math.PI * 2), c);
-    else this.drips.add(x, z, size * rand(0.9, 1.5), size * rand(0.5, 0.9), rand(-0.4, 0.4), c);
+    const v = chance(0.75) ? Math.floor(Math.random() * 6) : 10 + Math.floor(Math.random() * 2);
+    this.decals.add(x, z, size * rand(0.8, 1.3), size * rand(0.6, 1.1), rand(0, Math.PI * 2), c, v, 0.012, 0, kind === 'lava' ? 0 : 1);
+  }
+
+  /** Gammel, inntørket flekk (pynt i miljøene). */
+  stain(x: number, z: number, size: number, kind: BloodKind = 'red') {
+    size = this.sizeFor(size);
+    const c = kind === 'lava' ? this.col.set('#2a1410') : this.bloodColor(kind);
+    c.multiplyScalar(rand(0.45, 0.7));
+    const v = chance(0.6) ? Math.floor(Math.random() * 6) : chance(0.5) ? 12 + Math.floor(Math.random() * 4) : 10 + Math.floor(Math.random() * 2);
+    this.decals.add(x, z, size * rand(0.8, 1.3), size * rand(0.6, 1.1), rand(0, Math.PI * 2), c, v, 0.011, 0, 0);
+  }
+
+  /** Blodpytt som vokser fram (under et lik eller en kjøttbit). */
+  pool(x: number, z: number, size: number, kind: BloodKind = 'red', grow = 2.8) {
+    if (!this.inBounds(x) || kind === 'lava') return;
+    size = this.sizeFor(size);
+    z = Math.max(this.bounds.minZ, Math.min(this.bounds.maxZ, z));
+    const c = this.bloodColor(kind).multiplyScalar(this.family ? 1 : 0.7);
+    this.decals.add(x, z, size * rand(1, 1.25), size * rand(0.65, 0.85), rand(-0.3, 0.3), c, 12 + Math.floor(Math.random() * 4), 0.0105, grow, 1);
   }
 
   // ---------------------------------------------------------------- fontener
@@ -407,30 +333,51 @@ export class Gore {
 
   gibs(pos: THREE.Vector3, count: number, kind: 'red' | 'bone' | 'green' | 'lava' = 'red', power = 1) {
     const fam = this.level === 0 && kind !== 'lava';
-    const kinds: GibKind[] = fam ? ['duck', 'flower', 'star', 'duck'] : kind === 'bone' ? ['bone', 'rib', 'bone', 'skull'] : kind === 'green' ? ['green', 'green', 'bone'] : kind === 'lava' ? ['rock', 'rock', 'rock'] : ['meat', 'meat2', 'meat', 'bone', 'rib', 'meat2', 'eye'];
     count = this.n(count);
+    // FAMILY: gummiender, blomster og stjerner (flate). Ellers 3D-biter.
+    const kinds3: Gib3D[] = kind === 'bone' ? ['bone', 'rib', 'bone', 'tooth'] : kind === 'green' ? ['green', 'green', 'bone'] : kind === 'lava' ? ['rock', 'rock', 'rock'] : ['meat', 'meat', 'meat', 'bone', 'rib', 'meat', 'tooth'];
     for (let i = 0; i < count; i++) {
-      const k = !fam && i === 0 && kind === 'red' && chance(0.4) ? 'eye' : pick(kinds);
-      const m = new THREE.Mesh(this.gibGeo, this.gibMat(k));
-      const s = rand(0.6, 1.2);
-      m.scale.setScalar(s);
-      m.position.set(pos.x + rand(-0.2, 0.2), pos.y + rand(-0.2, 0.2), pos.z + rand(-0.15, 0.15));
-      m.rotation.z = rand(0, 6.28);
-      this.group.add(m);
+      let obj: THREE.Object3D;
+      let radius: number;
+      if (fam) {
+        const m = new THREE.Mesh(this.gibGeo, this.gibMat(pick(['duck', 'flower', 'star', 'duck'] as GibKind[])));
+        const s = rand(0.6, 1.2);
+        m.scale.setScalar(s);
+        m.rotation.z = rand(0, 6.28);
+        obj = m;
+        radius = 0.1 * s;
+      } else {
+        const k: Gib3D = i === 0 && kind === 'red' && chance(0.5) ? 'eye' : pick(kinds3);
+        const g = makeGib(k, rand(1.0, 1.6));
+        obj = g.mesh;
+        radius = g.radius;
+      }
+      obj.position.set(pos.x + rand(-0.2, 0.2), pos.y + rand(-0.2, 0.2), pos.z + rand(-0.15, 0.15));
+      this.group.add(obj);
       const a = rand(0.15, Math.PI - 0.15);
       const sp = rand(3, 8) * power;
-      this.addDebris(m, 0.1 * s, Math.cos(a) * sp, Math.sin(a) * sp + 2, rand(-2, 2), rand(-15, 15), {
-        owned: false, bleed: kind === 'bone' || fam ? 0 : 0.6, bleedCol: kind === 'bone' || fam ? 'none' : kind, life: 10 + rand(0, 6),
+      const bleeds = !(kind === 'bone' || fam);
+      this.addDebris(obj, radius, Math.cos(a) * sp, Math.sin(a) * sp + 2, rand(-2, 2), rand(-15, 15), {
+        owned: false, bleed: bleeds ? 0.6 : 0, bleedCol: bleeds ? kind : 'none', life: 10 + rand(0, 6),
         bouncy: fam ? 0.6 : undefined,
+        spinV: fam ? undefined : new THREE.Vector3(rand(-16, 16), rand(-16, 16), rand(-16, 16)),
+        onRest: bleeds && kind !== 'lava' ? () => this.pool(obj.position.x, obj.position.z, rand(0.35, 0.6), kind as BloodKind, 1.6) : undefined,
       });
     }
   }
 
   // ---------------------------------------------------------------- oppdatering
   update(dt: number) {
-    this.blood.update(dt, (p) => {
-      if (p.decal > 0 && chance(p.decal)) this.splat(p.x, p.z, p.size * rand(2, 4.5), p.kind ?? 'red');
-    }, this.camQ);
+    this.clock += dt;
+    if (this.timers.length) {
+      const due = this.timers.filter((t) => t.t <= this.clock);
+      if (due.length) {
+        this.timers = this.timers.filter((t) => t.t > this.clock);
+        for (const t of due) t.fn();
+      }
+    }
+    this.drops.update(dt);
+    this.decals.update(dt);
     this.vfx.update(dt, this.camX);
 
     // Fontener
@@ -478,7 +425,11 @@ export class Gore {
       o.position.y += d.vel.y * dt;
       o.position.z += d.vel.z * dt;
       o.position.z = Math.max(this.bounds.minZ - 1, Math.min(this.bounds.maxZ + 0.5, o.position.z));
-      o.rotation.z += d.spin * dt;
+      if (d.spinV) {
+        o.rotation.x += d.spinV.x * dt;
+        o.rotation.y += d.spinV.y * dt;
+        o.rotation.z += d.spinV.z * dt;
+      } else o.rotation.z += d.spin * dt;
       if (d.bleed > 0 && d.bleedCol !== 'none' && chance(0.6)) {
         this.drop(o.position.x, o.position.y, o.position.z, rand(-0.5, 0.5), rand(-0.5, 0.5), 0, rand(0.04, 0.08), d.bleedCol, 1);
         d.bleed -= dt;
@@ -492,6 +443,7 @@ export class Gore {
           d.vel.x *= d.bouncy ? 0.85 : 0.55;
           d.vel.z *= 0.5;
           d.spin *= d.bouncy ? 0.8 : 0.45;
+          d.spinV?.multiplyScalar(0.5);
           if (d.bleedCol !== 'none') this.splat(o.position.x, o.position.z, rand(0.3, 0.6), d.bleedCol);
           if (d.onBounce) d.onBounce(d);
           else if (d.radius > 0.15) audio.thud();
@@ -521,13 +473,13 @@ export class Gore {
   }
 
   clear() {
-    this.blood.clear();
+    this.drops.clear();
+    this.decals.clear();
     this.vfx.clear();
-    this.splats.clear();
-    this.drips.clear();
     for (const d of this.debris) d.obj.removeFromParent();
     this.debris.length = 0;
     this.fountains.length = 0;
+    this.timers.length = 0;
     this.litres = 0;
   }
 }

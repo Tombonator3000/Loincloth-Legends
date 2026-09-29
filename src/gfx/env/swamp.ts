@@ -109,7 +109,7 @@ export function buildSwamp(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   }
 
   for (let x = 0; x < L; x += rand(8, 14)) rock(g, x, pick([rand(4, 6), rand(-6, -3.8)]), rand(0.4, 0.9), ['#5a5a4a', '#4a4a3e']);
-  for (let i = 0; i < L / 5; i++) gore.splat(rand(0, L), rand(-2.4, 2.4), rand(0.3, 0.9), pick(['red', 'green'] as const));
+  for (let i = 0; i < L / 5; i++) gore.stain(rand(0, L), rand(-2.4, 2.4), rand(0.3, 0.9), pick(['red', 'green'] as const));
 
   if (o.finale === 'duel') endGate(g, gore, L - 4, o.gateTitle ?? 'THE MUD PIT >>>', o.gateSub ?? 'WIPE YOUR FEET', '#6a6a58', '#3a4a2a');
   if (o.finale === 'boss' && o.bossX !== undefined) bossMarker(g, gore, o.bossX - 3, o.bossSign ?? 'ROYAL POND');

@@ -88,7 +88,7 @@ export function buildScorch(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): En
   updates.push((dt) => smoke(dt));
   for (let x = 10; x < L; x += rand(10, 16)) skullPike(g, gore, x, rand(-4.4, -3.6));
   for (let x = 0; x < L; x += rand(7, 12)) rock(g, x, pick([rand(4, 6), rand(-6, -3.8)]), rand(0.4, 1.0), ['#2a2226', '#3a3036']);
-  for (let i = 0; i < L / 5; i++) gore.splat(rand(0, L), rand(-2.4, 2.4), rand(0.3, 0.9));
+  for (let i = 0; i < L / 5; i++) gore.stain(rand(0, L), rand(-2.4, 2.4), rand(0.3, 0.9));
 
   if (o.finale === 'duel') endGate(g, gore, L - 4, o.gateTitle ?? 'THE HOT PIT >>>', o.gateSub ?? 'IT IS VERY HOT', '#4a3a36', '#8a1a04');
   if (o.finale === 'boss' && o.bossX !== undefined) bossMarker(g, gore, o.bossX - 3, o.bossSign ?? 'DO NOT TOUCH');

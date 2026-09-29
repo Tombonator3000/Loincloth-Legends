@@ -52,6 +52,8 @@ gfx/               Grafikk
   beast.ts         Rigg for ridedyr (kropp, hode, hale, 2 eller 4 bein)
   pets.ts          Sprites for kjæledyr
   gore.ts          Blod, gibs, flekker, fontener. Gore-nivå (FAMILY gir konfetti og gummiender). Sender gnister, ild og røyk til vfx
+  blood.ts         Bloddråper på GPU (landing beregnet på forhånd) og flekker med våt glans, pytter som vokser
+  gibs.ts          3D-gibs: kjøttbiter, bein, ribbein, tenner, øyeepler, lavastein
   vfx.ts           GPU-partikler (gnister, flammer, glør, røyk, snø), lyn, eksplosjoner og lyspool (punktlys til nærmeste kilder)
   fx.ts            Risting, hitstop, slowmo, sverdspor, tekst, blod på skjermen, hodet som klasker i skjermen
   assets.ts        PNG-erstatninger fra public/assets/manifest.json

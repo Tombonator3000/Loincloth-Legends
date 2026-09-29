@@ -110,6 +110,8 @@ export class Fighter {
   fallDir = 1;
   legless = false;
   corpseLife = 14;
+  /** Har liket fått en blodpytt under seg? */
+  private pooled = false;
   removeMe = false;
   headDebris: Debris | null = null;
   lastHitBy: Fighter | null = null;
@@ -557,6 +559,13 @@ export class Fighter {
           this.walkPh += dt * 14;
           if (chance(dt * 1.2)) this.headlessDir *= -1;
           if (this.headlessT <= 0) this.vel.set(this.headlessDir * 1.5, 0, 0);
+        }
+        // Når liket ligger stille vokser en blodpytt fram under overkroppen
+        if (!this.pooled && this.st > this.collapseT + 0.3 && !(this.headlessT > 0) && this.onGround && !(this.sinkRate > 0) && this.corpseLife > 2) {
+          this.pooled = true;
+          if (this.def.blood !== 'bone' && this.deathStyle !== 'shatter') {
+            W.gore.pool(this.pos.x + this.fallDir * 0.55 * this.rig.scale, this.pos.z, 1.1 * this.rig.scale, bloodOf(this.def));
+          }
         }
         if (this.corpseLife < 900 && this.st > this.corpseLife) {
           this.rig.root.position.y -= dt * 0.5;

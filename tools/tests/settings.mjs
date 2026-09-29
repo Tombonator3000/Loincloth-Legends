@@ -68,7 +68,7 @@ const carnage = async (tag) => {
       f.die(how, 1, h);
     }
     for (let i = 0; i < 20; i++) g.tick(1 / 60, false);
-    return { particles: g.gore.blood.list.length, debris: g.gore.debris.length, litres: Math.round(g.gore.litres * 10) / 10 };
+    return { particles: g.gore.drops.live, debris: g.gore.debris.length, litres: Math.round(g.gore.litres * 10) / 10 };
   });
   console.log(tag, JSON.stringify(n));
   await run(0.25);

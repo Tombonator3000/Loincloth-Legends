@@ -139,7 +139,7 @@ export function buildArena(scene: THREE.Scene, gore: Gore, theme: ArenaTheme = '
     bn.rotation.set(rand(0, 3), rand(0, 3), Math.PI / 2);
     g.add(bn);
   }
-  for (let i = 0; i < 26; i++) gore.splat(rand(-9, 9), rand(-3, 1.2), rand(0.3, 1.0));
+  for (let i = 0; i < 26; i++) gore.stain(rand(-9, 9), rand(-3, 1.2), rand(0.3, 1.0));
 
   applyShadows(g);
   scene.add(g);

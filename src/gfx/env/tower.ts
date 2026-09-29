@@ -147,7 +147,7 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
       cage.rotation.z = Math.sin(t * 0.8 + ph) * 0.06;
     });
   }
-  for (let i = 0; i < L / 6; i++) gore.splat(rand(0, L), rand(-2.4, 2.4), rand(0.3, 0.9));
+  for (let i = 0; i < L / 6; i++) gore.stain(rand(0, L), rand(-2.4, 2.4), rand(0.3, 0.9));
 
   // Månelys som faller skrått inn gjennom vinduene, og støv som henger i lufta
   const moon = godRays(g, Array.from({ length: Math.ceil((L + 12) / 8) }, (_, i) => -4 + i * 8 + 4.8), -4.9, '#8a7aff', 0.38, 12, 2.2, 0.16);

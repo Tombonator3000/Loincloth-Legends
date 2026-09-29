@@ -13,7 +13,7 @@ const STRIDE = 24;
 /** Former i glødpoolen. */
 export const K = { GLOW: 0, SPARK: 1, FLAME: 2, RING: 3, DOT: 4 } as const;
 
-const GLOW_VERT = /* glsl */ `
+export const GLOW_VERT = /* glsl */ `
 #include <common>
 #include <fog_pars_vertex>
 uniform float uTime;
@@ -76,7 +76,7 @@ void main() {
   #include <fog_vertex>
 }`;
 
-const NOISE = /* glsl */ `
+export const NOISE = /* glsl */ `
 float vh(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float vn(vec2 p) { vec2 i = floor(p), f = fract(p); vec2 u = f * f * (3.0 - 2.0 * f);
   return mix(mix(vh(i), vh(i + vec2(1.0, 0.0)), u.x), mix(vh(i + vec2(0.0, 1.0)), vh(i + vec2(1.0)), u.x), u.y); }
@@ -160,8 +160,19 @@ void main() {
   #include <fog_fragment>
 }`;
 
-/** En fast pool med partikler i en ringbuffer. */
-class Pool {
+export interface PoolOpts {
+  blending?: THREE.Blending;
+  transparent?: boolean;
+  depthWrite?: boolean;
+  alphaToCoverage?: boolean;
+  fog?: boolean;
+  vertex?: string;
+  uniforms?: Record<string, THREE.IUniform>;
+  renderOrder?: number;
+}
+
+/** En fast pool med partikler i en ringbuffer. Samme attributter for alle pooler (se GLOW_VERT). */
+export class Pool {
   readonly mesh: THREE.Mesh;
   readonly mat: THREE.ShaderMaterial;
   private buf: THREE.InstancedInterleavedBuffer;
@@ -171,7 +182,7 @@ class Pool {
   private hi = -1;
   private wrapped = false;
 
-  constructor(readonly max: number, frag: string, blending: THREE.Blending, fog: boolean) {
+  constructor(readonly max: number, frag: string, o: PoolOpts = {}) {
     const geo = new THREE.InstancedBufferGeometry();
     geo.setAttribute('position', new THREE.Float32BufferAttribute([-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0], 3));
     geo.setIndex([0, 1, 2, 0, 2, 3]);
@@ -192,17 +203,18 @@ class Pool {
       uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, {
         uTime: { value: 0 }, uKill: { value: -1e8 }, uWindV: { value: new THREE.Vector3() },
         uSunV: { value: new THREE.Vector3(0.3, 0.7, 0.5).normalize() }, uAmb: { value: new THREE.Color(0.7, 0.7, 0.75) },
-      }]),
-      vertexShader: GLOW_VERT,
+      }, o.uniforms ?? {}]),
+      vertexShader: o.vertex ?? GLOW_VERT,
       fragmentShader: frag.replace('vSeedOpacity', '1.0'),
-      blending,
-      transparent: true,
-      depthWrite: false,
-      fog,
+      blending: o.blending ?? THREE.NormalBlending,
+      transparent: o.transparent ?? true,
+      depthWrite: o.depthWrite ?? false,
+      alphaToCoverage: o.alphaToCoverage ?? false,
+      fog: o.fog ?? false,
     });
     this.mesh = new THREE.Mesh(geo, this.mat);
     this.mesh.frustumCulled = false;
-    this.mesh.renderOrder = blending === THREE.AdditiveBlending ? 6 : 5;
+    this.mesh.renderOrder = o.renderOrder ?? (o.blending === THREE.AdditiveBlending ? 6 : 5);
   }
 
   get time() {
@@ -366,8 +378,8 @@ export class VFX {
   private camPos = new THREE.Vector3();
 
   constructor() {
-    this.glow = new Pool(7000, GLOW_FRAG, THREE.AdditiveBlending, false);
-    this.smoke = new Pool(2400, SMOKE_FRAG, THREE.NormalBlending, true);
+    this.glow = new Pool(7000, GLOW_FRAG, { blending: THREE.AdditiveBlending, fog: false });
+    this.smoke = new Pool(2400, SMOKE_FRAG, { blending: THREE.NormalBlending, fog: true });
     this.group.add(this.smoke.mesh, this.glow.mesh);
     this.lights = new LightPool(this.group, 4);
     for (let i = 0; i < 6; i++) {

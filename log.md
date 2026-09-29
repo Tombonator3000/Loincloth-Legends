@@ -146,3 +146,12 @@ Merk: tidspunktene fra 10:53 til 11:57 er rekonstruert fra når filene sist ble 
 - Feil underveis: smoothstep med kantene i synkende rekkefølge er udefinert i GLSL og ga usynlige flammer i SwiftShader. Og partikler som ble sluppet ut i frames som ikke tegnes (testene hopper over tegning) ble aldri lastet opp, fordi jeg tømte oppdateringsområdene selv. Three tømmer dem etter opplasting, så nå legges de bare til.
 - looks.mjs har fått et fx-bilde (lyn, eksplosjon og gnister midt i brett 1).
 - Testene story, violence, levels (scorch, tower), arena, mountride, settings og ai kjørte uten konsollfeil.
+
+## 2026-09-29 14:23 (Europe/Oslo)
+- Nytt blod (src/gfx/blood.ts): bloddråpene er på GPU som blanke, runde dråper med høylys, strukket langs farten når de flyr fort. Landingspunktet regnes ut når dråpen slippes ut (samme formel som skyggeleggeren), så flekken kommer akkurat der og da dråpen treffer bakken. Ingen CPU-oppdatering per dråpe.
+- Flekkene har et generert atlas med 16 varianter: runde treffsprut med satellittdråper, retningssprut med utropstegn-striper, drypp og store pytter. Tykkelsen ligger i en egen kanal og gir normaler og våt glans fra sola som tørker inn til matt brunrødt etter 10 til 45 sekunder. Dråper som lander fort gir avlange sprut i treffretningen.
+- Pytter vokser fram under liket når det har lagt seg (Gore.pool og Fighter), og under kjøttbiter som ligger stille. Flekkene miljøene legger ut ved bygging er nå gamle og inntørkede (Gore.stain).
+- Glødende blodsprut ved treff (røde HDR-striper) og en rød tåke av blod ved store sprut, som i konseptbildene.
+- 3D-gibs (src/gfx/gibs.ts): kjøttbiter med marmorert fett og hinne i toppunktfargene og lav ruhet (vått), beinbiter, ribbein, tenner, øyeepler med iris og blodårer, og glødende lavastein. De tumler rundt alle tre akser og kaster skygger. FAMILY beholder gummiender, blomster og stjerner.
+- Settings-testen leser nå antall dråper i lufta fra Gore.drops.live.
+- Testene settings, violence, story, grab, levels (swamp, scorch), pets og ai kjørte uten konsollfeil.

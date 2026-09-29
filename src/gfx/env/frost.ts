@@ -91,7 +91,7 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   g.add(tw);
 
   for (let x = 0; x < L; x += rand(6, 12)) rock(g, x, pick([rand(4, 6), rand(-6, -3.8)]), rand(0.4, 1.0), ['#9aa6b4', '#b8c4d0']);
-  for (let i = 0; i < L / 5; i++) gore.splat(rand(0, L), rand(-2.4, 2.4), rand(0.3, 0.9));
+  for (let i = 0; i < L / 5; i++) gore.stain(rand(0, L), rand(-2.4, 2.4), rand(0.3, 0.9));
 
   if (o.finale === 'duel') endGate(g, gore, L - 4, o.gateTitle ?? 'THE FROZEN PIT >>>', o.gateSub ?? 'BRING A SCARF', '#8aa0b8', '#1a3a6a');
   if (o.finale === 'boss' && o.bossX !== undefined) bossMarker(g, gore, o.bossX - 3, o.bossSign ?? 'NO RETURN');

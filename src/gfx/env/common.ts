@@ -411,7 +411,7 @@ export function skullPike(g: THREE.Group, gore: Gore, x: number, z: number) {
   const sk = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.7), skullMat());
   sk.position.set(x, 2.7, z + 0.08);
   g.add(sk);
-  gore.splat(x, z + 0.3, 0.5);
+  gore.stain(x, z + 0.3, 0.5);
 }
 
 export function banner(g: THREE.Group, x: number, z: number, cloth: string, emblem: string) {
@@ -485,7 +485,7 @@ export function endGate(g: THREE.Group, gore: Gore, x: number, title: string, su
   sign.position.set(x - 9, 1.6, -3.9);
   g.add(sign);
   g.add(M(new THREE.CylinderGeometry(0.1, 0.1, 1.4, 5), '#3a2616', x - 9, 0.5, -4.0, 0.06));
-  for (let i = 0; i < 6; i++) gore.splat(x + rand(-3, 3), rand(-3, -0.5), rand(0.4, 1.0));
+  for (let i = 0; i < 6; i++) gore.stain(x + rand(-3, 3), rand(-3, -0.5), rand(0.4, 1.0));
 }
 
 /** Omgivelser for sjefskamp: et par hodeskaller og en skiltet grense. */
@@ -505,5 +505,5 @@ export function bossMarker(g: THREE.Group, gore: Gore, x: number, text: string) 
   sign.position.set(x, 1.8, -3.9);
   g.add(sign);
   g.add(M(new THREE.CylinderGeometry(0.1, 0.1, 1.6, 5), '#3a2616', x, 0.6, -4.0, 0.06));
-  for (let i = 0; i < 14; i++) gore.splat(x + rand(2, 16), rand(-2.4, 2.4), rand(0.4, 1.1));
+  for (let i = 0; i < 14; i++) gore.stain(x + rand(2, 16), rand(-2.4, 2.4), rand(0.4, 1.1));
 }
