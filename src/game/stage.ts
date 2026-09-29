@@ -84,6 +84,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   private stolen = new Map<Foe, { n: number; cd: number }>();
   /** Daggry i nattleiren (skjer bare én gang). */
   private dawned = false;
+  /** Tilstanden til heltene forrige bilde (en lang drapsrekke ryker når en helt blir truffet). */
+  private heroState = new Map<Hero, string>();
 
   constructor(public hud: HUD, public level: LevelDef, configs: HeroConfig[], inputs: PlayerInput[], progress: HeroProgress[] = [], supplies = { lives: 0, potions: 0 }) {
     this.L = level.length;
@@ -128,6 +130,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     hud.announce(level.name, 'stage', 2.4, level.subtitle);
     audio.play(level.music);
     audio.stinger('chord');
+    audio.ambience(level.biome);
   }
 
   get twoP() {
@@ -232,7 +235,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     const labels: Record<number, string> = { 3: 'CARNAGE', 6: 'MASSACRE', 10: 'EXCESSIVE', 15: 'PLEASE SEEK HELP', 22: 'THE BARD WILL SING OF THIS', 30: 'WAR CRIMES (FANTASY)' };
     if (labels[this.streak]) {
       this.hud.streak(this.streak, labels[this.streak]);
-      audio.crowd(0.6);
+      // Fanfaren trappes opp med rekken: gitar, pauker, orgel, kor, gong, torden og publikum (core/layers.ts)
+      audio.streak(this.streak);
     }
     // B-film-replikker etter lange rekker
     if (hero && QUIP_STREAKS.includes(this.streak)) this.hud.say(hero.name, pick(hero.cfg.body === 1 ? [...HERO_QUIPS, ...HEROINE_QUIPS] : HERO_QUIPS), 2.4);
@@ -378,7 +382,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
         m.targets.forEach((f, i) => m.meteors.push({ x: f.pos.x, z: f.pos.z, t: -0.25 - i * 0.14, hit: false, f }));
         for (let i = 0; i < Math.max(0, m.level - 2) * 2; i++) m.meteors.push({ x: hf.pos.x + rand(-8, 8), z: rand(-2.4, 2.4), t: -rand(0.2, 1.1), hit: false, f: hf });
         W.gore.vfx.lightning(sky(hf.pos.x, hf.pos.z), hf.rig.weaponTip(), '#cfe8ff', 0.3);
-        audio.boom(0.8);
+        audio.thunder(0.8);
         W.fx.flash('#cfe8ff', 0.4, 0.2);
       }
       let allDone = true;
@@ -391,7 +395,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
         const onFoe = mt.f !== hf && mt.f.alive;
         const x = onFoe ? mt.f.pos.x : mt.x, z = onFoe ? mt.f.pos.z : mt.z;
         W.gore.vfx.lightning(sky(x, z), new THREE.Vector3(x, 0.05, z), m.level >= 5 ? '#e6d0ff' : '#9fd8ff', 0.2 + m.level * 0.03);
-        audio.boom(0.5 + m.level * 0.08);
+        audio.thunder(0.5 + m.level * 0.08);
         W.fx.shake(0.35 + m.level * 0.06);
         if (onFoe) applyHit(hf, mt.f, THUNDER_ATK, bossDmg(mt.f));
       }
@@ -485,7 +489,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     W.gore.burst(tp, 160, 12, 0.14, b.f.def.blood === 'lava' ? 'lava' : 'red');
     W.gore.gibs(tp, 18, b.f.def.blood === 'lava' ? 'lava' : 'red', 1.6);
     audio.boom(1.4);
-    audio.crowd(1.2);
+    audio.bossSlain();
     this.hud.hideBoss();
     this.hud.announce('BOSS SLAIN!', 'kill', 3, b.def.name);
     this.hud.say(b.def.name, b.def.death, 3);
@@ -500,6 +504,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     this.glassCd -= dt;
     this.streakT -= dt;
     if (this.streakT <= 0) this.streak = 0;
+    this.watchStreak();
+    this.ambienceTick(dt);
     if (this.finishT > 0) {
       this.finishT -= dt;
       if (this.finishT <= 0) this.done = 'complete';
@@ -669,6 +675,38 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     this.hud.updateBrawler(this.heroes);
   }
 
+  /**
+   * En lang drapsrekke (10 eller mer) ryker når en helt blir truffet eller dør: trist trombone (Morbidiums kombo).
+   * Kortere rekker går som før, til tiden renner ut.
+   */
+  private watchStreak() {
+    for (const h of this.heroes) {
+      const s = h.f.state;
+      const was = this.heroState.get(h);
+      this.heroState.set(h, s);
+      const hurt = (s === 'hurt' || s === 'down' || s === 'dead') && was !== undefined && was !== s && was !== 'hurt' && was !== 'down';
+      if (!hurt || this.streak < 10) continue;
+      W.fx.text(h.f.headPoint().add(new THREE.Vector3(0, 0.9, 0)), 'STREAK BROKEN (' + this.streak + ')', 'word', 1.6);
+      audio.chainBroken();
+      this.streak = 0;
+      this.streakT = 0;
+    }
+  }
+
+  /** Stemningen: hvor nær nærmeste bål er kameraet (0 til 1), og på hvilken side. */
+  private ambienceTick(dt: number) {
+    let near = 0;
+    let pan = 0;
+    for (const p of W.env?.fires ?? []) {
+      const k = 1 - Math.hypot(p.x - this.camX, (p.z + 1) * 0.6) / 13;
+      if (k > near) {
+        near = k;
+        pan = Math.max(-0.7, Math.min(0.7, (p.x - this.camX) / 9));
+      }
+    }
+    audio.ambienceTick(dt, near * near, pan);
+  }
+
   /** Tyvnissene i nattleiren napper krukker fra heltene de løper forbi (høyst to hver). */
   private thieves(dt: number) {
     for (const fo of this.foes) {
@@ -760,6 +798,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
 
   dispose() {
     this.metal.stop();
+    audio.ambience(null);
     Fighter.onThrownLand = null;
     for (const m of this.mounts) m.remove();
     for (const p of this.pets) p.remove();

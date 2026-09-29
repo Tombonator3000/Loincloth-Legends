@@ -276,6 +276,7 @@ export class Duel {
     W.gore.bounds = { minX: -12, maxX: 12, minZ: -5, maxZ: 3 };
     this.hud.showDuel(this.roster[0], cfg.b);
     audio.play('duel');
+    audio.ambience('arena');
     this.newRound();
   }
 
@@ -426,7 +427,7 @@ export class Duel {
     this.winner = loser === this.fa ? 1 : 0;
     const w = this.winner === 0 ? this.fa : this.fb;
     this.wins[this.winner]++;
-    audio.crowd(1.2);
+    audio.knockout();
     W.env?.cheer?.(1);
     W.fx.slowmo(0.25, 1.4);
     if (decap || loser.deathStyle === 'headsplode' || loser.deathStyle === 'explode') W.fx.screenBlood(decap ? 10 : 6);
@@ -455,7 +456,7 @@ export class Duel {
     this.hud.say('VORTHAX', 'TIME\'S UP! I\'M BORED. ZAP.', 2);
     const p = loser.headPoint();
     for (let i = 0; i < 20; i++) W.gore.flare(new THREE.Vector3(p.x + rand(-0.3, 0.3), p.y + i * 0.5, 0.2), 0.6, '#9fd8ff', 0.3);
-    audio.boom(1.2);
+    audio.thunder(1.2);
     W.fx.flash('#cfe8ff', 0.8, 0.3);
     const other = loser === this.fa ? this.fb : this.fa;
     applyHit(other, loser, LIGHTNING, 9999);
@@ -567,6 +568,7 @@ export class Duel {
   }
 
   dispose() {
+    audio.ambience(null);
     this.fa?.remove();
     this.fb?.remove();
     this.imp?.remove();

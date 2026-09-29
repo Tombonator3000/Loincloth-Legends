@@ -1,7 +1,15 @@
-// All lyd er syntetisert med WebAudio. Ingen lydfiler.
+// Lydmotoren. Effektene er syntetisert med WebAudio, og innspilte CC0-lyder fra lydbanken (core/soundbank.ts) legges
+// oppå når de er lastet: synthen blir da liggende under på 20 til 40 prosent, og den spiller alene til en fil er klar,
+// når en fil feiler, når RECORDED SOUNDS er av og i enkeltfil-bygget. Kilder per fil: public/assets/sound/KILDER.md.
 // Musikken er heavy metal (core/metal.ts) eller de gamle 8-bit-låtene (TRACKS under), valgt i innstillingene.
-import { rand } from './math';
-import { MetalBand, METAL_TRACKS, type MetalTrack } from './metal';
+// Musikken dukker unna under store smell og mens spillet står på pause, og hvert brett har sin egen stemning
+// (core/ambience.ts). Fanfarene for drapsrekker, sjefer og knockout spilles av lagspilleren (core/layers.ts).
+import { rand, clamp } from './math';
+import { MetalBand, METAL_TRACKS, impulse, type MetalTrack } from './metal';
+import { SoundBank } from './soundbank';
+import { Ambience } from './ambience';
+import { settings } from './settings';
+import { LayerPlayer, TROMBONE, STREAK_FANFARES, BOSS_FANFARE, KO_FANFARE, thunderSyn, zapSyn, roar, type Fanfare } from './layers';
 
 export type MusicStyle = 'metal' | 'chip';
 /** Låter som bare finnes som metal. 8-bit bruker da en av de gamle. */
@@ -23,6 +31,11 @@ type Track = {
 };
 
 const mtof = (m: number) => 440 * Math.pow(2, (m - 69) / 12);
+
+/** Et opptak oppå en syntlyd: [gruppe i lydbanken, nivå, tonehøyde, gørr (hoppes over på FAMILY)]. */
+type Rec = [group: string, vol: number, pitch?: number, gory?: boolean];
+/** Musikknivået mens spillet står på pause. */
+const DIM = 0.4;
 
 function rep<T>(arr: T[], n: number): T[] {
   const out: T[] = [];
@@ -117,6 +130,25 @@ export class AudioEngine {
   private timer: number | null = null;
   private volMusic = 0.7;
   private volSfx = 0.9;
+  /** Innspilte lyder (CC0) oppå synthen. Startes i init(), og aldri i enkeltfil-bygget. */
+  readonly bank = new SoundBank();
+  /** Stemningen per brett (laget i init()). */
+  amb: Ambience | null = null;
+  private wantAmb: string | null = null;
+  /** Lagspilleren for fanfarer, torden og zap (core/layers.ts). */
+  private layers: LayerPlayer | null = null;
+  /** Dukking under store smell, og dempingen mens spillet står på pause. */
+  private duckG!: GainNode;
+  private dimG!: GainNode;
+  private duckEnd = 0;
+  private duckAmt = 0;
+  private dimmed = false;
+  /** Dempede busser for synthen under opptakene (nivå -> buss). */
+  private synBuses = new Map<number, GainNode>();
+  /** Klang og en egen gitar for fanfarene (på effektbussen, så de ikke dukker med musikken). */
+  private fanOut: GainNode | null = null;
+  private fanBandInst: MetalBand | null = null;
+  private lastThunder = -1;
 
   /** Lydnivå fra innstillingene (0 til 1). */
   setVolumes(music: number, sfx: number) {
@@ -148,13 +180,109 @@ export class AudioEngine {
     this.sfx.connect(this.master);
     this.music = c.createGain();
     this.music.gain.value = 0.314 * this.volMusic;
-    this.music.connect(this.master);
+    // Musikken går gjennom dempingen (pause) og dukkingen (store smell), som i Morbidium (06_musikk.js)
+    this.dimG = c.createGain();
+    this.duckG = c.createGain();
+    this.dimG.gain.value = this.dimmed ? DIM : 1;
+    this.music.connect(this.dimG).connect(this.duckG).connect(this.master);
     this.band = new MetalBand(c, this.music);
     const len = c.sampleRate * 1.5;
     this.noise = c.createBuffer(1, len, c.sampleRate);
     const d = this.noise.getChannelData(0);
     for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    // Klang for fanfarene og lagene som ber om det (samme hale som bandets hall, metal.ts)
+    const hall = c.createConvolver();
+    hall.buffer = impulse(c, 2.4, false);
+    const hallIn = c.createGain();
+    const hallOut = c.createGain();
+    hallOut.gain.value = 0.45;
+    hallIn.connect(hall).connect(hallOut).connect(this.sfx);
+    this.layers = new LayerPlayer(c, this.noise, hallIn);
+    this.fanOut = c.createGain();
+    this.fanOut.connect(this.sfx);
+    // Lydbanken: opptakene pakkes ut i bakgrunnen, og stemningen bytter fra synth til opptak når en sløyfe er klar
+    this.bank.on = settings.recorded;
+    this.bank.attach(c, this.sfx, 0.8);
+    this.bank.onLoaded = (_name, group) => {
+      if (group.startsWith('amb_')) this.amb?.refresh();
+    };
+    this.bank.start();
+    this.amb = new Ambience(c, this.sfx, this.bank, this.layers);
+    if (this.wantAmb) this.amb.set(this.wantAmb);
     if (this.trackName) this.play(this.trackName, true);
+  }
+
+  /** Innstillingen RECORDED SOUNDS: opptakene av eller på (synthen spiller alltid). */
+  setRecorded(on: boolean) {
+    this.bank.on = on;
+    if (on) this.bank.start();
+    this.amb?.refresh();
+  }
+
+  // ---------------------------------------------------------------- opptak, dukking og stemning
+  /**
+   * Opptakene fra lydbanken oppå synthen. Spiller lagene i `list` når den første gruppen er lastet, og gir tilbake
+   * bussen synthlyden skal gå til: en dempet buss (nivå `syn`) når opptakene spilte, ellers rett i effektbussen.
+   * På FAMILY hoppes gørr, knas, riving og stikk over (merket med true), og da spiller familielyden i synthen som før.
+   */
+  private rec(list: Rec[], syn: number, pitch = 1, at = 0): AudioNode {
+    if (!this.ctx) return this.sfx;
+    const family = settings.gore === 0;
+    const use = list.filter((r) => !(family && r[3]));
+    if (!use.length || !this.bank.has(use[0][0])) return this.sfx;
+    const t = this.ctx.currentTime + at;
+    for (const [g, v, p = 1] of use) this.bank.play(g, { vol: v, pitch: pitch * p * (1 + rand(-0.05, 0.05)), t });
+    return this.synBus(syn);
+  }
+
+  private synBus(level: number): AudioNode {
+    if (level >= 1 || !this.ctx) return this.sfx;
+    let b = this.synBuses.get(level);
+    if (!b) {
+      b = this.ctx.createGain();
+      b.gain.value = level;
+      b.connect(this.sfx);
+      this.synBuses.set(level, b);
+    }
+    return b;
+  }
+
+  /** Store smell: musikken dukker unna et øyeblikk (amount 0 til 1, hold i sekunder) og kommer tilbake. */
+  duck(amount: number, hold: number) {
+    if (!this.ctx || amount <= 0) return;
+    // METAL MODE: lynene slår ned hvert sekund, og soloen er hele poenget, så den dukker bare litt
+    if (this.band?.shred) amount *= 0.35;
+    const now = this.ctx.currentTime;
+    // En mindre dukk midt i en større gjør den ikke grunnere, men kan holde den lenger
+    if (now < this.duckEnd) amount = Math.max(amount, this.duckAmt);
+    this.duckAmt = amount;
+    this.duckEnd = Math.max(this.duckEnd, now + hold);
+    const g = this.duckG.gain;
+    if (g.cancelAndHoldAtTime) g.cancelAndHoldAtTime(now);
+    else {
+      g.cancelScheduledValues(now);
+      g.setValueAtTime(g.value, now);
+    }
+    g.setTargetAtTime(1 - Math.min(0.8, amount), now, 0.015);
+    g.setTargetAtTime(1, this.duckEnd, 0.35);
+  }
+
+  /** Musikken dempes mens spillet står på pause (kalles hvert bilde, gjør bare noe når det endres). */
+  setPaused(on: boolean) {
+    if (on === this.dimmed) return;
+    this.dimmed = on;
+    if (this.ctx) this.dimG.gain.setTargetAtTime(on ? DIM : 1, this.ctx.currentTime, 0.12);
+  }
+
+  /** Stemning for et biom (LevelDef.biome), 'arena' for duellene, eller null. Glir over fra den forrige. */
+  ambience(biome: string | null) {
+    this.wantAmb = biome;
+    this.amb?.set(biome);
+  }
+
+  /** Hvert bilde fra brettet: hvor nær nærmeste bål er (0 til 1) og til hvilken side, og enkeltlydene i stemningen. */
+  ambienceTick(dt: number, fire = 0, pan = 0) {
+    this.amb?.tick(dt, fire, pan);
   }
 
   toggleMute() {
@@ -184,12 +312,15 @@ export class AudioEngine {
     const c = this.ctx!;
     const s = c.createBufferSource();
     s.buffer = this.noise;
+    // Støybufferen er 1,5 sekunder: lange lag går i sløyfe så de ikke kuttes (som i Morbidiums lagspiller)
+    if (dur > 0.9) s.loop = true;
     s.start(t, rand(0, 0.5), dur + 0.05);
     return s;
   }
 
   swish(pitch = 1, heavy = false) {
     if (!this.ok('swish', 0.04)) return;
+    const out = this.rec(heavy ? [['swingHeavy', 0.45]] : [['swing', 0.3]], 0.3, clamp(pitch, 0.7, 1.4));
     const c = this.ctx!;
     const t = c.currentTime;
     const dur = heavy ? 0.26 : 0.16;
@@ -202,11 +333,14 @@ export class AudioEngine {
     f.frequency.exponentialRampToValueAtTime(700 * pitch, t + dur);
     const g = c.createGain();
     this.env(g, t, 0.02, heavy ? 0.5 : 0.35, dur);
-    src.connect(f).connect(g).connect(this.sfx);
+    src.connect(f).connect(g).connect(out);
   }
 
+  /** Slag. Tunge slag får knas under (ikke på FAMILY) og dukker musikken litt. */
   hit(heavy = false) {
     if (!this.ok('hit', 0.035)) return;
+    const out = this.rec(heavy ? [['hitHeavy', 1], ['knas', 0.25, 1.1, true]] : [['hit', 0.55]], heavy ? 0.35 : 0.3);
+    if (heavy) this.duck(0.2, 0.15);
     const c = this.ctx!;
     const t = c.currentTime;
     const o = c.createOscillator();
@@ -215,7 +349,7 @@ export class AudioEngine {
     o.frequency.exponentialRampToValueAtTime(45, t + 0.15);
     const g = c.createGain();
     this.env(g, t, 0.005, heavy ? 0.9 : 0.6, heavy ? 0.22 : 0.14);
-    o.connect(g).connect(this.sfx);
+    o.connect(g).connect(out);
     o.start(t);
     o.stop(t + 0.3);
     const n = this.noiseSrc(t, 0.08);
@@ -224,11 +358,24 @@ export class AudioEngine {
     f.frequency.value = heavy ? 1800 : 2600;
     const g2 = c.createGain();
     this.env(g2, t, 0.002, 0.6, 0.08);
-    n.connect(f).connect(g2).connect(this.sfx);
+    n.connect(f).connect(g2).connect(out);
   }
 
+  /** Blodsprut. Store (død, tapt arm) får gørr-opptaket under (ikke på FAMILY). */
   splat(size = 1) {
     if (!this.ok('splat', 0.05)) return;
+    const recs: Rec[] = [['splat', 0.55 * Math.min(1.4, size)]];
+    if (size >= 1.2) recs.push(['gore', 0.45, 1, true]);
+    this.splatSyn(size, this.rec(recs, 0.25));
+  }
+
+  /** En arm som rives av: riveopptaket og sprut (på FAMILY bare den gamle spruten). */
+  rip() {
+    if (!this.ok('rip', 0.08)) return;
+    this.splatSyn(1.2, this.rec([['rive', 0.7, 1, true], ['splat', 0.3]], 0.3));
+  }
+
+  private splatSyn(size: number, out: AudioNode) {
     const c = this.ctx!;
     const t = c.currentTime;
     const dur = 0.18 + size * 0.15;
@@ -240,22 +387,24 @@ export class AudioEngine {
     f.Q.value = 6;
     const g = c.createGain();
     this.env(g, t, 0.004, 0.7 * Math.min(1.4, size), dur);
-    n.connect(f).connect(g).connect(this.sfx);
+    n.connect(f).connect(g).connect(out);
     const o = c.createOscillator();
     o.type = 'sine';
     o.frequency.setValueAtTime(320, t);
     o.frequency.exponentialRampToValueAtTime(50, t + 0.2);
     const g2 = c.createGain();
     this.env(g2, t, 0.004, 0.45, 0.2);
-    o.connect(g2).connect(this.sfx);
+    o.connect(g2).connect(out);
     o.start(t);
     o.stop(t + 0.3);
   }
 
-  squish() {
+  /** Kropp som sprekker (eksplosjon, hode som sprenges). delay i sekunder på lydklokka. */
+  squish(delay = 0) {
     if (!this.ok('squish', 0.06)) return;
+    const out = this.rec([['gore', 0.55, 1, true]], 0.3, 1, delay);
     const c = this.ctx!;
-    const t = c.currentTime;
+    const t = c.currentTime + delay;
     for (let i = 0; i < 3; i++) {
       const o = c.createOscillator();
       o.type = 'triangle';
@@ -264,7 +413,7 @@ export class AudioEngine {
       o.frequency.exponentialRampToValueAtTime(rand(40, 80), tt + 0.08);
       const g = c.createGain();
       this.env(g, tt, 0.003, 0.3, 0.08);
-      o.connect(g).connect(this.sfx);
+      o.connect(g).connect(out);
       o.start(tt);
       o.stop(tt + 0.12);
     }
@@ -347,8 +496,10 @@ export class AudioEngine {
     o.stop(t + 0.25);
   }
 
+  /** Bein som knuses (skjeletter, pigger). Knaseopptaket hoppes over på FAMILY. */
   bones() {
     if (!this.ok('bones', 0.05)) return;
+    const out = this.rec([['knas', 0.4, 1.1, true]], 0.35);
     const c = this.ctx!;
     const t = c.currentTime;
     for (let i = 0; i < 7; i++) {
@@ -358,15 +509,16 @@ export class AudioEngine {
       o.frequency.value = rand(700, 1600);
       const g = c.createGain();
       this.env(g, tt, 0.001, 0.12, 0.03);
-      o.connect(g).connect(this.sfx);
+      o.connect(g).connect(out);
       o.start(tt);
       o.stop(tt + 0.06);
     }
   }
 
+  /** Mynt: en ekte mynt som faller, med chip-plinget under. */
   coin() {
     if (!this.ok('coin', 0.05)) return;
-    this.notes([[83, 0, 0.06], [88, 0.06, 0.18]], 'square', 0.12);
+    this.notes([[83, 0, 0.06], [88, 0.06, 0.18]], 'square', 0.12, this.rec([['tooth', 0.6, rand(0.95, 1.1)]], 0.4));
   }
   pickup() {
     if (!this.ok('pickup', 0.08)) return;
@@ -385,7 +537,7 @@ export class AudioEngine {
     this.notes([[64, 0, 0.06], [71, 0.06, 0.06], [76, 0.12, 0.15]], 'square', 0.14);
   }
 
-  private notes(ns: [number, number, number][], type: OscillatorType, vol: number) {
+  private notes(ns: [number, number, number][], type: OscillatorType, vol: number, out: AudioNode = this.sfx) {
     const c = this.ctx!;
     const t = c.currentTime;
     for (const [m, st, d] of ns) {
@@ -394,14 +546,16 @@ export class AudioEngine {
       o.frequency.value = mtof(m);
       const g = c.createGain();
       this.env(g, t + st, 0.005, vol, d);
-      o.connect(g).connect(this.sfx);
+      o.connect(g).connect(out);
       o.start(t + st);
       o.stop(t + st + d + 0.05);
     }
   }
 
+  /** Eksplosjon (ild, meteor, sjefen som dør). Musikken dukker under de store. */
   boom(size = 1) {
     if (!this.ok('boom', 0.06)) return;
+    this.duck(Math.min(0.5, 0.35 * size), 0.5);
     const c = this.ctx!;
     const t = c.currentTime;
     const n = this.noiseSrc(t, 1.2);
@@ -453,8 +607,18 @@ export class AudioEngine {
     n.connect(f).connect(g).connect(this.sfx);
   }
 
-  thud() {
+  /**
+   * Noe tungt som lander. size er figurens størrelse: tunge fiender (over 1,3, de som ikke kan gripes) lander med et
+   * steinhardt smell, og en død kropp (body) faller med et opptak av en kropp mot bakken.
+   */
+  thud(size = 1, body = false) {
     if (!this.ok('thud', 0.06)) return;
+    let out: AudioNode = this.sfx;
+    if (body) out = this.rec([['die', 0.5 * clamp(size, 0.8, 1.4)]], 0.35, clamp(1.15 - size * 0.15, 0.85, 1.1));
+    else if (size > 1.3) {
+      out = this.rec([['slam', 0.75]], 0.3, clamp(1.2 - size * 0.15, 0.8, 1));
+      this.duck(0.3, 0.3);
+    }
     const c = this.ctx!;
     const t = c.currentTime;
     const o = c.createOscillator();
@@ -463,7 +627,7 @@ export class AudioEngine {
     o.frequency.exponentialRampToValueAtTime(40, t + 0.18);
     const g = c.createGain();
     this.env(g, t, 0.003, 0.6, 0.2);
-    o.connect(g).connect(this.sfx);
+    o.connect(g).connect(out);
     o.start(t);
     o.stop(t + 0.25);
   }
@@ -485,8 +649,11 @@ export class AudioEngine {
     n.connect(f).connect(g).connect(this.sfx);
   }
 
+  /** Gong (sjefen kommer, FIGHT!): VCSL-gongen med syntgongen under, og musikken dukker. */
   gong() {
     if (!this.ok('gong', 0.5)) return;
+    const out = this.rec([['ins_gong', 0.9]], 0.35);
+    this.duck(0.5, 0.6);
     const c = this.ctx!;
     const t = c.currentTime;
     for (const [fr, a] of [[98, 0.5], [147, 0.3], [233, 0.2], [311, 0.15], [415, 0.1]] as const) {
@@ -495,10 +662,97 @@ export class AudioEngine {
       o.frequency.value = fr;
       const g = c.createGain();
       this.env(g, t, 0.01, a, 2.5);
-      o.connect(g).connect(this.sfx);
+      o.connect(g).connect(out);
       o.start(t);
       o.stop(t + 2.6);
     }
+  }
+
+  /**
+   * Lyn: et skarpt knall og zap, så torden som ruller. far (0 til 1) er hvor langt unna det slår ned: da kommer
+   * buldringen senere og mørkere, og zappen faller bort (tittelskjermen). Torden-opptaket med syntlagene under,
+   * og musikken dukker unna.
+   */
+  thunder(power = 1, far = 0) {
+    if (!this.ok('thunder', 0.08)) return;
+    const c = this.ctx!;
+    const t = c.currentTime;
+    // Mange lyn på rad (tordenmagi på fem fiender): buldringen fra de neste legger seg svakere oppå den første
+    const stack = t - this.lastThunder < 0.6 ? 0.45 : 1;
+    this.lastThunder = t;
+    const p = Math.min(1.2, power);
+    const L = this.layers!;
+    let syn = 1;
+    if (this.bank.has('torden')) {
+      this.bank.play('torden', { vol: 1.2 * p * stack * (1 - far * 0.35), pitch: rand(0.92, 1.08) * (1 - far * 0.1), t: t + far * 0.35, lp: far > 0 ? 5000 - far * 3000 : undefined });
+      syn = 0.3;
+    }
+    L.play(thunderSyn(0.9 * p * stack, 0, far), this.synBus(syn), 1, 1, t);
+    if (far < 0.5) {
+      const z = this.bank.has('zap') ? 0.35 : 1;
+      if (z < 1) this.bank.play('zap', { vol: 0.4 * Math.min(1, p), pitch: rand(0.9, 1.15), t });
+      L.play(zapSyn(0.8 * Math.min(1, p)), this.synBus(z), 1, rand(0.9, 1.1), t);
+    }
+    this.duck(Math.min(0.55, 0.5 * p * (1 - far * 0.5)), 0.8);
+  }
+
+  // ---------------------------------------------------------------- fanfarer
+  /** Drapsrekke: fanfaren trappes opp med rekken (3, 6, 10, 15, 22 og 30 drap, se Stage.foeDied). */
+  streak(count: number) {
+    const tier = [3, 6, 10, 15, 22, 30].filter((x) => count >= x).length;
+    if (!tier || !this.ok('streak', 0.3)) return;
+    this.playFanfare(STREAK_FANFARES[tier - 1]);
+  }
+
+  /** BOSS SLAIN! */
+  bossSlain() {
+    if (!this.ok('bossSlain', 1)) return;
+    this.playFanfare(BOSS_FANFARE);
+  }
+
+  /** Knockout i duellen (DECAPITATION!, BUTCHERED!). */
+  knockout() {
+    if (!this.ok('knockout', 0.5)) return;
+    this.playFanfare(KO_FANFARE);
+  }
+
+  /** En lang drapsrekke ryker: trist trombone. */
+  chainBroken() {
+    if (!this.ok('trombone', 1)) return;
+    this.layers!.play(TROMBONE, this.sfx, 0.9);
+  }
+
+  /** Gitaren til fanfarene: et eget band på effektbussen, laget første gang det trengs. */
+  private fanBand() {
+    if (!this.fanBandInst) {
+      const g = this.ctx!.createGain();
+      g.gain.value = 0.3;
+      g.connect(this.fanOut!);
+      this.fanBandInst = new MetalBand(this.ctx!, g);
+    }
+    return this.fanBandInst;
+  }
+
+  /** Spill en fanfare: syntlag, slagverk (VCSL eller synth), kraftakkorder og publikum. Alt på lydklokka. */
+  private playFanfare(F: Fanfare) {
+    const c = this.ctx!;
+    const t = c.currentTime + 0.02;
+    const out = this.fanOut!;
+    const L = this.layers!;
+    L.play(F.layers, out, 1, 1, t);
+    for (const h of F.hits) {
+      const at = t + (h.at ?? 0);
+      let played = false;
+      if (h.midi !== undefined) played = !!this.bank.note(h.g, h.midi, { vol: h.v, t: at, out });
+      else if (h.file ? this.bank.hasFile(h.file) : this.bank.has(h.g)) played = !!this.bank.play(h.g, { vol: h.v, t: at, name: h.file, pitch: h.pitch, out });
+      if (!played) L.play(h.syn, out, 1, 1, t);
+    }
+    if (F.stabs.length) {
+      const band = this.fanBand();
+      for (const [at, root, dur, vel] of F.stabs) band.powerChord(t + at, root, dur, true, vel);
+    }
+    if (F.crowd) L.play(roar(0.22 * F.crowd[0], F.crowd[1], 1.8), out, 1, 1, t);
+    this.duck(F.duck[0], F.duck[1]);
   }
 
 
@@ -652,8 +906,10 @@ export class AudioEngine {
     lfo.stop(t + dur + 0.1);
   }
 
+  /** Plask (myr og råk). */
   splash() {
     if (!this.ok('splash', 0.15)) return;
+    const out = this.rec([['splash', 0.55]], 0.35);
     const c = this.ctx!;
     const t = c.currentTime;
     const n = this.noiseSrc(t, 0.7);
@@ -664,7 +920,7 @@ export class AudioEngine {
     f.Q.value = 1.2;
     const g = c.createGain();
     this.env(g, t, 0.005, 0.7, 0.65);
-    n.connect(f).connect(g).connect(this.sfx);
+    n.connect(f).connect(g).connect(out);
     for (let i = 0; i < 5; i++) {
       const tt = t + 0.25 + i * rand(0.08, 0.16);
       const o = c.createOscillator();
@@ -673,14 +929,16 @@ export class AudioEngine {
       o.frequency.exponentialRampToValueAtTime(rand(800, 1400), tt + 0.06);
       const g2 = c.createGain();
       this.env(g2, tt, 0.002, 0.12, 0.06);
-      o.connect(g2).connect(this.sfx);
+      o.connect(g2).connect(out);
       o.start(tt);
       o.stop(tt + 0.1);
     }
   }
 
+  /** Spidd (piggfeller og pigger): stikkopptaket (ikke på FAMILY) og en klask litt etter, lagt på lydklokka. */
   impale() {
     if (!this.ok('impale', 0.1)) return;
+    const out = this.rec([['stikk', 0.6, 1, true]], 0.4);
     this.thud();
     const c = this.ctx!;
     const t = c.currentTime;
@@ -690,10 +948,10 @@ export class AudioEngine {
     o.frequency.exponentialRampToValueAtTime(120, t + 0.12);
     const g = c.createGain();
     this.env(g, t, 0.002, 0.4, 0.14);
-    o.connect(g).connect(this.sfx);
+    o.connect(g).connect(out);
     o.start(t);
     o.stop(t + 0.2);
-    setTimeout(() => this.squish(), 60);
+    this.squish(0.06);
   }
 
   fireBreath(dur = 0.7) {
@@ -711,8 +969,10 @@ export class AudioEngine {
     n.connect(f).connect(g).connect(this.sfx);
   }
 
+  /** Bitt (kjæledyrene): stikkopptaket litt lysere (ikke på FAMILY). */
   bite() {
     if (!this.ok('bite', 0.08)) return;
+    const out = this.rec([['stikk', 0.4, 1.25, true]], 0.4);
     const c = this.ctx!;
     const t = c.currentTime;
     for (let i = 0; i < 2; i++) {
@@ -722,7 +982,7 @@ export class AudioEngine {
       f.frequency.value = 1800;
       const g = c.createGain();
       this.env(g, t + i * 0.07, 0.001, 0.4, 0.04);
-      n.connect(f).connect(g).connect(this.sfx);
+      n.connect(f).connect(g).connect(out);
     }
   }
 

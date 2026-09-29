@@ -167,7 +167,7 @@ export class Projectiles {
             // Et ekte lyn fra himmelen (gfx/vfx.ts) med gnister, sjokkbølge og lysglimt
             g.vfx.lightning(new THREE.Vector3(x + rand(-1.5, 1.5), 14, z - 2), new THREE.Vector3(x, 0.05, z));
             W.fx.flash('#cfe8ff', 0.25, 0.15);
-            audio.boom(0.6);
+            audio.thunder(0.6);
             p.pos.set(x, 0.5, z);
             this.explode(p, targets, 1.3, 'zap');
             continue;

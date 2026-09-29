@@ -69,9 +69,12 @@ ui/                HUD og menyer (ren DOM)
   screens.ts       Menyer og skjermer (også custom-paneler med justerbare valg)
   touch.ts         Berøringskontroller: flytende stikke, fire knapper, pause
   splash.ts        Oppstartslogo for Tom's Happy Happy Funtimes Emporium
-core/              Input (tastatur, gamepad, berøring), lyd (WebAudio-synth), innstillinger, matte
-  audio.ts         Lydeffekter, 8-bit-låtene og avspilling (sekvenser med setInterval og WebAudio-tid)
+core/              Input (tastatur, gamepad, berøring), lyd (WebAudio-synth og CC0-opptak), innstillinger, matte
+  audio.ts         Lydeffekter, 8-bit-låtene og avspilling (sekvenser med setInterval og WebAudio-tid), dukking
   metal.ts         Heavy metal: gitarforsterkere, trommer, bass, leadgitar, låtene og soloen i METAL MODE
+  soundbank.ts     Lydbanken: CC0-opptak fra public/assets/sound/ oppå synthen (fra Morbidium)
+  layers.ts        Lagspiller for syntlyd, torden, zap og fanfarene for drapsrekker, sjef og knockout
+  ambience.ts      Stemning per biom (sløyfer med syntetisk reserve, bål i nærheten, fugler)
 assets/            Bilder som bygges inn i spillet (studio-logo.webp)
 ```
 
@@ -134,7 +137,7 @@ Legg en `Species` i `SPECIES` (`env/trees.ts`): lengde, radius, seksjoner, barn,
 
 ## Innstillinger og gore-nivå
 
-`core/settings.ts` lagrer gore-nivå, lydnivå, musikkstil (heavy metal eller 8-bit), risting, rumble og berøringsmodus (`loincloth-legends-settings-v1`). `Game` lytter med `onSettings` og setter `Gore.level`, lydnivåene og musikkstilen. Nye felt må også inn i `load()` med sjekk, ellers forsvinner de. Radene i innstillingsmenyen legges inn med `row()`, som gir hver rad sin egen plass, så nye valg kan settes inn hvor som helst. Gore-nivået skalerer partikler, gibs, fontener og blod på skjermen. FAMILY bytter blod mot konfetti og gibs mot gummiender, blomster og stjerner.
+`core/settings.ts` lagrer gore-nivå, lydnivå, musikkstil (heavy metal eller 8-bit), innspilte lyder (RECORDED SOUNDS), risting, rumble og berøringsmodus (`loincloth-legends-settings-v1`). `Game` lytter med `onSettings` og setter `Gore.level`, lydnivåene og musikkstilen. Nye felt må også inn i `load()` med sjekk, ellers forsvinner de. Radene i innstillingsmenyen legges inn med `row()`, som gir hver rad sin egen plass, så nye valg kan settes inn hvor som helst. Gore-nivået skalerer partikler, gibs, fontener og blod på skjermen. FAMILY bytter blod mot konfetti og gibs mot gummiender, blomster og stjerner.
 
 ## Input
 
@@ -199,6 +202,21 @@ Se `docs/ART_PROMPTS.md`. Filene legges i `public/assets/`, og `manifest.json` s
 
 ### Ny tekstur som kan byttes med et bilde
 Pakk teksturkallet i `texFile(navn, () => prosedyretekstur)` fra `env/common.ts`, og før opp navnet og en prompt i teksturlista i `docs/ART_PROMPTS.md`. Finnes navnet under `textures` i manifestet, lager `imageTexture()` (i `env/textures.ts`) tekstur og normalkart fra bildet. Valg: `fringe` gir ujevn gjennomsiktig kant øverst og nederst (veier), `glow` lager glødekart av de lyse oransje partiene (lava), og `tint` lar fargen fra kallstedet tone bildet (ellers vises bildet i egne farger). Teksturene hentes fra en felles cache, og hvert kall får en kopi med egen `repeat` som deler bildedata og GPU-tekstur med originalen.
+
+## Lyd: lydbank, dukking og stemning
+
+Alle lyder går gjennom `core/audio.ts`. Metodene (`swish`, `hit`, `splat`, `bones`, `thud`, `gong`, `coin`, `thunder` og de andre) er syntetisert, og `rec()` legger innspilte CC0-lyder fra lydbanken oppå når filen er lastet. Synthen blir da liggende under på 20 til 40 prosent. Til en fil er klar, når den feiler, når RECORDED SOUNDS er av, og alltid i enkeltfil-bygget og fra `file://` (der virker ikke fetch), spiller synthen alene. Lyn skal bruke `thunder(styrke, avstand)`, ikke `boom()`, som er eksplosjoner. På FAMILY hoppes gørr, knas, riving og stikk over (merket med `true` i `rec()`-listene).
+
+- `core/soundbank.ts` er Morbidiums Lydbank som TypeScript-modul. Den pakker ut filene i bakgrunnen (effektene først, så slagverket og til slutt stemningen), velger en tilfeldig variant uten å gjenta den forrige, spiller høyst fem per gruppe på 80 ms og måler stillheten foran i hver MP3.
+- Filene ligger i `public/assets/sound/` med `sound.json` (utdrag av Morbidiums `lyd.json`, samme feltnavn: `gruppe`, `type`, `sloyfe`, `rot`) og `KILDER.md` (tittel, innspiller og lenke per fil). Gruppen er filnavnet uten `_2`, `_3` osv.
+- Dukking: `audio.duck(mengde, sekunder)` senker musikken under store smell (tunge slag, eksplosjoner, torden, gong, tunge fiender som lander og fanfarene). `audio.setPaused()` demper den mens spillet står på pause (kalles fra `Game.tick`). I METAL MODE dukker den bare litt.
+- Stemning: `audio.ambience(biom)` fra `Stage` og `Duel` (`'arena'`), og `null` i `dispose()`. Lagene per biom står i `AMBIENCE` i `core/ambience.ts`, og enkeltlydene (kråke, ugle, frosk) i `AMB_EVENTS`. `campfire()` legger bålet i `Env.fires`, og `Stage` sender avstanden til nærmeste bål med `audio.ambienceTick(dt, nærhet, panorering)`.
+- Fanfarer: `audio.streak(antall)` for drapsrekkene, `bossSlain()`, `knockout()` og `chainBroken()` (trist trombone når en rekke på 10 eller mer ryker fordi en helt blir truffet). De er data i `core/layers.ts`: syntlag (orgel, kor, klokker, torden, applaus), slagverk (VCSL-opptaket eller syntlag som reserve) og kraftakkorder på en egen `MetalBand` på effektbussen.
+
+### Ny lyd fra lydbanken
+1. Legg MP3-filen (mono, klippet og normalisert, som fra Morbidiums `tools/lag_lyd.py`) i `public/assets/sound/`.
+2. Legg raden i `sound.json` (minst `gruppe` og `type`, og `sloyfe` for sløyfer) og i `KILDER.md` (tittel, innspiller og lenke). Bare CC0.
+3. Bruk gruppen i en lydmetode med `this.rec([[gruppe, nivå, tonehøyde, gørr]], synthnivå)`, eller i `AMBIENCE` for en stemningssløyfe. Sjekk med `tools/tests/soundbank.mjs`.
 
 ## Oppstartslogo
 

@@ -6,3 +6,5 @@ Finnes ikke `manifest.json`, bruker spillet grafikken som lages i kode.
 Manifestet kan ha figurdeler (`parts`), flisbare teksturer for 3D-verdenen (`textures`), himmelbilder (`sky`) og verdenskartet (`map`).
 
 Full liste med prompter, filnavn, teksturnavn og ankerpunkter: `docs/ART_PROMPTS.md`.
+
+Lydene ligger i `sound/`: CC0-opptak fra Morbidium med `sound.json` og en kildeliste per fil i `sound/KILDER.md` (se `src/core/soundbank.ts`).

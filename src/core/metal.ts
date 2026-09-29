@@ -266,7 +266,7 @@ function driveCurve(k: number, n = 2048) {
 }
 
 /** Impulsrespons for romklang: hall (lang hale) eller gated (flat og brått kuttet, 80-talls skarptromme). */
-function impulse(ctx: BaseAudioContext, dur: number, gated: boolean) {
+export function impulse(ctx: BaseAudioContext, dur: number, gated: boolean) {
   const len = Math.floor(ctx.sampleRate * dur);
   const buf = ctx.createBuffer(2, len, ctx.sampleRate);
   for (let ch = 0; ch < 2; ch++) {

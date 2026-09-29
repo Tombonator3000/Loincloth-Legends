@@ -306,7 +306,7 @@ export class Fighter {
     if (!bone) {
       W.gore.fountain(this.rig.g.torso, sh[0], sh[1], which === 'armB' ? -0.6 : 0.6, 1, 2.4, 1, col);
       W.gore.spray(at, dir, 0.3, 26, 6, 0.6, 0.1, col);
-      audio.splat(1.2);
+      audio.rip();
     } else audio.bones();
     audio.boing();
     this.armsLost++;
@@ -639,11 +639,12 @@ export class Fighter {
         this.onGround = false;
         this.downT = 0.7;
       }
-      audio.thud();
+      audio.thud(this.size);
       W.gore.dust(this.pos, 8);
       if (this.def.blood !== 'bone') W.gore.splat(this.pos.x, this.pos.z, rand(0.4, 0.8));
     } else if (this.state === 'dead') {
-      audio.thud();
+      // Kroppen faller: opptaket av en kropp mot bakken (tunge fiender smeller)
+      audio.thud(this.size, true);
       W.gore.dust(this.pos, 6);
     }
     this.onLand?.(this);

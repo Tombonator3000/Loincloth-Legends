@@ -26,6 +26,7 @@ node tools/tests/settings.mjs http://localhost:4173/ ./shots              # inns
 node tools/tests/looks.mjs http://localhost:4173/ ./shots all             # faste skjermbilder av alle brett med tegnekall og trekanter (QUALITY=low osv.)
 node tools/tests/metal.mjs http://localhost:4173/ ./shots all 14 shred    # metal-låtene rendret offline: WAV, spektrogram, nivå, klipping (shred = også med solo)
 node tools/tests/metalmode.mjs http://localhost:4173/ ./shots             # METAL MODE: måleren fylles av drap, solo, skadebonus, lyn og brennende våpen
+node tools/tests/soundbank.mjs http://localhost:4173/                     # lydbanken: opptak oppå synthen, torden, FAMILY, dukking, pause, stemning, fanfarer og file:// (bygg dist-single først)
 node tools/tests/homage.mjs http://localhost:4173/ ./shots                # tordenmagi med seks krukker, sjonglering i lufta og B-film-replikker
 node tools/tests/nightcamp.mjs http://localhost:4173/ ./shots             # nattleiren: sovende helter, tyvnisser, krukker tilbake, daggry og forsyninger
 node tools/tests/ab.mjs http://localhost:4173/ ./shots road ao           # samme bilde med og uten en effekt (ao, bloom, dof, grade), pluss bare AO-bufferet

@@ -92,7 +92,8 @@ class TitleScene implements Scene {
       const x = pick([-1, 1]) * rand(1.5, 6);
       W.gore.vfx.lightning(new THREE.Vector3(x + rand(-2, 2), 16, -7), new THREE.Vector3(x, 0.05, rand(-3.5, -1.5)), '#9fd8ff', 0.28);
       W.fx.flash('#cfe8ff', 0.25, 0.12);
-      audio.boom(0.35);
+      // Lynet slår ned langt bak kjempene: buldringen kommer litt etter
+      audio.thunder(0.35, 0.7);
     }
     const c = this.game.camera;
     c.position.set(Math.sin(this.t * 0.15) * 1.6, 2.4 + Math.sin(this.t * 0.21) * 0.2, 10.5);
@@ -220,6 +221,7 @@ export class Game {
     onSettings((st) => {
       audio.setVolumes(st.music, st.sfx);
       audio.setStyle(st.musicStyle);
+      audio.setRecorded(st.recorded);
       this.gore.level = st.gore;
       const q = resolveQuality(st.quality);
       if (q !== this.post.quality || !this.qualitySet) {
@@ -363,6 +365,14 @@ export class Game {
       return { label: 'MUSIC STYLE: ' + (settings.musicStyle === 'metal' ? 'HEAVY METAL' : '8-BIT'), hint: settings.musicStyle === 'metal' ? 'DISTORTION, DOUBLE KICK, GUITAR SOLOS' : 'THE OLD CHIPTUNES', action: flip, adjust: flip };
     });
     row((again) => ({ label: 'SOUND FX: ' + pct(settings.sfx), action: () => { setSettings({ sfx: settings.sfx >= 1 ? 0 : step(settings.sfx, 1) }); audio.hit(); again(); }, adjust: (d) => { setSettings({ sfx: step(settings.sfx, d) }); audio.hit(); again(); } }));
+    row((again) => {
+      const flip = () => {
+        setSettings({ recorded: !settings.recorded });
+        audio.hit(true);
+        again();
+      };
+      return { label: 'RECORDED SOUNDS: ' + (settings.recorded ? 'ON' : 'OFF'), hint: settings.recorded ? 'REAL CRUNCHES AND THUNDER OVER THE SYNTH' : 'SYNTH ONLY. VERY 1984.', action: flip, adjust: flip };
+    });
     row((again) => ({ label: 'SCREEN SHAKE: ' + (settings.shake ? 'ON' : 'OFF'), action: () => { setSettings({ shake: !settings.shake }); again(); }, adjust: () => { setSettings({ shake: !settings.shake }); again(); } }));
     row((again) => ({ label: 'GAMEPAD RUMBLE: ' + (settings.rumble ? 'ON' : 'OFF'), action: () => { setSettings({ rumble: !settings.rumble }); this.input.rumble(-1, 0.6, 0.6, 200); again(); }, adjust: () => { setSettings({ rumble: !settings.rumble }); again(); } }));
     row((again) => ({ label: 'TOUCH CONTROLS: ' + settings.touch.toUpperCase(), hint: 'AUTO = PÅ TELEFON OG NETTBRETT', action: () => { setSettings({ touch: TOUCH[(TOUCH.indexOf(settings.touch) + 1) % 3] }); again(); }, adjust: (d) => { setSettings({ touch: TOUCH[(TOUCH.indexOf(settings.touch) + d + 3) % 3] }); again(); } }));
@@ -681,6 +691,8 @@ export class Game {
       if (this.toastT <= 0) this.toastEl.classList.remove('show');
     }
 
+    // Musikken dempes mens spillet står på pause (core/audio.ts)
+    audio.setPaused(this.paused);
     const simDt = this.paused ? 0 : this.fx.hitstop > 0 ? 0 : realDt * this.fx.timeScale;
     W.time += simDt;
     wind.update(simDt);
