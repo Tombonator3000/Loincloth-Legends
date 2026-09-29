@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { rand, pick } from '../../core/math';
 import type { Gore } from '../gore';
 import {
-  M, outline, toon, stoneTex, woodTex, groundTex, roadTex, stageBase, finishEnv, mountains, stakeWall,
+  M, toon, stoneTex, woodTex, groundTex, roadTex, texFile, stageBase, finishEnv, mountains, stakeWall,
   skullPike, banner, campfire, arrows, rock, endGate, bossMarker, foreground, type Env,
 } from './common';
 import { Forest, SPECIES } from './trees';
@@ -21,9 +21,11 @@ export function buildGrass(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     sunDir: [0.45, 0.42, -0.78],
     sky: ['#b8743f', '#f3c67a', '#f7d9a0'], bg: '#f0c27a', fog: ['#e9b878', 40, 130],
     hemi: ['#ffe6b8', '#6a5038', 1.6], sun: ['#fff0d0', 1.9],
-    ground: groundTex('#6f7d3a', ['#7d8a42', '#5f6b30', '#8a9448', '#687536'], '#4f5a26'),
-    road: roadTex('#9a7650', ['#8a6844', '#a8845a', '#7c5c3a', '#b08c62'], 'rgba(70,45,25,0.35)', ['#c7b69a', '#9d8f7c', '#b3a38a']),
+    ground: texFile('ground_grass', () => groundTex('#6f7d3a', ['#7d8a42', '#5f6b30', '#8a9448', '#687536'], '#4f5a26')),
+    road: texFile('road_grass', () => roadTex('#9a7650', ['#8a6844', '#a8845a', '#7c5c3a', '#b08c62'], 'rgba(70,45,25,0.35)', ['#c7b69a', '#9d8f7c', '#b3a38a']), { fringe: true }),
     clouds: '#fff3d6', sunDisk: '#fff4c2',
+    // Lav sol til høyre og tung gyllen dis (sen ettermiddag)
+    atmosphere: { sun: [0.45, 0.1, -0.78], turbidity: 9, rayleigh: 2.4, mie: 0.008, mieG: 0.86, clouds: 0.32, gain: 0.55 },
   });
   mountains(g, L, ['#8a6a5a', '#7a5f55', '#94705a'], '#e9dccc');
 
@@ -39,18 +41,16 @@ export function buildGrass(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   g.add(castle);
 
   // Startborgen vi forlater
-  const st = stoneTex('#8f98a6', '#555a66', 64, 32);
+  const st = texFile('wall_keep', () => stoneTex('#8f98a6', '#555a66', 64, 32));
   st.repeat.set(2, 3);
   const wall = new THREE.Mesh(new THREE.BoxGeometry(6, 14, 14), toon('#ffffff', st));
   wall.position.set(-10, 7, -3);
-  outline(wall, 0.12);
   g.add(wall);
   const tower = M(new THREE.CylinderGeometry(3.2, 3.4, 18, 10), '#8f98a6', -9, 9, -8, 0.04, st);
   tower.add(M(new THREE.ConeGeometry(4, 5, 10), '#6b3a2a', 0, 11.5, 0, 0.04));
   g.add(tower);
-  const bridge = new THREE.Mesh(new THREE.BoxGeometry(5, 0.3, 5), toon('#ffffff', woodTex()));
+  const bridge = new THREE.Mesh(new THREE.BoxGeometry(5, 0.3, 5), toon('#ffffff', texFile('wood', woodTex)));
   bridge.position.set(-5.5, 0.15, 0);
-  outline(bridge, 0.06);
   g.add(bridge);
 
   stakeWall(g, 4, L - 8, -7.2, [[30, 38], [70, 76]]);

@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { plainCanvas, INK } from '../draw';
 import { rand, pick } from '../../core/math';
 import { GHOSTFIRE, type Gore } from '../gore';
-import { applyShadows, M, toon, tileTex, stoneTex, canvasTex, skullMat, bossMarker, endGate, foreground, type Env } from './common';
+import { applyShadows, M, toon, tileTex, stoneTex, texFile, canvasTex, skull3D, bossMarker, endGate, foreground, type Env } from './common';
 import type { StageEnvOpts } from './index';
 import { GRADES } from './grades';
 import { SunShadow } from './sun';
@@ -30,7 +30,7 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   keyShadow.update(0);
   updates.push((_dt, _t, camX) => keyShadow.update(camX + 3));
 
-  const ft = tileTex('#3a3048', '#1a1420');
+  const ft = texFile('floor_tower', () => tileTex('#3a3048', '#1a1420'));
   ft.repeat.set(L / 4, 6);
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(L + 60, 24), toon('#ffffff', ft));
   floor.rotation.x = -Math.PI / 2;
@@ -58,7 +58,7 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   carpet.position.set(L / 2, 0.005, 0);
   g.add(carpet);
 
-  const wt = stoneTex('#4a4058', '#221a2c', 64, 40);
+  const wt = texFile('wall_tower', () => stoneTex('#4a4058', '#221a2c', 64, 40));
   wt.repeat.set(L / 6, 3);
   const wall = new THREE.Mesh(new THREE.BoxGeometry(L + 60, 14, 1), toon('#ffffff', wt));
   wall.position.set(L / 2, 7, -6);
@@ -110,7 +110,7 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   }), false));
 
   const flames: THREE.Vector3[] = [];
-  const pt = stoneTex('#6a5a78', '#2a2034', 64, 32);
+  const pt = texFile('pillar_tower', () => stoneTex('#6a5a78', '#2a2034', 64, 32));
   pt.repeat.set(1, 3);
   let pi = 0;
   for (let x = -4; x < L + 8; x += 8) {
@@ -138,8 +138,8 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
       const a = (i / 8) * Math.PI * 2;
       cage.add(M(new THREE.CylinderGeometry(0.03, 0.03, 1.6, 4), '#555', Math.cos(a) * 0.5, 0, Math.sin(a) * 0.5, 0));
     }
-    const sk = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.7), skullMat());
-    sk.position.y = -0.4;
+    const sk = skull3D(0.32);
+    sk.position.y = -0.55;
     cage.add(sk);
     g.add(cage);
     const ph = rand(0, 6);

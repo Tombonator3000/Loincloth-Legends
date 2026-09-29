@@ -11,6 +11,7 @@ import { TouchControls } from '../ui/touch';
 import { Splash, wantSplash } from '../ui/splash';
 import { settings, setSettings, onSettings, touchEnabled, GORE_NAMES, GORE_HINTS, QUALITY_SETTINGS, QUALITY_HINTS, type GoreLevel, type TouchMode, type QualitySetting } from '../core/settings';
 import { PostFX, autoQuality, type Quality } from '../gfx/post';
+import { skyLight } from '../gfx/envlight';
 import { wind } from '../gfx/wind';
 import { W } from '../game/world';
 import { Stage } from '../game/stage';
@@ -269,6 +270,8 @@ export class Game {
     // make() kan ha satt W.env; TypeScript tror den fortsatt er null her
     const env = (W as { env: Env | null }).env;
     this.post.setGrade(this.scene.grade ?? env?.grade ?? {}, true);
+    // Himmelen blir lyskilde for PBR-materialene (refleksjoner og omgivelseslys, gfx/envlight.ts)
+    skyLight(this.renderer, W.scene);
   }
 
   private menuMode() {

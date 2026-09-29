@@ -1,56 +1,68 @@
 // Felles byggeklosser for 3D-miljøene: materialer, konturer, teksturer, himmel, sol med skygger og rekvisitter.
 import * as THREE from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import { Sky } from 'three/addons/objects/Sky.js';
+import { valueNoise3, fbm3 } from '../noise';
 import { plainCanvas, unitCanvas, INK, shade } from '../draw';
 import { rand, pick } from '../../core/math';
 import type { Gore } from '../gore';
 import { images } from '../assets';
 import type { Grade } from '../post';
 import { SunShadow } from './sun';
+import { withSurface, type SurfaceOpts } from './surface';
+import { groundTexture, roadTexture, stoneTexture, tileTexture, sandTexture, woodTexture, lavaRockTexture, imageTexture } from './textures';
 
 // ---------------------------------------------------------------- materialer
 /**
- * Stilisert, lyssatt materiale for miljøet (mykt lys, skygger, tåke). Tidligere et trestegs toon-materiale,
- * derav navnet. Emisjon gis HDR-styrke så bloom tar den (gfx/post.ts).
+ * Realistisk, lyssatt materiale for miljøet (PBR med skygger og tåke). Teksturer fra textures.ts har med seg
+ * normalkart (og lavastein et glødekart) som tas i bruk automatisk, og alt får triplanar overflatedetalj
+ * (surface.ts) med mindre surf er false. Emisjon gis HDR-styrke så bloom tar den (gfx/post.ts).
  */
-export function lit(p: THREE.MeshStandardMaterialParameters = {}) {
-  return new THREE.MeshStandardMaterial({ roughness: 0.86, metalness: 0, ...p });
+export function lit(p: THREE.MeshStandardMaterialParameters = {}, surf: SurfaceOpts | false = {}) {
+  const m = new THREE.MeshStandardMaterial({ roughness: 0.86, metalness: 0, ...p });
+  const map = p.map as THREE.Texture | null | undefined;
+  if (map?.userData.normalMap && !p.normalMap) m.normalMap = map.userData.normalMap as THREE.Texture;
+  if (map?.userData.emissiveMap && !p.emissiveMap) {
+    m.emissiveMap = map.userData.emissiveMap as THREE.Texture;
+    m.emissive.set('#ffffff');
+    m.emissiveIntensity = EMISSIVE_BOOST;
+  }
+  if (surf) withSurface(m, surf);
+  return m;
 }
 export const EMISSIVE_BOOST = 2.4;
 const matCache = new Map<string, THREE.MeshStandardMaterial>();
+/** Materialer med tekstur hører til teksturkopien (hvert brett får egne kopier, se share()) og ryddes med den. */
+const mapMats = new WeakMap<THREE.Texture, Map<string, THREE.MeshStandardMaterial>>();
 export function toon(color: string, map?: THREE.Texture, emissive?: string) {
-  const k = color + (map ? map.uuid : '') + (emissive ?? '');
-  let m = matCache.get(k);
+  let cache = matCache;
+  if (map) {
+    let c = mapMats.get(map);
+    if (!c) mapMats.set(map, (c = new Map()));
+    cache = c;
+    // Et bilde fra manifestet har egne farger; fargen fra kallstedet ville bare gjort det mørkere
+    if (map.userData.ownColor) color = '#ffffff';
+  }
+  const k = color + (emissive ?? '');
+  let m = cache.get(k);
   if (!m) {
     m = lit({ color, map: map ?? null });
     if (emissive) {
       m.emissive = new THREE.Color(emissive);
       m.emissiveIntensity = EMISSIVE_BOOST;
     }
-    matCache.set(k, m);
+    cache.set(k, m);
   }
   return m;
 }
-export const inkMat = new THREE.MeshBasicMaterial({ color: INK, side: THREE.BackSide });
-
-/** Legg til konturskall (invertert skrog) på et mesh med sentrert geometri. */
-export function outline(mesh: THREE.Mesh, t = 0.05) {
-  const o = new THREE.Mesh(mesh.geometry, inkMat);
-  const s = mesh.scale;
-  o.scale.set(1 + t / Math.max(0.2, s.x), 1 + t / Math.max(0.2, s.y), 1 + t / Math.max(0.2, s.z));
-  mesh.add(o);
-  return mesh;
-}
-
-/** Toon-mesh med kontur. */
-export function M(geo: THREE.BufferGeometry, color: string, x = 0, y = 0, z = 0, ol = 0.05, map?: THREE.Texture, emissive?: string) {
+/**
+ * Mesh med realistisk materiale. Den sjette parameteren var tykkelsen på en svart kontur (invertert skrog).
+ * Konturene er fjernet fordi 3D-en skal se ekte ut, ikke tegnet (docs/STYLE_TARGET.md), men plassen er
+ * beholdt så kallstedene slipper å endres.
+ */
+export function M(geo: THREE.BufferGeometry, color: string, x = 0, y = 0, z = 0, _outline = 0, map?: THREE.Texture, emissive?: string) {
   const m = new THREE.Mesh(geo, toon(color, map, emissive));
   m.position.set(x, y, z);
-  if (ol > 0) {
-    const o = new THREE.Mesh(geo, inkMat);
-    o.scale.setScalar(1 + ol);
-    m.add(o);
-  }
   return m;
 }
 
@@ -64,149 +76,104 @@ export function canvasTex(cv: HTMLCanvasElement | HTMLImageElement, repeat = tru
 }
 
 // ---------------------------------------------------------------- teksturer
-export function speckle(c: CanvasRenderingContext2D, w: number, h: number, cols: string[], n: number, r0: number, r1: number) {
-  for (let i = 0; i < n; i++) {
-    c.fillStyle = pick(cols);
-    c.beginPath();
-    c.ellipse(rand(0, w), rand(0, h), rand(r0, r1), rand(r0, r1) * 0.6, rand(0, 3), 0, Math.PI * 2);
-    c.fill();
+/** Jord, gress eller snø (se textures.ts). Samme tekstur gjenbrukes for samme farger. */
+const texCache = new Map<string, THREE.Texture>();
+/** Kopi som deler bildedata (og GPU-teksturen) med originalen, men har egen repeat og offset. */
+function share(t: THREE.Texture) {
+  // clone() kopierer userData via JSON, og det tåler ikke teksturene som ligger der
+  const ud = t.userData;
+  t.userData = {};
+  const c = t.clone();
+  t.userData = ud;
+  for (const k of ['normalMap', 'emissiveMap']) {
+    const src = ud[k] as THREE.Texture | undefined;
+    if (!src) continue;
+    const m = src.clone();
+    m.repeat = c.repeat;
+    m.offset = c.offset;
+    c.userData[k] = m;
   }
+  return c;
 }
+const cached = (key: string, make: () => THREE.Texture) => {
+  let t = texCache.get(key);
+  if (!t) texCache.set(key, (t = make()));
+  return share(t);
+};
 
-/** Bakke med flekker og strå. */
-export const groundTex = (base: string, specks: string[], blade: string | null, blades = 140) =>
-  canvasTex(plainCanvas(256, 256, (c) => {
-    c.fillStyle = base;
-    c.fillRect(0, 0, 256, 256);
-    speckle(c, 256, 256, specks, 260, 4, 14);
-    if (blade) {
-      c.strokeStyle = blade;
-      c.lineWidth = 2;
-      for (let i = 0; i < blades; i++) {
-        const x = rand(0, 256), y = rand(0, 256);
-        c.beginPath();
-        c.moveTo(x, y);
-        c.lineTo(x + rand(-3, 3), y - rand(5, 10));
-        c.stroke();
-      }
-    }
-  }));
+/**
+ * Tekstur fra manifestet ("textures" i public/assets/manifest.json) når den finnes, ellers den prosedyrelagde.
+ * Navnene og hva bildene skal vise står i docs/ART_PROMPTS.md. fringe gir veikant, glow gir glødende lava, og
+ * tint lar fargen fra kallstedet tone bildet (ellers vises bildet i sine egne farger).
+ */
+export function texFile(name: string, fallback: () => THREE.Texture, opt: { fringe?: boolean; glow?: boolean; tint?: boolean } = {}) {
+  const img = images.textures[name];
+  if (!img) return fallback();
+  const t = cached('f:' + name, () => imageTexture(img, opt.fringe, opt.glow));
+  t.userData.ownColor = !opt.tint;
+  return t;
+}
+export const groundTex = (base: string, specks: string[], blade: string | null) =>
+  cached('g' + base + specks.join() + blade, () => groundTexture(base, specks, blade));
 
-/** Veistripe med ujevne kanter (alfa), steiner og hjulspor. */
+/** Grusvei med hjulspor, steiner og ujevn kant. */
 export const roadTex = (base: string, specks: string[], rut: string, stones: string[]) =>
-  canvasTex(plainCanvas(512, 256, (c) => {
-    c.clearRect(0, 0, 512, 256);
-    c.fillStyle = base;
-    c.beginPath();
-    c.moveTo(0, 22);
-    for (let x = 0; x <= 512; x += 16) c.lineTo(x, 14 + Math.sin(x * 0.05) * 8 + rand(0, 8));
-    for (let x = 512; x >= 0; x -= 16) c.lineTo(x, 242 - Math.sin(x * 0.04) * 8 - rand(0, 8));
-    c.closePath();
-    c.fill();
-    c.save();
-    c.clip();
-    speckle(c, 512, 256, specks, 500, 3, 12);
-    c.strokeStyle = rut;
-    c.lineWidth = 10;
-    for (const y of [90, 170]) {
-      c.beginPath();
-      c.moveTo(0, y);
-      for (let x = 0; x <= 512; x += 32) c.lineTo(x, y + Math.sin(x * 0.02) * 4);
-      c.stroke();
-    }
-    for (let i = 0; i < 40; i++) {
-      c.fillStyle = pick(stones);
-      c.strokeStyle = '#3d2c1c';
-      c.lineWidth = 2;
-      c.beginPath();
-      c.ellipse(rand(0, 512), rand(30, 226), rand(3, 7), rand(2, 5), 0, 0, Math.PI * 2);
-      c.fill();
-      c.stroke();
-    }
-    c.restore();
-  }));
+  cached('r' + base + specks.join() + rut + stones.join(), () => roadTexture(base, specks, rut, stones));
 
 export const stoneTex = (base = '#8a8f99', mortar = '#4b4e57', bw = 64, bh = 32) =>
-  canvasTex(plainCanvas(256, 256, (c) => {
-    c.fillStyle = mortar;
-    c.fillRect(0, 0, 256, 256);
-    for (let y = 0; y < 256; y += bh) {
-      const off = (y / bh) % 2 ? bw / 2 : 0;
-      for (let x = -bw; x < 256 + bw; x += bw) {
-        c.fillStyle = shade(base, rand(-0.12, 0.08));
-        c.fillRect(x + off + 3, y + 3, bw - 6, bh - 6);
-        c.fillStyle = 'rgba(255,255,255,0.08)';
-        c.fillRect(x + off + 3, y + 3, bw - 6, 5);
-      }
-    }
-  }));
+  cached('s' + base + mortar + bw + 'x' + bh, () => stoneTexture(base, mortar, bw, bh));
 
-export const tileTex = (base = '#77706a', grout = '#3e3a36') =>
-  canvasTex(plainCanvas(256, 256, (c) => {
-    c.fillStyle = grout;
-    c.fillRect(0, 0, 256, 256);
-    for (let y = 0; y < 256; y += 64)
-      for (let x = 0; x < 256; x += 64) {
-        c.fillStyle = shade(base, rand(-0.15, 0.08));
-        c.fillRect(x + 3, y + 3, 58, 58);
-        c.strokeStyle = 'rgba(0,0,0,0.25)';
-        c.lineWidth = 2;
-        if (Math.random() < 0.4) {
-          c.beginPath();
-          c.moveTo(x + rand(5, 60), y + 5);
-          c.lineTo(x + rand(5, 60), y + rand(30, 60));
-          c.stroke();
-        }
-      }
-  }));
+export const tileTex = (base = '#77706a', grout = '#3e3a36') => cached('t' + base + grout, () => tileTexture(base, grout));
 
 export const sandTex = (base = '#b89a6a', specks = ['#a88a5a', '#c7aa7a', '#9e8050']) =>
-  canvasTex(plainCanvas(256, 256, (c) => {
-    c.fillStyle = base;
-    c.fillRect(0, 0, 256, 256);
-    speckle(c, 256, 256, specks, 400, 2, 8);
-  }));
+  cached('d' + base + specks.join(), () => sandTexture(base, specks));
 
-export const woodTex = () =>
-  canvasTex(plainCanvas(128, 256, (c) => {
-    c.fillStyle = '#7a5230';
-    c.fillRect(0, 0, 128, 256);
-    c.strokeStyle = '#5a3a20';
-    c.lineWidth = 3;
-    for (let i = 0; i < 12; i++) {
-      c.beginPath();
-      const x = rand(0, 128);
-      c.moveTo(x, 0);
-      c.bezierCurveTo(x + rand(-10, 10), 80, x + rand(-10, 10), 170, x + rand(-8, 8), 256);
-      c.stroke();
-    }
-  }));
+export const woodTex = () => cached('w', () => woodTexture());
 
 /** Svart stein med glødende lavasprekker. */
-export const lavaRockTex = () =>
-  canvasTex(plainCanvas(256, 256, (c) => {
-    c.fillStyle = '#2a2226';
-    c.fillRect(0, 0, 256, 256);
-    speckle(c, 256, 256, ['#3a3036', '#1e181c', '#44383e'], 200, 4, 14);
-    for (let i = 0; i < 9; i++) {
-      let x = rand(0, 256), y = rand(0, 256);
-      c.beginPath();
-      c.moveTo(x, y);
-      for (let k = 0; k < 6; k++) {
-        x += rand(-30, 30);
-        y += rand(-30, 30);
-        c.lineTo(x, y);
-      }
-      c.strokeStyle = 'rgba(255,120,20,0.35)';
-      c.lineWidth = 8;
-      c.stroke();
-      c.strokeStyle = '#ff7a1a';
-      c.lineWidth = 3;
-      c.stroke();
-    }
-  }));
+export const lavaRockTex = () => cached('l', () => lavaRockTexture());
 
 // ---------------------------------------------------------------- himmel og skyer
+export interface Atmosphere {
+  /** Retning mot sola på himmelen (kan være lavere enn lyset for et solnedgangspreg). */
+  sun: [number, number, number];
+  turbidity: number;
+  rayleigh: number;
+  mie?: number;
+  mieG?: number;
+  /** Skydekke 0 til 1 og tetthet. */
+  clouds?: number;
+  cloudDensity?: number;
+  /** Lysstyrke (himmelen er laget for eksponering rundt 0.5). */
+  gain?: number;
+}
+
+/**
+ * Fysisk basert himmel (spredning i atmosfæren etter Preetham, med prosedyreskyer) fra three sine tillegg.
+ * Den ligger alltid bakerst og følger kameraet.
+ */
+export function physicalSky(a: Atmosphere) {
+  const s = new Sky();
+  s.scale.setScalar(4000);
+  const mat = s.material as THREE.ShaderMaterial;
+  const u = mat.uniforms;
+  u.turbidity.value = a.turbidity;
+  u.rayleigh.value = a.rayleigh;
+  u.mieCoefficient.value = a.mie ?? 0.005;
+  u.mieDirectionalG.value = a.mieG ?? 0.8;
+  (u.sunPosition.value as THREE.Vector3).set(...a.sun).normalize();
+  u.cloudCoverage.value = a.clouds ?? 0.4;
+  u.cloudDensity.value = a.cloudDensity ?? 0.45;
+  u.skyGain = { value: a.gain ?? 0.55 };
+  mat.fragmentShader = mat.fragmentShader
+    .replace('uniform float time;', 'uniform float time;\nuniform float skyGain;')
+    .replace('gl_FragColor = vec4( texColor, 1.0 );', 'gl_FragColor = vec4( texColor * skyGain, 1.0 );');
+  s.renderOrder = -10;
+  s.frustumCulled = false;
+  s.userData.sky = true;
+  return s;
+}
+
 export function sky(top: string, mid: string, bottom: string, biome?: string) {
   const img = biome ? images.sky[biome] : undefined;
   if (img) {
@@ -273,6 +240,8 @@ export interface Look {
   clouds?: string;
   sunDisk?: string;
   biome?: string;
+  /** Fysisk himmel i stedet for fargeovergangen (dagbrettene). */
+  atmosphere?: Atmosphere;
 }
 
 /** Himmel, lys, bakke og vei. Returnerer gruppen og en liste med oppdateringsfunksjoner. */
@@ -280,8 +249,23 @@ export function stageBase(scene: THREE.Scene, length: number, look: Look) {
   const g = new THREE.Group();
   const updates: ((dt: number, t: number, camX: number) => void)[] = [];
   scene.background = new THREE.Color(look.bg);
-  scene.fog = new THREE.Fog(look.fog[0], look.fog[1], look.fog[2]);
-  g.add(sky(look.sky[0], look.sky[1], look.sky[2], look.biome));
+  // Eksponentiell tåke gir luftperspektiv som i virkeligheten: tettere jo lenger unna
+  scene.fog = new THREE.FogExp2(look.fog[0], 1.25 / look.fog[2]);
+  // Et himmelbilde fra manifestet går foran den fysiske himmelen
+  const atmo = look.biome && images.sky[look.biome] ? undefined : look.atmosphere;
+  if (atmo) {
+    const s = physicalSky(atmo);
+    g.add(s);
+    const su = (s.material as THREE.ShaderMaterial).uniforms;
+    updates.push((dt, _t, camX) => {
+      su.time.value += dt;
+      s.position.x = camX;
+    });
+  } else {
+    const sk = sky(look.sky[0], look.sky[1], look.sky[2], look.biome);
+    sk.userData.sky = true;
+    g.add(sk);
+  }
   const hemi = new THREE.HemisphereLight(look.hemi[0], look.hemi[1], look.hemi[2]);
   const sun = new THREE.DirectionalLight(look.sun[0], look.sun[1]);
   g.add(hemi);
@@ -302,9 +286,10 @@ export function stageBase(scene: THREE.Scene, length: number, look: Look) {
   road.userData.noCast = true;
   g.add(road);
 
-  if (look.sunDisk) {
+  if (look.sunDisk && !atmo) {
     // Sola følger kameraet (den er uendelig langt unna) og lyser sterkt nok til å gi bloom
     const sd = new THREE.Mesh(new THREE.CircleGeometry(9, 32), new THREE.MeshBasicMaterial({ color: new THREE.Color(look.sunDisk).multiplyScalar(2.2), fog: false }));
+    sd.userData.sky = true;
     const dx = look.sunDir ? look.sunDir[0] / Math.max(0.2, -look.sunDir[2]) * 160 : 40;
     sd.position.set(dx, 20, -160);
     g.add(sd);
@@ -312,7 +297,7 @@ export function stageBase(scene: THREE.Scene, length: number, look: Look) {
       sd.position.x = camX + dx;
     });
   }
-  if (look.clouds) {
+  if (look.clouds && !atmo) {
     const cloudT = canvasTex(cloudCanvas(look.clouds), false);
     const clouds: THREE.Mesh[] = [];
     for (let i = 0; i < Math.ceil(length / 16) + 4; i++) {
@@ -340,10 +325,6 @@ export function applyShadows(root: THREE.Object3D) {
     const m = o as THREE.Mesh;
     if (!m.isMesh) return;
     const mat = (Array.isArray(m.material) ? m.material[0] : m.material) as THREE.Material & { alphaTest?: number; transparent?: boolean };
-    if (mat === inkMat) {
-      m.castShadow = m.receiveShadow = false;
-      return;
-    }
     const isLit = (mat as THREE.MeshStandardMaterial).isMeshStandardMaterial || (mat as THREE.MeshLambertMaterial).isMeshLambertMaterial;
     m.receiveShadow = !!isLit;
     if (m.userData.noCast || mat.transparent) return;
@@ -381,7 +362,8 @@ export function mergeStatic(g: THREE.Group, chunk = 30) {
   const m4 = new THREE.Matrix4();
   for (const m of meshes) {
     const geo = m.geometry.index ? m.geometry.toNonIndexed() : m.geometry.clone();
-    for (const k of Object.keys(geo.attributes)) if (k !== 'position' && k !== 'normal' && k !== 'uv') geo.deleteAttribute(k);
+    // Farger beholdes (steiner og hodeskaller bruker toppunktfarger, og de ligger i egne materialbøtter)
+    for (const k of Object.keys(geo.attributes)) if (k !== 'position' && k !== 'normal' && k !== 'uv' && k !== 'color') geo.deleteAttribute(k);
     if (!geo.getAttribute('uv')) geo.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(geo.getAttribute('position').count * 2), 2));
     geo.applyMatrix4(m4.multiplyMatrices(inv, m.matrixWorld));
     geo.computeBoundingBox();
@@ -472,15 +454,56 @@ export function foreground(g: THREE.Group, length: number, kinds: FgProp[] = ['s
 }
 
 // ---------------------------------------------------------------- rekvisitter
+/**
+ * Fjellkjede i det fjerne: en lang stripe formet med rygget fraktalstøy (skarpe kammer og daler), høyest i
+ * midten av stripa. Farget etter høyde og helning (stein, mørke kløfter, snø på toppene når cap er satt).
+ * Tåka gjør den blå og disig på avstand.
+ */
 export function mountains(g: THREE.Group, length: number, cols: string[], cap: string | null, z = -110, hMin = 10, hMax = 22) {
-  for (let i = 0; i < Math.ceil(length / 7) + 6; i++) {
-    const h = rand(hMin, hMax);
-    const r = rand(12, 22);
-    const m = M(new THREE.ConeGeometry(r, h, 6), pick(cols), i * 14 - 40 + rand(-5, 5), h / 2 - 2, z + rand(-10, 8), 0.02);
-    m.rotation.y = rand(0, 3);
-    g.add(m);
-    if (cap) m.add(M(new THREE.ConeGeometry(r * 0.3, h * 0.3, 6), cap, 0, h * 0.35, 0, 0));
+  const W = length + 420, D = 60, nx = 240, nz = 24;
+  const geo = new THREE.PlaneGeometry(W, D, nx, nz);
+  geo.rotateX(-Math.PI / 2);
+  const pos = geo.getAttribute('position') as THREE.BufferAttribute;
+  const n3 = valueNoise3(Math.floor(rand(1, 999)));
+  const ridged = (x: number, y: number) => {
+    let sum = 0, amp = 1, f = 1, norm = 0;
+    for (let o = 0; o < 5; o++) {
+      const v = 1 - Math.abs(n3(x * f, y * f, 0.5) * 2 - 1);
+      sum += v * v * amp;
+      norm += amp;
+      amp *= 0.5;
+      f *= 2.1;
+    }
+    return sum / norm;
+  };
+  const base = cols.map((c) => new THREE.Color(c));
+  const snow = cap ? new THREE.Color(cap) : null;
+  const col: number[] = [];
+  const heights = new Float32Array(pos.count);
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), zz = pos.getZ(i);
+    const across = 1 - Math.pow(Math.abs(zz) / (D / 2), 1.6);
+    const r = ridged(x / 38, zz / 38);
+    const h = (hMin + (hMax - hMin) * r) * Math.max(0, across) * (0.75 + 0.5 * n3(x / 90, 3.1, 0.2));
+    heights[i] = h;
+    pos.setY(i, h);
   }
+  geo.computeVertexNormals();
+  const nrm = geo.getAttribute('normal') as THREE.BufferAttribute;
+  const c = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) {
+    const h = heights[i], ny = nrm.getY(i);
+    c.copy(base[Math.floor(n3(pos.getX(i) / 25, 7.7, 1.3) * base.length * 0.999)]);
+    // Bratte flater og kløfter er mørkere, snø legger seg der det er høyt og slakt nok
+    c.multiplyScalar(0.55 + ny * 0.5);
+    if (snow && h > hMin + (hMax - hMin) * 0.45 && ny > 0.55) c.lerp(snow, Math.min(1, (h - (hMin + (hMax - hMin) * 0.45)) / 4) * 0.9);
+    col.push(c.r, c.g, c.b);
+  }
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  const m = new THREE.Mesh(geo, lit({ vertexColors: true, roughness: 0.95 }, { scale: 0.08, normal: 0.8, albedo: 0.35 }));
+  m.position.set(length / 2, -2.5, z);
+  m.userData.noCast = true;
+  g.add(m);
 }
 
 export function stakeWall(g: THREE.Group, x0: number, x1: number, z: number, gaps: [number, number][] = [], cols = ['#7a5230', '#6b4526', '#855a36']) {
@@ -495,32 +518,130 @@ export function stakeWall(g: THREE.Group, x0: number, x1: number, z: number, gap
   }
 }
 
+// ---------------------------------------------------------------- stein og bein i 3D
+let rockGeos: THREE.BufferGeometry[] | null = null;
+/** Fire kampesteiner: ikosaeder formet med 3D-støy, flat under, mørkere i gropene (toppunktfarger). */
+function rockGeometries() {
+  if (rockGeos) return rockGeos;
+  const n3 = valueNoise3(11);
+  rockGeos = [0, 1, 2, 3].map((k) => {
+    const g = new THREE.IcosahedronGeometry(1, 3);
+    const pos = g.getAttribute('position') as THREE.BufferAttribute;
+    const col: number[] = [];
+    const v = new THREE.Vector3();
+    const sx = 1 + k * 0.12, sy = 0.6 + (k % 2) * 0.14, sz = 0.85 + (k % 3) * 0.1;
+    for (let i = 0; i < pos.count; i++) {
+      v.fromBufferAttribute(pos, i).normalize();
+      const big = fbm3(n3, v.x * 1.3 + k * 7, v.y * 1.3, v.z * 1.3, 3);
+      const fine = fbm3(n3, v.x * 5 + k * 3, v.y * 5, v.z * 5, 3);
+      v.multiplyScalar(0.72 + big * 0.5 + fine * 0.12);
+      v.set(v.x * sx, v.y * sy, v.z * sz);
+      // Flat bunn der steinen ligger i bakken
+      if (v.y < -0.22) v.y = -0.22 + (v.y + 0.22) * 0.2;
+      pos.setXYZ(i, v.x, v.y, v.z);
+      const cav = 0.55 + fine * 0.55;
+      col.push(cav, cav, cav * 0.97);
+    }
+    g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+    g.deleteAttribute('normal');
+    g.deleteAttribute('uv');
+    const m = mergeVertices(g, 1e-4);
+    m.computeVertexNormals();
+    return m;
+  });
+  return rockGeos;
+}
+
+const colorMats = new Map<string, THREE.MeshStandardMaterial>();
+/** Materiale med toppunktfarger (stein, bein), delt per farge og ruhet. */
+function vcMat(color: string, roughness: number, surf: SurfaceOpts) {
+  const k = color + roughness;
+  let m = colorMats.get(k);
+  if (!m) colorMats.set(k, (m = lit({ color, vertexColors: true, roughness }, surf)));
+  return m;
+}
+
 export function rock(g: THREE.Group, x: number, z: number, size: number, cols = ['#8a8378', '#77706a', '#9a9288']) {
-  const r = M(new THREE.DodecahedronGeometry(size, 0), pick(cols), x, size * 0.4, z, 0.06);
-  r.rotation.set(rand(0, 3), rand(0, 3), 0);
+  const r = new THREE.Mesh(pick(rockGeometries()), vcMat(pick(cols), 0.92, { scale: 1.3, normal: 1.1, albedo: 0.55 }));
+  r.position.set(x, size * 0.16, z);
+  r.scale.setScalar(size);
+  r.rotation.y = rand(0, Math.PI * 2);
   staticGroup(g).add(r);
   return r;
 }
 
-let skullMatCache: THREE.MeshBasicMaterial | null = null;
-export function skullMat() {
-  if (!skullMatCache) {
-    const t = canvasTex(unitCanvas(0.6, 0.6, 0.3, 0.3, 100, (p) => {
-      p.blob([-0.2, -0.1, -0.22, 0.12, 0, 0.24, 0.22, 0.12, 0.2, -0.1, 0.08, -0.2, -0.08, -0.2], '#efe8d2');
-      p.ell(-0.08, 0.02, 0.06, 0.07, INK, false);
-      p.ell(0.08, 0.02, 0.06, 0.07, INK, false);
-      p.line([-0.06, -0.14, 0.06, -0.14], 0.02);
-    }), false);
-    skullMatCache = new THREE.MeshBasicMaterial({ map: t, alphaTest: 0.5 });
+let skullGeo: THREE.BufferGeometry | null = null;
+/**
+ * Hodeskalle i 3D: en ikosaeder formet til hjerneskalle og ansikt, med øyehuler, nesehule, kinnbein og
+ * tannrad. Hulene er trykket inn og mørke i toppunktfargene. Størrelse omtrent 2 enheter før skalering.
+ */
+function skullGeometry() {
+  if (skullGeo) return skullGeo;
+  const g = new THREE.IcosahedronGeometry(1, 4);
+  const pos = g.getAttribute('position') as THREE.BufferAttribute;
+  const col: number[] = [];
+  const v = new THREE.Vector3();
+  const eyes = [new THREE.Vector3(0.36, 0.0, 0.93).normalize(), new THREE.Vector3(-0.36, 0.0, 0.93).normalize()];
+  const nose = new THREE.Vector3(0, -0.3, 0.95).normalize();
+  const n3 = valueNoise3(5);
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i).normalize();
+    let r = 1;
+    let shade = 1;
+    // Hjerneskallen er lengre bakover, ansiktet smalner mot kjeven
+    r += Math.max(0, -v.z) * 0.14 + Math.max(0, v.y) * 0.05;
+    for (const e of eyes) {
+      const d = v.angleTo(e);
+      if (d < 0.38) {
+        const k = 1 - d / 0.38;
+        r -= k * k * 0.34;
+        shade = Math.min(shade, 0.12 + (1 - k * k) * 0.88);
+      }
+    }
+    const dn = v.angleTo(nose);
+    if (dn < 0.2) {
+      const k = 1 - dn / 0.2;
+      r -= k * 0.24;
+      shade = Math.min(shade, 0.18 + (1 - k) * 0.82);
+    }
+    // Tennene: en rad med mørke mellomrom nederst foran
+    if (v.z > 0.5 && v.y < -0.4 && v.y > -0.66) {
+      const t = Math.sin(Math.atan2(v.x, v.z) * 30);
+      if (t > 0.55) shade = Math.min(shade, 0.35);
+      r -= 0.04;
+    }
+    let x = v.x * r, y = v.y * r, z = v.z * r;
+    const below = Math.max(0, -y - 0.2);
+    x *= 0.82 - below * 0.35;
+    z += below * 0.25 * Math.max(0, v.z);
+    if (y < -0.72) y = -0.72 + (y + 0.72) * 0.3;
+    // Litt ujevn, gammel bein
+    const bump = (fbm3(n3, v.x * 6, v.y * 6, v.z * 6, 3) - 0.5) * 0.04;
+    pos.setXYZ(i, x * (1 + bump), y * (1 + bump), z * 0.95 * (1 + bump));
+    const age = 0.82 + fbm3(n3, v.x * 3 + 9, v.y * 3, v.z * 3, 3) * 0.3;
+    col.push(shade * age, shade * age * 0.97, shade * age * 0.9);
   }
-  return skullMatCache;
+  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.deleteAttribute('normal');
+  g.deleteAttribute('uv');
+  skullGeo = mergeVertices(g, 1e-4);
+  skullGeo.computeVertexNormals();
+  return skullGeo;
+}
+
+/** En hodeskalle i 3D. size er bredden i verdensenheter. Vendes mot kameraet med litt tilfeldig vinkel. */
+export function skull3D(size = 0.3) {
+  const m = new THREE.Mesh(skullGeometry(), vcMat('#e2d6bc', 0.55, { scale: 4, normal: 0.8, albedo: 0.5 }));
+  m.scale.setScalar(size * 0.6);
+  m.rotation.set(rand(-0.15, 0.25), rand(-0.45, 0.45), rand(-0.12, 0.12));
+  return m;
 }
 
 export function skullPike(g: THREE.Group, gore: Gore, x: number, z: number) {
   const sg = staticGroup(g);
-  sg.add(M(new THREE.CylinderGeometry(0.06, 0.06, 2.6, 5), '#5a3a20', x, 1.3, z, 0.08));
-  const sk = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.7), skullMat());
-  sk.position.set(x, 2.7, z + 0.08);
+  sg.add(M(new THREE.CylinderGeometry(0.035, 0.06, 2.6, 6), '#5a3a20', x, 1.3, z));
+  const sk = skull3D(0.32);
+  sk.position.set(x, 2.66, z + 0.02);
   sg.add(sk);
   gore.stain(x, z + 0.3, 0.5);
 }
@@ -564,21 +685,22 @@ export function arrows(g: THREE.Group, length: number, n = 40) {
 
 /** Port i bakgrunnen på slutten av et brett (duell-finale). */
 export function endGate(g: THREE.Group, gore: Gore, x: number, title: string, sub: string, stone = '#6e6670', roof = '#5b2a86') {
-  const st = stoneTex(stone, shade(stone, -0.45), 64, 32);
+  const st = texFile('wall_gate', () => stoneTex(stone, shade(stone, -0.45), 64, 32), { tint: true });
   st.repeat.set(1, 3);
   for (const dx of [-3.4, 3.4]) {
     const tw = M(new THREE.CylinderGeometry(1.5, 1.7, 9, 8), stone, x + dx, 4.5, -5.2, 0.05, st);
     tw.add(M(new THREE.ConeGeometry(2.1, 3, 8), roof, 0, 6, 0, 0.05));
     g.add(tw);
   }
-  const archT = stoneTex(stone, shade(stone, -0.45), 64, 32);
+  const archT = texFile('wall_gate', () => stoneTex(stone, shade(stone, -0.45), 64, 32), { tint: true });
   archT.repeat.set(3, 1);
   g.add(M(new THREE.BoxGeometry(7, 1.8, 2), stone, x, 7.2, -5.2, 0.04, archT));
   const hole = new THREE.Mesh(new THREE.PlaneGeometry(5.2, 6.3), new THREE.MeshBasicMaterial({ color: '#120808' }));
   hole.position.set(x, 3.15, -4.3);
   g.add(hole);
-  const bigSkull = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 2.2), skullMat());
-  bigSkull.position.set(x, 7.3, -4.1);
+  const bigSkull = skull3D(1.4);
+  bigSkull.rotation.set(0.1, 0, 0);
+  bigSkull.position.set(x, 7.3, -3.7);
   g.add(bigSkull);
   const signT = canvasTex(plainCanvas(512, 128, (c) => {
     c.fillStyle = '#3a2616';

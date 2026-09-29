@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { unitCanvas } from '../draw';
 import { rand } from '../../core/math';
 import { FIRE, ICEFIRE, GHOSTFIRE, type Gore } from '../gore';
-import { applyShadows, lit, M, toon, sky, stoneTex, tileTex, sandTex, canvasTex, skullMat, type Env } from './common';
+import { applyShadows, lit, M, toon, sky, stoneTex, tileTex, sandTex, texFile, canvasTex, skull3D, type Env } from './common';
 import { vorthaxSprite, princessSprite, crowdTex } from './sprites';
 import { GRADES } from './grades';
 import { SunShadow } from './sun';
@@ -42,13 +42,13 @@ export function buildArena(scene: THREE.Scene, gore: Gore, theme: ArenaTheme = '
   g.add(hemi);
   new SunShadow(g, key, new THREE.Vector3(4, 18, 12), 16, 12).update(0, -2);
 
-  const ft = tileTex(T.floor[0], T.floor[1]);
+  const ft = texFile('floor_arena-' + theme, () => tileTex(T.floor[0], T.floor[1]));
   ft.repeat.set(7, 7);
   const floor = new THREE.Mesh(new THREE.CircleGeometry(15, 48), toon('#ffffff', ft));
   floor.rotation.x = -Math.PI / 2;
   floor.position.z = -3;
   g.add(floor);
-  const st = sandTex(T.sand[0], T.sand[1]);
+  const st = texFile('sand_arena-' + theme, () => sandTex(T.sand[0], T.sand[1]));
   st.repeat.set(4, 4);
   const sand = new THREE.Mesh(new THREE.CircleGeometry(9.5, 40), toon('#ffffff', st));
   sand.rotation.x = -Math.PI / 2;
@@ -56,7 +56,7 @@ export function buildArena(scene: THREE.Scene, gore: Gore, theme: ArenaTheme = '
   sand.scale.set(1, 0.55, 1);
   g.add(sand);
 
-  const wt = stoneTex(T.wall[0], T.wall[1], 64, 40);
+  const wt = texFile('wall_arena-' + theme, () => stoneTex(T.wall[0], T.wall[1], 64, 40));
   wt.repeat.set(10, 1);
   const wall = new THREE.Mesh(new THREE.CylinderGeometry(13, 13, 3.4, 40, 1, true, Math.PI * 0.5 + 0.05, Math.PI - 0.1), lit({ map: wt, side: THREE.BackSide }));
   wall.position.set(0, 1.7, -3);
@@ -65,8 +65,8 @@ export function buildArena(scene: THREE.Scene, gore: Gore, theme: ArenaTheme = '
   if (theme === 'bone') {
     for (let i = 0; i < 60; i++) {
       const a = Math.PI * (0.08 + (i / 60) * 0.84);
-      const sk = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.7), skullMat());
-      sk.position.set(Math.cos(a) * 12.85, 0.5 + (i % 4) * 0.8, -3 - Math.sin(a) * 12.85);
+      const sk = skull3D(0.34);
+      sk.position.set(Math.cos(a) * 12.7, 0.5 + (i % 4) * 0.8, -3 - Math.sin(a) * 12.7);
       sk.lookAt(0, sk.position.y, -3);
       g.add(sk);
     }
@@ -92,7 +92,7 @@ export function buildArena(scene: THREE.Scene, gore: Gore, theme: ArenaTheme = '
   }
 
   const fireSpots: THREE.Vector3[] = [];
-  const pt = stoneTex(T.pillar[0], T.pillar[1], 64, 32);
+  const pt = texFile('pillar_arena-' + theme, () => stoneTex(T.pillar[0], T.pillar[1], 64, 32));
   pt.repeat.set(1, 2);
   for (const ang of [0.2, 0.38, 0.62, 0.8]) {
     const a = Math.PI * ang;

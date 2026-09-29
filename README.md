@@ -6,7 +6,7 @@ Et spill fra **Tom's Happy Happy Funtimes Emporium**.
 
 2.5D fantasy-brawler i nettleseren. Castle Crashers og Golden Axe møter Barbarian: sidescroller-brett med horder av fiender, ridedyr og farer, og mellom brettene en brutal 1v1 duell der ett riktig hugg tar hodet av motstanderen. 80-talls klisjeer, humor og altfor mye blod.
 
-Laget med Three.js og TypeScript. All grafikk tegnes prosedyremessig på canvas og all lyd syntetiseres, så prosjektet trenger ingen asset-filer (bortsett fra studiologoen). PNG-grafikk fra ChatGPT kan byttes inn del for del.
+Laget med Three.js og TypeScript. All grafikk lages i kode og all lyd syntetiseres, så prosjektet trenger ingen asset-filer (bortsett fra studiologoen). PNG-grafikk fra ChatGPT kan byttes inn del for del (figurer i nesten ekte karikaturstil og teksturer til 3D-verdenen, se `docs/ART_PROMPTS.md`).
 
 Repo: https://github.com/Tombonator3000/Loincloth-Legends
 
@@ -26,7 +26,7 @@ npm run typecheck
 
 - **Oppstartslogo** for Tom's Happy Happy Funtimes Emporium: trommevirvel, sirkusfanfare, solstråler og konfetti.
 - **Hero Forge**: lag din egen helt (mann eller dame) fra deler. Heroiske 80-talls kropper med altfor store muskler, ringbrynjebikini, røde støvler og bittesmå lendeklær.
-- **Grafikk**: HDR-bilde med bloom, dybdeskarphet og fargegradering per brett, myke skygger, 3D-trær og gress i vinden, GPU-partikler, lyn og eksplosjoner, blod som lander og tørker inn, 3D-gibs, figurer som tar lys fra fakler og lyn, og mørke silhuetter i forgrunnen. Fem grafikknivåer (AUTO til ULTRA).
+- **Grafikk**: HDR-bilde med bloom, SSAO, dybdeskarphet og fargegradering per brett, fysisk himmel med miljølys, eksponentiell tåke, støyteksturer med normalkart, 3D-steiner og hodeskaller, myke skygger, 3D-trær og gress i vinden, GPU-partikler, lyn og eksplosjoner, blod som lander og tørker inn, 3D-gibs, figurer som tar lys fra fakler og lyn, og mørke silhuetter i forgrunnen. Fem grafikknivåer (AUTO til ULTRA).
 - **Heavy metal**: 80-talls metal syntetisert i nettleseren (vrengte gitarer, dobbel stortromme, tvillinggitarer og solo), én låt per brett. De gamle 8-bit-låtene kan velges i innstillingene.
 - **METAL MODE**: drap og lemlestelse fyller en måler. Full måler gir gitarsolo, brennende våpen, hardere slag og lyn som slår ned i fiendene.
 - **Verdenskart** i 3D med fem biomer, stier, låste noder og fremgang som lagres.

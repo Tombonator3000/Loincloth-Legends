@@ -104,20 +104,41 @@ function classify(r: number, g: number, b: number, skins: [number, number, numbe
 }
 
 /**
+ * Malt hud (PNG fra ChatGPT): varm, middels mettet og ikke for mørk. Mørk hud i skygge blir matt, og kobberrødt
+ * hår er for mettet til å regnes som hud. Brunt lær er for mørkt.
+ */
+function paintedSkin(r: number, g: number, b: number) {
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+  if (mx !== r || mx < 115) return false;
+  const sat = (mx - mn) / mx;
+  const hue = 60 * ((g - b) / Math.max(1, mx - mn));
+  return sat > 0.18 && sat < 0.62 && hue > 8 && hue < 45;
+}
+
+/**
  * Lag relieffkart for en tegning: R og G er normalen (tangentrom, y opp), B er glansstyrke, A er glanstype.
  * ppu er piksler per verdensenhet, så avrundingen blir like stor på alle figurer uansett oppløsning.
+ * painted gjelder malte PNG-deler: der er mørke partier skygger og ikke blekkstreker, så volumet kommer fra
+ * omrisset og en svak høyde fra lysheten (ringbrynje, muskler og lær får litt relieff i scenelyset).
  */
-export function reliefTexture(cv: HTMLCanvasElement, ppu: number, skin: string[] = []): THREE.DataTexture {
+export function reliefTexture(cv: HTMLCanvasElement, ppu: number, skin: string[] = [], painted = false): THREE.DataTexture {
   const w = cv.width, h = cv.height, n = w * h;
   const src = cv.getContext('2d')!.getImageData(0, 0, w, h).data;
   const skins = skin.map(hexRgb);
   const edge = new Float64Array(n);
   const grooves = new Float64Array(n);
   const cls = new Float32Array(n * 2);
+  const luma = painted ? new Float32Array(n) : null;
   for (let i = 0; i < n; i++) {
     const a = src[i * 4 + 3];
     const inside = a > 127;
-    const c = inside ? classify(src[i * 4], src[i * 4 + 1], src[i * 4 + 2], skins) : MATTE;
+    const r = src[i * 4], g = src[i * 4 + 1], b = src[i * 4 + 2];
+    let c = inside ? classify(r, g, b, skins) : MATTE;
+    if (luma) {
+      luma[i] = inside ? (0.299 * r + 0.587 * g + 0.114 * b) / 255 : 0;
+      if (c === INKY) c = MATTE;
+      else if (inside && c === MATTE && paintedSkin(r, g, b)) c = SKIN;
+    }
     cls[i * 2] = c[0];
     cls[i * 2 + 1] = c[1];
     edge[i] = inside ? INF : 0;
@@ -131,10 +152,12 @@ export function reliefTexture(cv: HTMLCanvasElement, ppu: number, skin: string[]
   // hele delen så store flater som brystkassa ikke blir helt flate.
   const R1 = 0.085 * ppu, R3 = 0.3 * ppu;
   const hgt = new Float32Array(n);
+  if (luma) blur(luma, w, h, 1);
   for (let i = 0; i < n; i++) {
     const dT = edge[i];
     if (dT <= 0) continue;
     hgt[i] = R1 * 0.9 * dome(grooves[i], R1) + R3 * 0.25 * dome(dT, R3);
+    if (luma) hgt[i] += luma[i] * 0.008 * ppu * Math.min(1, dT / 3);
   }
   blur(hgt, w, h, 2);
 
@@ -195,6 +218,61 @@ export function reliefTexture(cv: HTMLCanvasElement, ppu: number, skin: string[]
   tex.anisotropy = 4;
   tex.needsUpdate = true;
   return tex;
+}
+
+/**
+ * Maleriske konturer: blekkstrekene farges med en mørk utgave av fargen ved siden av, så figuren ser malt ut
+ * i stedet for tegnet med svart tusj (Tom: ikke tegneserie). Tre runder spredning fyller tynne streker helt,
+ * mens tykke blekkflater (pupiller) beholder en mørk kjerne. Kjøres etter reliefTexture, som trenger strekene.
+ */
+export function paintInk(cv: HTMLCanvasElement, darken = 0.36) {
+  const w = cv.width, h = cv.height, n = w * h;
+  const ctx = cv.getContext('2d')!;
+  const img = ctx.getImageData(0, 0, w, h);
+  const d = img.data;
+  const ink = new Uint8Array(n);
+  const has = new Uint8Array(n);
+  const col = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    if (d[i * 4 + 3] < 40) continue;
+    const luma = (0.299 * d[i * 4] + 0.587 * d[i * 4 + 1] + 0.114 * d[i * 4 + 2]) / 255;
+    if (luma < 0.1) ink[i] = 1;
+    else if (d[i * 4 + 3] > 127) {
+      has[i] = 1;
+      col[i * 3] = d[i * 4];
+      col[i * 3 + 1] = d[i * 4 + 1];
+      col[i * 3 + 2] = d[i * 4 + 2];
+    }
+  }
+  for (let pass = 0; pass < 3; pass++) {
+    const grow: number[] = [];
+    for (let y = 0; y < h; y++)
+      for (let x = 0; x < w; x++) {
+        const i = y * w + x;
+        if (!ink[i] || has[i]) continue;
+        let r = 0, g = 0, b = 0, k = 0;
+        for (const j of [x > 0 ? i - 1 : -1, x < w - 1 ? i + 1 : -1, y > 0 ? i - w : -1, y < h - 1 ? i + w : -1]) {
+          if (j < 0 || !has[j]) continue;
+          r += col[j * 3];
+          g += col[j * 3 + 1];
+          b += col[j * 3 + 2];
+          k++;
+        }
+        if (!k) continue;
+        col[i * 3] = r / k;
+        col[i * 3 + 1] = g / k;
+        col[i * 3 + 2] = b / k;
+        grow.push(i);
+      }
+    for (const i of grow) has[i] = 1;
+  }
+  for (let i = 0; i < n; i++) {
+    if (!ink[i] || !has[i]) continue;
+    d[i * 4] = Math.round(col[i * 3] * darken);
+    d[i * 4 + 1] = Math.round(col[i * 3 + 1] * darken);
+    d[i * 4 + 2] = Math.round(col[i * 3 + 2] * darken);
+  }
+  ctx.putImageData(img, 0, 0);
 }
 
 let flat: THREE.DataTexture | null = null;

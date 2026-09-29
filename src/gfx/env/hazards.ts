@@ -1,7 +1,7 @@
 // Tegning av farer i brettene: piggrop, myr, råk i isen, lavapøl og piggfelle.
 import * as THREE from 'three';
 import { plainCanvas } from '../draw';
-import { lit, toon, inkMat, canvasTex } from './common';
+import { lit, toon, canvasTex } from './common';
 import { rand } from '../../core/math';
 import type { Gore } from '../gore';
 import type { HazardDef } from '../../data/hazards';
@@ -66,17 +66,12 @@ function pool(g: THREE.Group, h: HazardDef, tex: THREE.Texture, glowing: boolean
   return m;
 }
 
-/** Mange like små ting (staker, pigger, steiner) som ett instansiert mesh med kontur. */
-function instanced(g: THREE.Group, geo: THREE.BufferGeometry, color: string, list: THREE.Matrix4[], outline = 1.2) {
+/** Mange like små ting (staker, pigger, steiner) som ett instansiert mesh. */
+function instanced(g: THREE.Group, geo: THREE.BufferGeometry, color: string, list: THREE.Matrix4[]) {
   const m = new THREE.InstancedMesh(geo, toon(color), list.length);
-  const o = new THREE.InstancedMesh(geo, inkMat, list.length);
-  const s = new THREE.Matrix4().makeScale(outline, outline, outline);
-  list.forEach((mat, i) => {
-    m.setMatrixAt(i, mat);
-    o.setMatrixAt(i, mat.clone().multiply(s));
-  });
-  g.add(o, m);
-  return [m, o] as const;
+  list.forEach((mat, i) => m.setMatrixAt(i, mat));
+  g.add(m);
+  return m;
 }
 
 const cone = new THREE.ConeGeometry(0.075, 0.8, 6);
@@ -104,7 +99,7 @@ export function buildHazard(g: THREE.Group, gore: Gore, h: HazardDef): HazardVis
           mats.push(m);
         }
       instanced(grp, cone, '#8a5a2b', mats);
-      instanced(grp, tip, '#9e1020', mats, 1.0);
+      instanced(grp, tip, '#9e1020', mats);
       break;
     }
     case 'bog': {
@@ -134,7 +129,7 @@ export function buildHazard(g: THREE.Group, gore: Gore, h: HazardDef): HazardVis
           new THREE.Vector3(rand(0.8, 1.5), rand(0.4, 0.7), rand(0.8, 1.4)),
         ));
       }
-      instanced(grp, chunk, '#eaf6ff', mats, 1.12);
+      instanced(grp, chunk, '#eaf6ff', mats);
       break;
     }
     case 'lava': {
@@ -149,7 +144,7 @@ export function buildHazard(g: THREE.Group, gore: Gore, h: HazardDef): HazardVis
           new THREE.Vector3(rand(0.9, 1.6), rand(0.5, 0.9), rand(0.9, 1.5)),
         ));
       }
-      instanced(grp, chunk, '#2a2228', mats, 1.12);
+      instanced(grp, chunk, '#2a2228', mats);
       let acc = 0;
       const mat = m.material as THREE.MeshBasicMaterial;
       return {
@@ -187,7 +182,7 @@ export function buildHazard(g: THREE.Group, gore: Gore, h: HazardDef): HazardVis
       const mats: THREE.Matrix4[] = [];
       for (let x = -0.42; x <= 0.42; x += 0.14)
         for (let z = -0.42; z <= 0.42; z += 0.2) mats.push(new THREE.Matrix4().makeTranslation(x * h.w, 0, z * h.d));
-      instanced(spikes, cone, '#c9d3de', mats, 1.15);
+      instanced(spikes, cone, '#c9d3de', mats);
       spikes.position.set(h.x, -0.9, h.z);
       grp.add(spikes);
       return {

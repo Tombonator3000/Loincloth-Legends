@@ -1,14 +1,17 @@
 // Valgfri PNG-grafikk som erstatter prosedyretegningen.
 // Legg filer i public/assets/ og beskriv dem i public/assets/manifest.json (se docs/ART_PROMPTS.md).
 // Finnes ikke manifestet, brukes den prosedyretegnede grafikken som før.
-import { HEAD_SCALE, TORSO_Y, ARM_L, LEG_L } from './chars/types';
+import { TORSO_Y, ARM_L, LEG_L } from './chars/types';
 
 export interface PartOverride { canvas: HTMLCanvasElement; w: number; h: number; ox: number; oy: number }
 
-type PartKey = 'head' | 'torso' | 'pelvis' | 'arm' | 'leg' | 'weapon' | 'body' | 'tail';
+type PartKey = 'head' | 'hairback' | 'torso' | 'pelvis' | 'arm' | 'leg' | 'weapon' | 'body' | 'tail';
 interface ManifestPart {
   char: string;
-  /** Figurdeler: head torso pelvis arm leg weapon. Ridedyr: body head tail leg. Kjæledyr (char pet_<id>): body. */
+  /**
+   * Figurdeler: head torso pelvis arm leg weapon, og hairback (langt hår som henger bak ryggen, valgfritt).
+   * Ridedyr: body head tail leg. Kjæledyr (char pet_<id>): body.
+   */
   part: PartKey;
   file: string;
   /** Høyde i verdensenheter. Standard: se DEFAULT_H. */
@@ -19,12 +22,16 @@ interface ManifestPart {
 interface Manifest {
   parts?: ManifestPart[];
   sky?: Record<string, string>;
+  /** Flisbare teksturer for 3D-verdenen, navn til fil. Navnene står i docs/ART_PROMPTS.md (ground_grass, road_grass ...). */
+  textures?: Record<string, string>;
   map?: string;
   title?: string;
 }
 
 const DEFAULT_ANCHOR: Record<PartKey, [number, number]> = {
   head: [0.5, 0.95],
+  // Nakkepunktet i hårmanken: litt ned fra toppen og til høyre for midten (håret faller ned bak ryggen)
+  hairback: [0.62, 0.22],
   torso: [0.5, 0.96],
   pelvis: [0.5, 0.12],
   arm: [0.5, 0.06],
@@ -35,6 +42,7 @@ const DEFAULT_ANCHOR: Record<PartKey, [number, number]> = {
 };
 const DEFAULT_H: Record<PartKey, number> = {
   head: 1.0,
+  hairback: 1.3,
   torso: 0.9,
   pelvis: 0.6,
   arm: 0.78,
@@ -43,11 +51,13 @@ const DEFAULT_H: Record<PartKey, number> = {
   body: 0.6,
   tail: 0.6,
 };
-/** Heltene (stort hode, korte bein, store armer) har egne standardhøyder. */
+/** Heltene (lange bein, store armer, stort hår) har egne standardhøyder. */
 const HERO_IDS = new Set(['thrugg', 'valkyra']);
-/** Høydene følger de heroiske proporsjonene i chars/types.ts (arm og bein strekkes, hodet krymper). */
+/** Kropp, arm og bein følger proporsjonene i chars/types.ts, så PNG-deler og tegnede deler passer sammen. */
 const HERO_H: Partial<Record<PartKey, number>> = {
-  head: HEAD_SCALE,
+  // PNG-hoder i karikaturstil har stort hår, så hele bildet blir høyere enn det tegnede hodet
+  head: 1.1,
+  hairback: 1.25,
   torso: 0.95 * TORSO_Y,
   pelvis: 0.35,
   arm: 0.8 + 0.6 * (ARM_L - 1),
@@ -59,7 +69,12 @@ const BEAST_ANCHOR: Partial<Record<PartKey, [number, number]>> = { head: [0.15, 
 const BEAST_H: Partial<Record<PartKey, number>> = { head: 0.9, body: 1.3, tail: 0.6, leg: 0.75 };
 
 const parts = new Map<string, PartOverride>();
-export const images: { sky: Record<string, HTMLImageElement>; map: HTMLImageElement | null; title: HTMLImageElement | null } = { sky: {}, map: null, title: null };
+export const images: {
+  sky: Record<string, HTMLImageElement>;
+  textures: Record<string, HTMLImageElement>;
+  map: HTMLImageElement | null;
+  title: HTMLImageElement | null;
+} = { sky: {}, textures: {}, map: null, title: null };
 
 export function getOverride(charId: string, key: string): PartOverride | undefined {
   return parts.get(charId + ':' + key);
@@ -129,6 +144,9 @@ export async function loadAssets(base = './assets/') {
   }
   for (const [biome, file] of Object.entries(man.sky ?? {})) {
     jobs.push(loadImage(base + file).then((img) => void (images.sky[biome] = img)).catch((e) => console.warn(e)));
+  }
+  for (const [name, file] of Object.entries(man.textures ?? {})) {
+    jobs.push(loadImage(base + file).then((img) => void (images.textures[name] = img)).catch((e) => console.warn(e)));
   }
   if (man.map) jobs.push(loadImage(base + man.map).then((img) => void (images.map = img)).catch((e) => console.warn(e)));
   if (man.title) jobs.push(loadImage(base + man.title).then((img) => void (images.title = img)).catch((e) => console.warn(e)));

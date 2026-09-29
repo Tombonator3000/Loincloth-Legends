@@ -1,7 +1,7 @@
-// Bildepipeline: HDR-scene, bloom, dybdeskarphet, eksponering, tonemapping (én gang), gradering og linseeffekter.
-// Rekkefølgen følger threejs-image-pipeline i prosjektbiblioteket:
-//   scene (lineær HDR, MSAA) -> bloom (mip-kjede) -> dybdeskarphet -> eksponering -> tonemapping -> gradering
-//   -> vignett, korn, kromatisk aberrasjon -> sRGB.
+// Bildepipeline: HDR-scene, skygge i kroker (SSAO), bloom, dybdeskarphet, eksponering, tonemapping (én gang),
+// gradering og linseeffekter. Rekkefølgen følger threejs-image-pipeline i prosjektbiblioteket:
+//   scene (lineær HDR, MSAA) -> SSAO (fra dybden) -> bloom (mip-kjede) -> dybdeskarphet -> eksponering
+//   -> tonemapping -> gradering -> vignett, korn, kromatisk aberrasjon -> sRGB.
 // LOW tegner rett til skjermen med tonemapping i materialene og uten etterbehandling.
 import * as THREE from 'three';
 import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
@@ -47,6 +47,8 @@ export interface Grade {
   dofNear: number;
   /** 0 = Khronos PBR Neutral (bevarer farger), 1 = ACES (mer kontrast). */
   tone: number;
+  /** Styrken på skygge i kroker og der ting møtes (SSAO), 0 til 1. */
+  ao: number;
 }
 
 export const DEFAULT_GRADE: Grade = {
@@ -54,7 +56,7 @@ export const DEFAULT_GRADE: Grade = {
   lift: [0, 0, 0], gamma: [1, 1, 1], gain: [1, 1, 1],
   shadowTint: [0.94, 0.96, 1.06], highlightTint: [1.05, 1.0, 0.93], tint: 0.5,
   vignette: 0.32, grain: 0.35, bloom: 0.9, threshold: 0.95, knee: 0.45,
-  dofFar: 0.75, dofNear: 0.6, tone: 0,
+  dofFar: 0.75, dofNear: 0.6, tone: 0, ao: 0.85,
 };
 
 const GRADE_KEYS = Object.keys(DEFAULT_GRADE) as (keyof Grade)[];
@@ -75,12 +77,14 @@ interface Tier {
   mips: number;
   dof: boolean;
   shadows: number;
+  /** Antall SSAO-prøver per piksel (0 = av). */
+  ao: number;
 }
 const TIERS: Record<Quality, Tier> = {
-  low: { maxDpr: 1, budget: 1.2e6, samples: 0, mips: 0, dof: false, shadows: 0 },
-  medium: { maxDpr: 1.25, budget: 1.0e6, samples: 4, mips: 4, dof: false, shadows: 1024 },
-  high: { maxDpr: 1.5, budget: 1.65e6, samples: 4, mips: 5, dof: true, shadows: 2048 },
-  ultra: { maxDpr: 2, budget: 3.2e6, samples: 4, mips: 6, dof: true, shadows: 4096 },
+  low: { maxDpr: 1, budget: 1.2e6, samples: 0, mips: 0, dof: false, shadows: 0, ao: 0 },
+  medium: { maxDpr: 1.25, budget: 1.0e6, samples: 4, mips: 4, dof: false, shadows: 1024, ao: 8 },
+  high: { maxDpr: 1.5, budget: 1.65e6, samples: 4, mips: 5, dof: true, shadows: 2048, ao: 12 },
+  ultra: { maxDpr: 2, budget: 3.2e6, samples: 4, mips: 6, dof: true, shadows: 4096, ao: 16 },
 };
 
 export function tierOf(q: Quality) {
@@ -210,6 +214,87 @@ void main() {
   gl_FragColor = vec4(acc / wsum, c0.a);
 }`;
 
+/**
+ * Skygge i kroker (SSAO) i halv oppløsning, bare fra dybden: posisjon og normal rekonstrueres i kamerarommet,
+ * og prøver i en spiral rundt punktet teller hvor mye som stikker opp foran flaten (Alchemy AO). Prøver som
+ * er lenger unna enn radius telles ikke, så figurer og kanter ikke får mørke glorier.
+ */
+const SSAO = /* glsl */ `
+#include <packing>
+uniform sampler2D tDepth;
+uniform mat4 projInv;
+uniform mat4 proj;
+uniform vec2 texel;
+uniform float radius;
+uniform float intensity;
+varying vec2 vUv;
+vec3 viewPos(vec2 uv) {
+  float d = texture2D(tDepth, uv).x;
+  vec4 v = projInv * vec4(uv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0);
+  return v.xyz / v.w;
+}
+float hash12(vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+  p3 += dot(p3, p3.yzx + 33.33);
+  return fract((p3.x + p3.y) * p3.z);
+}
+void main() {
+  float d0 = texture2D(tDepth, vUv).x;
+  if (d0 >= 0.99999) { gl_FragColor = vec4(1.0); return; }
+  vec3 P = viewPos(vUv);
+  // Normalen fra den nærmeste nabopikselen på hver akse (unngår feil normal langs kanter)
+  vec3 Pr = viewPos(vUv + vec2(texel.x, 0.0)), Pl = viewPos(vUv - vec2(texel.x, 0.0));
+  vec3 Pu = viewPos(vUv + vec2(0.0, texel.y)), Pd = viewPos(vUv - vec2(0.0, texel.y));
+  vec3 dx = abs(Pr.z - P.z) < abs(P.z - Pl.z) ? Pr - P : P - Pl;
+  vec3 dy = abs(Pu.z - P.z) < abs(P.z - Pd.z) ? Pu - P : P - Pd;
+  vec3 N = normalize(cross(dx, dy));
+  // Radius i skjermrom: verdensradius projisert ned på avstanden til punktet
+  float rUv = radius * proj[1][1] * 0.5 / -P.z;
+  float rnd = hash12(gl_FragCoord.xy) * 6.2832;
+  float occ = 0.0;
+  for (int i = 0; i < SAMPLES; i++) {
+    float fi = float(i);
+    float a = fi * 2.39996 + rnd;
+    float rr = (fi + 0.5) / float(SAMPLES);
+    vec2 o = vec2(cos(a), sin(a)) * rr * rUv * vec2(texel.y / texel.x, 1.0);
+    vec3 v = viewPos(vUv + o) - P;
+    float vv = dot(v, v);
+    float fall = 1.0 - smoothstep(radius * 0.55, radius, sqrt(vv));
+    occ += max(0.0, dot(v, N) + P.z * 0.012) / (vv + 0.02) * fall;
+  }
+  // Flater som ses nesten på kant gir striper, så de får mindre AO
+  float facing = smoothstep(0.08, 0.35, abs(N.z));
+  float ao = max(0.0, 1.0 - intensity * 2.0 * radius * occ / float(SAMPLES) * facing);
+  ao = pow(ao, 1.4);
+  gl_FragColor = vec4(vec3(ao), 1.0);
+}`;
+
+/** Dybdebevisst blur av SSAO (to ganger, bortover og oppover), så støyen forsvinner uten å smøre over kanter. */
+const AO_BLUR = /* glsl */ `
+#include <packing>
+uniform sampler2D tSrc;
+uniform sampler2D tDepth;
+uniform vec2 dir;
+uniform float cameraNear;
+uniform float cameraFar;
+varying vec2 vUv;
+float vz(vec2 uv) { return -perspectiveDepthToViewZ(texture2D(tDepth, uv).x, cameraNear, cameraFar); }
+void main() {
+  float z0 = vz(vUv);
+  float acc = texture2D(tSrc, vUv).r * 0.2270;
+  float wsum = 0.2270;
+  const float W[4] = float[4](0.1946, 0.1216, 0.0541, 0.0162);
+  for (int i = 1; i <= 4; i++) {
+    for (int s = -1; s <= 1; s += 2) {
+      vec2 uv = vUv + dir * float(i * s);
+      float w = W[i - 1] * exp(-abs(vz(uv) - z0) * 4.0 / max(z0 * 0.05, 0.05));
+      acc += texture2D(tSrc, uv).r * w;
+      wsum += w;
+    }
+  }
+  gl_FragColor = vec4(vec3(acc / wsum), 1.0);
+}`;
+
 const COMPOSITE = /* glsl */ `
 uniform sampler2D tScene;
 uniform sampler2D tBloom;
@@ -235,6 +320,9 @@ uniform float flash;
 uniform float toneMode;
 uniform float useBloom;
 uniform float useDof;
+uniform sampler2D tAO;
+uniform float aoAmt;
+uniform float showAO;
 varying vec2 vUv;
 ${COC}
 
@@ -277,6 +365,10 @@ float luma(vec3 c) { return dot(c, vec3(0.2126, 0.7152, 0.0722)); }
 
 void main() {
   vec2 uv = vUv;
+  if (showAO > 0.5) {
+    gl_FragColor = vec4(vec3(texture2D(tAO, uv).r), 1.0);
+    return;
+  }
   vec2 fromC = uv - 0.5;
   vec3 col;
   if (aberration > 0.001) {
@@ -285,6 +377,7 @@ void main() {
   } else {
     col = texture2D(tScene, uv).rgb;
   }
+  if (aoAmt > 0.001) col *= mix(1.0, texture2D(tAO, uv).r, aoAmt);
   if (useDof > 0.5) {
     float c = cocAt(uv);
     vec4 b = texture2D(tDof, uv);
@@ -345,12 +438,17 @@ export class PostFX {
   /** Hvitt lysglimt (lyn, magi), synker av seg selv. */
   flash = 0;
   /** Skru av enkelttrinn for feilsøking. */
-  debug = { bloom: true, dof: true, grade: true };
+  /** Slå av og på trinn for sammenligning. aoView viser bare SSAO-bufferet. */
+  debug = { bloom: true, dof: true, grade: true, ao: true, aoView: false };
   private hdr: THREE.TextureDataType = THREE.HalfFloatType;
   private scene: THREE.WebGLRenderTarget | null = null;
   private mips: THREE.WebGLRenderTarget[] = [];
   private dofA: THREE.WebGLRenderTarget | null = null;
   private dofB: THREE.WebGLRenderTarget | null = null;
+  private aoA: THREE.WebGLRenderTarget | null = null;
+  private aoB: THREE.WebGLRenderTarget | null = null;
+  private ssao: THREE.ShaderMaterial | null = null;
+  private aoBlur = mat(AO_BLUR, { tSrc: { value: null }, tDepth: { value: null }, dir: { value: new THREE.Vector2() }, cameraNear: { value: 0.1 }, cameraFar: { value: 100 } });
   private quad = new FullScreenQuad();
   private prefilter = mat(PREFILTER, { tSrc: { value: null }, texel: { value: new THREE.Vector2() }, threshold: { value: 1 }, knee: { value: 0.5 } });
   private down = mat(DOWN, { tSrc: { value: null }, texel: { value: new THREE.Vector2() } });
@@ -366,7 +464,7 @@ export class PostFX {
     lift: { value: new THREE.Vector3() }, gammaV: { value: new THREE.Vector3(1, 1, 1) }, gain: { value: new THREE.Vector3(1, 1, 1) },
     shadowTint: { value: new THREE.Vector3(1, 1, 1) }, highlightTint: { value: new THREE.Vector3(1, 1, 1) }, tintAmt: { value: 0 },
     vignette: { value: 0 }, grain: { value: 0 }, aberration: { value: 0 }, hurt: { value: 0 }, flash: { value: 0 }, toneMode: { value: 0 },
-    useBloom: { value: 0 }, useDof: { value: 0 }, ...this.cocU(),
+    useBloom: { value: 0 }, useDof: { value: 0 }, tAO: { value: null }, aoAmt: { value: 0 }, showAO: { value: 0 }, ...this.cocU(),
   });
   private cssW = 1;
   private cssH = 1;
@@ -430,7 +528,11 @@ export class PostFX {
     for (const m of this.mips) m.dispose();
     this.dofA?.dispose();
     this.dofB?.dispose();
-    this.scene = this.dofA = this.dofB = null;
+    this.aoA?.dispose();
+    this.aoB?.dispose();
+    this.ssao?.dispose();
+    this.scene = this.dofA = this.dofB = this.aoA = this.aoB = null;
+    this.ssao = null;
     this.mips = [];
     if (!this.enabled) return;
     const t = TIERS[this.quality];
@@ -448,6 +550,14 @@ export class PostFX {
     if (t.dof) {
       this.dofA = target(Math.floor(w / 2), Math.floor(h / 2), this.hdr);
       this.dofB = target(Math.floor(w / 2), Math.floor(h / 2), this.hdr);
+    }
+    if (t.ao) {
+      this.aoA = target(Math.floor(w / 2), Math.floor(h / 2), THREE.UnsignedByteType);
+      this.aoB = target(Math.floor(w / 2), Math.floor(h / 2), THREE.UnsignedByteType);
+      this.ssao = mat(SSAO, {
+        tDepth: { value: depth }, projInv: { value: new THREE.Matrix4() }, proj: { value: new THREE.Matrix4() },
+        texel: { value: new THREE.Vector2(1 / w, 1 / h) }, radius: { value: 1.15 }, intensity: { value: 1.5 },
+      }, { SAMPLES: String(t.ao) });
     }
     (this.comp.uniforms.resolution.value as THREE.Vector2).set(w, h);
   }
@@ -505,6 +615,25 @@ export class PostFX {
     r.render(scene, cam);
     const src = this.scene.texture;
 
+    // Skygge i kroker (SSAO) i halv oppløsning, så to runder med dybdebevisst blur
+    const useAO = this.debug.ao && !!this.ssao && g.ao > 0.01;
+    if (useAO) {
+      const su = this.ssao!.uniforms;
+      (su.proj.value as THREE.Matrix4).copy(cam.projectionMatrix);
+      (su.projInv.value as THREE.Matrix4).copy(cam.projectionMatrixInverse);
+      this.pass(this.ssao!, this.aoA);
+      const bu = this.aoBlur.uniforms;
+      bu.tDepth.value = this.scene.depthTexture;
+      bu.cameraNear.value = cam.near;
+      bu.cameraFar.value = cam.far;
+      bu.tSrc.value = this.aoA!.texture;
+      (bu.dir.value as THREE.Vector2).set(1 / this.aoA!.width, 0);
+      this.pass(this.aoBlur, this.aoB);
+      bu.tSrc.value = this.aoB!.texture;
+      (bu.dir.value as THREE.Vector2).set(0, 1 / this.aoA!.height);
+      this.pass(this.aoBlur, this.aoA);
+    }
+
     // Bloom: terskel og nedskalering, så oppskalering som legges oppå hvert nivå
     const useBloom = this.debug.bloom && g.bloom > 0.001 && this.mips.length > 1;
     if (useBloom) {
@@ -560,6 +689,9 @@ export class PostFX {
     u.tDof.value = useDof ? this.dofB!.texture : null;
     u.useBloom.value = useBloom ? 1 : 0;
     u.useDof.value = useDof ? 1 : 0;
+    u.tAO.value = useAO ? this.aoA!.texture : null;
+    u.aoAmt.value = useAO ? g.ao : 0;
+    u.showAO.value = useAO && this.debug.aoView ? 1 : 0;
     u.time.value = this.time;
     u.bloomStrength.value = g.bloom / Math.max(1, this.mips.length - 1);
     u.exposure.value = g.exposure;
@@ -586,6 +718,8 @@ export class PostFX {
     for (const m of this.mips) m.dispose();
     this.dofA?.dispose();
     this.dofB?.dispose();
+    this.aoA?.dispose();
+    this.aoB?.dispose();
     this.quad.dispose();
   }
 }

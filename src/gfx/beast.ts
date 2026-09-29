@@ -2,8 +2,8 @@
 import * as THREE from 'three';
 import { unitCanvas } from './draw';
 import { getOverride } from './assets';
-import { partMaterial } from './rig';
-import { reliefTexture } from './charlight';
+import { partMaterial, INK_W } from './rig';
+import { reliefTexture, paintInk } from './charlight';
 import { damp } from '../core/math';
 import type { BeastDef } from './chars/beasts';
 import type { PartDef } from './chars/types';
@@ -29,11 +29,12 @@ function asset(def: BeastDef, key: string, pd: PartDef) {
   if (!a) {
     const ov = getOverride(def.id, key);
     if (ov) pd = { w: ov.w, h: ov.h, ox: ov.ox, oy: ov.oy, draw: () => {} };
-    const cv = ov ? ov.canvas : unitCanvas(pd.w, pd.h, pd.ox, pd.oy, 140, pd.draw);
+    const cv = ov ? ov.canvas : unitCanvas(pd.w, pd.h, pd.ox, pd.oy, 140, pd.draw, INK_W);
+    const relief = reliefTexture(cv, ov ? cv.width / pd.w : 140, [], !!ov);
+    if (!ov) paintInk(cv);
     const tex = new THREE.CanvasTexture(cv);
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 4;
-    const relief = reliefTexture(cv, ov ? cv.width / pd.w : 140);
     const geo = new THREE.PlaneGeometry(pd.w, pd.h);
     geo.translate(pd.w / 2 - pd.ox, pd.h / 2 - pd.oy, 0);
     a = { tex, relief, geo };

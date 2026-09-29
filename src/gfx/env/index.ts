@@ -29,4 +29,4 @@ export const STAGE_BUILDERS: Record<string, StageBuilder> = {
 };
 
 export { buildArena, type ArenaTheme } from './arena';
-export { toon, outline, M, canvasTex, type Env } from './common';
+export { toon, M, canvasTex, type Env } from './common';

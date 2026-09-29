@@ -4,7 +4,7 @@ import { plainCanvas } from '../draw';
 import { rand, pick } from '../../core/math';
 import type { Gore } from '../gore';
 import {
-  M, toon, groundTex, roadTex, stageBase, finishEnv, mountains, skullPike, rock, endGate,
+  M, toon, groundTex, roadTex, texFile, stageBase, finishEnv, mountains, skullPike, rock, endGate,
   bossMarker, canvasTex, foreground, type Env,
 } from './common';
 import { Forest, SPECIES } from './trees';
@@ -21,9 +21,11 @@ export function buildSwamp(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     sunDir: [-0.35, 0.65, -0.6],
     sky: ['#3d4a32', '#8f9e7a', '#aab694'], bg: '#8a9a78', fog: ['#8a9a78', 16, 85],
     hemi: ['#d8e6c0', '#3a3a28', 1.45], sun: ['#e8f0d0', 1.2],
-    ground: groundTex('#4a4a2a', ['#56562e', '#3e3e22', '#5a5230'], '#2e3a1a'),
-    road: roadTex('#5e4c32', ['#4a3a24', '#6a5838', '#3a2c1c'], 'rgba(30,20,10,0.4)', ['#6a6a5a', '#5a5a4a']),
+    ground: texFile('ground_swamp', () => groundTex('#4a4a2a', ['#56562e', '#3e3e22', '#5a5230'], '#2e3a1a')),
+    road: texFile('road_swamp', () => roadTex('#5e4c32', ['#4a3a24', '#6a5838', '#3a2c1c'], 'rgba(30,20,10,0.4)', ['#6a6a5a', '#5a5a4a']), { fringe: true }),
     clouds: '#b8c0a8',
+    // Tungt, disig skydekke (fargen kommer fra tåka og graderingen)
+    atmosphere: { sun: [-0.35, 0.4, -0.6], turbidity: 16, rayleigh: 0.5, mie: 0.02, mieG: 0.7, clouds: 0.85, cloudDensity: 0.75, gain: 0.45 },
   });
   mountains(g, L, ['#5a6a4a', '#4a5a3e', '#56664a'], null, -90, 6, 12);
 

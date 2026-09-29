@@ -47,8 +47,11 @@ gfx/               Grafikk
   chars/           Figurer: types, muscle (overdrevne kropper), classic, wilds, bosses, hero (heltebygger), beasts (ridedyr), index (register)
   env/             Miljø: common, grass, swamp, frost, scorch, tower, night (nattleiren), arena, worldmap, sprites, hazards, index (register)
                    sun (sol med skygger), grades (gradering per biom), trees (3D-trær), meadow (gress), leaffall (blader),
-                   atmos (tåkelag og lyssøyler)
-  post.ts          Bildepipeline: HDR, bloom, dybdeskarphet, eksponering, tonemapping, gradering, linseeffekter, grafikknivå
+                   atmos (tåkelag og lyssøyler), textures (støyteksturer med normalkart, og bilder fra manifestet),
+                   surface (triplanar overflatedetalj på alle miljømaterialer)
+  noise.ts         Flisbar Perlin- og Worley-støy og fbm, brukt av teksturene, fjellene og 3D-steinene
+  envlight.ts      Miljøkart fra himmelen (PMREM), så metall og våte flater speiler himmelen
+  post.ts          Bildepipeline: HDR, bloom, SSAO, dybdeskarphet, eksponering, tonemapping, gradering, linseeffekter, grafikknivå
   wind.ts          Felles vindfelt (uniformer, GLSL, windifyTree) som trær, gress og blader deler
   rig.ts           Cutout-rigg for mennesker (hver kroppsdel er et plan med pivot i leddet), restore og setTint
   charlight.ts     Lys på figurene: relieffkart (normal og glans) fra tegningene og figurskyggeleggeren
@@ -59,7 +62,7 @@ gfx/               Grafikk
   gibs.ts          3D-gibs: kjøttbiter, bein, ribbein, tenner, øyeepler, lavastein
   vfx.ts           GPU-partikler (gnister, flammer, glør, røyk, snø), lyn, eksplosjoner og lyspool (punktlys til nærmeste kilder)
   fx.ts            Risting, hitstop, slowmo, sverdspor, tekst, blod på skjermen, hodet som klasker i skjermen
-  assets.ts        PNG-erstatninger fra public/assets/manifest.json
+  assets.ts        PNG-erstatninger fra public/assets/manifest.json (figurdeler, teksturer, himmel, kart)
   draw.ts          Tegnehjelpere i enhetsrom
 ui/                HUD og menyer (ren DOM)
   hud.ts           Spillerpaneler, duell-bars, sjef-bar, kunngjøringer
@@ -103,13 +106,24 @@ Figurdelene er flate tegninger, så `gfx/charlight.ts` lager et relieffkart per 
 
 Materialet (`charMaterial`, brukt via `partMaterial`) er en ShaderMaterial med `lights: true`, så det tar scenens egne lys: himmel (HemisphereLight), sol og nøkkellys (DirectionalLight) og de fire punktlysene fra `LightPool` (fakler, lava, lyn, eksplosjoner). Ingen egen kobling trengs når et miljø legger til lys. Det gir myk diffus, glans (olje på huden, farget glans på metall), kantlys når lyset kommer bakfra og en svak kant av himmelfarge. `charUniforms` styrer balansen for alle figurer (forsterkning, omgivelseslys, fyllys fra kamerasiden, olje, kantlys, relieff). Materialet har `map` satt så skyggepasset alfatester riktig, og delene har `castShadow`.
 
-Ny figur: sett `skin: [hudfarge, ...]` på CharDef hvis huden skal glinse. PNG-erstatninger får relieffkart på samme måte.
+Ny figur: sett `skin: [hudfarge, ...]` på CharDef hvis huden skal glinse.
+
+De tegnede delene får `paintInk()` etter relieffkartet: blekkstrekene farges med en mørk utgave av fargen ved siden av, så figurene ser malte ut i stedet for tusjtegnet. PNG-erstatninger (malte bilder fra ChatGPT) lages med `reliefTexture(..., painted = true)`: mørke partier er skygger og ikke blekk, så volumet kommer fra omrisset og en svak høyde fra lysheten, og hud gjenkjennes fra fargetonen (`paintedSkin`) i stedet for fra `skin`.
+
+Del `hairback` i manifestet (langt hår) er bare PNG. `Rig.hairBack()` legger den i hodegruppa men bak overkroppen og foran den bakre armen, så håret henger ned bak ryggen og følger hodet (også når hodet kappes av).
 
 ## Bilde og grafikknivå
 
 `gfx/post.ts` eier det endelige bildet. Scenen tegnes i lineær HDR med MSAA, så bloom, dybdeskarphet, eksponering, tonemapping (én gang), gradering og linseeffekter. LOW tegner rett til skjermen uten etterbehandling. Graderingen settes per miljø (`grade` på Env, fra `env/grades.ts`) eller per scene (kartet). `W.post` gir tilgang fra spillkoden (aberrasjon ved store treff, rød kant ved lite liv, lysglimt).
 
 Kode som bygger innhold leser `gfxState.quality` eller `qualityRank()` (0 LOW til 3 ULTRA) for tetthet på gress, antall blader og størrelse på skyggekart. Miljøene bruker `lit()`/`toon()` (MeshStandardMaterial) og `applyShadows()`. Sola (`SunShadow`) følger kameraet.
+
+Realisme i 3D (Tom: 3D så ekte som mulig, ingen konturer på 3D-ting):
+- Teksturer: `env/textures.ts` baker jord, grus, murstein, fliser, sand, planker og lavastein av støy (`gfx/noise.ts`), med normalkart i `map.userData.normalMap` (og glød i `emissiveMap`). `lit()` henter dem selv. Hvert kall kan byttes mot et bilde fra manifestet med `texFile()` (se oppskriften under).
+- Overflatedetalj: `withSurface()` i `env/surface.ts` legger triplanar detalj (normal og skitt) på alle `lit()`-materialer, så store flater ikke blir glatte. Av på LOW.
+- Himmel og lys: grass, swamp og frost har `atmosphere` på Look og får fysisk himmel (`physicalSky()`, Sky-addon med skyer), med mindre manifestet har et himmelbilde for biomet. `skyLight()` i `gfx/envlight.ts` lager miljøkart (PMREM) fra alt som er merket `userData.sky` når scenen settes opp. Tåka er eksponentiell (`FogExp2`, tetthet 1.25 delt på `fog[2]`).
+- SSAO i `post.ts`: bare dybde, halv oppløsning, uskarphet som respekterer kanter. Styrken er `ao` i graderingen, antall prøver følger grafikknivået (0 på LOW). `W.post.debug.aoView = true` viser bare AO-bufferet (brukes av `tools/tests/ab.mjs`).
+- Modeller: steiner (`rock()`), hodeskaller (`skull3D()`) og fjell (`mountains()`) er støyforskjøvne 3D-modeller med fargede hjørner, ikke sprites.
 
 Målbildet for grafikken står i `docs/STYLE_TARGET.md`. Små statiske rekvisitter legges i `staticGroup(g)` (paliser, piler, steiner, hodeskaller på stake gjør det allerede) og slås sammen per materiale og bit langs x i `finishEnv`, så de koster noen få tegnekall. Ting som flyttes eller animeres skal ligge direkte i gruppa. `foreground(g, L, typer, farge)` i `env/common.ts` legger mørke silhuetter nederst i forgrunnen (pigger, hodeskaller, kors, steiner, bein) slått sammen til ett mesh.
 
@@ -180,6 +194,9 @@ Legg en `track({...})` i `METAL_TRACKS` (`core/metal.ts`). Riffet skrives som te
 
 ### Ny grafikk fra ChatGPT
 Se `docs/ART_PROMPTS.md`. Filene legges i `public/assets/`, og `manifest.json` sier hvilken figur og del de tilhører.
+
+### Ny tekstur som kan byttes med et bilde
+Pakk teksturkallet i `texFile(navn, () => prosedyretekstur)` fra `env/common.ts`, og før opp navnet og en prompt i teksturlista i `docs/ART_PROMPTS.md`. Finnes navnet under `textures` i manifestet, lager `imageTexture()` (i `env/textures.ts`) tekstur og normalkart fra bildet. Valg: `fringe` gir ujevn gjennomsiktig kant øverst og nederst (veier), `glow` lager glødekart av de lyse oransje partiene (lava), og `tint` lar fargen fra kallstedet tone bildet (ellers vises bildet i egne farger). Teksturene hentes fra en felles cache, og hvert kall får en kopi med egen `repeat` som deler bildedata og GPU-tekstur med originalen.
 
 ## Oppstartslogo
 

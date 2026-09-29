@@ -199,3 +199,30 @@ Merk: tidspunktene fra 10:53 til 11:57 er rekonstruert fra når filene sist ble 
 - PNG-høydene for thrugg og valkyra (HERO_H i gfx/assets.ts) regnes nå ut fra proporsjonskonstantene i chars/types.ts, så PNG-er Tom legger inn får riktig størrelse med de nye kroppene. ART_PROMPTS.md er oppdatert med de heroiske proporsjonene, den nye regelen for kvinnefigurene og en ny Valkyra-prompt (ringbrynjebikini, røde støvler, rødt hår).
 - README.md har fått grafikken, heavy metal, METAL MODE, nattleiren og magien i funksjonslista.
 - Hele testbatteriet (20 skript) kjørte uten konsollfeil. Nivåtesten tidsavbrøt på et tungt skjermbilde når to nettlesere delte CPU-en, så scenarios.mjs har fått 120 sekunders tidsgrense, og den gikk gjennom alle fem brettene.
+
+## 2026-09-29 17:07 (Europe/Oslo)
+Realismerunden (arbeidet mellom 15:46 og nå, logget samlet her). Tom: ikke tegneserie, seriøst men morsomt, og alt som er 3D skal være så bra og ekte som mulig.
+- Regler og mål skrevet om i AGENTS.md, docs/STYLE_TARGET.md (ny seksjon Retning), docs/GDD.md og memory.md.
+- Ingen svarte konturskall på 3D-ting lenger (outline, inkMat og speckle er fjernet fra miljøene, hazards og items).
+- Ny støymodul src/gfx/noise.ts: flisbar Perlin og Worley, fbm og 3D-verdistøy.
+- Nye teksturer i src/gfx/env/textures.ts, bakt av støy med normalkart (og glødekart for lavastein): jord og gress med småstein i klynger, grusvei med hjulspor og ujevn kant, murstein, fliser, sand, planker og lavastein. Småsteinene lå først som like prikker og ligger nå i klynger med ulik størrelse (stoneField med forskjøvet Worley-støy).
+- src/gfx/env/surface.ts legger triplanar detalj (normal og skitt) på alle miljømaterialer, av på LOW.
+- Steiner og hodeskaller er 3D-modeller av støyforskjøvne ikosaedre med fargede hjørner (rock, skull3D), fjellene er en støyrygg i 3D. Sammenslåingen av statiske mesher tar med fargene.
+- Fysisk himmel (Sky-addon med skyer) i grasslandet, sumpen og frosten, med egen sol, dis og skydekke per biom. Eksponentiell tåke (FogExp2) overalt. Miljøkart fra himmelen (src/gfx/envlight.ts, PMREM), så metall og våte flater får himmelrefleks.
+- SSAO i bildepipelinen: bare dybde, halv oppløsning, uskarphet som respekterer kanter, styrke per gradering og antall prøver per grafikknivå (0 på LOW). tools/tests/ab.mjs viser samme bilde med og uten en effekt, og bare AO-bufferet. Skygge i kroner, gress, palisadefot og hjørner er sjekket i AO-bildet.
+- Figurene: tynnere strek (INK_W 0.028) og malte konturer (paintInk farger blekket med en mørk utgave av fargen ved siden av).
+
+## 2026-09-29 17:07 (Europe/Oslo)
+Karikaturrunden. Tom sendte et referansebilde av Valkyra og vil at spillerfigurene og fiendene skal ha den looken: en karikatur som er nesten ekte. Han spurte om ChatGPT-instruksen er lagt inn, med teksturene den trenger.
+- Svar: instruksen fantes, men stilen beskrev malte bokomslag, og det fantes ingen teksturliste eller teksturlasting. Nå er begge deler på plass.
+- docs/ART_PROMPTS.md er skrevet om: ny stil-blokk for nesten ekte karikatur (ekte materialer, overdrevne former, mykt jevnt lys forfra fordi spillet legger på eget lys, aldri tegneserie), helfigur først (REFERENCE), delene med helfiguren som referanse, ny del HAIRBACK for langt hår, nye prompter for Thrugg og Valkyra (Valkyra beskrevet slik hun ser ut i bildet), egen tekstur-blokk og en teksturliste med 20 navn (pluss is- og beinarena), bakgrunner i fotorealistisk stil, oppdatert manifest og høyder. Referansebildet er beskrevet i docs/STYLE_TARGET.md og ligger ikke i repoet.
+- Teksturer fra manifestet: "textures" i manifest.json laster bilder (gfx/assets.ts). texFile() i env/common.ts bytter hver prosedyretekstur mot bildet når det finnes, og imageTexture() lager normalkart fra lysheten, veikant (fringe) og glød for lava (glow). Bildet vises i egne farger, bortsett fra porttårnene som farges per land (tint). Arenaen har egne navn per tema.
+- Feil funnet underveis: teksturbufferen ga samme teksturobjekt til to kall, så porttårnene og buen over porten delte repeat (buen fikk tårnets striper eller omvendt). Nå får hvert kall en kopi som deler bildedata og GPU-tekstur, men har egen repeat. toon() bufrer materialer med tekstur per kopi i en WeakMap, så de ikke hoper seg opp mellom brett.
+- Et himmelbilde i manifestet går nå foran den fysiske himmelen (før ble det ignorert i grasslandet, sumpen og frosten).
+- Malte PNG-deler får egen lysmodus (reliefTexture med painted): mørke partier er skygger og ikke blekk, volumet kommer fra omrisset og en svak høyde fra lysheten, og hud gjenkjennes fra fargetonen.
+- Ny valgfri del hairback: langt hår henger bak overkroppen og foran den bakre armen, og følger hodet (også når det kappes av).
+- PNG-hodet til heltene er 1.1 høyt (karikaturhoder har stort hår).
+- Den tegnede Valkyra er satt opp etter bildet: ny frisyre MANE (vill manke med buede lokker), kobberrødt hår, selvgodt blikk, uten pannebånd, pelsstøvler, øks og brunt lær. Første forsøk med runde krøller så ut som en klovneparykk, og lokkene gikk utenfor hodets lerret og ble klippet. Begge deler er rettet.
+- Sjekket med Toms bilde uten å committe det: hodet og øksa ble klippet ut lokalt og servert til spillet med page.route i Playwright. Det malte hodet ligger fint i spillets lys (fakkellys og kantlys), men ved siden av den tegnede kroppen blir forskjellen stor. Den nesten ekte looken krever hele settet med deler fra ChatGPT.
+- Ny test tools/tests/textures.mjs later som tre teksturbilder finnes og sjekker at scenen bruker dem (bakke, vei og borgmur).
+- Testbatteriet (textures, looks for alle brett, story, heltebyggeren, arenaen, vold, nattleiren, magi og sjonglering, METAL MODE og alle fem brettene) kjørte uten konsollfeil, bortsett fra Google Fonts-sertifikatet i skyøkten. Brett 1 har 184 tegnekall per bilde på standardnivået.

@@ -1,7 +1,7 @@
 // Pickups (gull, kylling, potions), tønner og prosjektiler.
 import * as THREE from 'three';
 import { unitCanvas, INK } from '../gfx/draw';
-import { toon, outline } from '../gfx/env';
+import { toon } from '../gfx/env';
 
 const woodMat = new THREE.MeshBasicMaterial({ color: '#7a4b22' });
 import { W } from './world';
@@ -112,7 +112,6 @@ export class Barrel {
   hp = 1;
   constructor(public x: number, public z: number, public drop: PickKind | 'gold') {
     this.mesh = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.48, 1.05, 10), toon('#8b5a2b'));
-    outline(this.mesh, 0.06);
     const band = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.46, 0.08, 10), toon('#555'));
     band.position.y = 0.28;
     const band2 = band.clone();

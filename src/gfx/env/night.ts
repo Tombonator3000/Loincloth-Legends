@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { rand, pick } from '../../core/math';
 import type { Gore } from '../gore';
-import { M, groundTex, roadTex, stageBase, finishEnv, campfire, rock, skullPike, foreground, type Env } from './common';
+import { M, groundTex, roadTex, texFile, stageBase, finishEnv, campfire, rock, skullPike, foreground, type Env } from './common';
 import { Forest, SPECIES } from './trees';
 import { Meadow } from './meadow';
 import { wind } from '../wind';
@@ -19,8 +19,8 @@ export function buildNight(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     sunDir: [-0.35, 0.5, -0.8],
     sky: ['#03040c', '#0c1430', '#1c2a52'], bg: '#0a1024', fog: ['#0f1a36', 26, 105],
     hemi: ['#4a5a98', '#120e16', 0.85], sun: ['#a8bcff', 0.75],
-    ground: groundTex('#27301c', ['#2e3a20', '#212a16', '#34401f', '#263019'], '#1c2412'),
-    road: roadTex('#4a3d2c', ['#40342a', '#554634', '#3a3024', '#5a4a38'], 'rgba(20,14,8,0.4)', ['#6a6458', '#56514a', '#7a7466']),
+    ground: texFile('ground_night', () => groundTex('#27301c', ['#2e3a20', '#212a16', '#34401f', '#263019'], '#1c2412')),
+    road: texFile('road_night', () => roadTex('#4a3d2c', ['#40342a', '#554634', '#3a3024', '#5a4a38'], 'rgba(20,14,8,0.4)', ['#6a6458', '#56514a', '#7a7466']), { fringe: true }),
     sunDisk: '#dfe8ff',
   });
 

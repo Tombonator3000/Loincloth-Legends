@@ -28,6 +28,8 @@ node tools/tests/metal.mjs http://localhost:4173/ ./shots all 14 shred    # meta
 node tools/tests/metalmode.mjs http://localhost:4173/ ./shots             # METAL MODE: måleren fylles av drap, solo, skadebonus, lyn og brennende våpen
 node tools/tests/homage.mjs http://localhost:4173/ ./shots                # tordenmagi med seks krukker, sjonglering i lufta og B-film-replikker
 node tools/tests/nightcamp.mjs http://localhost:4173/ ./shots             # nattleiren: sovende helter, tyvnisser, krukker tilbake, daggry og forsyninger
+node tools/tests/ab.mjs http://localhost:4173/ ./shots road ao           # samme bilde med og uten en effekt (ao, bloom, dof, grade), pluss bare AO-bufferet
+node tools/tests/textures.mjs http://localhost:4173/ ./shots              # teksturer fra manifestet brukes i stedet for de prosedyrelagde (later som tre bilder finnes)
 ```
 
 Skriptene skriver ut tilstand og eventuelle konsollfeil (`LOGS:`). Tom logg betyr ingen feil.

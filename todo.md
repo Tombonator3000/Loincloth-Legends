@@ -1,5 +1,25 @@
 # todo.md
 
+## Pågår: nesten ekte karikatur (Toms Valkyra-bilde, fra 2026-09-29 17:05)
+- [x] Ny tegneinstruks i docs/ART_PROMPTS.md: stil-blokk for nesten ekte karikatur, helfigur først, delene med helfiguren som referanse, HAIRBACK for langt hår, nye Thrugg- og Valkyra-prompter
+- [x] Teksturliste for 3D-verdenen (tekstur-blokk, 20 navn pluss is- og beinarena) og teksturer fra manifestet i spillet (texFile, imageTexture)
+- [x] Himmelbilde fra manifestet går foran den fysiske himmelen
+- [x] Egen lysmodus for malte PNG-deler (ingen blekkfurer, relieff fra lysheten, hud fra fargetonen)
+- [x] Hårmanke bak ryggen som egen PNG-del (hairback)
+- [x] Den tegnede Valkyra etter referansen: vill kobberrød manke (ny frisyre MANE), selvgodt blikk, øks, pelsstøvler, uten pannebånd
+- [ ] Tom: lag Valkyra-delene i ChatGPT etter ART_PROMPTS.md (helfiguren finnes), så justerer vi anker og høyder sammen
+- [ ] Tom: lag teksturene, gjerne først ground_grass, road_grass og wall_keep
+- [ ] Thrugg og fiendene i samme stil (PNG-deler)
+- [ ] Enhåndsøks som eget våpen (Valkyras øks har ett blad, spillets AXE har to)
+- [ ] Hårmanken svaier i vinden (hairback og den tegnede manken)
+
+## Realismerunden (fra 2026-09-29 15:46)
+- [x] Ingen konturskall på 3D, støyteksturer med normalkart, triplanar overflatedetalj, 3D-steiner, 3D-hodeskaller og fjell av støy
+- [x] Fysisk himmel med skyer (grass, swamp, frost), miljøkart fra himmelen, eksponentiell tåke og SSAO
+- [x] Malte konturer og tynnere strek på figurene (paintInk, INK_W)
+- [ ] SSAO og miljøkart i tårnet, arenaene og nattleiren (bruker fortsatt gradientehimmel)
+- [ ] Vått gulv og pytter som speiler fakler og lyn (skjermrom-refleksjon eller planar speil)
+
 ## Pågår: 3D-effekter og 80-talls hyllest (runde fra 2026-09-29 12:59)
 - [x] Bildepipeline med HDR, bloom, dybdeskarphet, gradering, vignett, korn og aberrasjon (src/gfx/post.ts)
 - [x] Kvalitetsnivå i innstillingene (AUTO, LOW, MEDIUM, HIGH, ULTRA)

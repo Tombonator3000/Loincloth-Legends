@@ -4,7 +4,7 @@ import { plainCanvas, unitCanvas, INK } from '../draw';
 import { rand, pick } from '../../core/math';
 import { images } from '../assets';
 import type { Gore } from '../gore';
-import { M, toon, canvasTex, skullMat } from './common';
+import { M, toon, canvasTex, skull3D } from './common';
 import { MAP_NODES, MAP_EDGES, nodeById, type MapNode } from '../../data/worldmap';
 
 export const MAP_W = 48;
@@ -248,7 +248,7 @@ export function buildWorldMap(scene: THREE.Scene, gore: Gore) {
     ring.position.y = 0.06;
     grp.add(ring);
     if (nd.kind === 'arena') {
-      const sk = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.7), skullMat());
+      const sk = skull3D(0.4);
       sk.position.set(0, 1.0, 0.2);
       grp.add(sk);
     }

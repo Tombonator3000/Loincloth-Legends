@@ -6,7 +6,7 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - Arbeidstittel: LOINCLOTH LEGENDS (Blood, Biceps & Bad Decisions)
 - Blanding av Castle Crashers, Golden Axe og Barbarian (C64/Amiga)
 - Sidescroller-brett (belt-scroller med dybde) med 1v1 dueller mellom brettene
-- 80-talls fantasy-klisjeer, humor, over-the-top tegneserie-gore
+- 80-talls fantasy-klisjeer spilt rett, med humor og mange parodier, og over-the-top gore
 
 ## Beslutninger
 - 2026-09-29: Motor er Three.js + TypeScript (valgt av Tom). Kjører i nettleser.
@@ -26,7 +26,10 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - 2026-09-29: Studioet heter Tom's Happy Happy Funtimes Emporium. Oppstartslogoen bruker Toms eget bilde (art/studio/). Ikke endre logoen uten å bli bedt om det.
 - 2026-09-29: Repo: https://github.com/Tombonator3000/Loincloth-Legends. Prosjektet skal videre i Claude Code derfra.
 - 2026-09-29: Proporsjoner (v0.3): stort hode på liten kropp, altfor store muskler, bittesmå lendeklær.
-- 2026-09-29: Proporsjoner (v0.4, konseptbildene): heroiske kropper med lange bein (LEG_L), lange armer (ARM_L), høyere overkropp (TORSO_Y) og mindre hode (HEAD_SCALE) i chars/types.ts. Tom vil ha 80-talls fantasy med ringbrynjebikini og store former på damene. Regel: tegneseriestil med humor, tydelig voksne, aldri nakenhet.
+- 2026-09-29: Proporsjoner (v0.4, konseptbildene): heroiske kropper med lange bein (LEG_L), lange armer (ARM_L), høyere overkropp (TORSO_Y) og mindre hode (HEAD_SCALE) i chars/types.ts. Tom vil ha 80-talls fantasy med ringbrynjebikini og store former på damene. Regel: tydelig voksne, aldri nakenhet.
+- 2026-09-29: Tom: ikke tegneserie. Seriøst men morsomt, med mange parodier. Alt som er 3D skal være så bra og ekte som mulig. Figurene skal se malte ut, ikke tegnet med tykk strek.
+- 2026-09-29: Tom: spillerfigurene og fiendene skal være nesten ekte karikatur, som Toms referansebilde av Valkyra (beskrevet i docs/STYLE_TARGET.md). Veien dit er PNG-deler fra ChatGPT etter docs/ART_PROMPTS.md. De tegnede figurene er reserven. Referansebildet ligger ikke i repoet (repoet er offentlig) og skal ikke committes uten at Tom sier ja.
+- 2026-09-29: 3D-verdenen kan få teksturer fra ChatGPT via "textures" i manifestet (navnene står i ART_PROMPTS.md). Et himmelbilde i manifestet går foran den fysiske himmelen.
 - 2026-09-29: Gore-nivå har fire trinn, EXCESSIVE er standard. FAMILY bytter blod mot konfetti og gummiender.
 - 2026-09-29: Teit vold er en del av sjangeren: imp sparker hodet i skjermen, armer ryker (JUST A FLESH WOUND), hodeløse fiender løper rundt.
 - 2026-09-29: Gamepad følger standard mapping. I 2-spiller med én gamepad er gamepaden spiller 2. Berøring styrer alltid spiller 1.
@@ -58,7 +61,10 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - Oppstartslogoen hoppes over når `navigator.webdriver` er satt (Playwright). `?splash` tvinger den frem, `?nosplash` hopper over.
 - Menyene ignorerer "trykk hvor som helst" de første 350 ms etter at en skjerm vises, og klikk på menyvalg de første 150 ms.
 - Hodet på skjermen tegnes på et eget canvas (`fx-glass`) i full oppløsning over 3D-bildet.
-- PNG-høyder for heltedelene er egne for thrugg/valkyra (HERO_H i gfx/assets.ts) fordi proporsjonene er endret.
+- PNG-høyder for heltedelene er egne for thrugg/valkyra (HERO_H i gfx/assets.ts) fordi proporsjonene er endret. PNG-hodet er 1.1 høyt (karikaturhoder har stort hår), det tegnede hodet bruker HEAD_SCALE.
+- Teksturer: `texFile(navn, prosedyre, { fringe, glow, tint })` i env/common.ts bytter en prosedyretekstur mot et bilde fra manifestet (`imageTexture()` i env/textures.ts lager normalkart fra lysheten). Bildet vises i egne farger (`userData.ownColor`) med mindre `tint` er satt. `cached()` gir en kopi per kall (felles bildedata og GPU-tekstur, egen repeat), så to kall med samme tekstur kan ha ulik repeat. `toon()` bufrer materialer med tekstur per teksturkopi i en WeakMap.
+- Malte PNG-deler: `reliefTexture(..., painted = true)` (ingen blekkfurer, relieff fra lysheten, hud fra fargetonen). Del `hairback` legges i hodegruppa bak overkroppen (`Rig.hairBack`), og arver fra head når en helt bruker PNG-ene til thrugg eller valkyra.
+- Test av malte deler uten å committe bilder: la Playwright svare på `**/assets/manifest.json` og bildefilene med `page.route` (se tools/tests/textures.mjs).
 - Playwright er ikke en avhengighet i package.json. Installer det separat (`npm i -D playwright`) før testene kjøres.
 - I skyøkter (Claude Code på nett) finnes Playwright 1.56.1 globalt, med Chromium i /opt/pw-browsers. `ln -sfn "$(npm root -g)/playwright" node_modules/playwright` gjør den tilgjengelig for testene uten å endre package.json.
 - Bildepipelinen ligger i `src/gfx/post.ts` (PostFX). Scenen tegnes i lineær HDR, så bloom, dybdeskarphet, eksponering, tonemapping (én gang), gradering og linseeffekter. Materialer skal ikke tonemappe selv når pipelinen er på (Three gjør det bare mot skjermen, altså i LOW).

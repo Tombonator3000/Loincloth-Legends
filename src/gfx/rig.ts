@@ -5,9 +5,11 @@ import { getChar, type CharDef, type CharId, type PartDef, type PartName } from 
 import { unitCanvas } from './draw';
 import { getOverride } from './assets';
 import { damp } from '../core/math';
-import { charMaterial, reliefTexture } from './charlight';
+import { charMaterial, reliefTexture, paintInk } from './charlight';
 
 const PPU = 150;
+/** Strektykkelse for figurdelene (standard i draw.ts er 0.045). */
+export const INK_W = 0.028;
 
 type Asset = { tex: THREE.Texture; relief: THREE.Texture; geo: THREE.PlaneGeometry; canvas: HTMLCanvasElement };
 const cache = new Map<string, Asset>();
@@ -16,17 +18,21 @@ export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
   const k = ch.id + ':' + key;
   let a = cache.get(k);
   if (!a) {
-    const src = ch.inherit?.[key as keyof NonNullable<CharDef['inherit']>];
+    // Hårmanken bak ryggen følger hodet (også når en helt arver PNG-ene fra thrugg eller valkyra)
+    const src = ch.inherit?.[(key === 'hairback' ? 'head' : key) as keyof NonNullable<CharDef['inherit']>];
     const ov = getOverride(ch.id, key) ?? (src ? getOverride(src, key) : undefined);
     if (ov) def = { w: ov.w, h: ov.h, ox: ov.ox, oy: ov.oy, draw: () => {} };
-    const cv = ov ? ov.canvas : unitCanvas(def.w, def.h, def.ox, def.oy, PPU, def.draw);
+    // Tynnere strek enn standard: figurene skal se malte ut, ikke tegnet (docs/STYLE_TARGET.md)
+    const cv = ov ? ov.canvas : unitCanvas(def.w, def.h, def.ox, def.oy, PPU, def.draw, INK_W);
+    // Normal- og glanskart ut fra tegningen (volum, muskelfurer, olje på huden), se gfx/charlight.ts.
+    // Lages før strekene farges, fordi relieffet bruker blekkstrekene som furer.
+    const relief = reliefTexture(cv, ov ? cv.width / def.w : PPU, ch.skin, !!ov);
+    if (!ov) paintInk(cv);
     const tex = new THREE.CanvasTexture(cv);
     // sRGB: sampleren dekoder til lineært lys, så figurene passer inn i HDR-pipelinen (gfx/post.ts)
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 4;
     tex.minFilter = THREE.LinearMipmapLinearFilter;
-    // Normal- og glanskart ut fra tegningen (volum, muskelfurer, olje på huden), se gfx/charlight.ts
-    const relief = reliefTexture(cv, ov ? cv.width / def.w : PPU, ch.skin);
     const geo = new THREE.PlaneGeometry(def.w, def.h);
     geo.translate(def.w / 2 - def.ox, def.h / 2 - def.oy, 0);
     a = { tex, relief, geo, canvas: cv };
@@ -154,9 +160,31 @@ export class Rig {
     const grp = new THREE.Group();
     grp.position.set(x, y, Z[name]);
     grp.add(mesh);
+    if (name === 'head') this.hairBack(grp, tint);
     parent.add(grp);
     this.g[name] = grp;
     return grp;
+  }
+
+  /**
+   * Langt hår fra PNG (del hairback i manifestet) henger bak overkroppen men følger hodet: det ligger i
+   * hodegruppa, trukket bak overkroppen (z 0) og foran den bakre armen.
+   */
+  private hairBack(head: THREE.Group, tint: number) {
+    const def = this.def;
+    const src = def.inherit?.head;
+    if (!getOverride(def.id, 'hairback') && !(src && getOverride(src, 'hairback'))) return;
+    const a = partAsset(def, 'hairback', { w: 1, h: 1, ox: 0, oy: 0, draw: () => {} });
+    const m = partMaterial(a.tex, tint, a.relief);
+    m.userData.shade = tint;
+    m.uniforms.tint.value.setRGB(tint * this.tint[0], tint * this.tint[1], tint * this.tint[2]);
+    m.uniforms.flash.value = this.flashV;
+    this.mats.push(m);
+    const mesh = new THREE.Mesh(a.geo, m);
+    mesh.frustumCulled = false;
+    mesh.castShadow = true;
+    mesh.position.z = -Z.head - 0.01;
+    head.add(mesh);
   }
 
   /** Gro ut igjen en del som er kappet av eller skjult (kyllingen har helbredende krefter). */

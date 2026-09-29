@@ -12,9 +12,10 @@ import { audio } from '../core/audio';
 import { WEAPONS } from '../data/weapons';
 import { settings, setSettings } from '../core/settings';
 import { defaultSave } from './save';
+import { images } from '../gfx/assets';
 
 export function installDebug() {
   (window as unknown as { __lib: unknown }).__lib = {
-    THREE, Fighter, W, registerChar, getChar, buildHeroDef, PRESETS, randomHero, HERO_OPTIONS, headCanvas, WEAPONS, settings, setSettings, defaultSave, charUniforms, MetalBand, METAL_TRACKS, audio,
+    THREE, Fighter, W, registerChar, getChar, buildHeroDef, PRESETS, randomHero, HERO_OPTIONS, headCanvas, WEAPONS, settings, setSettings, defaultSave, charUniforms, MetalBand, METAL_TRACKS, audio, images,
   };
 }

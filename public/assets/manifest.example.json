@@ -1,12 +1,18 @@
 {
   "parts": [
-    { "char": "thrugg", "part": "head", "file": "thrugg_head.png" },
-    { "char": "thrugg", "part": "torso", "file": "thrugg_torso.png" },
-    { "char": "thrugg", "part": "pelvis", "file": "thrugg_pelvis.png" },
-    { "char": "thrugg", "part": "arm", "file": "thrugg_arm.png" },
-    { "char": "thrugg", "part": "leg", "file": "thrugg_leg.png" },
-    { "char": "thrugg", "part": "weapon", "file": "thrugg_weapon.png", "anchor": [0.5, 0.8] }
+    { "char": "valkyra", "part": "head", "file": "valkyra_head.png" },
+    { "char": "valkyra", "part": "hairback", "file": "valkyra_hairback.png" },
+    { "char": "valkyra", "part": "torso", "file": "valkyra_torso.png" },
+    { "char": "valkyra", "part": "pelvis", "file": "valkyra_pelvis.png" },
+    { "char": "valkyra", "part": "arm", "file": "valkyra_arm.png" },
+    { "char": "valkyra", "part": "leg", "file": "valkyra_leg.png" },
+    { "char": "valkyra", "part": "weapon", "file": "valkyra_weapon.png", "anchor": [0.5, 0.8] }
   ],
-  "sky": { "grass": "sky_grass.png" },
+  "textures": {
+    "ground_grass": "tex_ground_grass.png",
+    "road_grass": "tex_road_grass.png",
+    "wall_keep": "tex_wall_keep.png"
+  },
+  "sky": { "scorch": "sky_scorch.png" },
   "map": "map.png"
 }

@@ -10,15 +10,15 @@ En 2.5D fantasy-brawler der Castle Crashers møter Golden Axe, og der brettene e
 - Sjanger: Belt-scroller beat 'em up + 1v1 duell-fighter
 - Plattform: Nettleser (Three.js + TypeScript) på PC og mobil, senere desktop (Electron/Tauri) eller Steam
 - Spillere: 1 spiller, eller 2 spillere lokalt (samme tastatur eller gamepads)
-- Tone: Tegneserie-gore. Blodet er rødt, rikelig og morsomt, aldri realistisk. Kan skrus ned til konfetti
+- Tone: seriøs og filmatisk, som 80-tallets fantasyfilmer spilt helt rett, men full av humor og parodier. Blodet er rødt, vått og rikelig, over the top. Kan skrus ned til konfetti
 
 ## 2. Visuell stil (3D/2D hybrid)
 
-- **Verden i 3D**: Lyssatt miljø med sol og skygger, prosedyrelagde 3D-trær og gress i vinden, tåkelag og HDR-bilde med bloom, dybdeskarphet og fargegradering per brett (målet er beskrevet i `docs/STYLE_TARGET.md`). Kamera fra siden med litt helning, som gir dybde (Golden Axe-beltet) og parallakse.
-- **Figurer i 2D**: Papirdukke-rigger der hver kroppsdel er et eget tegnet plan. Delene kan falle av hver for seg.
-- **Proporsjoner**: Heroiske kropper som på 80-talls fantasy-omslag: lange bein, brede skuldre og et hode som er litt for lite. Mennene har altfor store muskler (biceps som grapefrukt, sekspakk, bryst som skjold), damene har overdreven 80-talls-rustning og former (pelsbikini, ringbrynjebikini med røde støvler og "boob plate"). Alt i tegneseriestil med humor, tydelig voksne, aldri nakenhet. Alle har bittesmå lendeklær.
+- **Verden i 3D, så realistisk som mulig**: realistiske materialer med overflatedetaljer og ingen konturstreker, lys og refleksjoner fra himmelen, skygge i kroker, sol og skygger, prosedyrelagde 3D-trær og gress i vinden, tåkelag og HDR-bilde med bloom, dybdeskarphet og fargegradering per brett (målet er beskrevet i `docs/STYLE_TARGET.md`). Kamera fra siden med litt helning, som gir dybde (Golden Axe-beltet) og parallakse.
+- **Figurer i 2D**: Papirdukke-rigger der hver kroppsdel er et eget plan. Delene kan falle av hver for seg. Målet er nesten ekte karikatur (Toms Valkyra-bilde, se `docs/STYLE_TARGET.md`): ekte materialer og overdrevne former, aldri tegneserie.
+- **Proporsjoner**: Heroiske kropper som på 80-talls fantasy-omslag: lange bein, brede skuldre og et hode som er litt for lite. Mennene har altfor store muskler (biceps som grapefrukt, sekspakk, bryst som skjold), damene har overdreven 80-talls-rustning og former (pelsbikini, ringbrynjebikini med røde støvler og "boob plate"). Tydelig voksne, aldri nakenhet. Alle har bittesmå lendeklær.
 - **Lys på figurene**: Delene får normal- og glanskart laget fra tegningen (avrundede flater mellom blekkstrekene, olje på huden, blankt stål og gull). Figurene tar lys fra sol, himmel, fakler, lyn og eksplosjoner, får kantlys i motlys og kaster skygge (`src/gfx/charlight.ts`).
-- **Grafikk**: Tegnes prosedyremessig i kode i dag. PNG-er fra ChatGPT kan erstatte del for del (se `docs/ART_PROMPTS.md`).
+- **Grafikk**: Tegnes prosedyremessig i kode i dag. PNG-er fra ChatGPT kan erstatte del for del, og flisbare teksturer fra ChatGPT kan erstatte bakke, vei, murer og gulv i 3D-verdenen (se `docs/ART_PROMPTS.md`). Malte PNG-deler får egen lysmodus, og langt hår kan henge bak ryggen som egen del.
 - **Gore**: Blodpartikler, gibs med fysikk, flekker som blir liggende, blodfontener, blod på skjermen, slowmo ved dødsstøt.
 
 ## 3. Spillflyt
@@ -172,7 +172,7 @@ Gore (FAMILY, NORMAL, EXCESSIVE, PLEASE SEEK HELP), musikk, musikkstil (HEAVY ME
 
 ## 14. Lyd
 
-Alt syntetisert i WebAudio: sverdsus, treff, splat, klang, tegneserie-skrik (ulik stemme per figurtype), mynter, gong, publikum, fjærlyd for armer, vått smell og skli-hvin for hodet i skjermen, ild, plask, fres, sirkusfanfare for studiologoen. M slår lyd av/på.
+Alt syntetisert i WebAudio: sverdsus, treff, splat, klang, overdrevne skrik (ulik stemme per figurtype), mynter, gong, publikum, fjærlyd for armer, vått smell og skli-hvin for hodet i skjermen, ild, plask, fres, sirkusfanfare for studiologoen. M slår lyd av/på.
 
 Musikken er 80-talls heavy metal, også syntetisert: to rytmegitarer panorert ut til hver side gjennom forvrengning og et høyttalerkabinett, palm mute og galopp, bassgitar, trommer med dobbel stortromme og gated reverb på skarptromma, og leadgitar med vibrato, bend, ekko og tvillingharmonier. Hvert brett har sin egen låt: episk tittellåt, galopp på veien, seig doom i sumpen, speed metal i frosten, frygisk thrash i Scorchlands, og dobbel stortromme i dueller, sjefer og tårnet. Brettene starter med en stor åpen akkord, og sjefene kommer inn med et vektarmdykk. De gamle 8-bit-låtene kan velges i innstillingene. Alle riff og melodier er skrevet for spillet.
 

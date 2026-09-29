@@ -24,7 +24,9 @@ Repo: https://github.com/Tombonator3000/Loincloth-Legends. Spillet er fra Tom's 
 - All lyd syntetiseres i `src/core/audio.ts`.
 - Bruk spilltid (dt i update), ikke `setTimeout`, for ting som påvirker spillet (så pause og slowmo virker).
 - Heltenes proporsjoner (heroiske: lange bein, brede skuldre, mindre hode enn chibi, enorme muskler, bittesmå lendeklær) ligger i `src/gfx/chars/types.ts` og `src/gfx/chars/muscle.ts`.
-- Kvinnene tegnes som på 80-talls fantasy-omslag, etter Toms ønske: ringbrynjebikini, pelsbikini og rustning med overdrevne former er greit. Alltid tegneseriestil med humor, tydelig voksne, og aldri nakenhet.
+- Stil (Tom): ikke tegneserie. Seriøst og filmatisk, som 80-talls fantasyfilmer spilt helt rett, men morsomt og fullt av parodier. Humoren ligger i replikker, situasjoner, navn og parodier, ikke i tegneserieaktig grafikk. Alt som er 3D skal være så godt og så realistisk som mulig. Se `docs/STYLE_TARGET.md`.
+- Figurstil (Tom): nesten ekte karikatur, etter Toms referansebilde av Valkyra (beskrevet i `docs/STYLE_TARGET.md`). PNG-deler fra ChatGPT etter `docs/ART_PROMPTS.md` er veien dit. De tegnede figurene i koden er reserven og skal ligne så godt det går.
+- Kvinnene tegnes som på 80-talls fantasy-omslag, etter Toms ønske: ringbrynjebikini, pelsbikini og rustning med overdrevne former er greit. Alltid tydelig voksne, og aldri nakenhet.
 - Studiologoen (`art/studio/`, `src/assets/studio-logo.webp`) tilhører Tom. Ikke endre den uten å bli bedt om det.
 
 ## Teknisk

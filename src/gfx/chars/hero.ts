@@ -30,7 +30,7 @@ export const HERO_OPTIONS: Record<Exclude<keyof HeroConfig, 'name'>, string[]> =
   body: ['MALE', 'FEMALE'],
   skin: ['PEACH', 'TAN', 'BRONZE', 'UMBER', 'DEEP', 'ORC GREEN', 'FROST BLUE'],
   face: ['GRIM', 'BATTLE CRY', 'UNHINGED', 'EYEPATCH', 'SMUG'],
-  hair: ['BALD', 'WILD', 'LONG', 'MOHAWK', 'BRAIDS', 'PONYTAIL', 'TOPKNOT'],
+  hair: ['BALD', 'WILD', 'LONG', 'MOHAWK', 'BRAIDS', 'PONYTAIL', 'TOPKNOT', 'MANE'],
   hairColor: ['BLACK', 'BROWN', 'BLOND', 'GINGER', 'WHITE', 'BLOOD RED', 'WIZARD BLUE'],
   beard: ['NONE', 'STUBBLE', 'FULL BEARD', 'BRAIDED BEARD', 'MUSTACHE'],
   helmet: ['NONE', 'HORNED', 'WINGED', 'BEAST SKULL', 'CROWN', 'GREAT HELM', 'HEADBAND'],
@@ -44,8 +44,8 @@ export const HERO_OPTIONS: Record<Exclude<keyof HeroConfig, 'name'>, string[]> =
 
 export const PRESETS: Record<string, HeroConfig> = {
   thrugg: { name: 'THRUGG', body: 0, skin: 1, face: 0, hair: 1, hairColor: 0, beard: 1, helmet: 1, torso: 1, pelvis: 0, boots: 0, weapon: 0, cloth: 0, magic: 0 },
-  // Chainmail-bikini, røde støvler og flammerødt hår, rett fra et 80-talls bokomslag (konseptbildene)
-  valkyra: { name: 'VALKYRA', body: 1, skin: 0, face: 1, hair: 2, hairColor: 5, beard: 0, helmet: 6, torso: 3, pelvis: 4, boots: 4, weapon: 0, cloth: 1, magic: 1 },
+  // Etter Toms referansebilde: vilt kobberrødt krøllhår, selvgodt blikk, rusten ringbrynjebikini, pelsstøvler og stor øks
+  valkyra: { name: 'VALKYRA', body: 1, skin: 0, face: 4, hair: 7, hairColor: 3, beard: 0, helmet: 0, torso: 3, pelvis: 4, boots: 0, weapon: 1, cloth: 0, magic: 1 },
 };
 
 const M = {
@@ -78,7 +78,29 @@ function backHair(p: Pen, hair: number, hc: string) {
     case 6:
       p.blob([-0.26, 0.6, -0.4, 0.44, -0.34, 0.24, -0.2, 0.3], hc);
       break;
+    case 7:
+      // Vill manke (Valkyra, docs/STYLE_TARGET.md): stor masse bak hodet og ned på ryggen, med buede lokker i kanten
+      // Hodelerretet går fra x -0.76 til 0.68 og y -0.44 til 1.06; lokkene må holde seg innenfor
+      locks(p, [[-0.48, 0.72, -0.22, 0.1], [-0.6, 0.42, -0.12, -0.1], [-0.6, 0.12, -0.12, -0.2], [-0.54, -0.14, -0.1, -0.24], [-0.38, -0.2, 0.02, -0.2]], 0.1, hc);
+      p.blob([0.1, 0.88, -0.38, 0.84, -0.62, 0.52, -0.68, 0.04, -0.58, -0.32, -0.34, -0.28, -0.18, 0.1, 0.0, 0.5], hc);
+      break;
   }
+}
+
+/**
+ * Buede, spisse hårlokker: [x, y, dx, dy] er rota og retningen ut til tuppen. Annenhver lokk er litt lysere,
+ * så de skiller seg fra hverandre og fra resten av håret.
+ */
+function locks(p: Pen, list: [number, number, number, number][], w: number, hc: string) {
+  list.forEach(([x, y, dx, dy], i) => {
+    const L = Math.hypot(dx, dy), nx = (-dy / L) * w, ny = (dx / L) * w;
+    p.shape((c) => {
+      c.moveTo(x + nx, y + ny);
+      c.quadraticCurveTo(x + dx * 0.55 + nx * 1.5, y + dy * 0.55 + ny * 1.5, x + dx, y + dy);
+      c.quadraticCurveTo(x + dx * 0.5 - nx * 0.3, y + dy * 0.5 - ny * 0.3, x - nx, y - ny);
+      c.closePath();
+    }, i % 2 ? shade(hc, 0.12) : hc);
+  });
 }
 
 function topHair(p: Pen, hair: number, hc: string, fem: boolean) {
@@ -97,6 +119,12 @@ function topHair(p: Pen, hair: number, hc: string, fem: boolean) {
       break;
     case 3:
       p.poly([-0.26, 0.64, -0.3, 0.9, -0.16, 0.8, -0.12, 1.04, 0.0, 0.84, 0.04, 1.08, 0.12, 0.84, 0.22, 1.0, 0.22, 0.76, 0.3, 0.78, 0.2, 0.66], hc);
+      break;
+    case 7:
+      locks(p, [[-0.2, 0.88, -0.18, 0.1], [0.06, 0.92, 0.02, 0.1], [0.3, 0.82, 0.16, 0.06]], 0.08, hc);
+      p.blob([-0.4, 0.46, -0.36, 0.82, -0.06, 0.96, 0.3, 0.88, 0.46, 0.62, 0.36, 0.5, 0.2, 0.64, 0.0, 0.6, -0.2, 0.5], hc);
+      // Lokker som faller ned foran øret og kinnet
+      locks(p, [[0.3, 0.66, 0.12, -0.2], [0.12, 0.62, 0.02, -0.18]], 0.06, shade(hc, 0.06));
       break;
     case 6:
       p.blob([-0.32, 0.44, -0.24, 0.72, 0.04, 0.8, 0.3, 0.72, 0.38, 0.5, 0.0, 0.56], hc);

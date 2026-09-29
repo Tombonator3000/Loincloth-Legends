@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { unitCanvas, INK } from '../draw';
 import { rand, pick } from '../../core/math';
 import type { Gore } from '../gore';
-import { lit, M, groundTex, roadTex, stageBase, finishEnv, mountains, skullPike, rock, endGate, bossMarker, canvasTex, skullMat, foreground, type Env } from './common';
+import { lit, M, groundTex, roadTex, texFile, stageBase, finishEnv, mountains, skullPike, rock, endGate, bossMarker, canvasTex, skull3D, foreground, type Env } from './common';
 import { Forest, SPECIES, withSnow } from './trees';
 import { Meadow } from './meadow';
 import { fogLayers } from './atmos';
@@ -18,9 +18,11 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     sunDir: [-0.35, 0.5, -0.8],
     sky: ['#5f90cc', '#cfe4f5', '#eef6fb'], bg: '#dfeef8', fog: ['#e6f0f8', 30, 115],
     hemi: ['#f0f8ff', '#7a8aa0', 1.7], sun: ['#ffffff', 1.6],
-    ground: groundTex('#e8f0f6', ['#d8e4ee', '#f6fafc', '#cad8e6'], null),
-    road: roadTex('#b8c8d8', ['#a8bccc', '#c8d6e4', '#98acc0'], 'rgba(90,110,140,0.35)', ['#8a96a4', '#aab6c4']),
+    ground: texFile('ground_frost', () => groundTex('#e8f0f6', ['#d8e4ee', '#f6fafc', '#cad8e6'], null)),
+    road: texFile('road_frost', () => roadTex('#b8c8d8', ['#a8bccc', '#c8d6e4', '#98acc0'], 'rgba(90,110,140,0.35)', ['#8a96a4', '#aab6c4']), { fringe: true }),
     clouds: '#ffffff', sunDisk: '#fffef0',
+    // Klar, kald vinterhimmel med lav sol
+    atmosphere: { sun: [-0.35, 0.32, -0.8], turbidity: 2.2, rayleigh: 1.3, mie: 0.004, mieG: 0.8, clouds: 0.28, gain: 0.5 },
   });
   mountains(g, L, ['#8a9ab0', '#7a8aa4', '#96a6bc'], '#ffffff', -105, 14, 30);
 
@@ -60,7 +62,7 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   // Frosne krigere i isblokker
   for (let x = 18; x < L; x += rand(26, 36)) {
     const z = rand(-6, -5);
-    const sk = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 1.2), skullMat());
+    const sk = skull3D(0.55);
     sk.position.set(x, 1.3, z);
     g.add(sk);
     const ice = new THREE.Mesh(new THREE.BoxGeometry(1.8, 2.6, 1.4), lit({ color: '#cfefff', transparent: true, opacity: 0.55, depthWrite: false, roughness: 0.15 }));

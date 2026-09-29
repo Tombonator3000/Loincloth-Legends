@@ -1,38 +1,60 @@
 # Grafikkliste for ChatGPT (GPT-image)
 
-Denne lista beskriver all grafikk spillet kan bruke, med ferdige prompter du kan lime inn i ChatGPT. Spillet virker uten noen av disse filene (alt tegnes prosedyremessig), så du kan bytte ut én figur eller ett bilde om gangen.
+Denne lista beskriver all grafikk spillet kan hente fra ChatGPT, med ferdige prompter du kan lime inn. Spillet virker uten noen av filene (alt lages i kode), så du kan bytte ut én figur eller én tekstur om gangen.
 
-## Slik gjør du det
+Målet er satt av Toms referansebilde av Valkyra (se `docs/STYLE_TARGET.md`): **nesten ekte karikatur**. Figurene skal se nesten virkelige ut, med hud, hår, rustent jern og slitt lær som på et foto eller en påkostet 3D-render, men med overdrevne former: stort hår, tunge øyelokk og fyldige lepper, store bryst og muskler, tykke lår, store støvler og digre våpen. Spilt helt alvorlig. Humoren kommer fra overdrivelsen, navnene og parodien, aldri fra tegneseriestrek.
 
-1. Start en ny samtale i ChatGPT. Lim inn **STIL-BLOKKEN** under som første melding og skriv "Bekreft at du har forstått stilen".
-2. Lag **én del per bilde**. Lim inn figurbeskrivelsen (fra tabellen) og deretter deltemplatet (LEG, ARM osv.).
-3. Be alltid om **transparent bakgrunn** og PNG. Last ned bildet.
-4. Når første del av en figur er ferdig: last opp den delen i neste melding og skriv "Use the attached image as the style and colour reference". Da blir resten av delene like.
-5. Lagre filene i `public/assets/` med filnavnet fra lista (for eksempel `thrugg_leg.png`).
-6. Legg til en linje i `public/assets/manifest.json` per fil (se `public/assets/manifest.example.json`).
+## Hva spillet henter fra ChatGPT
+
+| Hva | Hvor i manifestet | Status |
+|---|---|---|
+| Figurdeler for helter, fiender og sjefer | `parts` | I bruk |
+| Langt hår som henger bak ryggen (valgfritt) | `parts`, del `hairback` | I bruk |
+| Ridedyr og kjæledyr | `parts` | I bruk |
+| Teksturer for 3D-verdenen (bakke, vei, murer, gulv, treverk, lava) | `textures` | I bruk |
+| Himmel | `sky` | I bruk. Et himmelbilde erstatter den fysiske himmelen i det miljøet |
+| Verdenskart | `map` | I bruk |
+
+Trær, steiner, hodeskaller, fjell og bygninger er 3D-modeller laget i kode og trenger ingen bilder. Det 3D-verdenen trenger fra ChatGPT er teksturer (se "Teksturer for 3D-verdenen" lenger ned).
+
+---
+
+## Slik gjør du det (figurer)
+
+1. Start en ny samtale i ChatGPT. Lim inn **STIL-BLOKKEN** under som første melding.
+2. Lag først et **helfigursbilde** av figuren med REFERENCE-templatet, og bli fornøyd med det før du går videre. For Valkyra finnes bildet allerede: last det opp og skriv "This is the approved reference for VALKYRA. Match it exactly in every asset."
+3. Lag delene én og én: HEAD, HAIRBACK (bare ved langt hår), TORSO, PELVIS, ARM, LEG og WEAPON. Last opp referansebildet sammen med hver bestilling.
+4. Be alltid om **transparent bakgrunn** og PNG. Last ned bildet.
+5. Lagre filene i `public/assets/` med filnavnet fra lista (for eksempel `valkyra_head.png`).
+6. Legg til en linje i `public/assets/manifest.json` per fil (kopier `public/assets/manifest.example.json`).
 7. Start `npm run dev`. Figuren bruker nå dine bilder. Ser en del feil ut, juster `anchor` eller `height` i manifestet.
 
 Tips:
 - Bildene kan være større enn nødvendig. Lasteren beskjærer gjennomsiktige kanter automatisk og skalerer delen til riktig høyde.
-- Hvis ChatGPT legger på skygge eller bakgrunn, skriv: "Remove the background and the drop shadow, keep only the drawn part on full transparency."
+- Hvis ChatGPT legger på skygge eller bakgrunn, skriv: "Remove the background and the drop shadow, keep only the part on full transparency."
 - Hold figuren **vendt mot høyre** i alle deler. Spillet speiler selv når figuren snur.
-- Lag ikke bilder av eksisterende spillfigurer eller logoer. Alt skal være originalt.
+- Lyset i bildet skal være mykt og jevnt forfra. Spillet legger på sitt eget lys (fakler, lyn, sol og kantlys), og hardt sidelys i bildet blir feil når figuren snur.
+- Delene må overlappe litt i leddene (runde skuldre, hofter og midje), ellers blir det glipper når figuren beveger seg.
+- Lag ikke bilder av eksisterende spillfigurer, filmfigurer eller logoer. Alt skal være originalt.
 
 ---
 
 ## STIL-BLOKK (lim inn først)
 
 ```
-You are the art director for "Loincloth Legends", an original 2D/3D hybrid beat 'em up that parodies 1980s dark fantasy.
-Art style for ALL images in this conversation:
-- Hand-drawn 2D cartoon game art in the style of Flash-era indie brawlers: thick, clean black outlines (about 8 px at 1024 px), flat colours with ONE cel-shade tone on the side facing away from the light (light comes from the upper right).
-- Heroic 1980s fantasy-cover proportions pushed for comedy: long legs, very broad shoulders, a head slightly too small for the body, chunky fists and feet.
-- The men have ridiculously oversized muscles: grapefruit biceps, huge pecs, a six-pack, forearms like hams.
-- The women are muscular warriors in exaggerated 1980s fantasy-cover style: chainmail bikini, fur bikini or an oversized round breastplate, big exaggerated curves, red boots. Cartoony and funny, clearly adults, never nude.
-- Everyone wears a tiny loincloth or a comically short kilt.
-- 1980s sword-and-sorcery parody mood: horned helmets, loincloths, fur, skulls, rusty iron, gold trim. Colours are warm and saturated, never neon.
-- Clean vector-like shapes, no painterly texture, no gradients except the single cel-shade, no glow effects, no text, no watermark, no signature.
-- Everything is original. Do not copy or reference any existing game, film or comic character.
+You are the art director for "Loincloth Legends", an original side-scrolling beat 'em up that parodies 1980s sword-and-sorcery films and fantasy book covers.
+Art style for ALL character images in this conversation:
+- Near-photorealistic caricature. The characters look almost real, like a high-end 3D character render or a hyperreal digital painting, but with caricatured, exaggerated proportions. Think of a detailed collectible statue, not a cartoon.
+- Real materials in close detail: skin with pores, freckles, veins, sweat and a subtle oily sheen, a little subsurface glow in ears and fingers; hair as individual strands; rusty iron chainmail with visible single rings; worn, scratched and stitched leather; real fur; nicked and dented steel with rust in the pits; old bone with cracks and stains.
+- Caricature proportions: big expressive head with huge hair, heavy-lidded eyes, strong brows, full lips or a jutting jaw; chunky hands; exaggerated muscles; big curves on the women; thick powerful thighs; big heavy boots; oversized weapons.
+- The men are massively muscular, oiled and hairy, with scars, stubble and battle grime.
+- The women are muscular 1980s fantasy warriors with big exaggerated curves, abs and thick thighs, in chainmail bikinis, fur and leather. Clearly adults, never nude.
+- Everyone wears a loincloth, a short fur kilt or a chainmail flap on a big belt, often with a skull buckle.
+- Tone: played completely straight, like a 1980s film poster. The humour comes from the exaggeration, the names and the parody, never from cartoon drawing.
+- Lighting: soft, even studio light from the front and slightly above, like a product photo, neutral white balance. No hard cast shadows, no coloured rim light, no dramatic backlight, no fog. The game adds its own lighting.
+- NOT cartoon, NOT anime, NOT cel-shaded, NO outlines, NO flat colours, NO comic style.
+- Everything is original. Do not copy or reference any existing game, film, comic or toy character.
+- No text, no watermark, no signature.
 - Output: a single isolated game asset on a fully transparent background (PNG with alpha). No ground, no drop shadow, no frame.
 Confirm that you understand. Then wait for my asset requests.
 ```
@@ -41,46 +63,61 @@ Confirm that you understand. Then wait for my asset requests.
 
 ## Deltemplater (figurdeler)
 
-Hver figur er en "papirdukke" som settes sammen i spillet. Alle deler tegnes **sett fra siden, vendt mot høyre**, isolert, uten de andre kroppsdelene. Leddpunktet (der delen festes) må være der templatet sier, ellers sitter delen skjevt.
+Hver figur er en "papirdukke" som settes sammen i spillet. Alle deler lages **sett fra siden i trekvart profil, vendt mot høyre**, isolert, uten de andre kroppsdelene. Leddpunktet (der delen festes) må være der templatet sier, ellers sitter delen skjevt.
 
 | Del | Filnavn | Leddpunkt (anker) | Template |
 |---|---|---|---|
+| Helfigur | `<id>_reference.png` | Brukes ikke i spillet | REFERENCE |
 | Hode | `<id>_head.png` | Nakken, nederst på midten | HEAD |
+| Hårmanke bak | `<id>_hairback.png` | Nakken, litt ned fra toppen og til høyre | HAIRBACK |
 | Overkropp | `<id>_torso.png` | Midjen, nederst på midten | TORSO |
 | Hofte / lendeklede | `<id>_pelvis.png` | Beltet, øverst på midten | PELVIS |
 | Arm | `<id>_arm.png` | Skulderen, øverst på midten | ARM |
 | Bein | `<id>_leg.png` | Hofteleddet, øverst (litt til venstre) | LEG |
 | Våpen | `<id>_weapon.png` | Grepet, der hånda holder | WEAPON |
 
-Samme arm og samme bein brukes både foran og bak (spillet gjør den bakre litt mørkere).
+Samme arm og samme bein brukes både foran og bak (spillet gjør den bakre litt mørkere). Hårmanken legges bak overkroppen og følger hodet.
+
+### REFERENCE
+```
+Asset: FULL-BODY REFERENCE of the character described above. The whole character from the top of the hair to the soles of the boots, standing in a relaxed, confident 3/4 pose facing RIGHT, holding the weapon. Soft even studio light. Neutral light grey background (this image is only a reference and is not used in the game). Canvas 1024x1536.
+```
 
 ### HEAD
 ```
-Asset: HEAD of the character described above.
-Draw only the head (with helmet/hair/hat), in 3/4 view facing RIGHT, including a short neck stump at the bottom centre.
-The neck stump must touch the bottom edge of the drawing, centred horizontally. Nothing below the neck.
+Asset: HEAD of the character in the attached reference. Same face, same hair, same materials, same colours, same light.
+Draw only the head (with helmet or hair), in 3/4 view facing RIGHT, with a short neck stump at the bottom centre.
+The neck stump must touch the bottom edge of the image, centred horizontally. Nothing below the neck: no shoulders, no necklace below the collarbone.
+Keep all hair ABOVE the shoulders. Big volume around the head is great. Long hair that would hang down the back goes in a separate HAIRBACK image.
 Canvas 1024x1024, transparent background.
+```
+
+### HAIRBACK (bare ved langt hår)
+```
+Asset: HAIR BACK of the character in the attached reference. Same hair colour and style.
+Draw ONLY the long hair that falls down behind the head and down the back, seen from the side facing RIGHT (so the hair hangs down on the LEFT side of the image). The top of the hair mass is at the top of the image, the ends at the bottom. NO face, NO head, NO body, NO hands. It will be placed behind the body.
+Canvas 1024x1536 (tall), transparent background.
 ```
 
 ### TORSO
 ```
-Asset: TORSO of the character described above.
-Draw only the upper body from the waist up to the base of the neck, 3/4 view facing RIGHT. NO head, NO arms, NO legs.
+Asset: TORSO of the character in the attached reference. Same body, same materials, same colours, same light.
+Draw only the upper body from the waist up to the base of the neck, 3/4 view facing RIGHT. NO head, NO arms, NO legs, NO hair.
 The waist must be at the bottom edge, centred. The shoulders are at the top. Leave the arm sockets as simple rounded shoulders.
 Canvas 1024x1024, transparent background.
 ```
 
 ### PELVIS
 ```
-Asset: PELVIS / LOINCLOTH of the character described above.
-Draw only the belt and what hangs from it (loincloth, skirt, armour plates), side view facing RIGHT. NO legs, NO torso.
+Asset: PELVIS / LOINCLOTH of the character in the attached reference. Same materials and colours.
+Draw only the belt and what hangs from it (loincloth, chainmail flap, briefs, armour plates), 3/4 view facing RIGHT. NO legs, NO torso.
 The belt must be at the top edge, centred. The cloth hangs down.
 Canvas 1024x1024, transparent background.
 ```
 
 ### ARM
 ```
-Asset: ARM of the character described above.
+Asset: ARM of the character in the attached reference. Same skin, same bracers, same light.
 Draw only one arm hanging STRAIGHT DOWN, side view: the round shoulder at the very top centre, the elbow in the middle, a CLOSED FIST at the bottom, knuckles facing RIGHT.
 The fist must have a gap to grip a handle (the weapon is a separate image). NO weapon, NO body.
 Canvas 1024x1536 (tall), transparent background.
@@ -88,14 +125,14 @@ Canvas 1024x1536 (tall), transparent background.
 
 ### LEG
 ```
-Asset: LEG of the character described above.
-Draw only one leg hanging STRAIGHT DOWN, side view: the hip joint at the very top, knee in the middle, the foot/boot at the bottom with the TOES POINTING RIGHT.
+Asset: LEG of the character in the attached reference. Same skin, same boots, same light.
+Draw only one leg hanging STRAIGHT DOWN, side view: the round hip joint at the very top, the knee in the middle, the foot/boot at the bottom with the TOES POINTING RIGHT. Thick, powerful thigh.
 NO body, NO other leg. Canvas 1024x1536 (tall), transparent background.
 ```
 
 ### WEAPON
 ```
-Asset: WEAPON of the character described above.
+Asset: WEAPON of the character in the attached reference. Same materials, same wear and rust.
 Draw only the weapon, perfectly VERTICAL: the blade/head pointing UP, the handle pointing DOWN, as if held upright in a fist.
 No hand, no character. Canvas 1024x1536 (tall), transparent background.
 ```
@@ -104,13 +141,13 @@ No hand, no character. Canvas 1024x1536 (tall), transparent background.
 
 ## Figurbeskrivelser
 
-Lim inn beskrivelsen, så templatet for delen du vil lage. Kolonnen "Deler" viser hvilke filer figuren trenger.
+Lim inn beskrivelsen, så templatet for delen du vil lage. Kolonnen "Deler" viser hvilke filer figuren trenger. Stil-blokken gjør alle figurene nesten ekte, også de som høres tullete ut.
 
 | id | Beskrivelse (lim inn) | Deler |
 |---|---|---|
-| `thrugg` | `Character: THRUGG THE UNWASHED, a tan-skinned barbarian hero with heroic 1980s fantasy-cover proportions: long legs, very broad shoulders, a head slightly too small, an absurdly muscular body. Steel horned helmet with bone-white horns and rivets, shaggy black hair, heavy stubble, angry thick eyebrow, gritted teeth. Massive bare chest with huge pecs and a six-pack, a diagonal leather strap with steel studs, brown fur mantle on the shoulders, grapefruit-sized biceps, a tiny brown fur loincloth with a leather belt and a gold round buckle, short thick legs in fur boots, leather bracers. Weapon: a long steel sword with a gold crossguard and a red gem in the pommel.` | head, torso, pelvis, arm, leg, weapon |
-| `valkyra` | `Character: VALKYRA THE LOUD, a fierce red-haired warrior woman with heroic 1980s fantasy-cover proportions: long legs, broad shoulders, big exaggerated curves, clearly an adult. Fair skin, long flowing red hair, a red headband, green eyes, mouth wide open in a battle cry. A chainmail bikini top with round chainmail cups and a gold rim, chainmail briefs with a small chain flap, a muscular midriff with abs, muscular arms with leather bracers, tall red leather boots. Cartoony and funny, never nude. Weapon: a straight steel sword with a gold crossguard and a red leather grip.` | head, torso, pelvis, arm, leg, weapon |
-| `skeleton` | `Character: SKELLY GRUNT, a goofy undead skeleton soldier. Bone-white bones with black outlines, big skull with red dot pupils in dark sockets, grinning teeth, dented rusty brown helmet, tattered grey-green loincloth rag. Weapon: a short rusty notched sword.` | head, torso, pelvis, arm, leg, weapon |
+| `thrugg` | `Character: THRUGG THE UNWASHED, a huge barbarian hero in his forties, near-real caricature. Tan, sweaty, oiled skin with scars and grime, a big square head with a jutting stubbled jaw, a broken nose, one thick angry eyebrow, gritted teeth, shaggy black hair under a dented steel horned helmet with bone-white horns and rivets. Absurdly muscular: giant pecs, a six-pack, grapefruit-sized biceps, veins. A diagonal leather strap with steel studs across the chest, a mangy brown fur mantle on the shoulders, leather bracers, a tiny brown fur loincloth on a leather belt with a round brass buckle, thick powerful legs in fur boots. Weapon: a long, nicked steel broadsword with a brass crossguard and a red gem in the pommel.` | head, torso, pelvis, arm, leg, weapon |
+| `valkyra` | `Character: VALKYRA THE LOUD, a fierce, cocky warrior woman in her thirties, near-real caricature. Fair skin covered in freckles, a huge wild mane of curly copper-red hair falling past her shoulders, heavy-lidded green eyes with dark smoky make-up, thick arched eyebrows, a small nose, full lips in a smug pout, large battered iron hoop earrings, a leather choker with an iron chain and a small horned skull pendant. Broad muscular shoulders, big exaggerated curves, a defined six-pack, thick muscular thighs; clearly an adult, never nude. A rusty iron chainmail bikini top on leather straps with an iron ring in the centre, a wide studded leather belt with a bone skull buckle and a long rusty chainmail flap hanging in front over small leather briefs. A leather band around the upper arm, spiked iron vambraces with fur trim on both forearms. Knee-high, worn brown leather boots with thick grey-brown fur tops, iron buckles and straps. Weapon: a big single-bitted battle axe with a nicked, rusty blade, spikes on the back and the top, a leather-wrapped wooden haft and an iron ring at the bottom.` | head, hairback, torso, pelvis, arm, leg, weapon |
+| `skeleton` | `Character: SKELLY GRUNT, a grim undead skeleton soldier. Yellowed, cracked bones, a skull with a faint red glow deep in the dark sockets, grinning teeth, dented rusty brown helmet, tattered grey-green loincloth rag. Weapon: a short rusty notched sword.` | head, torso, pelvis, arm, leg, weapon |
 | `hogman` | `Character: HOGMAN, a fat pig-orc brute. Olive green skin, pink pig snout, small white tusks, tiny angry yellow eyes, floppy ear, iron skull cap with a spike, big round belly with a lighter green front, leather harness, iron shoulder pad with spikes, dirty brown loincloth with a bone skull buckle, iron spiked bracers. Weapon: a big wooden club studded with iron spikes.` | head, torso, pelvis, arm, leg, weapon |
 | `cultist` | `Character: CULTIST, a skinny hooded cultist. Dark purple robe with gold trim, hood with a pitch-black face and two glowing yellow eyes, belt of tiny skulls, pale bony hands, pointy black shoes, a gold eye symbol on the chest. Weapon: a curved sacrificial dagger.` | head, torso, pelvis, arm, leg, weapon |
 | `gnome` | `Character: POTION GNOME, a tiny panicked gnome. Huge red pointy hat, fluffy white beard, big pink nose, blue coat, brown pants, oversized curled shoes, a burlap sack full of blue potions on his back. No weapon.` | head, torso, pelvis, arm, leg |
@@ -119,7 +156,7 @@ Lim inn beskrivelsen, så templatet for delen du vil lage. Kolonnen "Deler" vise
 | `troll` | `Character: ICE TROLL, a huge frost troll. Shaggy white-blue fur on body and legs, pale blue skin on face, belly and hands, big nose, two tusks, angry yellow eyes, leather belt with an ice gem, icicles on the shoulders. Weapon: a club made of jagged blue ice.` | head, torso, pelvis, arm, leg, weapon |
 | `fireimp` | `Character: FIRE IMP, a small red demon imp. Bright red skin, black horns, bat wings on the back, glowing yellow slit eyes, wide toothy grin, thin tail, black claws. No weapon (throws fireballs).` | head, torso, pelvis, arm, leg |
 | `imp` | `Character: CLEANUP IMP, a tired green goblin janitor. Green skin, huge pointy ears, blue janitor cap, big grin, yellow eyes, grey-blue overalls with a pocket, big bare feet. Weapon: a mop with a grey mop head and a few red stains.` | head, torso, pelvis, arm, leg, weapon |
-| `gorthak` | `Character: GORTHAK THE UNDEFEATED, an arena champion with an absurdly muscular tan body and a huge black great helm with a T-shaped visor, two glowing red eyes and giant bone horns. Bare scarred chest crossed by two black leather straps with a bone skull emblem, a black spiked pauldron on the back shoulder, gigantic arms with black spiked bracers, a tiny black armoured loincloth with red trim, short legs in dark iron greaves. Weapon: a giant double-bladed battle axe with dried blood on the blades.` | head, torso, pelvis, arm, leg, weapon |
+| `gorthak` | `Character: GORTHAK THE UNDEFEATED, an arena champion with an absurdly muscular tan body and a huge black great helm with a T-shaped visor, two glowing red eyes and giant bone horns. Bare scarred chest crossed by two black leather straps with a bone skull emblem, a black spiked pauldron on the back shoulder, gigantic arms with black spiked bracers, a tiny black armoured loincloth with red trim, long powerful legs in dark iron greaves. Weapon: a giant double-bladed battle axe with dried blood on the blades.` | head, torso, pelvis, arm, leg, weapon |
 | `hogmother` | `Character: BIG MAMA HOGMOTHER, a gigantic pig-orc mother boss. Olive green skin, pink snout, tusks, pink hair curlers, gold earring, lipstick, big belly with a white blood-stained butcher apron, dirty loincloth. Weapon: a huge butcher's cleaver with blood stains.` | head, torso, weapon (bruker hogman sine armer, bein og hofte) |
 | `croakus` | `Character: KING CROAKUS, an enormous fat frog king. Green spotted skin, huge pale belly, sleepy heavy-lidded bulging eyes, small gold crown with red gems, red royal cape with white fur trim, purple royal loincloth with a gold belt. Weapon: a gold sceptre with a purple orb.` | head, torso, pelvis, leg, weapon (bruker frogman sin arm) |
 | `magmor` | `Character: MAGMOR THE MOLTEN, a lava golem boss made of black and dark grey rock chunks with glowing orange lava cracks, small blocky head with glowing yellow eyes and a lava mouth, flames on top of the head, huge rock fists. No weapon.` | head, torso, pelvis, arm, leg |
@@ -127,22 +164,82 @@ Lim inn beskrivelsen, så templatet for delen du vil lage. Kolonnen "Deler" vise
 
 Heltebyggerens deler (hode med hårfrisyrer, hjelmer, skjegg og så videre) tegnes fortsatt i kode. Se "Planlagt" nederst.
 
-### Proporsjoner for heltene (thrugg, valkyra og Hero Forge)
+### Valkyra og referansebildet
 
-Heltene har heroiske proporsjoner som på et fantasy-omslag fra 80-tallet: lange bein, brede skuldre og et hode som er litt for lite. Når du lager PNG-er for `thrugg` eller `valkyra`, bruker spillet disse høydene automatisk (i spillenheter, regnet ut fra `src/gfx/chars/types.ts`): hode 0.84, overkropp 1.08, hofte 0.35, arm 0.98, bein 1.06. Overkroppen skal ha en tykk nakke og brede skuldre øverst, og armen skal ha en stor rund skulder, en diger biceps og en knyttneve nederst.
+Tom har et godkjent referansebilde av Valkyra (ligger ikke i repoet, repoet er offentlig). Last det opp i ChatGPT som REFERENCE, og bruk det i hver bestilling av delene hennes. Håret hennes er så langt at det trenger to bilder: HEAD med manken rundt hodet, og HAIRBACK med håret som faller ned bak ryggen. Den tegnede utgaven i spillet er satt opp etter samme bilde (vill kobberrød manke, selvgodt blikk, rusten ringbrynje, pelsstøvler og øks), så hun ligner selv før PNG-ene er på plass.
+
+### Høyder for heltene (thrugg og valkyra)
+
+Når du lager PNG-er for `thrugg` eller `valkyra`, bruker spillet disse høydene automatisk (i spillenheter, regnet ut fra `src/gfx/chars/types.ts`): hode 1.1 (med stort hår), hårmanke 1.25, overkropp 1.08, hofte 0.35, arm 0.98, bein 1.06. Karikaturen ligger i selve bildet: tegn hodet, håret, hendene og støvlene store. Ser hodet for lite eller for stort ut i spillet, sett `height` for hodet i manifestet (for eksempel 1.25).
+
+---
+
+## Teksturer for 3D-verdenen
+
+Miljøet er ekte 3D: bakken, veien, murene og gulvene er flater i 3D, og trær, steiner og hodeskaller er modeller. Spillet lager egne teksturer med støy, men et ekte bilde gir mer realisme. Hver tekstur gjentas mange ganger, så den må være **flisbar** (sømløs). Spillet lager selv relieff (normalkart) ut fra lysheten i bildet, lager veikanten, og får lava til å gløde der bildet er lyst oransje.
+
+Slik gjør du det:
+1. Lim inn **TEKSTUR-BLOKKEN** som første melding (egen samtale, så figurstilen ikke blander seg inn).
+2. Bestill én tekstur om gangen med linjen fra tabellen.
+3. Sjekk sømmene: be om "Show it tiled 2x2 so I can check the seams". Ser du skjøter, skriv "Make it perfectly seamless".
+4. Lagre i `public/assets/` med filnavnet fra tabellen, og legg den inn under `textures` i manifestet: `"ground_grass": "tex_ground_grass.png"`.
+
+Teksturen vises i sine egne farger, så lag den i fargen den skal ha. Unntaket er `wall_gate`, som farges av spillet for hvert land.
+
+### TEKSTUR-BLOKK (lim inn først)
+```
+You are making seamless textures for a realistic 3D game (a 1980s dark fantasy beat 'em up).
+Rules for ALL textures in this conversation:
+- Photorealistic, like a scanned PBR albedo texture of a real surface.
+- Perfectly SEAMLESS and TILEABLE in both directions: the left edge continues into the right edge, the top into the bottom.
+- Flat, even, diffuse light. NO sun shadows, NO highlights, NO vignette, NO perspective. Ground is seen straight down from above, walls straight on.
+- No single big object that would repeat visibly, no text, no watermark, no border.
+- Square, 1024x1024, PNG.
+Confirm that you understand. Then wait for my texture requests.
+```
+
+### Teksturliste
+
+| Navn i manifestet | Fil | Brukes til | Prompt |
+|---|---|---|---|
+| `ground_grass` | `tex_ground_grass.png` | Bakken i grasslandet (brett 1) | `Texture: late-autumn meadow ground, about 3 x 3 metres seen from above: short trampled yellow-green grass in tufts, patches of bare brown soil, small grey pebbles, a few fallen orange leaves.` |
+| `road_grass` | `tex_road_grass.png` | Veien i grasslandet | `Texture: packed dirt road, about 6 x 5 metres seen from above, running LEFT to RIGHT: dry brown earth, two faint wheel ruts along the road, embedded small stones and gravel. The road surface fills the whole image, no grass verges.` |
+| `ground_swamp` | `tex_ground_swamp.png` | Bakken i sumpen | `Texture: swamp ground seen from above: wet dark mud, patches of green moss, rotting reeds and twigs, small murky puddles.` |
+| `road_swamp` | `tex_road_swamp.png` | Veien i sumpen | `Texture: muddy swamp track seen from above, running LEFT to RIGHT: sticky brown mud with footprints and wheel ruts, puddles, a few stones. The track fills the whole image.` |
+| `ground_frost` | `tex_ground_frost.png` | Bakken i frosten | `Texture: fresh snow seen from above: soft wind ripples, a few ice crystals, tiny tips of dry grass poking through.` |
+| `road_frost` | `tex_road_frost.png` | Veien i frosten | `Texture: trampled snow road seen from above, running LEFT to RIGHT: packed icy snow, wheel ruts and boot prints, a little grey slush. The road fills the whole image.` |
+| `ground_scorch` | `tex_ground_scorch.png` | Bakken i vulkanlandet (gløder) | `Texture: black cracked volcanic rock seen from above, with bright glowing orange-yellow lava in the cracks and a little grey ash.` |
+| `road_scorch` | `tex_road_scorch.png` | Veien i vulkanlandet | `Texture: road of dark grey ash and cinders seen from above, running LEFT to RIGHT, small black rocks and a few red embers. The road fills the whole image.` |
+| `ground_night` | `tex_ground_night.png` | Bakken ved nattleiren | `Texture: dark forest floor seen from above: damp dark-green grass, moss, dead brown leaves and twigs, a few pebbles.` |
+| `road_night` | `tex_road_night.png` | Veien ved nattleiren | `Texture: muddy forest road seen from above, running LEFT to RIGHT: dark brown mud, wheel ruts, stones and gravel. The road fills the whole image.` |
+| `wall_keep` | `tex_wall_keep.png` | Borgmuren og tårnet ved start | `Texture: castle wall of large grey granite blocks seen straight on, about 4 blocks across and 8 courses high, weathered, chipped edges, dark mortar joints with a little moss.` |
+| `wall_gate` | `tex_wall_gate.png` | Porttårnene før duellene (farges per land) | `Texture: rough stone blocks in NEUTRAL LIGHT GREY seen straight on, about 4 blocks across and 8 courses high, darker mortar joints.` |
+| `wood` | `tex_wood.png` | Treplanker (brua ved start) | `Texture: weathered wooden planks seen from above, 4 planks side by side running from TOP to BOTTOM, grey-brown old wood with cracks, knots and rusty nail heads.` |
+| `floor_tower` | `tex_floor_tower.png` | Gulvet i tårnet | `Texture: dark purple-grey stone floor seen from above, 4 x 4 square flagstones, worn smooth, cracks, dark grout, a few old stains.` |
+| `wall_tower` | `tex_wall_tower.png` | Veggen i tårnet | `Texture: dark purple-grey dungeon wall of stone blocks seen straight on, about 4 blocks across and 6 courses high, damp, soot stains.` |
+| `pillar_tower` | `tex_pillar_tower.png` | Søylene i tårnet | `Texture: carved dark purple-grey stone blocks seen straight on, about 4 across and 8 high, worn and cracked.` |
+| `floor_arena-pit` | `tex_floor_arena-pit.png` | Gulvet i gropa (arena) | `Texture: stone floor seen from above, 4 x 4 large warm grey flagstones, sandy, worn and cracked, dark grout.` |
+| `sand_arena-pit` | `tex_sand_arena-pit.png` | Sanden i gropa | `Texture: arena sand seen from above: coarse yellow-brown sand, footprints, small pebbles, a few old dark-red blood stains.` |
+| `wall_arena-pit` | `tex_wall_arena-pit.png` | Muren og balkongen i gropa | `Texture: arena wall of warm grey sandstone blocks seen straight on, about 4 blocks across and 6 courses high, scratched and chipped.` |
+| `pillar_arena-pit` | `tex_pillar_arena-pit.png` | Søylene i gropa | `Texture: warm grey sandstone blocks seen straight on, about 4 across and 8 high, weathered.` |
+
+Isarenaen og beinarenaen bruker samme navn med `-ice` og `-bone` i stedet for `-pit` (for eksempel `floor_arena-ice`). Lag dem i blåhvit is og stein (ice) og i gammelt, gulnet bein og sandstein (bone).
 
 ---
 
 ## Bakgrunner
 
+Grasslandet, sumpen og frosten har en fysisk himmel laget i kode (sol, spredt lys og skyer), og den lyser også opp scenen. Et himmelbilde i manifestet tar over for den i det miljøet, så lag bare bilder der du vil ha noe annet enn den. Vulkanlandet, nattleiren og arenaene bruker himmelbildet direkte.
+
 | Fil | Bruk | Prompt |
 |---|---|---|
-| `sky_grass.png` | Himmel, brett 1 | `Wide panoramic sky background, 3072x1024, seamless left-right. Warm late-afternoon sunset over rolling hills: orange-gold gradient, big fluffy cream clouds with dark outlines, a pale sun low on the horizon, distant purple mountains with snowy tips at the very bottom. Same cartoon style, no characters, no text.` |
-| `sky_swamp.png` | Himmel, sumpen | `Wide panoramic sky background, 3072x1024, seamless left-right. Murky green-grey overcast swamp sky, low heavy clouds, faint mist bands, silhouettes of dead twisted trees and low hills at the bottom. No characters, no text.` |
-| `sky_frost.png` | Himmel, frost | `Wide panoramic sky background, 3072x1024, seamless left-right. Cold clear winter sky, pale blue to white gradient, jagged snowy mountain range at the bottom, light snowfall, a pale sun. No characters, no text.` |
-| `sky_scorch.png` | Himmel, vulkan | `Wide panoramic sky background, 3072x1024, seamless left-right. Hellish volcanic sky, black at the top fading to deep red and orange, ash clouds, a distant erupting volcano with lava, ember sparks. No characters, no text.` |
-| `sky_arena-pit.png` | Himmel over arenaen | `Wide panoramic night sky, 3072x1024, seamless left-right. Dark crimson night with thin clouds and a few stars, like the sky above a gladiator pit. No characters, no text.` |
-| `map.png` | Verdenskartet | `Top-down fantasy world map of an island, 1536x1024, painted in the same cartoon style with thick outlines. West: green grassland with a small castle keep. South-centre: murky swamp with dead trees and a pond. North: snowy mountains and pine forest. East: black volcanic wasteland with a lava river and a volcano. Far east: a dark purple tower on a cliff. A blue river runs from the mountains to the swamp. Sea around the island. NO text, NO labels, NO roads (the game draws them).` |
+| `sky_grass.png` | Himmel, brett 1 | `Wide panoramic sky background, 3072x1024, seamless left-right. Photorealistic matte painting of a warm late-afternoon sky over rolling hills: orange-gold light, big volumetric clouds lit from below, a pale sun low on the horizon, distant blue mountains with snowy tips at the very bottom. No characters, no text.` |
+| `sky_swamp.png` | Himmel, sumpen | `Wide panoramic sky background, 3072x1024, seamless left-right. Photorealistic murky green-grey overcast swamp sky, low heavy clouds, faint mist bands, silhouettes of dead twisted trees and low hills at the bottom. No characters, no text.` |
+| `sky_frost.png` | Himmel, frosten | `Wide panoramic sky background, 3072x1024, seamless left-right. Photorealistic cold clear winter sky, pale blue to white, jagged snowy mountain range at the bottom, light snowfall, a pale sun. No characters, no text.` |
+| `sky_scorch.png` | Himmel, vulkanlandet | `Wide panoramic sky background, 3072x1024, seamless left-right. Photorealistic hellish volcanic sky, black at the top fading to deep red and orange, ash clouds, a distant erupting volcano with lava, ember sparks. No characters, no text.` |
+| `sky_night.png` | Himmel, nattleiren | `Wide panoramic night sky, 3072x1024, seamless left-right. Photorealistic dark blue night with a big pale moon behind thin clouds, stars, black forest treeline at the bottom. No characters, no text.` |
+| `sky_arena-pit.png` | Himmel over gropa | `Wide panoramic night sky, 3072x1024, seamless left-right. Dark crimson night with thin clouds and a few stars, like the sky above a gladiator pit. No characters, no text.` |
+| `map.png` | Verdenskartet | `Top-down fantasy world map of an island, 1536x1024, like an old hand-painted fantasy map with ink and watercolour on parchment. West: green grassland with a small castle keep. South-centre: murky swamp with dead trees and a pond. North: snowy mountains and pine forest. East: black volcanic wasteland with a lava river and a volcano. Far east: a dark purple tower on a cliff. A blue river runs from the mountains to the swamp. Sea around the island. NO text, NO labels, NO roads (the game draws them).` |
 
 Kartbildet må ha samme utsnitt som det innebygde kartet: øya fyller bildet, hjemborgen til venstre (vest), tårnet helt til høyre (øst), frost i nord (oppe), sump i sør (nede).
 
@@ -155,26 +252,34 @@ Eksempel (`public/assets/manifest.json`):
 ```json
 {
   "parts": [
-    { "char": "thrugg", "part": "head", "file": "thrugg_head.png" },
-    { "char": "thrugg", "part": "torso", "file": "thrugg_torso.png" },
-    { "char": "thrugg", "part": "pelvis", "file": "thrugg_pelvis.png" },
-    { "char": "thrugg", "part": "arm", "file": "thrugg_arm.png" },
-    { "char": "thrugg", "part": "leg", "file": "thrugg_leg.png" },
-    { "char": "thrugg", "part": "weapon", "file": "thrugg_weapon.png", "anchor": [0.5, 0.8] }
+    { "char": "valkyra", "part": "head", "file": "valkyra_head.png" },
+    { "char": "valkyra", "part": "hairback", "file": "valkyra_hairback.png" },
+    { "char": "valkyra", "part": "torso", "file": "valkyra_torso.png" },
+    { "char": "valkyra", "part": "pelvis", "file": "valkyra_pelvis.png" },
+    { "char": "valkyra", "part": "arm", "file": "valkyra_arm.png" },
+    { "char": "valkyra", "part": "leg", "file": "valkyra_leg.png" },
+    { "char": "valkyra", "part": "weapon", "file": "valkyra_weapon.png", "anchor": [0.5, 0.8] }
   ],
-  "sky": { "grass": "sky_grass.png", "swamp": "sky_swamp.png" },
+  "textures": {
+    "ground_grass": "tex_ground_grass.png",
+    "road_grass": "tex_road_grass.png",
+    "wall_keep": "tex_wall_keep.png"
+  },
+  "sky": { "scorch": "sky_scorch.png" },
   "map": "map.png"
 }
 ```
 
-- `height` er delens høyde i spillenheter. Standard: hode 1.0, overkropp 0.9, hofte 0.6, arm 0.78, bein 0.92, våpen 1.7. For heltene (`thrugg`, `valkyra`): hode 1.3, overkropp 0.95, hofte 0.35, arm 0.8, bein 0.66. For ridedyr: kropp 1.3, hode 0.9, hale 0.6, bein 0.75. Store figurer skaleres av spillet selv, så bruk standardverdiene.
-- `anchor` er leddpunktet i det beskårne bildet, `[x, y]` fra 0 til 1 der `y` måles fra toppen. Standard: hode `[0.5, 0.95]`, overkropp `[0.5, 0.96]`, hofte `[0.5, 0.12]`, arm `[0.5, 0.06]`, bein `[0.4, 0.04]`, våpen `[0.5, 0.82]`.
+- `height` er delens høyde i spillenheter. Standard: hode 1.0, hårmanke 1.3, overkropp 0.9, hofte 0.6, arm 0.78, bein 0.92, våpen 1.7. For heltene (`thrugg`, `valkyra`): hode 1.1, hårmanke 1.25, overkropp 1.08, hofte 0.35, arm 0.98, bein 1.06. For ridedyr: kropp 1.3, hode 0.9, hale 0.6, bein 0.75. Store figurer skaleres av spillet selv, så bruk standardverdiene.
+- `anchor` er leddpunktet i det beskårne bildet, `[x, y]` fra 0 til 1 der `y` måles fra toppen. Standard: hode `[0.5, 0.95]`, hårmanke `[0.62, 0.22]`, overkropp `[0.5, 0.96]`, hofte `[0.5, 0.12]`, arm `[0.5, 0.06]`, bein `[0.4, 0.04]`, våpen `[0.5, 0.82]`.
+- `textures` knytter navnene fra teksturlista til filer. Navn spillet ikke kjenner, blir ignorert.
+- `tools/tests/textures.mjs` sjekker at teksturer fra manifestet blir brukt (den later som om tre bilder finnes).
 
 ---
 
 ## Ridedyr
 
-Ridedyrene er satt sammen av fire deler: `body` (kropp med sal), `head`, `tail` og `leg` (samme bein brukes fire ganger, eller to for kakatrissen). Alt tegnes **sett fra siden, vendt mot høyre**, uten rytter. Filnavn: `<id>_body.png`, `<id>_head.png`, `<id>_tail.png`, `<id>_leg.png`. I manifestet: `{ "char": "warhog", "part": "body", "file": "warhog_body.png" }`.
+Ridedyrene er satt sammen av fire deler: `body` (kropp med sal), `head`, `tail` og `leg` (samme bein brukes fire ganger, eller to for kakatrissen). Alt lages **sett fra siden, vendt mot høyre**, uten rytter. Filnavn: `<id>_body.png`, `<id>_head.png`, `<id>_tail.png`, `<id>_leg.png`. I manifestet: `{ "char": "warhog", "part": "body", "file": "warhog_body.png" }`. Bruk stil-blokken: ridedyrene skal også se nesten ekte ut.
 
 | id | Beskrivelse (lim inn) |
 |---|---|
@@ -225,10 +330,9 @@ Disse kan lages nå, så er de klare når koden støtter dem.
 
 | Pakke | Filer | Merknad |
 |---|---|---|
-| Heltebygger | `hero_face_<m/f>.png`, `hero_hair_<stil>.png`, `hero_helmet_<type>.png`, `hero_beard_<type>.png`, `hero_torso_<type>_<m/f>.png`, `hero_pelvis_<type>.png`, `hero_legs_<type>.png`, `hero_weapon_<type>.png` | Lag på HEAD-, TORSO-, PELVIS-, LEG- og WEAPON-templatet. Hår, hjelm og skjegg lages som egne lag på samme lerret (1024x1024) så de kan legges oppå et ansikt. Farger: tegn hår og tøy i nøytral grå så spillet kan farge dem. |
-| Rekvisitter | `prop_tree_dead.png`, `prop_pine_snow.png`, `prop_rock.png`, `prop_skull_pike.png`, `prop_tent.png`, `prop_banner.png`, `prop_barrel.png`, `prop_campfire.png`, `prop_crystal.png`, `prop_mushrooms.png` | Frittstående, sett fra siden, transparent bakgrunn. |
+| Heltebygger | `hero_face_<m/f>.png`, `hero_hair_<stil>.png`, `hero_helmet_<type>.png`, `hero_beard_<type>.png`, `hero_torso_<type>_<m/f>.png`, `hero_pelvis_<type>.png`, `hero_legs_<type>.png`, `hero_weapon_<type>.png` | Lag på HEAD-, TORSO-, PELVIS-, LEG- og WEAPON-templatet. Hår, hjelm og skjegg lages som egne lag på samme lerret (1024x1024) så de kan legges oppå et ansikt. Farger: lag hår og tøy i nøytral grå så spillet kan farge dem. |
 | Pickups og ikoner | `icon_potion.png`, `icon_chicken.png`, `icon_ham.png`, `icon_coin.png`, `proj_dagger.png`, `proj_fireball.png`, `proj_snowball.png`, `proj_poison.png` | 512x512, transparent. |
 | Tittel og kort | `title.png` (logo-illustrasjon), `boss_<id>.png` (VS-kort 1536x1024 per sjef) | Til tittelskjerm og sjef-intro. |
-| Gore | `gib_meat_1..3.png`, `gib_bone.png`, `gib_eye.png`, `splat_1..3.png` | Tegneserieaktig, ikke realistisk. 256x256. |
+| Gore | `gib_meat_1..3.png`, `gib_bone.png`, `gib_eye.png`, `splat_1..3.png` | Nesten ekte, vått og blankt, over the top. 256x256. Blod og gibs er i dag 3D-partikler, så dette er bare aktuelt som ekstra detalj. |
 | Farer | `hazard_spikes.png`, `hazard_bog.png`, `hazard_icehole.png`, `hazard_lava.png`, `hazard_spiketrap.png` | Sett rett ovenfra, 1024x512, transparent kant. Tegnes i dag i 3D av koden. |
 | FAMILY-modus | `gib_duck.png`, `gib_flower.png`, `gib_star.png` | Gummiand, blomst og stjerne som erstatter gibs når gore står på FAMILY. 256x256. |
