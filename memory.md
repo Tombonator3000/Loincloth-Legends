@@ -30,6 +30,7 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - 2026-09-29: Teit vold er en del av sjangeren: imp sparker hodet i skjermen, armer ryker (JUST A FLESH WOUND), hodeløse fiender løper rundt.
 - 2026-09-29: Gamepad følger standard mapping. I 2-spiller med én gamepad er gamepaden spiller 2. Berøring styrer alltid spiller 1.
 - 2026-09-29: Progresjon: XP og nivåer per helt, STR/DEF/MAG/AGI, butikk og trening i hjemborgen (startnoden på kartet), fem kjæledyr.
+- 2026-09-29: Koden ligger på main i GitHub-repoet, pakket ut fra zip-en Tom lastet opp. Grenen `claude/loincloth-legends-v0.3` fra chat-økten ble aldri pushet og finnes ikke. Den utpakkede mappen i ~/Utvikling (uten git) skal ikke pushes fra. Lokalt arbeid skjer i en klone av repoet.
 
 ## Tekniske notater
 - Figurmaterialer bruker egen ShaderMaterial med `flash` og `tint` uniforms for treff-blink.
@@ -55,3 +56,5 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - Hodet på skjermen tegnes på et eget canvas (`fx-glass`) i full oppløsning over 3D-bildet.
 - PNG-høyder for heltedelene er egne for thrugg/valkyra (HERO_H i gfx/assets.ts) fordi proporsjonene er endret.
 - Playwright er ikke en avhengighet i package.json. Installer det separat (`npm i -D playwright`) før testene kjøres.
+- I skyøkter (Claude Code på nett) finnes Playwright 1.56.1 globalt, med Chromium i /opt/pw-browsers. `ln -sfn "$(npm root -g)/playwright" node_modules/playwright` gjør den tilgjengelig for testene uten å endre package.json.
+- I skyøkter laster ikke headless Chromium Google Fonts (sertifikatfeil via proxyen). `net::ERR_CERT_AUTHORITY_INVALID` i testloggen kommer derfra og er ikke en feil i spillet.

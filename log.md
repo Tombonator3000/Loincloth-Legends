@@ -100,3 +100,15 @@ Merk: tidspunktene fra 10:53 til 11:57 er rekonstruert fra når filene sist ble 
 - Publiserte versjon 3 av Artifact "Loincloth Legends".
 - Leste repoet https://github.com/Tombonator3000/Loincloth-Legends: bare en README fra første commit, ingen AGENTS.md der fra før (vår følger med).
 - Committet prosjektet til grenen `claude/loincloth-legends-v0.3`. Push ble stoppet med 403: repoet er ikke koblet til denne økten, så git-proxyen gir ingen skrivetilgang. Commiten ligger klar i økten, og kildekoden er levert som zip.
+
+## 2026-09-29 12:32 (Europe/Oslo)
+- Ny økt i Claude Code på nett (skyøkt koblet til repoet, gren `claude/loincloth-legends-setup-qx39n4`). Tom limte inn instruksen som var skrevet for en lokal økt i ~/Utvikling/Loincloth-Legends. En skyøkt ser ikke Toms maskin, bare det som ligger på GitHub.
+- Da økten startet (12:23) hadde main bare README fra første commit. Klokka 12:25 lastet Tom opp `loincloth-legends-src.zip` og `ART_PROMPTS.md` via GitHub i nettleseren (commit 16ee895).
+- Leste AGENTS.md, CLAUDE.md, memory.md, todo.md og log.md fra zip-en før noe ble endret.
+- Sjekket zip-en før utpakking, siden repoet er offentlig: ingen nøkler, ingen .env-filer, ingen node_modules eller byggmapper.
+- Pakket ut zip-en i roten av repoet uten endringer (106 filer, fillista sjekket mot zip-en). Fjernet zip-filen og `ART_PROMPTS.md` på rota, som var byte for byte lik `docs/ART_PROMPTS.md`. Begge finnes fortsatt i commit 16ee895.
+- `npm install` (34 pakker, 0 sårbarheter, package-lock.json uendret), `npm run typecheck`, `npm run build` og `npm run build:single` ok.
+- Røyktest med Playwright mot `vite preview`: story.mjs (tittel, Hero Forge, intro, kart, brett, sjef, belønning, tilbake til kart, pause) og splash.mjs gikk gjennom. Eneste logglinje var at Google Fonts ikke lastet i skyøkten (sertifikatfeil via proxyen), ikke en feil i spillet.
+- Grenen `claude/loincloth-legends-v0.3` fra chat-økten ble aldri pushet og finnes ikke på GitHub. Main har det samme innholdet, pakket ut fra zip-en.
+- Den lokale mappen ~/Utvikling/Loincloth-Legends har ikke git og har eldre utgaver av log.md, todo.md og memory.md. Den gamle framgangsmåten (git init, git reset origin/main, git add -A, push) ville nå skrevet over denne loggen. Lokalt arbeid bør skje i en fersk klone av repoet.
+- Committet utpakkingen og denne loggen, og pushet til main (som Tom ba om) og til øktens gren.

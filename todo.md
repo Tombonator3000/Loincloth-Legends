@@ -1,7 +1,7 @@
 # todo.md
 
 ## Pågår
-- [ ] Få koden opp på GitHub: koble repoet til økten (så pusher Claude grenen `claude/loincloth-legends-v0.3`), eller push selv fra zip-filen
+- [ ] Lokalt: bytt ut den utpakkede mappen ~/Utvikling/Loincloth-Legends med en klone av repoet. Mappen har ikke git og har eldre utgaver av log.md, todo.md og memory.md, så den skal ikke pushes fra.
 - [ ] Spilltesting med ekte mennesker: balanse på Gorthak (runde 2 og 3 kan være harde), fiendeskade, antall bølger, priser i butikken og XP-kurven
 
 ## Neste
@@ -57,3 +57,4 @@
 - [x] Oppstartslogo for Tom's Happy Happy Funtimes Emporium
 - [x] Playwright-tester for alt det nye (lineup, closeup, violence, grab, mounts, mountride, progress, pets, mobile, gamepad, splash, settings)
 - [x] Klargjort for GitHub (.gitignore, AGENTS.md, CLAUDE.md, versjon 0.3.0, commit klar)
+- [x] Koden ligger på GitHub (main), pakket ut fra zip-en. Typecheck, bygg og røyktest ok (2026-09-29)
