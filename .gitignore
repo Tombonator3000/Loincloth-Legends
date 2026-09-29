@@ -1,0 +1,17 @@
+# Avhengigheter og bygg
+node_modules/
+dist/
+dist-single/
+
+# Testresultater og skjermbilder
+shots/
+test-results/
+playwright-report/
+
+# Diverse
+.DS_Store
+Thumbs.db
+*.log
+.vite/
+.env
+.env.*

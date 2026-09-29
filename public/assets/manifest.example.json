@@ -1,0 +1,12 @@
+{
+  "parts": [
+    { "char": "thrugg", "part": "head", "file": "thrugg_head.png" },
+    { "char": "thrugg", "part": "torso", "file": "thrugg_torso.png" },
+    { "char": "thrugg", "part": "pelvis", "file": "thrugg_pelvis.png" },
+    { "char": "thrugg", "part": "arm", "file": "thrugg_arm.png" },
+    { "char": "thrugg", "part": "leg", "file": "thrugg_leg.png" },
+    { "char": "thrugg", "part": "weapon", "file": "thrugg_weapon.png", "anchor": [0.5, 0.8] }
+  ],
+  "sky": { "grass": "sky_grass.png" },
+  "map": "map.png"
+}

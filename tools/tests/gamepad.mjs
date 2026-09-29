@@ -1,0 +1,43 @@
+// Gamepad (standard mapping) med falsk kontroller: bevegelse, angrep, grip og rumble.
+import { chromium } from 'playwright';
+const [url] = process.argv.slice(2);
+const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const page = await browser.newPage({ viewport: { width: 960, height: 540 } });
+const logs = [];
+page.on('pageerror', (e) => logs.push('pageerror: ' + e.message + '\n' + e.stack));
+await page.goto(url);
+await page.waitForTimeout(1500);
+await page.evaluate(() => {
+  window.requestAnimationFrame = () => 0;
+  window.__rumbles = [];
+  const btn = () => ({ pressed: false, value: 0, touched: false });
+  window.__pad = { index: 0, id: 'Xbox Wireless Controller (STANDARD GAMEPAD Vendor: 045e)', connected: true, mapping: 'standard', buttons: Array.from({ length: 17 }, btn), axes: [0, 0, 0, 0],
+    vibrationActuator: { playEffect: (t, o) => { window.__rumbles.push(o.strongMagnitude.toFixed(2)); return Promise.resolve('complete'); } } };
+  navigator.getGamepads = () => [window.__pad, null, null, null];
+  const g = window.__game, L = window.__lib;
+  g.save = L.defaultSave(); g.save.heroMade = [true, true]; g.twoP = false; g.input.solo = true;
+  g.playLevel({ id: 'road', level: 'road', kind: 'level', name: 'X', biome: 'grass', pos: [0, 0], requires: [], blurb: '' });
+});
+const run = (sec) => page.evaluate((sec) => { const g = window.__game; for (let i = 0; i < Math.round(sec * 60); i++) g.tick(1 / 60, false); }, sec);
+const press = (i, v = true) => page.evaluate(({ i, v }) => { window.__pad.buttons[i] = { pressed: v, value: v ? 1 : 0, touched: v }; }, { i, v });
+const axis = (x, y) => page.evaluate(({ x, y }) => { window.__pad.axes[0] = x; window.__pad.axes[1] = y; }, { x, y });
+await run(1.5);
+const x0 = await page.evaluate(() => window.__game.scene.stage.heroes[0].f.pos.x);
+await axis(0.9, 0.1); await run(0.8); await axis(0, 0); await run(0.1);
+const x1 = await page.evaluate(() => window.__game.scene.stage.heroes[0].f.pos.x);
+console.log('stick moved', (x1 - x0).toFixed(2));
+await page.evaluate(() => { const s = window.__game.scene.stage; const h = s.heroes[0].f; const f = s.spawnFoe('skeleton', 'R'); f.f.pos.set(h.pos.x + 1.1, 0, h.pos.z); f.cd = 99; h.facing = 1; });
+await run(0.2);
+await press(3); await run(0.05); await press(3, false); await run(0.2);
+console.log('Y grab ->', await page.evaluate(() => window.__game.scene.stage.heroes[0].f.state));
+await press(2); await run(0.05); await press(2, false); await run(0.3);
+console.log('X pummel, foe hp', await page.evaluate(() => Math.round(window.__game.scene.stage.foes[0].f.hp)));
+await press(0); await run(0.05); await press(0, false); await run(0.6);
+console.log('A throw ->', await page.evaluate(() => window.__game.scene.stage.foes[0].f.state));
+await page.evaluate(() => { const s = window.__game.scene.stage; const h = s.heroes[0].f; const f = s.spawnFoe('hogman', 'R'); f.f.pos.set(h.pos.x + 1.2, 0, h.pos.z); f.f.face(-1); f.cd = 0; });
+await run(2.5);
+console.log('rumbles', JSON.stringify(await page.evaluate(() => window.__rumbles.slice(0, 8))));
+await press(9); await run(0.05); await press(9, false); await run(0.1);
+console.log('START paused', await page.evaluate(() => window.__game.paused));
+console.log('LOGS:\n' + logs.join('\n'));
+await browser.close();
