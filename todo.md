@@ -76,6 +76,8 @@
 - [x] GitHub Actions: typecheck og bygg på hver push, og publisering til GitHub Pages når Pages er slått på
 - [ ] Tom: slå på GitHub Pages (Settings > Pages > Source > GitHub Actions), så kan spillet spilles på https://tombonator3000.github.io/Loincloth-Legends/
 - [ ] Oversett den norske teksten i menyene og kontrollskjermen til engelsk (foreslått som egen oppgave)
+- [ ] CI: sjekk Pages med API (bare 404 betyr av), flytt actions til Node 24-versjonene (checkout@v5, setup-node@v5, upload-pages-artifact@v5, configure-pages@v6, deploy-pages@v5)
+- [ ] Hofteankeret: finn beltet automatisk også i høyden (i dag må lange flik måles med MEASURE i ChatGPT)
 
 ## Ferdig
 - [x] Vertikal slice: brett 1 + duell + menyer (2026-09-29)

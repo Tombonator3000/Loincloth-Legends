@@ -76,6 +76,7 @@ M = lyd av/på. I 1-spiller kan du også bruke piltaster + Z/X/C/V. Med én game
 - `docs/GDD.md` design, kart, biomer, sjefer, dueller, heltebygger, ridedyr, kjæledyr, butikk og forslag
 - `docs/ARCHITECTURE.md` hvordan koden henger sammen, og oppskrifter for nytt innhold
 - `docs/ART_PROMPTS.md` grafikkliste med ferdige prompter til ChatGPT
+- `docs/CHATGPT_PROMPT.md` startprompt som lar ChatGPT styre hele grafikkjobben (sjekkliste, filnavn, kommandoer)
 - `tools/tests/README.md` Playwright-tester
 - `AGENTS.md` og `CLAUDE.md` regler for AI-agenter
 - `memory.md`, `todo.md`, `log.md` hukommelse, plan og historikk

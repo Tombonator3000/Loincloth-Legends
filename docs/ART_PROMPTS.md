@@ -1,5 +1,7 @@
 # Grafikkliste for ChatGPT (GPT-image)
 
+**Vil du at ChatGPT skal styre hele jobben selv?** Lim inn startprompten i `docs/CHATGPT_PROMPT.md`. Den inneholder alt under, og ChatGPT holder sjekklista, gir filnavn og sier hva som kommer neste.
+
 Denne lista beskriver all grafikk spillet kan hente fra ChatGPT, med ferdige prompter du kan lime inn. Spillet virker uten noen av filene (alt lages i kode), så du kan bytte ut én figur eller én tekstur om gangen.
 
 Målet er satt av Toms referansebilde av Valkyra (se `docs/STYLE_TARGET.md`): **nesten ekte karikatur**. Figurene skal se nesten virkelige ut, med hud, hår, rustent jern og slitt lær som på et foto eller en påkostet 3D-render, men med overdrevne former: stort hår, tunge øyelokk og fyldige lepper, store bryst og muskler, tykke lår, store støvler og digre våpen. Spilt helt alvorlig. Humoren kommer fra overdrivelsen, navnene og parodien, aldri fra tegneseriestrek.
