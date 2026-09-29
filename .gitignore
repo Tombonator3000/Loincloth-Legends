@@ -19,3 +19,6 @@ Thumbs.db
 # Bilder fra ChatGPT: bare de behandlede filene i public/assets kommer i git
 art/inbox/*
 !art/inbox/LESMEG.md
+
+# Arbeidskopier for agenter (git worktree), aldri i repoet
+.claude/worktrees/
