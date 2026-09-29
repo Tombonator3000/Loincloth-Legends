@@ -51,7 +51,8 @@ gfx/               Grafikk
   rig.ts           Cutout-rigg for mennesker (hver kroppsdel er et plan med pivot i leddet), restore og setTint
   beast.ts         Rigg for ridedyr (kropp, hode, hale, 2 eller 4 bein)
   pets.ts          Sprites for kjæledyr
-  gore.ts          Blod, gibs, flekker, fontener, stemningspartikler. Gore-nivå (FAMILY gir konfetti og gummiender)
+  gore.ts          Blod, gibs, flekker, fontener. Gore-nivå (FAMILY gir konfetti og gummiender). Sender gnister, ild og røyk til vfx
+  vfx.ts           GPU-partikler (gnister, flammer, glør, røyk, snø), lyn, eksplosjoner og lyspool (punktlys til nærmeste kilder)
   fx.ts            Risting, hitstop, slowmo, sverdspor, tekst, blod på skjermen, hodet som klasker i skjermen
   assets.ts        PNG-erstatninger fra public/assets/manifest.json
   draw.ts          Tegnehjelpere i enhetsrom

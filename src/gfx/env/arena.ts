@@ -92,7 +92,6 @@ export function buildArena(scene: THREE.Scene, gore: Gore, theme: ArenaTheme = '
   }
 
   const fireSpots: THREE.Vector3[] = [];
-  const lights: THREE.PointLight[] = [];
   const pt = stoneTex(T.pillar[0], T.pillar[1], 64, 32);
   pt.repeat.set(1, 2);
   for (const ang of [0.2, 0.38, 0.62, 0.8]) {
@@ -104,10 +103,7 @@ export function buildArena(scene: THREE.Scene, gore: Gore, theme: ArenaTheme = '
     g.add(col);
     g.add(M(new THREE.CylinderGeometry(0.5, 0.2, 0.5, 8), '#3a302e', x, 6.5, z + 0.4, 0.05));
     fireSpots.push(new THREE.Vector3(x, 6.8, z + 0.4));
-    const pl = new THREE.PointLight(T.light, 22, 16, 1.6);
-    pl.position.set(x, 7.2, z + 1.2);
-    g.add(pl);
-    lights.push(pl);
+    gore.vfx.lights.source(new THREE.Vector3(x, 7.2, z + 1.2), T.light, 22, 16, 0.25);
   }
 
   const balc = new THREE.Group();
@@ -170,7 +166,6 @@ export function buildArena(scene: THREE.Scene, gore: Gore, theme: ArenaTheme = '
           gore.ambient(camX + rand(-12, 12), rand(6, 9), rand(-6, 3), rand(-0.3, 0.3), rand(-1.4, -0.8), '#ffffff', rand(0.05, 0.1), 7);
         }
       }
-      for (let i = 0; i < lights.length; i++) lights[i].intensity = 20 + Math.sin(t * 13 + i * 3) * 3 + Math.sin(t * 7.3 + i) * 3;
       cheer = Math.max(0, cheer - dt * 0.8);
       for (const c of tiers) {
         const ph = c.userData.ph as number;

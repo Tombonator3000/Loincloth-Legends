@@ -46,6 +46,23 @@ for (const id of ids) {
     await shot('duel');
     continue;
   }
+  if (id === 'fx') {
+    // Lyn, eksplosjon og gnister midt i brett 1 (effektene fryses et øyeblikk etter utløsning)
+    await ev(() => { const g = window.__game; g.save.heroMade = [true, true]; g.twoP = false; g.input.solo = true; g.playLevel({ id: 'road', name: 'road', kind: 'level', level: 'road', biome: 'grass', pos: [0, 0], requires: [], blurb: '' }); });
+    await run(4.5);
+    await ev(() => {
+      const g = window.__game, L = window.__lib, s = g.scene.stage, h = s.heroes[0].f, V = L.THREE.Vector3;
+      h.hp = 9999;
+      g.gore.vfx.lightning(new V(h.pos.x + 3.5, 14, -1), new V(h.pos.x + 3.5, 0, 0.5));
+      g.gore.vfx.explode(new V(h.pos.x + 7, 1.2, 0), 1);
+      for (let i = 0; i < 4; i++) g.gore.sparks(new V(h.pos.x + 1.2, 1.4 + i * 0.1, 0.2), 10, '#ffd35a', 7);
+    });
+    await run(0.05);
+    await shot('fx-a');
+    await run(0.25);
+    await shot('fx-b');
+    continue;
+  }
   if (id === 'title') {
     await ev(() => window.__game.goTitle());
     await run(3);

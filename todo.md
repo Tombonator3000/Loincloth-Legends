@@ -9,7 +9,7 @@
 - [ ] Biomene mot konseptbildene (docs/STYLE_TARGET.md): fakler og fyrfat, lyn, blodmåne, lavafall, demonslott, ruiner, fossefall, våte gulv, mørke silhuetter i forgrunnen
 - [ ] Heroiske proporsjoner på figurene (vanlig hodestørrelse, lange bein), dverg-helt
 - [ ] HUD i konseptstil: portretter i gullramme, magikrukker, gullteller
-- [ ] Partikkelsystem med pooler og HDR-emisjon
+- [x] Partikkelsystem på GPU med pooler og HDR-emisjon, lyn, eksplosjoner og lyspool
 - [ ] Realistisk blodsprut, dekaler, pytter og 3D-gibs
 - [ ] 80-talls figurer: chainmail-bikini, store former, oljeglans, kapper i vinden
 - [ ] 1980s heavy metal: musikk og METAL MODE

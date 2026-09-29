@@ -137,3 +137,12 @@ Merk: tidspunktene fra 10:53 til 11:57 er rekonstruert fra når filene sist ble 
 - Måling i looks.mjs (tegnekall og trekanter per frame): brett 1 har rundt 600 000 trekanter og 430 tegnekall på HIGH, 368 000 og 441 på MEDIUM. Tegnekallene kommer mest fra små statiske mesher (palisaden er fire kall per påle). Sammenslåing av statiske mesher står på todo.
 - Fjernet de gamle hjelperne deadTree, pineTree, tuftMat, tufts og toonGrad (ikke brukt lenger).
 - Alle 17 Playwright-testene kjørte uten konsollfeil.
+
+## 2026-09-29 14:10 (Europe/Oslo)
+- Nytt partikkelsystem på GPU (src/gfx/vfx.ts) etter instanced-spark-kontrakten i threejs-procedural-vfx: faste pooler i en ringbuffer, hver partikkel har startposisjon, fart, akselerasjon, drag og fødselstid, og bevegelsen regnes ut analytisk i skyggeleggeren. En additiv HDR-pool (gnister strukket langs farten, glimt, flammer med flytende støy, sjokkbølger flatt på bakken, glør) og en røykpool (myke dotter med falsk kulenormal, snø og aske som harde flak). Det som faller gjennom gulvet blir liggende og tones ut.
+- Lyn (VFX.lightning): takkete bane med midtpunktforskyvning og sidegreiner, slår ned tre ganger med ny form hver gang, med gnister, sjokkbølge, røyk og et kraftig lysglimt. Eksplosjon (VFX.explode) med glimt, flammer, gnister, røyk og lys.
+- Lyspool: fire punktlys som fordeles til de nærmeste lyskildene (bål, lava, fakler) og til korte lysglimt ved treff, magi og lyn. Antallet endres aldri, så materialene kompileres ikke på nytt. Punktlysene i Scorchlands, tårnet, arenaen og bålene går nå via poolen.
+- Gore sender gnister, glimt, ild, stemningspartikler og støv videre til GPU-poolene med samme signaturer, så de 48 kallstedene i spillkoden er uendret. Lavadråper går også til GPU. Blodet er foreløpig på CPU (neste steg).
+- Feil underveis: smoothstep med kantene i synkende rekkefølge er udefinert i GLSL og ga usynlige flammer i SwiftShader. Og partikler som ble sluppet ut i frames som ikke tegnes (testene hopper over tegning) ble aldri lastet opp, fordi jeg tømte oppdateringsområdene selv. Three tømmer dem etter opplasting, så nå legges de bare til.
+- looks.mjs har fått et fx-bilde (lyn, eksplosjon og gnister midt i brett 1).
+- Testene story, violence, levels (scorch, tower), arena, mountride, settings og ai kjørte uten konsollfeil.

@@ -201,6 +201,7 @@ export class Game {
     W.fx = this.fx;
     W.camera = this.camera;
     W.post = this.post;
+    this.gore.vfx.setCamera(this.camera);
     W.scene = new THREE.Scene();
     W.rumble = (p, st, wk, ms) => this.input.rumble(p, st, wk, ms);
     this.input.onFirstInteraction = () => audio.init();
@@ -648,6 +649,7 @@ export class Game {
 
     const cam = this.camera;
     this.gore.camQ.copy(cam.quaternion);
+    this.gore.camX = cam.position.x;
     this.gore.update(simDt);
     W.env?.update(simDt, W.time, cam.position.x);
     this.fx.update(realDt, cam, this.width, this.height);

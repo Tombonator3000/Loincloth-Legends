@@ -52,13 +52,8 @@ export function buildScorch(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): En
   updates.push((dt) => {
     lavaT.offset.x += dt * 0.03;
   });
-  const lights: THREE.PointLight[] = [];
-  for (let x = 0; x < L; x += 24) {
-    const pl = new THREE.PointLight('#ff6a1a', 16, 14, 1.6);
-    pl.position.set(x, 1.5, -8);
-    g.add(pl);
-    lights.push(pl);
-  }
+  // Lavaen lyser opp omgivelsene (lyspoolen velger de nærmeste)
+  for (let x = 0; x < L; x += 12) gore.vfx.lights.source(new THREE.Vector3(x, 1.5, -8), '#ff6a1a', 16, 14, 0.2);
 
   // Obsidianpigger
   for (let x = -4; x < L + 4; x += rand(3, 7)) {
@@ -110,7 +105,6 @@ export function buildScorch(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): En
       const b = pick(burning);
       if (b && Math.abs(b.x - camX) < 16) gore.fire(b, 2, 0.8, 2);
     }
-    for (let i = 0; i < lights.length; i++) lights[i].intensity = 14 + Math.sin(t * 5 + i) * 3;
   });
   return finishEnv(g, updates, '#4a1a10', GRADES.scorch);
 }

@@ -428,19 +428,15 @@ export function banner(g: THREE.Group, x: number, z: number, cloth: string, embl
   g.add(b);
 }
 
-/** Bål: returnerer posisjonen for flammer. */
-export function campfire(g: THREE.Group, x: number, z: number, light = true) {
+/** Bål: returnerer posisjonen for flammer. Lyset går via lyspoolen (vfx.ts) når gore er gitt. */
+export function campfire(g: THREE.Group, x: number, z: number, gore?: Gore) {
   for (let i = 0; i < 5; i++) {
     const log = M(new THREE.CylinderGeometry(0.1, 0.1, 1.1, 5), '#4a3020', x + Math.cos(i * 1.25) * 0.15, 0.12, z + Math.sin(i * 1.25) * 0.15, 0.06);
     log.rotation.z = Math.PI / 2;
     log.rotation.y = i * 1.25;
     g.add(log);
   }
-  if (light) {
-    const pl = new THREE.PointLight('#ff8a3a', 8, 9, 2);
-    pl.position.set(x, 1.2, z + 0.5);
-    g.add(pl);
-  }
+  gore?.vfx.lights.source(new THREE.Vector3(x, 1.2, z + 0.5), '#ff8a3a', 10, 9, 0.35);
   return new THREE.Vector3(x, 0.3, z);
 }
 

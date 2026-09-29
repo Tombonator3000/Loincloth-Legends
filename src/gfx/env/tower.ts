@@ -110,7 +110,6 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   }), false));
 
   const flames: THREE.Vector3[] = [];
-  const lights: THREE.PointLight[] = [];
   const pt = stoneTex('#6a5a78', '#2a2034', 64, 32);
   pt.repeat.set(1, 3);
   let pi = 0;
@@ -128,12 +127,7 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     }
     g.add(M(new THREE.CylinderGeometry(0.2, 0.08, 0.4, 6), '#3a302e', x + 1.1, 3.6, -4.2, 0.05));
     flames.push(new THREE.Vector3(x + 1.1, 3.9, -4.2));
-    if ((x / 8) % 2 === 0) {
-      const pl = new THREE.PointLight('#b070ff', 12, 12, 1.6);
-      pl.position.set(x + 1.1, 4.4, -3.2);
-      g.add(pl);
-      lights.push(pl);
-    }
+    gore.vfx.lights.source(new THREE.Vector3(x + 1.1, 4.4, -3.2), '#b070ff', 12, 12, 0.25);
   }
   // Hengende bur
   for (let x = 12; x < L; x += rand(18, 26)) {
@@ -174,7 +168,6 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
       acc = 0;
       for (const f of flames) if (Math.abs(f.x - camX) < 16) gore.fire(f, 1, 0.08, 1.4, GHOSTFIRE);
     }
-    for (let i = 0; i < lights.length; i++) lights[i].intensity = 11 + Math.sin(t * 9 + i * 2) * 2;
     if (Math.random() < dt * 4) gore.ambient(camX + rand(-10, 10), rand(1, 6), rand(-4, 2), rand(-0.1, 0.1), rand(-0.1, 0.1), pick(['#c080ff', '#ffffff']), 0.05, 4, true);
   });
   applyShadows(g);

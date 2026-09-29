@@ -68,6 +68,9 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - Sola (`SunShadow` i env/sun.ts) følger kameraet og låser skyggeboksen til tekselrutenettet. Oppdateres fra env.update med camX.
 - Vind: `src/gfx/wind.ts`. Alle materialer som svaier deler `windUniforms`. Trær bruker `windifyTree()` og attributtet aWind (grennivå, bladspiss, fase); samme patch må ligge på `customDepthMaterial`, ellers står skyggene stille. Egne programnøkler per variant (bark, blad, dybde), ellers kan Three gjenbruke feil program.
 - Trær: `Forest` i `env/trees.ts` (arter i SPECIES, `withSnow`, `burnt`). Prototypene bufres per art, variant og grafikknivå. Gress: `Meadow` (følger kameraet via uCamX, må oppdateres fra env.update). Tåke og stråler: `fogLayers` og `godRays` i `env/atmos.ts`.
+- Partikler: `VFX` i `src/gfx/vfx.ts` (eies av Gore, `W.gore.vfx`). `glow` er additiv HDR, `smoke` er alfablandet. Farger er lineære HDR-verdier (gnister rundt 5 til 9, flammer 2 til 4, glør 1 til 3). `lights` er lyspoolen: `source()` for faste lyskilder i et miljø, `flash()` for korte glimt. Ikke lag egne PointLight i miljøene.
+- Oppdateringsområder på buffere: bare `addUpdateRange`, aldri `clearUpdateRanges` etter hver frame (Three tømmer etter opplasting, og frames uten tegning ville mistet data).
+- `smoothstep(a, b, x)` krever a < b i GLSL. Bruk `1.0 - smoothstep(b, a, x)` for omvendt.
 - GLSL ES 3.0 har reserverte ord som `patch`, `sample`, `filter`, `input`, `output`. Ikke bruk dem som variabelnavn.
 - `tools/tests/looks.mjs` tar faste skjermbilder for sammenligning og skriver tegnekall og trekanter per frame. Kontaktark: se log.md for hvordan (Pillow i skyøkten).
 - I skyøkter laster ikke headless Chromium Google Fonts (sertifikatfeil via proxyen). `net::ERR_CERT_AUTHORITY_INVALID` i testloggen kommer derfra og er ikke en feil i spillet.

@@ -90,7 +90,7 @@ export function buildGrass(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     g.add(t);
   };
   for (let x = 34; x < L - 10; x += rand(28, 40)) tent(x, rand(-10, -9), pick(['#8e2a2a', '#5b2a86']));
-  const fires = [22, 52, 88].filter((x) => x < L - 6).map((x) => campfire(g, x, -5.4));
+  const fires = [22, 52, 88].filter((x) => x < L - 6).map((x) => campfire(g, x, -5.4, gore));
   for (let x = 16; x < L - 10; x += rand(26, 34)) banner(g, x, -6.2, '#5b2a86', '#efe8d2');
 
   for (let x = 0; x < L; x += rand(5, 11)) rock(g, x, pick([rand(4, 6), rand(-6, -3.8)]), rand(0.4, 1.0));

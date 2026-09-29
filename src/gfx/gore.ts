@@ -1,5 +1,6 @@
-// Blod, gibs, flekker på bakken, blodfontener, gnister og støv.
+// Blod, gibs, flekker på bakken og blodfontener. Gnister, flammer, glør, røyk og støv går til GPU-partiklene i vfx.ts.
 import * as THREE from 'three';
+import { VFX } from './vfx';
 import { plainCanvas, unitCanvas, INK, shade } from './draw';
 import { rand, pick, chance } from '../core/math';
 import { audio } from '../core/audio';
@@ -27,16 +28,6 @@ const circleTex = () =>
     c.beginPath();
     c.arc(32, 32, 28, 0, Math.PI * 2);
     c.fill();
-  }));
-
-const glowTex = () =>
-  tex(plainCanvas(64, 64, (c) => {
-    const g = c.createRadialGradient(32, 32, 0, 32, 32, 32);
-    g.addColorStop(0, 'rgba(255,255,255,1)');
-    g.addColorStop(0.35, 'rgba(255,255,255,0.6)');
-    g.addColorStop(1, 'rgba(255,255,255,0)');
-    c.fillStyle = g;
-    c.fillRect(0, 0, 64, 64);
   }));
 
 function splatTex(seed: number, drips: boolean) {
@@ -267,7 +258,10 @@ interface Fountain {
 export class Gore {
   group = new THREE.Group();
   blood: ParticlePool;
-  glow: ParticlePool;
+  /** GPU-partikler, lyn og lyspool (gnister, ild, røyk, magi). */
+  vfx = new VFX();
+  /** Kameraets x (for lyspoolen). Settes av Game hver frame. */
+  camX = 0;
   splats: DecalPool;
   drips: DecalPool;
   debris: Debris[] = [];
@@ -294,11 +288,9 @@ export class Gore {
   constructor() {
     const ct = circleTex();
     this.blood = new ParticlePool(2600, new THREE.MeshBasicMaterial({ map: ct, alphaTest: 0.5 }));
-    this.glow = new ParticlePool(900, new THREE.MeshBasicMaterial({ map: glowTex(), transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
-    this.glow.mesh.renderOrder = 5;
     this.splats = new DecalPool(700, splatTex(1.3, false), 0.012);
     this.drips = new DecalPool(500, splatTex(4.1, true), 0.014);
-    this.group.add(this.blood.mesh, this.glow.mesh, this.splats.mesh, this.drips.mesh);
+    this.group.add(this.blood.mesh, this.splats.mesh, this.drips.mesh, this.vfx.group);
   }
 
   private gibMat(kind: GibKind) {
@@ -324,9 +316,13 @@ export class Gore {
   // ---------------------------------------------------------------- partikler
   drop(x: number, y: number, z: number, vx: number, vy: number, vz: number, size: number, kind: BloodKind = 'red', life = 2) {
     const c = this.bloodColor(kind);
-    const pool = kind === 'lava' ? this.glow : this.blood;
-    const decal = kind === 'lava' ? 0 : this.level === 0 ? 0.15 : this.level === 1 ? 0.3 : 0.5;
-    pool.add({ x, y, z, vx, vy, vz, life, max: life, size: kind === 'lava' ? size * 1.6 : this.level === 0 ? size * 0.8 : size, grav: 16, drag: 0.4, r: c.r, g: c.g, b: c.b, decal, grow: 0, kind });
+    if (kind === 'lava') {
+      // Glødende lava faller som HDR-dråper (GPU), kjøles mot mørk rød
+      this.vfx.glow.emit(x, y, z, vx, vy, vz, 0, -16, 0, life, 0.4, size * 1.8, size * 1.2, 0.02, c.r * 5, c.g * 3.5, c.b * 2, 4, 0.6, 0.08, 0.02, 0);
+      return;
+    }
+    const decal = this.level === 0 ? 0.15 : this.level === 1 ? 0.3 : 0.5;
+    this.blood.add({ x, y, z, vx, vy, vz, life, max: life, size: this.level === 0 ? size * 0.8 : size, grav: 16, drag: 0.4, r: c.r, g: c.g, b: c.b, decal, grow: 0, kind });
   }
 
   /** Blodsprut i en retning (dir normalisert i xy). */
@@ -356,39 +352,26 @@ export class Gore {
     }
   }
 
+  // Gnister, glimt, ild, stemning og støv er GPU-partikler (vfx.ts). Signaturene er beholdt så spillkoden er uendret.
   sparks(pos: THREE.Vector3, count: number, color = '#ffd35a', speed = 6) {
-    const c = this.col.set(color);
-    for (let i = 0; i < count; i++) {
-      const a = rand(0, Math.PI * 2);
-      const sp = speed * rand(0.3, 1);
-      this.glow.add({ x: pos.x, y: pos.y, z: pos.z + 0.1, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, vz: 0, life: rand(0.15, 0.35), max: 0.35, size: rand(0.08, 0.2), grav: 6, drag: 3, r: c.r, g: c.g, b: c.b, decal: 0, grow: 0 });
-    }
-    this.glow.add({ x: pos.x, y: pos.y, z: pos.z + 0.12, vx: 0, vy: 0, vz: 0, life: 0.12, max: 0.12, size: 0.9, grav: 0, drag: 0, r: c.r, g: c.g, b: c.b, decal: 0, grow: 3 });
+    this.vfx.sparks(pos, count, color, speed);
   }
 
   flare(pos: THREE.Vector3, size: number, color: string, life = 0.25) {
-    const c = this.col.set(color);
-    this.glow.add({ x: pos.x, y: pos.y, z: pos.z + 0.1, vx: 0, vy: 0, vz: 0, life, max: life, size, grav: 0, drag: 0, r: c.r, g: c.g, b: c.b, decal: 0, grow: size * 2 });
+    this.vfx.flare(pos, size, color, life);
   }
 
   fire(pos: THREE.Vector3, count: number, spread = 0.3, up = 2, cols: string[] = FIRE) {
-    for (let i = 0; i < count; i++) {
-      const c = this.col.set(pick(cols));
-      this.glow.add({ x: pos.x + rand(-spread, spread), y: pos.y + rand(-spread, spread) * 0.5, z: pos.z + rand(-0.1, 0.1), vx: rand(-0.4, 0.4), vy: rand(up * 0.5, up), vz: 0, life: rand(0.3, 0.7), max: 0.7, size: rand(0.25, 0.6), grav: -1, drag: 1, r: c.r, g: c.g, b: c.b, decal: 0, grow: -0.4 });
-    }
+    this.vfx.fire(pos, count, spread, up, cols);
   }
 
-  /** Stemningspartikler (snø, gnister, ildfluer). glow = additiv. */
+  /** Stemningspartikler (snø, glør, ildfluer). glow = additiv. */
   ambient(x: number, y: number, z: number, vx: number, vy: number, color: string, size: number, life: number, glow = false, grav = 0) {
-    const c = this.col.set(color);
-    (glow ? this.glow : this.blood).add({ x, y, z, vx, vy, vz: 0, life, max: life, size, grav, drag: 0, r: c.r, g: c.g, b: c.b, decal: 0, grow: 0 });
+    this.vfx.ambient(x, y, z, vx, vy, color, size, life, glow, grav);
   }
 
   dust(pos: THREE.Vector3, count: number, color = '#c9b48a') {
-    const c = this.col.set(color);
-    for (let i = 0; i < count; i++) {
-      this.blood.add({ x: pos.x + rand(-0.3, 0.3), y: 0.1 + rand(0, 0.15), z: pos.z + rand(-0.2, 0.2), vx: rand(-1.5, 1.5), vy: rand(0.3, 1.2), vz: rand(-0.3, 0.3), life: rand(0.35, 0.6), max: 0.6, size: rand(0.15, 0.3), grav: -0.5, drag: 3, r: c.r, g: c.g, b: c.b, decal: 0, grow: 0.5 });
-    }
+    this.vfx.dust(pos, count, color);
   }
 
   // ---------------------------------------------------------------- flekker
@@ -448,7 +431,7 @@ export class Gore {
     this.blood.update(dt, (p) => {
       if (p.decal > 0 && chance(p.decal)) this.splat(p.x, p.z, p.size * rand(2, 4.5), p.kind ?? 'red');
     }, this.camQ);
-    this.glow.update(dt, () => {}, this.camQ);
+    this.vfx.update(dt, this.camX);
 
     // Fontener
     for (let i = this.fountains.length - 1; i >= 0; i--) {
@@ -539,7 +522,7 @@ export class Gore {
 
   clear() {
     this.blood.clear();
-    this.glow.clear();
+    this.vfx.clear();
     this.splats.clear();
     this.drips.clear();
     for (const d of this.debris) d.obj.removeFromParent();
