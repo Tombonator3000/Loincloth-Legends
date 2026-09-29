@@ -9,6 +9,7 @@ import type { Gore } from '../gore';
 import { images } from '../assets';
 import type { Grade } from '../post';
 import { SunShadow } from './sun';
+import { screenFX } from '../screenfx';
 import { withSurface, type SurfaceOpts } from './surface';
 import { groundTexture, roadTexture, stoneTexture, tileTexture, sandTexture, woodTexture, lavaRockTexture, imageTexture } from './textures';
 
@@ -232,6 +233,8 @@ export interface Env {
   cheer?(power: number): void;
   /** Fargegradering og linse for dette miljøet (se gfx/post.ts og env/grades.ts). */
   grade?: Partial<Grade>;
+  /** Regn, 0..1: vanndråper treffer glasset og renner (gfx/screenwet.ts). Ingen brett har regn ennå. */
+  rain?: number;
 }
 
 export interface Look {
@@ -683,6 +686,8 @@ export function campfire(g: THREE.Group, x: number, z: number, gore?: Gore) {
     g.add(log);
   }
   gore?.vfx.lights.source(new THREE.Vector3(x, 1.2, z + 0.5), '#ff8a3a', 10, 9, 0.35);
+  // Lufta over bålet dirrer (varmeflimmer i etterbehandlingen, gfx/screenfx.ts)
+  screenFX.addHeat(new THREE.Vector3(x, 0.4, z), 1.1, 0.9);
   return new THREE.Vector3(x, 0.3, z);
 }
 

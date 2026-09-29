@@ -9,9 +9,11 @@ let current: THREE.WebGLRenderTarget | null = null;
 /**
  * Lag miljøkart fra alt i scenen som er merket userData.sky. Bakken under er en mørk halvkule i fargen til
  * halvkulelyset nedenfra. intensity balanserer mot halvkulelyset som allerede finnes i miljøene.
+ * lost = WebGL ble mistet og er tilbake: det gamle kartet finnes ikke på skjermkortet lenger, så det slippes uten
+ * dispose (ellers prøver Three å slette objekter fra den gamle konteksten).
  */
-export function skyLight(renderer: THREE.WebGLRenderer, scene: THREE.Scene, intensity = 0.4) {
-  current?.dispose();
+export function skyLight(renderer: THREE.WebGLRenderer, scene: THREE.Scene, intensity = 0.4, lost = false) {
+  if (!lost) current?.dispose();
   current = null;
   scene.environment = null;
   const sky: THREE.Object3D[] = [];

@@ -4,6 +4,7 @@ import { Fighter, type Bounds } from './fighter';
 import { DUEL_ATK, type AttackDef } from './attacks';
 import { resolveAttack, applyHit } from './combat';
 import { W } from './world';
+import { screenFX } from '../gfx/screenfx';
 import { buildArena, type ArenaTheme } from '../gfx/env';
 import type { PlayerInput } from '../core/input';
 import type { CharId } from '../gfx/chars';
@@ -364,6 +365,10 @@ export class Duel {
     const hitOpts = { pvp: true, onHit: (_a: Fighter, t: Fighter, r: { killed: boolean; decap: boolean; blocked: boolean }) => this.onHit(t, r) };
     fa.update(dt, BOUNDS);
     fb.update(dt, BOUNDS);
+    // Årer og rød kant når en menneskestyrt duellant nesten er død (den svakeste i P1 mot P2)
+    let weakest = -1;
+    for (const f of [fa, fb]) if (f.player >= 0 && f.alive) weakest = Math.min(weakest < 0 ? 1 : weakest, Math.max(0, f.hp) / f.maxHp);
+    screenFX.health(this.phase === 'fight' ? weakest : -1);
     if (this.phase === 'fight') {
       resolveAttack(fa, [fb], hitOpts);
       resolveAttack(fb, [fa], hitOpts);
@@ -456,7 +461,7 @@ export class Duel {
     const p = loser.headPoint();
     for (let i = 0; i < 20; i++) W.gore.flare(new THREE.Vector3(p.x + rand(-0.3, 0.3), p.y + i * 0.5, 0.2), 0.6, '#9fd8ff', 0.3);
     audio.boom(1.2);
-    W.fx.flash('#cfe8ff', 0.8, 0.3);
+    W.fx.lightningFlash(0.8, 0.3);
     const other = loser === this.fa ? this.fb : this.fa;
     applyHit(other, loser, LIGHTNING, 9999);
     if (this.phase === 'fight') this.ko(loser, false);

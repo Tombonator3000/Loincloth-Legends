@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import type { Fighter } from './fighter';
 import { W } from './world';
+import { screenFX } from '../gfx/screenfx';
 import { HAZARDS, type HazardDef } from '../data/hazards';
 import type { HazardVisual } from '../gfx/env/hazards';
 import { audio } from '../core/audio';
@@ -141,11 +142,20 @@ export class Hazard {
     W.rumble(f.player, 0.8, 0.6, 250);
     const at = f.headPoint().add(new THREE.Vector3(0, 0.8, 0));
     W.fx.text(at, pick(this.info.ouch), 'speech', 1.4);
+    // Skjermen: rød kant, blod på glasset fra pigger, vann fra myr og råk (gfx/screenfx.ts)
+    const power = Math.min(1.6, Math.max(0.35, (dmg / Math.max(10, f.maxHp)) * 3));
     if (d.kind === 'lava') {
       audio.sizzle(0.6);
       W.gore.fire(f.torsoPoint(), 12, 0.3, 3);
-    } else if (d.kind === 'bog' || d.kind === 'icehole') audio.splash();
-    else audio.impale();
+      screenFX.hurt = Math.max(screenFX.hurt, 0.6);
+    } else if (d.kind === 'bog' || d.kind === 'icehole') {
+      audio.splash();
+      screenFX.hurt = Math.max(screenFX.hurt, 0.4);
+      screenFX.wet.plash(0.5);
+    } else {
+      audio.impale();
+      W.fx.heroHit(power, Math.random() < 0.5 ? -1 : 1);
+    }
     if (f.hp <= 0) {
       f.die(d.kind === 'lava' ? 'explode' : 'normal', 1, null);
       return;

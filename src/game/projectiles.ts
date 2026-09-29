@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 import { unitCanvas, INK } from '../gfx/draw';
 import { W } from './world';
+import { screenFX } from '../gfx/screenfx';
 import { applyHit } from './combat';
 import { ENEMY_ATK, type AttackDef } from './attacks';
 import type { Fighter } from './fighter';
@@ -166,7 +167,7 @@ export class Projectiles {
             const z = p.marker!.position.z;
             // Et ekte lyn fra himmelen (gfx/vfx.ts) med gnister, sjokkbølge og lysglimt
             g.vfx.lightning(new THREE.Vector3(x + rand(-1.5, 1.5), 14, z - 2), new THREE.Vector3(x, 0.05, z));
-            W.fx.flash('#cfe8ff', 0.25, 0.15);
+            W.fx.lightningFlash(0.25, 0.15);
             audio.boom(0.6);
             p.pos.set(x, 0.5, z);
             this.explode(p, targets, 1.3, 'zap');
@@ -270,6 +271,9 @@ export class Projectiles {
       audio.boom(0.8);
       W.fx.shake(0.4);
       g.splat(at.x, at.z, 1.2, 'lava');
+      // Sjokkbølge, zoomslag og varm luft som dirrer over krateret
+      screenFX.boom(at, 1);
+      screenFX.addHeat(at.clone().setY(0.1), 1.4, 0.9, false, 1.8);
     } else {
       g.sparks(at, 16, '#bfe8ff', 7);
       W.fx.shake(0.3);

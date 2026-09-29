@@ -13,9 +13,13 @@ import { WEAPONS } from '../data/weapons';
 import { settings, setSettings } from '../core/settings';
 import { defaultSave } from './save';
 import { images } from '../gfx/assets';
+import { screenFX } from '../gfx/screenfx';
+import { applyHit } from '../game/combat';
+import { HERO_ATK, ENEMY_ATK } from '../game/attacks';
 
 export function installDebug() {
   (window as unknown as { __lib: unknown }).__lib = {
     THREE, Fighter, W, registerChar, getChar, buildHeroDef, PRESETS, randomHero, HERO_OPTIONS, headCanvas, WEAPONS, settings, setSettings, defaultSave, charUniforms, MetalBand, METAL_TRACKS, audio, images,
+    screenFX, applyHit, HERO_ATK, ENEMY_ATK,
   };
 }

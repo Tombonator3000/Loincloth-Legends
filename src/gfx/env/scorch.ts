@@ -11,6 +11,7 @@ import { fogLayers } from './atmos';
 import { wind } from '../wind';
 import type { StageEnvOpts } from './index';
 import { GRADES } from './grades';
+import { screenFX } from '../screenfx';
 
 export function buildScorch(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env {
   const L = o.length;
@@ -54,6 +55,8 @@ export function buildScorch(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): En
   });
   // Lavaen lyser opp omgivelsene (lyspoolen velger de nærmeste)
   for (let x = 0; x < L; x += 12) gore.vfx.lights.source(new THREE.Vector3(x, 1.5, -8), '#ff6a1a', 16, 14, 0.2);
+  // Lufta over lavaelva dirrer i et bånd langs hele brettet (varmeflimmer, gfx/screenfx.ts)
+  screenFX.addHeat(new THREE.Vector3(0, 0.3, -8.5), 1.5, 0.6, true);
 
   // Obsidianpigger
   for (let x = -4; x < L + 4; x += rand(3, 7)) {
@@ -77,6 +80,7 @@ export function buildScorch(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): En
     const s = rand(0.85, 1.15);
     charred.add(x, z, s);
     burning.push(new THREE.Vector3(x, 4.6 * s, z));
+    screenFX.addHeat(new THREE.Vector3(x, 4.2 * s, z), 1.0, 0.6);
   }
   for (let x = -20; x < L + 20; x += rand(6, 12)) charred.add(x, rand(-30, -16), rand(1.0, 1.4), undefined, false);
   g.add(charred.build());

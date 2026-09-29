@@ -31,6 +31,7 @@ node tools/tests/nightcamp.mjs http://localhost:4173/ ./shots             # natt
 node tools/tests/ab.mjs http://localhost:4173/ ./shots road ao           # samme bilde med og uten en effekt (ao, bloom, dof, grade), pluss bare AO-bufferet
 node tools/tests/textures.mjs http://localhost:4173/ ./shots              # teksturer fra manifestet brukes i stedet for de prosedyrelagde (later som tre bilder finnes)
 node tools/tests/pngparts.mjs http://localhost:4173/                      # PNG-deler sitter riktig på helt og fiender: fot på bakken, våpen i neven, nakke og skaft
+node tools/tests/screenfx.mjs http://localhost:4173/ ./shots              # skjermeffekter: dråper på glasset, sjokk, årer, brennende kant, varmeflimmer, FLASHES og DISTORTION, lyspool, drypp, SSAO, WebGL tapt, AUTO og ?perf
 ```
 
 Skriptene skriver ut tilstand og eventuelle konsollfeil (`LOGS:`). Tom logg betyr ingen feil.

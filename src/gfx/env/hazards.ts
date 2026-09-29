@@ -5,6 +5,7 @@ import { lit, toon, canvasTex } from './common';
 import { rand } from '../../core/math';
 import type { Gore } from '../gore';
 import type { HazardDef } from '../../data/hazards';
+import { screenFX } from '../screenfx';
 
 export interface HazardVisual {
   group: THREE.Group;
@@ -145,6 +146,8 @@ export function buildHazard(g: THREE.Group, gore: Gore, h: HazardDef): HazardVis
         ));
       }
       instanced(grp, chunk, '#2a2228', mats);
+      // Lufta over lavapølen dirrer (varmeflimmer, gfx/screenfx.ts)
+      screenFX.addHeat(new THREE.Vector3(h.x, 0.1, h.z), Math.max(h.w, h.d) * 0.45, 0.8);
       let acc = 0;
       const mat = m.material as THREE.MeshBasicMaterial;
       return {

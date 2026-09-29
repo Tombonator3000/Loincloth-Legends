@@ -1,4 +1,5 @@
-// Innstillinger som lagres lokalt: gore-nivå, lydnivå, risting, rumble, berøringskontroller og grafikknivå.
+// Innstillinger som lagres lokalt: gore-nivå, lydnivå, risting, blink, forvrengning, rumble, berøringskontroller
+// og grafikknivå.
 // Ingen Three.js her, så modulen kan brukes fra både core, gfx og app.
 
 export type GoreLevel = 0 | 1 | 2 | 3;
@@ -15,12 +16,16 @@ export type TouchMode = 'auto' | 'on' | 'off';
 export type QualitySetting = 'auto' | 'low' | 'medium' | 'high' | 'ultra';
 export const QUALITY_SETTINGS: QualitySetting[] = ['auto', 'low', 'medium', 'high', 'ultra'];
 export const QUALITY_HINTS: Record<QualitySetting, string> = {
-  auto: 'PICKS A LEVEL FOR THIS DEVICE',
+  auto: 'PICKS A LEVEL FOR THIS DEVICE AND STEPS DOWN IF IT STUTTERS',
   low: 'NO POST EFFECTS. FOR POTATOES.',
   medium: 'BLOOM, GRADING, SHADOWS',
   high: 'ADDS DEPTH OF FIELD AND SHARPER SHADOWS',
   ultra: 'EVERYTHING. BRING A FAN.',
 };
+
+/** Nivået AUTO har gått ned til fordi bildet hakket ('' = gjett ut fra enheten). */
+export type AutoQuality = '' | 'low' | 'medium' | 'high';
+const AUTO_LEVELS: AutoQuality[] = ['', 'low', 'medium', 'high'];
 
 export type MusicStyleSetting = 'metal' | 'chip';
 
@@ -31,15 +36,21 @@ export interface Settings {
   musicStyle: MusicStyleSetting;
   sfx: number;
   shake: boolean;
+  /** Hvite blink og lynglimt på skjermen (av for dem som tåler blinking dårlig). */
+  flashes: boolean;
+  /** Forvrengning av bildet: sjokkbølger, zoom, kameradykk og varmeflimmer. */
+  distortion: boolean;
   rumble: boolean;
   touch: TouchMode;
   quality: QualitySetting;
+  /** Hvor langt AUTO har trappet ned (se app/perf.ts). Nullstilles når spilleren velger nivå selv. */
+  autoQuality: AutoQuality;
 }
 
 const KEY = 'loincloth-legends-settings-v1';
 
 export function defaultSettings(): Settings {
-  return { gore: 2, music: 0.7, musicStyle: 'metal', sfx: 0.9, shake: true, rumble: true, touch: 'auto', quality: 'auto' };
+  return { gore: 2, music: 0.7, musicStyle: 'metal', sfx: 0.9, shake: true, flashes: true, distortion: true, rumble: true, touch: 'auto', quality: 'auto', autoQuality: '' };
 }
 
 function load(): Settings {
@@ -55,9 +66,12 @@ function load(): Settings {
       musicStyle: o.musicStyle === 'chip' || o.musicStyle === 'metal' ? o.musicStyle : d.musicStyle,
       sfx: num(o.sfx, d.sfx),
       shake: typeof o.shake === 'boolean' ? o.shake : d.shake,
+      flashes: typeof o.flashes === 'boolean' ? o.flashes : d.flashes,
+      distortion: typeof o.distortion === 'boolean' ? o.distortion : d.distortion,
       rumble: typeof o.rumble === 'boolean' ? o.rumble : d.rumble,
       touch: o.touch === 'on' || o.touch === 'off' || o.touch === 'auto' ? o.touch : d.touch,
       quality: QUALITY_SETTINGS.includes(o.quality as QualitySetting) ? (o.quality as QualitySetting) : d.quality,
+      autoQuality: AUTO_LEVELS.includes(o.autoQuality as AutoQuality) ? (o.autoQuality as AutoQuality) : d.autoQuality,
     };
   } catch {
     return d;
