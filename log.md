@@ -176,3 +176,9 @@ Merk: tidspunktene fra 10:53 til 11:57 er rekonstruert fra når filene sist ble 
 - Innstillingen MUSIC STYLE: HEAVY METAL eller 8-BIT (de gamle låtene). Innstillingsmenyen er skrevet om så hver rad vet sin egen plass, i stedet for hardkodede indekser som forskjøv seg ved nye valg.
 - Lyden er sjekket uten høyttalere: tools/tests/metal.mjs rendrer låtene offline i nettleseren til WAV med spektrogram og målinger. Første miks hadde 40 til 65 prosent av energien under 80 Hz (bassens subtone lå to oktaver under gitaren, og stortromma hang for lenge). Etter justering ligger låtene rundt -20 dBFS uten klipping, med gitarene i mellomtonen og tydelig stereobredde. Spektrogrammene viser galoppen, leadmelodien og soloens løp og sveip.
 - Ny test tools/tests/metalmode.mjs: måleren ble full etter 10 drap, soloen og skadebonusen slo inn, lynet slo ned i en grisemann (DISARMED!), og alt ble slått av etter 12 sekunder. Testen fant også at klassen metal kolliderte med kunngjøringens klasse, så måleren heter metal-meter.
+
+## 2026-09-29 15:45 (Europe/Oslo)
+- Golden Axe: ny magi, tordenguden (SKY THUNDER i heltebyggeren). Lynet slår først ned i heltens våpen, så i hver fiende på skjermen etter tur. Flere krukker gir kraftigere lyn og, fra tre krukker, ekstra nedslag rundt omkring. På fem og seks blir lynene fiolette. Bruker lynet fra vfx.ts.
+- Castle Crashers: treff på fiender i lufta telles per fiende (JUGGLE! x2, AIR RAID! x3, SKY BUFFET! x4, NO LANDING!, FREQUENT FLYER!) og gir påfyll til METAL-måleren. Telleren nullstilles når fienden lander.
+- B-film-replikker (src/data/quips.ts): heltene sier noe etter 5, 12 og 20 drap på rad. Kvinnelige helter har noen egne ("THIS CHAINMAIL IS FULLY FUNCTIONAL.", "THE RED BOOTS STAY ON.").
+- Ny test tools/tests/homage.mjs: tordenmagi med seks krukker drepte alle fem fiendene foran helten, sjongleringen ga riktige ord, og replikken kom etter fem drap. Heltebygger-, volds- og greptestene kjørte uten feil.

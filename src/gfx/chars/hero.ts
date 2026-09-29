@@ -39,7 +39,7 @@ export const HERO_OPTIONS: Record<Exclude<keyof HeroConfig, 'name'>, string[]> =
   boots: ['FUR BOOTS', 'LEATHER BOOTS', 'GREAVES', 'SANDALS', 'RED BOOTS'],
   weapon: ['SWORD', 'AXE', 'WARHAMMER', 'SPIKED CLUB'],
   cloth: ['BROWN', 'CRIMSON', 'ROYAL BLUE', 'FOREST', 'PURPLE', 'BLACK', 'GOLD'],
-  magic: ['METEOR STORM', 'ANCESTRAL SCREAM'],
+  magic: ['METEOR STORM', 'ANCESTRAL SCREAM', 'SKY THUNDER'],
 };
 
 export const PRESETS: Record<string, HeroConfig> = {

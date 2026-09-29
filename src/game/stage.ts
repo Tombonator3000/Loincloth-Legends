@@ -27,12 +27,14 @@ import { settings } from '../core/settings';
 import { xpForFoe, XP_BOSS, type HeroProgress } from '../data/progress';
 import type { HUD } from '../ui/hud';
 import { MetalMode, METAL } from './metalmode';
+import { HERO_QUIPS, HEROINE_QUIPS, JUGGLE_WORDS, QUIP_STREAKS } from '../data/quips';
 
 const Z_MIN = -2.6;
 const Z_MAX = 2.6;
 const MAGIC_ATK: AttackDef = { ...HERO_ATK.chop, id: 'magic', kd: true, launch: 8, push: 6, death: ['explode'], heavy: true, word: ['KABOOM!'] };
 const SCREAM_ATK: AttackDef = { ...HERO_ATK.chop, id: 'scream', kd: true, launch: 6, push: 8, death: ['headsplode'], heavy: true, word: ['AAAAAH!'] };
-const MAGIC_NAMES = { meteor: 'METEOR OF EXCESSIVE FORCE', scream: 'SCREAM OF THE ANCESTORS' };
+const THUNDER_ATK: AttackDef = { ...HERO_ATK.chop, id: 'thunder', kd: true, launch: 5, push: 3, death: ['explode', 'headsplode'], heavy: true, word: ['KRAKOOM!', 'ZZZAP!'] };
+const MAGIC_NAMES = { meteor: 'METEOR OF EXCESSIVE FORCE', scream: 'SCREAM OF THE ANCESTORS', thunder: 'WRATH OF THE THUNDER GOD' };
 
 export type StageResult = '' | 'complete' | 'duel' | 'gameover';
 
@@ -75,6 +77,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   private finishT = -1;
   /** METAL MODE-måleren (game/metalmode.ts). */
   metal = new MetalMode();
+  /** Treff i lufta per fiende (sjonglering som i Castle Crashers). Nullstilles når fienden lander. */
+  private juggle = new Map<Fighter, number>();
 
   constructor(public hud: HUD, public level: LevelDef, configs: HeroConfig[], inputs: PlayerInput[], progress: HeroProgress[] = [], supplies = { lives: 0, potions: 0 }) {
     this.L = level.length;
@@ -214,6 +218,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
       this.hud.streak(this.streak, labels[this.streak]);
       audio.crowd(0.6);
     }
+    // B-film-replikker etter lange rekker
+    if (hero && QUIP_STREAKS.includes(this.streak)) this.hud.say(hero.name, pick(hero.cfg.body === 1 ? [...HERO_QUIPS, ...HEROINE_QUIPS] : HERO_QUIPS), 2.4);
     // Av og til flyr hodet rett i skjermen
     if (style === 'decap' && f.headDebris && hero && this.glassCd <= 0 && !W.fx.headOnGlass && chance([0.12, 0.1, 0.22, 0.38][settings.gore])) {
       this.glassCd = 9;
@@ -344,10 +350,37 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     const dmg = (18 + 14 * m.level) * m.hero.fx.magicMul;
     const bossDmg = (t: Fighter) => (this.boss && t === this.boss.f ? dmg * 0.6 : dmg);
     if (m.t < 0.7) {
-      W.gore.fire(hf.headPoint().add(new THREE.Vector3(0, 0.6, 0)), 2, 0.3, 3);
+      if (m.hero.magic === 'thunder') W.gore.sparks(hf.rig.weaponTip(), 2, '#bfe8ff', 4);
+      else W.gore.fire(hf.headPoint().add(new THREE.Vector3(0, 0.6, 0)), 2, 0.3, 3);
       return;
     }
-    if (m.hero.magic === 'meteor') {
+    if (m.hero.magic === 'thunder') {
+      // Tordenguden: lynet slår først ned i heltens våpen, så i hver fiende etter tur. Flere krukker gir
+      // flere og kraftigere lyn, og fra nivå 3 slår det ned rundt omkring også (maginivåene i Golden Axe)
+      const sky = (x: number, z: number) => new THREE.Vector3(x + rand(-2, 2), 15, z - 3);
+      if (!m.meteors.length) {
+        m.targets.forEach((f, i) => m.meteors.push({ x: f.pos.x, z: f.pos.z, t: -0.25 - i * 0.14, hit: false, f }));
+        for (let i = 0; i < Math.max(0, m.level - 2) * 2; i++) m.meteors.push({ x: hf.pos.x + rand(-8, 8), z: rand(-2.4, 2.4), t: -rand(0.2, 1.1), hit: false, f: hf });
+        W.gore.vfx.lightning(sky(hf.pos.x, hf.pos.z), hf.rig.weaponTip(), '#cfe8ff', 0.3);
+        audio.boom(0.8);
+        W.fx.flash('#cfe8ff', 0.4, 0.2);
+      }
+      let allDone = true;
+      for (const mt of m.meteors) {
+        if (mt.hit) continue;
+        allDone = false;
+        mt.t += dt;
+        if (mt.t < 0) continue;
+        mt.hit = true;
+        const onFoe = mt.f !== hf && mt.f.alive;
+        const x = onFoe ? mt.f.pos.x : mt.x, z = onFoe ? mt.f.pos.z : mt.z;
+        W.gore.vfx.lightning(sky(x, z), new THREE.Vector3(x, 0.05, z), m.level >= 5 ? '#e6d0ff' : '#9fd8ff', 0.2 + m.level * 0.03);
+        audio.boom(0.5 + m.level * 0.08);
+        W.fx.shake(0.35 + m.level * 0.06);
+        if (onFoe) applyHit(hf, mt.f, THUNDER_ATK, bossDmg(mt.f));
+      }
+      if (allDone && m.t > 1.4) this.endMagic();
+    } else if (m.hero.magic === 'meteor') {
       if (!m.meteors.length) {
         m.targets.forEach((f, i) => m.meteors.push({ x: f.pos.x, z: f.pos.z, t: -i * 0.12, hit: false, f }));
         if (!m.targets.length) m.meteors.push({ x: hf.pos.x + hf.facing * 4, z: hf.pos.z, t: 0, hit: false, f: hf });
@@ -607,11 +640,20 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
       return true;
     });
     this.metal.update(dt, this);
+    for (const [f] of this.juggle) if (f.onGround || !f.alive) this.juggle.delete(f);
     this.hud.updateBrawler(this.heroes);
   }
 
   private onFoeHit(h: Hero, t: Fighter, killed: boolean) {
     this.metal.add(METAL.hit);
+    if (!t.onGround) {
+      const n = (this.juggle.get(t) ?? 0) + 1;
+      this.juggle.set(t, n);
+      if (n >= 2) {
+        W.fx.text(t.headPoint().add(new THREE.Vector3(0, 0.7, 0)), JUGGLE_WORDS[Math.min(n, JUGGLE_WORDS.length - 1)] + ' x' + n, 'word', 0.8);
+        this.metal.add(0.01 * n);
+      }
+    }
     const foe = this.foes.find((f) => f.f === t);
     if (foe?.def.behavior === 'runner' && !killed) {
       foe.hits++;

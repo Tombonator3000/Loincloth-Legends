@@ -25,6 +25,7 @@ data/              Alt innhold som data (ingen Three.js her)
   worldmap.ts      MAP_NODES og MAP_EDGES
   weapons.ts       WEAPONS og scaleAttack
   unlocks.ts       PART_LOCKS: deler i heltebyggeren som låses opp
+  quips.ts         Replikker i B-film-stil for heltene og ordene for sjonglering
 game/              Spillogikk
   fighter.ts       Felles kjemper: fysikk, tilstander (også hold/held/ride), animasjon, død, armer som ryker, hodeløs løping
   attacks.ts       Poser og angrepsdefinisjoner (AttackDef)

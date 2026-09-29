@@ -131,7 +131,8 @@ Mann eller dame, og alle deler kan kombineres fritt:
   - War Hog: stormløp som spidder alt foran seg
   - Cluckatrice (halvt hane, halvt øgle): halesvip som treffer begge sider
   - Magma Newt: ildpust som griller alt foran
-- Magi: blå potions fra gnomer, alle brukes på én gang (sterkere jo flere, og sterkere med MAG)
+- Magi: blå potions fra gnomer, alle brukes på én gang (sterkere jo flere, og sterkere med MAG). Tre typer som i Golden Axe: meteorregn, forfedrenes skrik og tordenguden (lynet slår først ned i heltens våpen og så i hver fiende på skjermen, med flere nedslag rundt omkring fra tre krukker og fiolette lyn på fem og seks)
+- **Sjonglering** som i Castle Crashers: treff på en fiende som er i lufta telles (JUGGLE! x2, AIR RAID! x3, SKY BUFFET! x4 osv.) og fyller METAL-måleren
 - Berserk-spinn uten potions, koster litt HP
 - Pickups: stekt kylling, halvspist skinke, potions, gull, egg fra kampkyllingen
 - Kameraet låses per bølge. GO-pil når bølgen er ryddet
@@ -160,6 +161,7 @@ Gore (FAMILY, NORMAL, EXCESSIVE, PLEASE SEEK HELP), musikk, musikkstil (HEAVY ME
 
 - Fiender roper replikker når de dukker opp og dør
 - Drapsteller: CARNAGE, MASSACRE, EXCESSIVE, PLEASE SEEK HELP, THE BARD WILL SING OF THIS
+- B-film-replikker: heltene slenger ut en replikk etter 5, 12 og 20 drap på rad ("MY BICEPS HAVE NO REGRETS.", "THIS CHAINMAIL IS FULLY FUNCTIONAL."). Replikkene ligger i `src/data/quips.ts`
 - Prinsessen kjeder seg og holder et BORED-skilt
 - Vorthax er bare "moderat" ond, baker som hobby, og har motiverende plakater i tårnet
 - Sjefene har sine egne replikker ved start, raseri og død

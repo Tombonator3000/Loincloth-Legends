@@ -34,7 +34,7 @@ export class Hero {
   name: string;
   cid: string;
   weapon: WeaponStats;
-  magic: 'meteor' | 'scream';
+  magic: 'meteor' | 'scream' | 'thunder';
   /** Effekter fra STR/DEF/MAG/AGI (se data/progress.ts). */
   fx: ReturnType<typeof statEffects>;
 
@@ -43,7 +43,7 @@ export class Hero {
     this.name = cfg.name || 'NAMELESS';
     this.fx = statEffects(prog);
     this.weapon = weaponWithStats(WEAPONS[cfg.weapon] ?? WEAPONS[0], prog);
-    this.magic = cfg.magic === 1 ? 'scream' : 'meteor';
+    this.magic = cfg.magic === 1 ? 'scream' : cfg.magic === 2 ? 'thunder' : 'meteor';
     this.potions = this.fx.startPotions;
     this.f = this.makeFighter();
   }
