@@ -221,6 +221,23 @@ export const METAL_TRACKS: Record<string, MetalTrack> = {
     crash: [0, 32, 64, 80, 96, 112],
     tom: [60, 61, 62, 63],
   }),
+  // NIGHT WATCH: seig metal-ballade for nattleiren, åpne akkorder som ringer og tvillinggitarer i andre halvdel
+  night: track({
+    bpm: 84,
+    steps: 128,
+    scale: E_MINOR,
+    riff: riff(0, 'E--------------- C--------------- A--------------- B--------------- E-------G------- C-------D------- A-------C------- B-------b-b-b-b-', R),
+    lead: [
+      ...melody(0, 'B4:6/- E5:2/- G5:8/- E5:6/- D5:2/- C5:8/- A4:4/- C5:4/- E5:4/- D5:4/- D#5:8/F#5 B4:8/D#5'),
+      ...melody(64, 'G5:4 F#5:4 B5:8 A5:4 G5:4 F#5:8 E5:4 G5:4 A5:4 C6:4 B5:8/D#6 A5:4/C6 F#5:4/A5'),
+    ],
+    twin: 2,
+    kick: steps(128, (i) => i % 16 === 0 || i % 16 === 10),
+    snare: steps(128, (i) => i % 16 === 8),
+    hat: steps(128, (i) => i % 4 === 0 || i % 4 === 2),
+    crash: [0, 64],
+    tom: [60, 61, 62, 63, 124, 125, 126, 127],
+  }),
   // Seiersfanfare: åpne akkorder og en lead helt opp
   victory: track({
     bpm: 132,

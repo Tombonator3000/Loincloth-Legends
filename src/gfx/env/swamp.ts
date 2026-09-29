@@ -5,7 +5,7 @@ import { rand, pick } from '../../core/math';
 import type { Gore } from '../gore';
 import {
   M, toon, groundTex, roadTex, stageBase, finishEnv, mountains, skullPike, rock, endGate,
-  bossMarker, canvasTex, type Env,
+  bossMarker, canvasTex, foreground, type Env,
 } from './common';
 import { Forest, SPECIES } from './trees';
 import { Meadow } from './meadow';
@@ -127,5 +127,7 @@ export function buildSwamp(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     }
     void t;
   });
+  // Mørke, uskarpe silhuetter nederst i forgrunnen (konseptbildene)
+  foreground(g, L, ['skull', 'rock', 'bones', 'cross'], '#06080a');
   return finishEnv(g, updates, '#8a9a78', GRADES.swamp);
 }

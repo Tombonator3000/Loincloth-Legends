@@ -7,10 +7,11 @@ import { buildSwamp } from './swamp';
 import { buildFrost } from './frost';
 import { buildScorch } from './scorch';
 import { buildTower } from './tower';
+import { buildNight } from './night';
 
 export interface StageEnvOpts {
   length: number;
-  finale: 'boss' | 'duel' | 'gate';
+  finale: 'boss' | 'duel' | 'gate' | 'dawn';
   gateTitle?: string;
   gateSub?: string;
   bossX?: number;
@@ -24,6 +25,7 @@ export const STAGE_BUILDERS: Record<string, StageBuilder> = {
   frost: buildFrost,
   scorch: buildScorch,
   tower: buildTower,
+  night: buildNight,
 };
 
 export { buildArena, type ArenaTheme } from './arena';

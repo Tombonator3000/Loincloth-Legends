@@ -46,11 +46,14 @@ Castle Crashers-inspirert 3D-kart over en øy. Heltene (og kjæledyrene) går la
 | The Pit of Unfair Judgement | Arena (valgfri) | Gress | Road | Duell: Gorthak | Beast Skull-hjelm |
 | The Swamp of Moist Regret | Brett | Sump | Road | Sjef: King Croakus | Krone |
 | The Mirror Pool | Arena (valgfri) | Sump | Swamp | Duell: Dark You (ond tvilling) | Wizard Blue hårfarge |
+| The Night Camp | Brett (valgfritt) | Natt | Swamp | Overlev til daggry (tyvnisser) | Gull, krukker til neste brett |
 | Frostbite Pass | Brett | Frost | Swamp | **Duell i stedet for sjef**: Frostjarl Kaldor | Great Helm, Frost Blue hud |
 | The Trough of Honour | Arena (valgfri) | Frost | Frost | Duell: Sir Oinksalot | Gull |
 | The Scorchlands | Brett | Vulkan | Frost | Sjef: Magmor the Molten | Gull |
 | The Bone Coliseum | Arena (valgfri) | Vulkan | Scorch | Duell: Bonejangles | Spiked Club |
 | Tower of Moderate Evil | Brett | Tårn | Scorch | Sjef: Vorthax | Slutten |
+
+**Nattleiren** er en hyllest til leiren mellom brettene i Golden Axe. Heltene sover ved bålet med to ekstra krukker hver. Tyvnisser løper forbi og napper krukker (YOINK!, høyst to hver), og et slag får dem til å miste alt de har tatt (GIVE THAT BACK!). Når siste nisse er borte, gryr det (DAWN BREAKS), og krukkene heltene har igjen blir forsyninger til neste brett (to krukker per forsyning). Egen låt: NIGHT WATCH, en seig metal-ballade.
 
 ## 5. Biomer, farer og ryttere
 

@@ -36,4 +36,6 @@ Tom delte konseptbilder 2026-09-29 som viser hvor spillet skal. Bildene ligger i
 
 ## Hva som er gjort mot målet
 
-Se log.md. Kort: bildepipeline med bloom, gradering og dybdeskarphet, myke skygger, 3D-trær og gress med vind, tåkelag og lyssøyler.
+Se log.md. Kort: bildepipeline med bloom, gradering og dybdeskarphet, myke skygger, 3D-trær og gress med vind, tåkelag og lyssøyler, GPU-partikler og lyn, blod og gibs, heroiske proporsjoner og lys på figurene (fakler og lyn farger dem), HUD i konseptstil (gullramme, P1/P2, flasker, mynt), mørke silhuetter i forgrunnen og en nattleir med fullmåne.
+
+Gjenstår mot målet: slottshall med lysekroner og vått gulv, ruiner med blodmåne og fossefall, demonslott med lavafall, bur og ravner, dverg-helt, tre spillere.

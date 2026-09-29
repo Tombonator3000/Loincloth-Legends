@@ -1,5 +1,6 @@
 // Felles byggeklosser for 3D-miljøene: materialer, konturer, teksturer, himmel, sol med skygger og rekvisitter.
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { plainCanvas, unitCanvas, INK, shade } from '../draw';
 import { rand, pick } from '../../core/math';
 import type { Gore } from '../gore';
@@ -360,6 +361,60 @@ export function finishEnv(g: THREE.Group, updates: ((dt: number, t: number, camX
       for (const u of updates) u(dt, t, camX);
     },
   };
+}
+
+// ---------------------------------------------------------------- forgrunn
+export type FgProp = 'spikes' | 'skull' | 'cross' | 'rock' | 'bones';
+
+/**
+ * Mørke silhuetter helt fremme i bildet, nederst (pigger, hodeskaller på stake, kors, steiner), som i
+ * konseptbildene. De står nær kameraet, så dybdeskarpheten gjør dem uskarpe, og de er så lave og glisne at de
+ * ikke dekker kampen. Alt slås sammen til ett mesh (ett tegnekall).
+ */
+export function foreground(g: THREE.Group, length: number, kinds: FgProp[] = ['spikes', 'skull', 'cross', 'rock'], color = '#0a0605', every: [number, number] = [9, 16]) {
+  const parts: THREE.BufferGeometry[] = [];
+  const put = (geo: THREE.BufferGeometry, x: number, y: number, z: number, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) => {
+    const m = new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(sx, sy, sz));
+    const gg = geo.index ? geo.toNonIndexed() : geo.clone();
+    gg.deleteAttribute('uv');
+    gg.applyMatrix4(m);
+    parts.push(gg);
+  };
+  const cone = new THREE.ConeGeometry(1, 1, 5);
+  const box = new THREE.BoxGeometry(1, 1, 1);
+  const ball = new THREE.IcosahedronGeometry(1, 1);
+  const rockG = new THREE.DodecahedronGeometry(1, 0);
+  for (let x = -12; x < length + 12; x += rand(every[0], every[1])) {
+    const z = rand(7.6, 9.2);
+    switch (pick(kinds)) {
+      case 'spikes':
+        for (let i = 0; i < 5; i++) put(cone, x + rand(-0.7, 0.7), 0.5, z + rand(-0.3, 0.3), rand(-0.35, 0.35), 0, rand(-0.45, 0.45), rand(0.07, 0.13), rand(0.9, 1.9), rand(0.07, 0.13));
+        break;
+      case 'skull':
+        put(box, x, 0.9, z, 0, 0, rand(-0.12, 0.12), 0.07, 1.8, 0.07);
+        put(ball, x, 1.9, z, 0, 0, 0, 0.2, 0.22, 0.2);
+        put(box, x, 1.72, z + 0.08, 0, 0, 0, 0.16, 0.1, 0.12);
+        break;
+      case 'cross': {
+        const t = rand(-0.2, 0.2);
+        put(box, x, 0.7, z, 0, 0, t, 0.12, 1.4, 0.1);
+        put(box, x - Math.sin(t) * 0.45, 1.05, z, 0, 0, t, 0.7, 0.11, 0.1);
+        break;
+      }
+      case 'bones':
+        for (let i = 0; i < 4; i++) put(box, x + rand(-0.6, 0.6), 0.08, z + rand(-0.3, 0.3), 0, rand(0, 3), rand(-0.2, 0.2), rand(0.5, 0.8), 0.07, 0.07);
+        put(ball, x, 0.16, z, 0, 0, 0, 0.18, 0.18, 0.18);
+        break;
+      default:
+        put(rockG, x, 0.15, z, rand(0, 3), rand(0, 3), 0, rand(0.5, 0.9), rand(0.35, 0.6), rand(0.4, 0.7));
+    }
+  }
+  if (!parts.length) return;
+  const merged = mergeGeometries(parts)!;
+  merged.computeVertexNormals();
+  const mesh = new THREE.Mesh(merged, new THREE.MeshBasicMaterial({ color, fog: false }));
+  mesh.userData.noCast = true;
+  g.add(mesh);
 }
 
 // ---------------------------------------------------------------- rekvisitter

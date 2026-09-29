@@ -177,8 +177,19 @@ Merk: tidspunktene fra 10:53 til 11:57 er rekonstruert fra når filene sist ble 
 - Lyden er sjekket uten høyttalere: tools/tests/metal.mjs rendrer låtene offline i nettleseren til WAV med spektrogram og målinger. Første miks hadde 40 til 65 prosent av energien under 80 Hz (bassens subtone lå to oktaver under gitaren, og stortromma hang for lenge). Etter justering ligger låtene rundt -20 dBFS uten klipping, med gitarene i mellomtonen og tydelig stereobredde. Spektrogrammene viser galoppen, leadmelodien og soloens løp og sveip.
 - Ny test tools/tests/metalmode.mjs: måleren ble full etter 10 drap, soloen og skadebonusen slo inn, lynet slo ned i en grisemann (DISARMED!), og alt ble slått av etter 12 sekunder. Testen fant også at klassen metal kolliderte med kunngjøringens klasse, så måleren heter metal-meter.
 
-## 2026-09-29 15:45 (Europe/Oslo)
+## 2026-09-29 15:28 (Europe/Oslo)
 - Golden Axe: ny magi, tordenguden (SKY THUNDER i heltebyggeren). Lynet slår først ned i heltens våpen, så i hver fiende på skjermen etter tur. Flere krukker gir kraftigere lyn og, fra tre krukker, ekstra nedslag rundt omkring. På fem og seks blir lynene fiolette. Bruker lynet fra vfx.ts.
 - Castle Crashers: treff på fiender i lufta telles per fiende (JUGGLE! x2, AIR RAID! x3, SKY BUFFET! x4, NO LANDING!, FREQUENT FLYER!) og gir påfyll til METAL-måleren. Telleren nullstilles når fienden lander.
 - B-film-replikker (src/data/quips.ts): heltene sier noe etter 5, 12 og 20 drap på rad. Kvinnelige helter har noen egne ("THIS CHAINMAIL IS FULLY FUNCTIONAL.", "THE RED BOOTS STAY ON.").
 - Ny test tools/tests/homage.mjs: tordenmagi med seks krukker drepte alle fem fiendene foran helten, sjongleringen ga riktige ord, og replikken kom etter fem drap. Heltebygger-, volds- og greptestene kjørte uten feil.
+
+## 2026-09-29 15:35 (Europe/Oslo)
+- Nattleir som i Golden Axe: nytt valgfritt brett THE NIGHT CAMP mellom sumpen og frosten (kartnode, LevelDef nightcamp, finalen dawn). Heltene sover ved bålet med to ekstra krukker hver. Tyvnisser løper forbi og napper krukker (YOINK!, MINE NOW!, høyst to hver), og et slag får dem til å miste alt de tok (GIVE THAT BACK!). Når den siste er borte, gryr det: graderingen glir mot morgenlys og brettet er ferdig. Krukkene heltene har igjen blir forsyninger til neste brett (Game.campSupplies).
+- Nytt nattmiljø (src/gfx/env/night.ts): fullmåne, stjerner, mørk eikeskog, et stort bål ved soveplassen med eget punktlys, telt, soveposer, gryte, hodeskaller på stake, blå dis og ildfluer. Egen gradering (GRADES.night) og egen låt, NIGHT WATCH (seig metal-ballade med tvillinggitarer).
+- Testen tools/tests/nightcamp.mjs fant en feil: daggry-betingelsen fyrte på nytt etter at brettet var ferdig, og kunne gitt dobbel belønning. Nå skjer det bare én gang (Stage.dawned). ZZZ-teksten havnet feil fordi riggen ikke var flyttet ennå, så den plasseres nå ut fra posisjonen.
+- Kartpanelet viser SURVIVE UNTIL DAWN for brett uten sjef eller duell.
+
+## 2026-09-29 15:40 (Europe/Oslo)
+- HUD i konseptstil: portrettet har gullring og et P1/P2-merke, livsbaren har gullkant, magikrukkene er små flasker i blått, rødt og grønt, og gullet vises med en mynt. Panelet har fått en gyllen innerkant.
+- Mørke silhuetter nederst i forgrunnen i alle seks brettmiljøene (pigger, hodeskaller på stake, kors, steiner og beinhauger, ulike per biom), slått sammen til ett mesh per brett. De står så lavt og glissent at de ikke dekker kampen.
+- Tittelskjermen: lynet slår ned bak de to kjempene med noen sekunders mellomrom, med glimt og torden, som et albumomslag fra 1986.

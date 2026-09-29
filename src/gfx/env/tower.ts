@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { plainCanvas, INK } from '../draw';
 import { rand, pick } from '../../core/math';
 import { GHOSTFIRE, type Gore } from '../gore';
-import { applyShadows, M, toon, tileTex, stoneTex, canvasTex, skullMat, bossMarker, endGate, type Env } from './common';
+import { applyShadows, M, toon, tileTex, stoneTex, canvasTex, skullMat, bossMarker, endGate, foreground, type Env } from './common';
 import type { StageEnvOpts } from './index';
 import { GRADES } from './grades';
 import { SunShadow } from './sun';
@@ -170,6 +170,8 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     }
     if (Math.random() < dt * 4) gore.ambient(camX + rand(-10, 10), rand(1, 6), rand(-4, 2), rand(-0.1, 0.1), rand(-0.1, 0.1), pick(['#c080ff', '#ffffff']), 0.05, 4, true);
   });
+  // Mørke, uskarpe silhuetter nederst i forgrunnen (konseptbildene)
+  foreground(g, L, ['bones', 'skull', 'cross'], '#07040a', [10, 18]);
   applyShadows(g);
   return {
     group: g,

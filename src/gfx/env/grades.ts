@@ -35,6 +35,12 @@ export const GRADES: Record<string, G> = {
     shadowTint: [0.94, 0.9, 1.08], highlightTint: [1.06, 1.0, 0.92], tint: 0.35, vignette: 0.5, grain: 0.32,
     bloom: 1.1, threshold: 0.9, knee: 0.5, dofFar: 0.7, dofNear: 0.5,
   },
+  // Nattleiren: kald måneblå natt, varmt bål, kraftig bloom på månen og ilden
+  night: {
+    exposure: 1.1, contrast: 1.08, saturation: 0.95, vibrance: 0.1, lift: [0.0, 0.01, 0.035], gain: [1.0, 0.99, 1.04],
+    shadowTint: [0.86, 0.92, 1.12], highlightTint: [1.08, 1.0, 0.9], tint: 0.45, vignette: 0.55, grain: 0.34,
+    bloom: 1.2, threshold: 0.85, knee: 0.5, dofFar: 0.75, dofNear: 0.55,
+  },
   // Arenaene
   pit: {
     exposure: 1.0, contrast: 1.06, saturation: 1.0, vibrance: 0.08, lift: [0.015, 0.0, 0.01], gain: [1.02, 0.99, 0.96],

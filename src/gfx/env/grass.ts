@@ -4,7 +4,7 @@ import { rand, pick } from '../../core/math';
 import type { Gore } from '../gore';
 import {
   M, outline, toon, stoneTex, woodTex, groundTex, roadTex, stageBase, finishEnv, mountains, stakeWall,
-  skullPike, banner, campfire, arrows, rock, endGate, bossMarker, type Env,
+  skullPike, banner, campfire, arrows, rock, endGate, bossMarker, foreground, type Env,
 } from './common';
 import { Forest, SPECIES } from './trees';
 import { Meadow } from './meadow';
@@ -108,5 +108,7 @@ export function buildGrass(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
       for (const f of fires) gore.fire(f, 1, 0.2, 2);
     }
   });
+  // Mørke, uskarpe silhuetter nederst i forgrunnen (konseptbildene)
+  foreground(g, L, ['spikes', 'skull', 'rock', 'cross'], '#0b0705');
   return finishEnv(g, updates, '#e9b878', GRADES.grass);
 }

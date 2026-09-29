@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { unitCanvas, INK } from '../draw';
 import { rand, pick } from '../../core/math';
 import type { Gore } from '../gore';
-import { lit, M, groundTex, roadTex, stageBase, finishEnv, mountains, skullPike, rock, endGate, bossMarker, canvasTex, skullMat, type Env } from './common';
+import { lit, M, groundTex, roadTex, stageBase, finishEnv, mountains, skullPike, rock, endGate, bossMarker, canvasTex, skullMat, foreground, type Env } from './common';
 import { Forest, SPECIES, withSnow } from './trees';
 import { Meadow } from './meadow';
 import { fogLayers } from './atmos';
@@ -105,5 +105,7 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     }
   });
   void INK;
+  // Mørke, uskarpe silhuetter nederst i forgrunnen (konseptbildene)
+  foreground(g, L, ['rock', 'spikes', 'skull'], '#070a10');
   return finishEnv(g, updates, '#e6f0f8', GRADES.frost);
 }

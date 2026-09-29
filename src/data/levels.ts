@@ -4,7 +4,8 @@ import { hz, type HazardDef } from './hazards';
 
 export interface SpawnDef { foe: string; side: 'L' | 'R'; delay: number }
 export interface WaveDef { at: number; maxAlive: number; title?: string; say?: [string, string]; spawns: SpawnDef[] }
-export type Finale = { type: 'boss'; boss: string } | { type: 'duel'; duelist: string };
+/** dawn: brettet er ferdig når alle bølgene er over og ingen fiender er igjen (nattleiren). */
+export type Finale = { type: 'boss'; boss: string } | { type: 'duel'; duelist: string } | { type: 'dawn' };
 
 export interface LevelDef {
   id: string;
@@ -21,6 +22,11 @@ export interface LevelDef {
   /** Fiender som rir inn på ridedyr: [bølgeindeks, fiende-id, ridedyr-id]. Se data/mounts.ts. */
   riders?: [number, string, string][];
   finale: Finale;
+  /**
+   * Nattleir som i Golden Axe: heltene sover når brettet starter, tyvnisser stjeler krukker, og krukkene
+   * heltene har igjen på slutten blir forsyninger til neste brett.
+   */
+  nightCamp?: boolean;
   gateTitle?: string;
   gateSub?: string;
   bossSign?: string;
@@ -38,6 +44,19 @@ const w = (at: number, maxAlive: number, list: string, extra: Partial<WaveDef> =
 });
 
 export const LEVELS: Record<string, LevelDef> = {
+  nightcamp: {
+    id: 'nightcamp', name: 'NIGHT CAMP', subtitle: 'GUARD YOUR POTIONS', biome: 'night', length: 40, music: 'night',
+    intro: 'THE HEROES SLEEP. THE GNOMES DO NOT.',
+    nightCamp: true,
+    waves: [
+      w(2, 3, 'gnome:L:0.8 gnome:R:1.8 gnome:L:3.2', { title: 'THIEVES!', say: ['NARRATOR', 'GNOMES. IN THE NIGHT. AFTER YOUR POTIONS. WAKE UP!'] }),
+      w(9, 4, 'gnome:R:0.3 gnome:L:0.9 gnome:R:1.6 gnome:L:2.4 gnome:R:3.2'),
+      w(17, 4, 'gnome:L:0.2 skeleton:R:0.8 gnome:R:1.4 gnome:L:2.2 gnome:R:3.0', { say: ['NARRATOR', 'A SKELETON CAME TOO. NOBODY INVITED HIM.'] }),
+      w(26, 5, 'gnome:R:0.2 gnome:L:0.5 gnome:R:0.8 gnome:L:1.1 gnome:R:1.4 gnome:L:1.7', { title: 'THE GNOME HORDE!' }),
+    ],
+    barrels: [[14, 'chicken'], [30, 'potion']],
+    finale: { type: 'dawn' },
+  },
   road: {
     id: 'road', name: 'STAGE 1', subtitle: 'THE ROAD OF MILD PERIL', biome: 'grass', length: 120, music: 'stage',
     intro: 'THE ROAD TO GLORY IS PAVED WITH SKELETONS. AND ALSO REGULAR PAVING.',

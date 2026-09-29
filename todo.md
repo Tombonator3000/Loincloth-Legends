@@ -10,7 +10,8 @@
 - [x] Heroiske proporsjoner på figurene (lange bein og armer, høyere overkropp, mindre hode)
 - [ ] Dverg-helt (kroppstype i heltebyggeren, gyllen øks som i konseptbildet)
 - [ ] Damekroppen: smalere liv og bredere hofter (i dag er silhuetten nesten lik mannens)
-- [ ] HUD i konseptstil: portretter i gullramme, magikrukker, gullteller
+- [x] HUD i konseptstil: portretter i gullramme med P1/P2, livsbar med gullkant, krukker som flasker, mynt ved gullet
+- [x] Mørke silhuetter i forgrunnen i alle brett, lyn bak kjempene på tittelskjermen
 - [x] Partikkelsystem på GPU med pooler og HDR-emisjon, lyn, eksplosjoner og lyspool
 - [x] Realistisk blodsprut, flekker med våt glans, pytter som vokser og 3D-gibs
 - [x] 80-talls figurer: ringbrynjebikini (topp og truse), røde støvler, Valkyra-preset, større brystrustning
@@ -23,7 +24,9 @@
 - [ ] METAL MODE i duellene (egen måler per side?) og et eget sjefsriff
 - [ ] Tittelskjerm som et albumomslag fra 1985 (krom-logo, lyn, blodmåne)
 - [ ] Lytt gjennom metal-miksen på ekte høyttalere og juster (Tom)
-- [ ] Gameplay-hyllest til Golden Axe, Barbarian og Castle Crashers
+- [x] Gameplay-hyllest: tordenmagi (Golden Axe), sjonglering i lufta (Castle Crashers), B-film-replikker, nattleir med tyvnisser (Golden Axe)
+- [ ] Mer hyllest: Barbarian-hopp med flygende halshugging i duellene, hesteløp eller dragetur, sluttkamp med skjelettvakter som i Golden Axe
+- [ ] Nattleiren: tyvene burde snike seg inn mens heltene sover (i dag løper de bare forbi), og en egen sovepose-animasjon
 
 ## Pågår
 - [ ] Lokalt: bytt ut den utpakkede mappen ~/Utvikling/Loincloth-Legends med en klone av repoet. Mappen har ikke git og har eldre utgaver av log.md, todo.md og memory.md, så den skal ikke pushes fra.

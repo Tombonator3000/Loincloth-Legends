@@ -150,7 +150,11 @@ export class HUD {
     for (const h of heroes) {
       const el = document.createElement('div');
       el.className = 'pp p' + (h.idx + 1);
-      el.appendChild(portrait(h.cid));
+      const frame = document.createElement('div');
+      frame.className = 'pframe';
+      frame.appendChild(portrait(h.cid));
+      frame.insertAdjacentHTML('beforeend', `<span class="ptag">P${h.idx + 1}</span>`);
+      el.appendChild(frame);
       const info = document.createElement('div');
       info.className = 'pinfo';
       info.innerHTML = `<div class="pname">${h.name} <span class="lives"></span></div>
@@ -175,7 +179,7 @@ export class HUD {
       p.ghost.style.width = (p.ghostV * 100).toFixed(1) + '%';
       p.hp.classList.toggle('low', v < 0.3);
       p.lives.textContent = 'x' + Math.max(0, h.lives + (h.f.alive ? 0 : 0));
-      p.gold.textContent = 'G ' + h.gold;
+      p.gold.textContent = String(h.gold);
       if (p.lastPots !== h.potions) {
         p.lastPots = h.potions;
         p.pots.innerHTML = Array.from({ length: 6 }, (_, k) => `<i class="pot${k < h.potions ? ' on' : ''}"></i>`).join('');

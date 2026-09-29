@@ -4,7 +4,7 @@ import { plainCanvas } from '../draw';
 import { rand, pick } from '../../core/math';
 import type { Gore } from '../gore';
 import {
-  M, lavaRockTex, roadTex, stageBase, finishEnv, mountains, skullPike, rock, endGate, bossMarker, canvasTex, type Env,
+  M, lavaRockTex, roadTex, stageBase, finishEnv, mountains, skullPike, rock, endGate, bossMarker, canvasTex, foreground, type Env,
 } from './common';
 import { Forest, SPECIES, burnt } from './trees';
 import { fogLayers } from './atmos';
@@ -106,5 +106,7 @@ export function buildScorch(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): En
       if (b && Math.abs(b.x - camX) < 16) gore.fire(b, 2, 0.8, 2);
     }
   });
+  // Mørke, uskarpe silhuetter nederst i forgrunnen (konseptbildene)
+  foreground(g, L, ['spikes', 'bones', 'skull', 'rock'], '#0c0403');
   return finishEnv(g, updates, '#4a1a10', GRADES.scorch);
 }

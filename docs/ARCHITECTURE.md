@@ -45,7 +45,7 @@ game/              Spillogikk
   world.ts         Delte referanser (scene, gore, fx, kamera, statistikk, rumble)
 gfx/               Grafikk
   chars/           Figurer: types, muscle (overdrevne kropper), classic, wilds, bosses, hero (heltebygger), beasts (ridedyr), index (register)
-  env/             Miljø: common, grass, swamp, frost, scorch, tower, arena, worldmap, sprites, hazards, index (register)
+  env/             Miljø: common, grass, swamp, frost, scorch, tower, night (nattleiren), arena, worldmap, sprites, hazards, index (register)
                    sun (sol med skygger), grades (gradering per biom), trees (3D-trær), meadow (gress), leaffall (blader),
                    atmos (tåkelag og lyssøyler)
   post.ts          Bildepipeline: HDR, bloom, dybdeskarphet, eksponering, tonemapping, gradering, linseeffekter, grafikknivå
@@ -111,7 +111,7 @@ Ny figur: sett `skin: [hudfarge, ...]` på CharDef hvis huden skal glinse. PNG-e
 
 Kode som bygger innhold leser `gfxState.quality` eller `qualityRank()` (0 LOW til 3 ULTRA) for tetthet på gress, antall blader og størrelse på skyggekart. Miljøene bruker `lit()`/`toon()` (MeshStandardMaterial) og `applyShadows()`. Sola (`SunShadow`) følger kameraet.
 
-Målbildet for grafikken står i `docs/STYLE_TARGET.md`.
+Målbildet for grafikken står i `docs/STYLE_TARGET.md`. `foreground(g, L, typer, farge)` i `env/common.ts` legger mørke silhuetter nederst i forgrunnen (pigger, hodeskaller, kors, steiner, bein) slått sammen til ett mesh.
 
 ### Nytt tre eller ny art
 Legg en `Species` i `SPECIES` (`env/trees.ts`): lengde, radius, seksjoner, barn, vinkler, knudrethet og blader per nivå. Bruk den med `new Forest(art).add(x, z, skala)` og `forest.build()` i biomet.
@@ -144,7 +144,7 @@ Nytt trekk som ikke finnes: legg det til i `BossMoveKind` og i `exec()` i `game/
 3. Bruk biom-id-en i en `LevelDef`.
 
 ### Nytt brett
-Legg til en `LevelDef` i `data/levels.ts`. Bølger skrives kompakt: `w(at, maxAlive, 'skeleton:R:0.2 hogman:L:1.0', { title, say })`. Farer legges inn med `hz(kind, x, z, bredde, dybde)`, og ryttere med `[bølgeindeks, fiende, ridedyr]`.
+Legg til en `LevelDef` i `data/levels.ts`. Bølger skrives kompakt: `w(at, maxAlive, 'skeleton:R:0.2 hogman:L:1.0', { title, say })`. Farer legges inn med `hz(kind, x, z, bredde, dybde)`, og ryttere med `[bølgeindeks, fiende, ridedyr]`. Finalen er en sjef, en duell eller `{ type: 'dawn' }` (ferdig når bølgene er over og ingen fiender er igjen). `nightCamp: true` gir nattleir-reglene: heltene sover ved start, tyvnisser stjeler krukker, og krukkene blir forsyninger (`Game.campSupplies`).
 
 ### Ny fare
 1. Legg typen til i `HazardKind` og `HAZARDS` (`data/hazards.ts`).

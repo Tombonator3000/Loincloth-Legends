@@ -20,6 +20,7 @@ export const MAP_NODES: MapNode[] = [
   { id: 'pit', name: 'THE PIT OF UNFAIR JUDGEMENT', kind: 'arena', biome: 'grass', pos: [-8, -5.5], duel: 'gorthak', requires: ['road'], reward: { unlock: ['helmet:3'], gold: 300 }, blurb: 'OPTIONAL DUEL. GORTHAK HAS NOT LOST SINCE TUESDAY.' },
   { id: 'swamp', name: 'THE SWAMP OF MOIST REGRET', kind: 'level', biome: 'swamp', pos: [-2, 7], level: 'swamp', requires: ['road'], reward: { unlock: ['helmet:4'], gold: 250 }, blurb: 'ZOMBIES, FROGMEN AND THE KING OF THEM ALL.' },
   { id: 'mirror', name: 'THE MIRROR POOL', kind: 'arena', biome: 'swamp', pos: [4, 10.5], duel: 'darkyou', requires: ['swamp'], reward: { unlock: ['hairColor:6'], gold: 300 }, blurb: 'OPTIONAL DUEL. FIGHT YOUR EVIL TWIN.' },
+  { id: 'nightcamp', name: 'THE NIGHT CAMP', kind: 'level', biome: 'grass', pos: [-6.5, 0.5], level: 'nightcamp', requires: ['swamp'], reward: { gold: 150 }, blurb: 'OPTIONAL. SLEEP. GUARD YOUR POTIONS. SMACK THE GNOMES. KEEP WHAT YOU SAVE FOR THE NEXT STAGE.' },
   { id: 'frost', name: 'FROSTBITE PASS', kind: 'level', biome: 'frost', pos: [2, -6], level: 'frost', requires: ['swamp'], reward: { unlock: ['helmet:5', 'skin:6'], gold: 300 }, blurb: 'ICE TROLLS. ENDS WITH A DUEL TO THE DEATH.' },
   { id: 'hogpit', name: 'THE TROUGH OF HONOUR', kind: 'arena', biome: 'frost', pos: [-5, -11], duel: 'oinksalot', requires: ['frost'], reward: { gold: 400 }, blurb: 'OPTIONAL DUEL. A KNIGHT. A PIG. A PIG KNIGHT.' },
   { id: 'scorch', name: 'THE SCORCHLANDS', kind: 'level', biome: 'scorch', pos: [10, 1.5], level: 'scorch', requires: ['frost'], reward: { gold: 350 }, blurb: 'FIRE IMPS AND A LONELY LAVA GIANT.' },
@@ -28,7 +29,7 @@ export const MAP_NODES: MapNode[] = [
 ];
 
 export const MAP_EDGES: [string, string][] = [
-  ['home', 'road'], ['road', 'pit'], ['road', 'swamp'], ['swamp', 'mirror'], ['swamp', 'frost'], ['pit', 'frost'],
+  ['home', 'road'], ['road', 'pit'], ['road', 'swamp'], ['swamp', 'mirror'], ['swamp', 'frost'], ['swamp', 'nightcamp'], ['pit', 'frost'],
   ['frost', 'hogpit'], ['frost', 'scorch'], ['scorch', 'bone'], ['scorch', 'tower'],
 ];
 

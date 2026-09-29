@@ -28,6 +28,7 @@ import { xpForFoe, XP_BOSS, type HeroProgress } from '../data/progress';
 import type { HUD } from '../ui/hud';
 import { MetalMode, METAL } from './metalmode';
 import { HERO_QUIPS, HEROINE_QUIPS, JUGGLE_WORDS, QUIP_STREAKS } from '../data/quips';
+import { GRADES } from '../gfx/env/grades';
 
 const Z_MIN = -2.6;
 const Z_MAX = 2.6;
@@ -79,6 +80,10 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   metal = new MetalMode();
   /** Treff i lufta per fiende (sjonglering som i Castle Crashers). Nullstilles når fienden lander. */
   private juggle = new Map<Fighter, number>();
+  /** Krukker hver tyvnisse har stjålet i nattleiren, og nedkjøling mellom tyveriene. */
+  private stolen = new Map<Foe, { n: number; cd: number }>();
+  /** Daggry i nattleiren (skjer bare én gang). */
+  private dawned = false;
 
   constructor(public hud: HUD, public level: LevelDef, configs: HeroConfig[], inputs: PlayerInput[], progress: HeroProgress[] = [], supplies = { lives: 0, potions: 0 }) {
     this.L = level.length;
@@ -106,6 +111,17 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
       h.f.addTo(W.scene);
       h.f.onDeath = () => this.heroDied(h);
     });
+    if (level.nightCamp) {
+      // Heltene sover ved bålet med et par krukker hver (som tyvnissene er ute etter)
+      this.heroes.forEach((h, i) => {
+        h.f.pos.set(2.2 + i * 1.3, 0, i === 0 ? -0.9 : 0.5);
+        h.f.setState('down');
+        h.f.downT = 2.8;
+        h.potions = Math.min(6, h.potions + 2);
+        // Riggen er ikke flyttet ennå, så teksten plasseres ut fra posisjonen
+        W.fx.text(new THREE.Vector3(h.f.pos.x + 0.4, 1.1, h.f.pos.z), 'ZZZ...', 'word', 2.4);
+      });
+    }
     for (const [x, drop] of level.barrels) this.barrels.push(new Barrel(x, rand(-1.8, 1.8), drop));
     for (const p of this.pets) p.addTo(W.scene);
     hud.showBrawler(this.heroes);
@@ -550,6 +566,14 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     const allWaves = this.waveIdx >= waves.length && !this.wave;
     if (allWaves && this.level.finale.type === 'boss' && !this.boss && this.camX >= this.bossLock - 0.5) this.startBoss();
     if (allWaves && this.level.finale.type === 'duel' && alive.some((h) => h.f.pos.x > this.L - 5.5)) this.done = 'duel';
+    if (allWaves && this.level.finale.type === 'dawn' && !this.dawned && !this.foes.some((f) => f.f.alive)) {
+      // Nattleiren er over: morgenlyset kommer sakte, og brettet er ferdig
+      this.dawned = true;
+      this.finishT = 3.4;
+      this.hud.announce('DAWN BREAKS', 'stage', 2.8, 'THE THIEVES ARE GONE. MOSTLY.');
+      W.post?.setGrade({ ...GRADES.grass, exposure: 1.25 }, false);
+      audio.crowd(0.5);
+    }
 
     // Aktører
     for (const h of this.heroes) h.update(dt, this);
@@ -641,7 +665,29 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     });
     this.metal.update(dt, this);
     for (const [f] of this.juggle) if (f.onGround || !f.alive) this.juggle.delete(f);
+    if (this.level.nightCamp) this.thieves(dt);
     this.hud.updateBrawler(this.heroes);
+  }
+
+  /** Tyvnissene i nattleiren napper krukker fra heltene de løper forbi (høyst to hver). */
+  private thieves(dt: number) {
+    for (const fo of this.foes) {
+      if (!fo.f.alive || fo.def.behavior !== 'runner' || fo.hits > 0) continue;
+      const st = this.stolen.get(fo) ?? { n: 0, cd: 0 };
+      st.cd -= dt;
+      this.stolen.set(fo, st);
+      if (st.n >= 2 || st.cd > 0) continue;
+      for (const h of this.heroes) {
+        if (!h.f.alive || h.potions <= 0) continue;
+        if (Math.abs(h.f.pos.x - fo.f.pos.x) > 0.9 || Math.abs(h.f.pos.z - fo.f.pos.z) > 0.9) continue;
+        h.potions--;
+        st.n++;
+        st.cd = 0.6;
+        W.fx.text(fo.f.headPoint().add(new THREE.Vector3(0, 0.6, 0)), pick(['YOINK!', 'MINE NOW!', 'FINDERS KEEPERS!']), 'kill', 0.9);
+        audio.pickup();
+        break;
+      }
+    }
   }
 
   private onFoeHit(h: Hero, t: Fighter, killed: boolean) {
@@ -655,6 +701,14 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
       }
     }
     const foe = this.foes.find((f) => f.f === t);
+    // En tyv som blir truffet, mister alt han har stjålet
+    const loot = foe ? this.stolen.get(foe) : undefined;
+    if (foe && loot && loot.n > 0) {
+      for (let i = 0; i < loot.n; i++) this.pickups.push(new Pickup('potion', t.pos.x, 1.3, t.pos.z));
+      W.fx.text(t.headPoint().add(new THREE.Vector3(0, 1.0, 0)), 'GIVE THAT BACK!', 'word', 1.0);
+      loot.n = 0;
+      loot.cd = 99;
+    }
     if (foe?.def.behavior === 'runner' && !killed) {
       foe.hits++;
       foe.dir = h.f.pos.x < t.pos.x ? 1 : -1;

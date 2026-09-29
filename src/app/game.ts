@@ -52,6 +52,8 @@ class TitleScene implements Scene {
   name = 'title';
   actors: Fighter[] = [];
   t = 0;
+  /** Tid til neste lynnedslag bak de to kjempene (tittelen skal se ut som et albumomslag fra 1986). */
+  private boltT = 1.2;
   constructor(private game: Game) {
     W.env = buildArena(W.scene, W.gore, 'pit');
     const s = game.save;
@@ -83,6 +85,14 @@ class TitleScene implements Scene {
       f.update(dt, bounds);
     }
     if (this.actors.some((f) => f.phase() === 'active') && Math.random() < 0.3) W.gore.sparks(new THREE.Vector3(0, rand(1.2, 2.2), 0.2), 3);
+    this.boltT -= dt;
+    if (this.boltT <= 0) {
+      this.boltT = rand(2.8, 5.5);
+      const x = pick([-1, 1]) * rand(1.5, 6);
+      W.gore.vfx.lightning(new THREE.Vector3(x + rand(-2, 2), 16, -7), new THREE.Vector3(x, 0.05, rand(-3.5, -1.5)), '#9fd8ff', 0.28);
+      W.fx.flash('#cfe8ff', 0.25, 0.12);
+      audio.boom(0.35);
+    }
     const c = this.game.camera;
     c.position.set(Math.sin(this.t * 0.15) * 1.6, 2.4 + Math.sin(this.t * 0.21) * 0.2, 10.5);
     c.lookAt(0, 2.3, 0);
@@ -519,7 +529,7 @@ export class Game {
   private playLevel(n: MapNode) {
     const lv = LEVELS[n.level!];
     this.setScene(() => new StageScene(this, lv.id, (r) => {
-      if (r === 'complete') this.nodeComplete(n);
+      if (r === 'complete') this.nodeComplete(n, lv.nightCamp ? this.campSupplies() : []);
       else if (r === 'duel' && lv.finale.type === 'duel') this.playDuelNode(n, DUELISTS[lv.finale.duelist], true);
       else this.gameOver(() => this.playLevel(n), pick(GAMEOVER_QUIPS));
     }));
@@ -551,10 +561,21 @@ export class Game {
     ], quip + (xp ? ` (YOU STILL LEARNED SOMETHING: +${xp} XP)` : ''));
   }
 
-  private nodeComplete(n: MapNode) {
+  /** Krukkene heltene fikk med seg fra nattleiren blir forsyninger (to krukker per forsyning, høyst tre). */
+  private campSupplies(): [string, string][] {
+    const st = (this.scene as StageScene).stage;
+    const pots = st ? st.heroes.reduce((a, h) => a + h.potions, 0) : 0;
+    const s = this.save;
+    const add = Math.min(3 - s.supplies.potions, Math.ceil(pots / 2));
+    if (add <= 0) return pots ? [['SUPPLY WAGON', 'THE WAGON IS FULL. YOU DRINK THE REST. IT IS FINE.']] : [['SUPPLY WAGON', 'THE GNOMES GOT EVERYTHING. EVEN THE WAGON.']];
+    s.supplies.potions += add;
+    return [['SUPPLY WAGON', `+${add * 2} POTIONS SAVED FOR THE NEXT STAGE.`]];
+  }
+
+  private nodeComplete(n: MapNode, extra: [string, string][] = []) {
     const s = this.save;
     const first = !s.completed.includes(n.id);
-    const lines: [string, string][] = [];
+    const lines: [string, string][] = [...extra];
     if (first) {
       s.completed.push(n.id);
       if (n.reward?.gold) {

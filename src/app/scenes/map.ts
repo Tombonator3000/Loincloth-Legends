@@ -86,7 +86,8 @@ export class MapScene implements Scene {
     if (n.kind === 'level' && n.level) {
       const lv = LEVELS[n.level];
       kind = lv.name;
-      extra = lv.finale.type === 'boss' ? 'BOSS: ' + (BOSSES[lv.finale.boss]?.name ?? '?') : 'DUEL TO THE DEATH: ' + (DUELISTS[lv.finale.duelist]?.name ?? '?');
+      const f = lv.finale;
+      extra = f.type === 'boss' ? 'BOSS: ' + (BOSSES[f.boss]?.name ?? '?') : f.type === 'duel' ? 'DUEL TO THE DEATH: ' + (DUELISTS[f.duelist]?.name ?? '?') : 'SURVIVE UNTIL DAWN';
     } else if (n.kind === 'arena' && n.duel) {
       kind = 'ARENA';
       const d = DUELISTS[n.duel];
