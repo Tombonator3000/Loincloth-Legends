@@ -4,6 +4,7 @@
 // Klumpene ligger i en flis som gjentas rundt kameraet, så gresset følger med langs hele brettet uten at
 // nye strå spretter frem i bildet.
 import * as THREE from 'three';
+import { random } from '../../core/math';
 import { WIND_GLSL, windUniforms, sunUniforms } from '../wind';
 import { qualityRank } from '../post';
 
@@ -34,10 +35,10 @@ function bladeClump(blades: number, width: number) {
   const pos: number[] = [], nrm: number[] = [], bt: number[] = [], idx: number[] = [];
   const SEG = 4;
   for (let b = 0; b < blades; b++) {
-    const a = (b / blades) * Math.PI + (Math.random() - 0.5) * 0.6;
-    const ox = (Math.random() - 0.5) * 0.12, oz = (Math.random() - 0.5) * 0.12;
-    const h = 0.7 + Math.random() * 0.3;
-    const lean = (Math.random() - 0.5) * 0.35;
+    const a = (b / blades) * Math.PI + (random() - 0.5) * 0.6;
+    const ox = (random() - 0.5) * 0.12, oz = (random() - 0.5) * 0.12;
+    const h = 0.7 + random() * 0.3;
+    const lean = (random() - 0.5) * 0.35;
     const ca = Math.cos(a), sa = Math.sin(a);
     const base = pos.length / 3;
     for (let i = 0; i <= SEG; i++) {
@@ -84,14 +85,14 @@ export class Meadow {
     for (const [z0, z1, dens] of o.bands) {
       const n = Math.round(tile * (z1 - z0) * dens * q);
       for (let i = 0; i < n; i++) {
-        const x = Math.random() * tile;
+        const x = random() * tile;
         // Tettere midt i beltet, tynnere mot kantene
-        const u = Math.random();
-        const z = z0 + (z1 - z0) * (0.5 + (u - 0.5) * (0.6 + 0.4 * Math.random()));
+        const u = random();
+        const z = z0 + (z1 - z0) * (0.5 + (u - 0.5) * (0.6 + 0.4 * random()));
         if (inHole(x, z)) continue;
         origins.push(x, z);
-        const h = o.height[0] + Math.random() * (o.height[1] - o.height[0]);
-        data.push(Math.random() * Math.PI * 2, h, Math.random());
+        const h = o.height[0] + random() * (o.height[1] - o.height[0]);
+        data.push(random() * Math.PI * 2, h, random());
       }
     }
     geo.setAttribute('aOrigin', new THREE.InstancedBufferAttribute(new Float32Array(origins), 2));

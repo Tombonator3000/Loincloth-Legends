@@ -1,6 +1,7 @@
 // Blader som faller fra kronene og driver med vinden, og løv som ligger på bakken.
 // Bladene simuleres på CPU (få nok til at det er billig) og tegnes som én instansert mesh.
 import * as THREE from 'three';
+import { random } from '../../core/math';
 import { wind } from '../wind';
 import { singleLeafTexture } from './trees';
 import { qualityRank } from '../post';
@@ -68,16 +69,16 @@ export class LeafFall {
     const im = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1), leafMaterial(), n);
     const e = new THREE.Euler();
     for (let i = 0; i < n; i++) {
-      const x = -20 + Math.random() * (length + 40);
+      const x = -20 + random() * (length + 40);
       // Mest langs veikantene og under trærne, litt på veien
-      const r = Math.random();
-      const z = r < 0.15 ? -4 + Math.random() * 8 : r < 0.55 ? 4 + Math.random() * 4 : -12 + Math.random() * 8;
-      e.set(-Math.PI / 2 + (Math.random() - 0.5) * 0.5, Math.random() * Math.PI * 2, 0, 'YXZ');
+      const r = random();
+      const z = r < 0.15 ? -4 + random() * 8 : r < 0.55 ? 4 + random() * 4 : -12 + random() * 8;
+      e.set(-Math.PI / 2 + (random() - 0.5) * 0.5, random() * Math.PI * 2, 0, 'YXZ');
       this.q.setFromEuler(e);
-      const s = 0.14 + Math.random() * 0.12;
-      this.m.compose(this.w.set(x, 0.015 + Math.random() * 0.01, z), this.q, this.s.set(s, s, s));
+      const s = 0.14 + random() * 0.12;
+      this.m.compose(this.w.set(x, 0.015 + random() * 0.01, z), this.q, this.s.set(s, s, s));
       im.setMatrixAt(i, this.m);
-      im.setColorAt(i, this.cols[Math.floor(Math.random() * this.cols.length)].clone().multiplyScalar(0.7 + Math.random() * 0.3));
+      im.setColorAt(i, this.cols[Math.floor(random() * this.cols.length)].clone().multiplyScalar(0.7 + random() * 0.3));
     }
     im.instanceMatrix.needsUpdate = true;
     im.receiveShadow = true;

@@ -20,6 +20,7 @@ En 2.5D fantasy-brawler der Castle Crashers møter Golden Axe, og der brettene e
 - **Lys på figurene**: Delene får normal- og glanskart laget fra tegningen (avrundede flater mellom blekkstrekene, olje på huden, blankt stål og gull). Figurene tar lys fra sol, himmel, fakler, lyn og eksplosjoner, får kantlys i motlys og kaster skygge (`src/gfx/charlight.ts`).
 - **Grafikk**: Tegnes prosedyremessig i kode i dag. PNG-er fra ChatGPT kan erstatte del for del, og flisbare teksturer fra ChatGPT kan erstatte bakke, vei, murer og gulv i 3D-verdenen (se `docs/ART_PROMPTS.md`). Malte PNG-deler får egen lysmodus, og langt hår kan henge bak ryggen som egen del.
 - **Gore**: Blodpartikler, gibs med fysikk, flekker som blir liggende, blodfontener, blod på skjermen, slowmo ved dødsstøt.
+- **Kulisser i lag**: Brettene har malte kulisser i fire lag, som et teater: FAR (fjell og borger), BACK (palisade, telt, bannere), MID (stolper, skilt, vogner ved veikanten) og FRONT (en diger stamme eller busker rett foran kameraet). FRONT gir dybde, er litt mørkere og tones ned når noen står bak. Kulissene tar det samme lyset som figurene, bøyer seg i vinden og kan ha animasjon: skilt som svinger, lykter og fakler som flakker og lyser, bannere som blafrer og kråker som flyr. Brettene legges ut i brettverkstedet STAGE FORGE (`docs/STAGE_FORGE.md`).
 
 ## 3. Spillflyt
 

@@ -2,6 +2,7 @@
 // Tåkekortene er loddrette plan med myk støy som driver med vinden. Nederste del tones ut så linjen der
 // kortet møter bakken ikke synes (vi har ikke myke partikler med dybdetest).
 import * as THREE from 'three';
+import { random } from '../../core/math';
 import { plainCanvas } from '../draw';
 import { wind } from '../wind';
 import { qualityRank } from '../post';
@@ -78,7 +79,7 @@ export function fogLayers(g: THREE.Group, length: number, color: THREE.ColorRepr
     const tex = fogTexture().clone();
     tex.needsUpdate = true;
     tex.repeat.set((length + 120) / 40, 1);
-    tex.offset.x = Math.random();
+    tex.offset.x = random();
     const mat = new THREE.MeshBasicMaterial({ map: tex, color, transparent: true, opacity: L.opacity, depthWrite: false, fog: true });
     // Ton ut mot bakken så skjæringslinjen ikke synes
     mat.onBeforeCompile = (sh) => {
@@ -108,7 +109,7 @@ export function godRays(g: THREE.Group, xs: number[], z: number, color: THREE.Co
   const tex = rayTexture();
   const rays: { m: THREE.Mesh; mat: THREE.MeshBasicMaterial; ph: number; base: number }[] = [];
   for (const x of xs) {
-    const w = width * (0.6 + Math.random() * 0.8);
+    const w = width * (0.6 + random() * 0.8);
     const mat = new THREE.MeshBasicMaterial({ map: tex, color, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false, opacity: strength });
     const m = new THREE.Mesh(new THREE.PlaneGeometry(w, height), mat);
     m.position.set(x, height / 2 - 0.5, z);
@@ -116,7 +117,7 @@ export function godRays(g: THREE.Group, xs: number[], z: number, color: THREE.Co
     m.renderOrder = 3;
     m.userData.noCast = true;
     g.add(m);
-    rays.push({ m, mat, ph: Math.random() * 6.28, base: strength * (0.6 + Math.random() * 0.6) });
+    rays.push({ m, mat, ph: random() * 6.28, base: strength * (0.6 + random() * 0.6) });
   }
   let t = 0;
   return (dt: number) => {

@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { valueNoise3, fbm3 } from '../noise';
 import { plainCanvas } from '../draw';
-import { rand } from '../../core/math';
+import { rand, random, unseeded } from '../../core/math';
 import type { Gore } from '../gore';
 import { screenFX } from '../screenfx';
 import { wind } from '../wind';
@@ -144,7 +144,7 @@ export function brazier(g: THREE.Group, gore: Gore, updates: Updates, x: number,
         light.pos.set(spill.x, 0.7, spill.z + 0.6);
         heat.pos.copy(spill);
         heat.r = 1.1;
-        embers = new THREE.Mesh(new THREE.CircleGeometry(1, 20), new THREE.MeshBasicMaterial({ map: emberTexture(), color: new THREE.Color(2.2, 1.4, 1.1), transparent: true, depthWrite: false }));
+        embers = new THREE.Mesh(new THREE.CircleGeometry(1, 20), new THREE.MeshBasicMaterial({ map: unseeded(emberTexture), color: new THREE.Color(2.2, 1.4, 1.1), transparent: true, depthWrite: false }));
         embers.rotation.x = -Math.PI / 2;
         embers.scale.set(1.15, 0.7, 1);
         embers.position.set(spill.x, 0.02, spill.z);
@@ -311,7 +311,7 @@ export function warBanner(g: THREE.Group, updates: Updates, x: number, z: number
   sg.add(tip);
   const geo = new THREE.PlaneGeometry(w, len, 8, 14);
   geo.translate(0, -len / 2, 0);
-  const m = lit({ map: bannerTexture(cloth), alphaTest: 0.45, side: THREE.DoubleSide, roughness: 0.92 }, false);
+  const m = lit({ map: unseeded(() => bannerTexture(cloth)), alphaTest: 0.45, side: THREE.DoubleSide, roughness: 0.92 }, false);
   const flag = new THREE.Mesh(geo, m);
   flag.position.set(x, h - 0.3, z + 0.14);
   g.add(flag);
@@ -452,7 +452,7 @@ export function runeStone(g: THREE.Group, x: number, z: number, h = 3, glow = fa
   const stone = new THREE.Mesh(geo, mat('runestone', () => lit({ color: '#6a7282', roughness: 0.93 }, { scale: 0.9, normal: 1.3, albedo: 0.5, snow: 0.9 })));
   stone.position.set(x, -0.12, z);
   stone.rotation.y = rand(-0.25, 0.25);
-  const rt = runeTexture(glow);
+  const rt = unseeded(() => runeTexture(glow));
   const rm = mat('runes' + (glow ? 'g' : ''), () => {
     const m = lit({ map: rt, alphaTest: 0.35, roughness: 0.95 }, false);
     if (rt.userData.emissiveMap) {
@@ -587,7 +587,7 @@ function mistTexture() {
 export function waterfall(g: THREE.Group, gore: Gore, updates: Updates, x: number, z: number, top: number, width = 2.2) {
   const layers: THREE.Texture[] = [];
   const layer = (w: number, dz: number, opacity: number, rep: number) => {
-    const t = fallTexture().clone();
+    const t = unseeded(fallTexture).clone();
     t.repeat.set(1, top / rep);
     layers.push(t);
     const geo = new THREE.PlaneGeometry(w, top, 1, 12);
@@ -649,14 +649,14 @@ export function ropeBridge(g: THREE.Group, x0: number, x1: number, y: number, z:
   const at = (t: number, dy = 0, dz = 0) => new THREE.Vector3(x0 + (x1 - x0) * t, y - sag * 4 * t * (1 - t) + dy, z + dz);
   const n = Math.round((x1 - x0) / 0.34);
   for (let i = 0; i <= n; i++) {
-    if (i > 1 && i < n - 1 && Math.random() < 0.07) continue;
+    if (i > 1 && i < n - 1 && random() < 0.07) continue;
     const t = i / n, p = at(t);
     const slope = Math.atan2(-sag * 4 * (1 - 2 * t), x1 - x0);
     const plank = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.05, 1.15 + rand(-0.12, 0.08)), wood);
     plank.position.copy(p);
     plank.rotation.set(rand(-0.05, 0.05), rand(-0.08, 0.08), slope + rand(-0.05, 0.05));
     sg.add(plank);
-    if (Math.random() < 0.3) icicles(g, p.x - 0.12, p.x + 0.12, p.y - 0.03, p.z + rand(-0.4, 0.4), 8, 0.35);
+    if (random() < 0.3) icicles(g, p.x - 0.12, p.x + 0.12, p.y - 0.03, p.z + rand(-0.4, 0.4), 8, 0.35);
   }
   for (const dz of [-0.58, 0.58]) {
     const pts: THREE.Vector3[] = [];

@@ -3,12 +3,18 @@
 ## Plan: brettverksted, gørr, AI og teksturer (fra 2026-09-30 15:54, docs/PLAN_BRETT_GORR_AI.md)
 - [x] Blodråper i lufta, gnister og sjokkbølger var usynlige (speilvendte partikler i GLOW_VERT). Rettet, med ny test tools/tests/particles.mjs
 - [x] Plan med editor, lag, rekvisitter, Morbidium-animasjon, gørr, AI (moderne Golden Axe-kloner), teksturer og andre forbedringer
-- [ ] Tom: bestill teksturene i del 9.1 (kan kjøres gjennom process_art.py nå) og rekvisittene i del 9.2 (legg dem i art/inbox/venter/ til runde B)
+- [ ] Tom: bestill teksturene i del 9.1 (kan kjøres gjennom process_art.py nå) og kulissene i docs/ART_PROMPTS.md, «Kulisser til brettverkstedet» (process_art.py tar dem nå). Gørrbildene (gore_) venter i art/inbox/venter/ til runde A
 - [ ] Tom: si om rekkefølgen passer (A, B, C, D, E), eller om AI del 1 (D) skal før editoren (C)
 - [ ] Tom: si fra om blodmengden nå som dråpene synes (standard EXCESSIVE)
 - [ ] Runde A: beina løper etter todeling, pulserende sprut, kuttflater, blod på våpenet, treffstopp ved kutt; teksturer på palisade, telt, stolper, hytter og tak (med reserve i kode); spilltid i stedet for setTimeout (stage.ts 482 og 710, duel.ts)
-- [ ] Runde B: rekvisitter i lag (manifest `props`, kulisser med lys og skygge, vind, bildeserier, InstancedMesh), toning av FRONT, brettfiler i JSON med validering, faste frø for pynten, tools/export_layouts.mjs, `anim_`/`prop_`/`gore_` i process_art.py (ark_ruter fra Morbidium)
-- [ ] Runde C: STAGE FORGE (editor.html, bibliotek, tidslinje, angre, radmodus, lagring via Vite under npm run dev, PLAY FROM HERE, tools/tests/editor.mjs)
+- [x] Runde B: kulisser i lag (manifest `props`, figurlyset, skygge, vind, bildeserier, spor), toning av FRONT etter punkter og alfa, brettfiler i JSON med validering, faste frø og generatorbrytere for pynten, `prop_` og `anim_` i process_art.py (ark_ruter og behandle_ark fra Morbidium)
+- [x] Runde C: STAGE FORGE som scene i spillet (`?editor=road`): bibliotek, tidslinje, angre (60), rader, generatorer, bølger, tønner og farer, lagring via Vite under npm run dev, bilder dratt inn, PLAY FROM HERE og tilbake. Tester: editor.mjs, forge-save.mjs, prop-images.mjs
+- [x] Skills for agentene i .claude/skills/ (stage-forge, prop-art, new-level, game-tests) og docs/SKILLS.md
+- [ ] Tom: prøv STAGE FORGE på brett 1 og si hva som mangler eller er tungvint
+- [ ] Brettfiler med kulisser for swamp, frost, scorch, tower og nattleiren (bare tomme filer nå)
+- [ ] `gore_` i process_art.py (runde A)
+- [ ] Senere i editoren: gjøre en generator om til enkeltkulisser («bake inn»), `solid` og `breakable` på kulisser, kulisser i flere deler, InstancedMesh for lange rader hvis det blir tungt
+- [ ] Sporformatet (track) på riggens stillinger: angrep i flere faser og dødsanimasjoner som data (runde A eller E)
 - [ ] Runde D: AI del 1 (én plass per side, ytre ring, rettferdighet, felles varsling `tell`/`bark`, to spillere, målinger i ai.mjs)
 - [ ] Runde E: AI del 2 (tempostyring og budsjett, nye fiendetyper, grense for evige komboer, forsvar, sjefer i faser, vanskelighetsgrad, ridedyr)
 

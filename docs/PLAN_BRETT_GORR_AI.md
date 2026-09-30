@@ -10,6 +10,7 @@
 
 Dette dokumentet er planen. Arbeidet er delt i runder som hver kan spilles og testes for seg. Én feil ble rettet med en gang, fordi den forklarte mye av det Tom så (del 1).
 
+Status øverst: hva som er gjort.
 1. Rettet i dag: blodet som ikke synes
 2. Rekkefølge
 3. Brettverkstedet (STAGE FORGE)
@@ -20,6 +21,23 @@ Dette dokumentet er planen. Arbeidet er delt i runder som hver kan spilles og te
 8. Andre forbedringer
 9. Bestilling til GPT (kan sendes nå)
 10. Kilder
+
+---
+
+## Status
+
+**30. september 2026, kveld: runde B og C er ferdige.** Brettene har malte kulisser i fire lag med animasjon og forgrunn som tones ut, brettfiler i JSON, faste frø for pynten, og brettverkstedet STAGE FORGE. Bruken står i `docs/STAGE_FORGE.md`, og skillene agentene bruker, i `docs/SKILLS.md`.
+
+Der det ble annerledes enn planen under:
+- Editoren er en scene i spillet (`?editor=road`, og STAGE FORGE på tittelskjermen under `npm run dev`), ikke en egen `editor.html`. Da deler den alt med spillet og går rett til PLAY FROM HERE og tilbake.
+- Bilder dratt inn i editoren lagres rett som `public/assets/prop_<navn>.webp` med manifestet oppdatert. Bilder fra ChatGPT går gjennom `tools/process_art.py`, som nå kjenner `prop_<navn>.png` og `anim_<navn>_<K>x<R>.png`.
+- Bildeserier: rutenettet står i manifestet som `grid` og `n` (hører til bildet), fart og løkke i animasjonen. Bredde og fotpunkt er `w` og `anchor` som for figurdelene, ikke `w`, `h`, `ax` og `ay` som i Morbidium.
+- Sporformatet fra POSER brukes på kulissene (`track` med x, y, vridning, skala og gjennomsiktighet). På riggens stillinger kommer det sammen med gørret (runde A) eller AI (runde E).
+- `tools/export_layouts.mjs` trengs ikke. Bølger, tønner, farer og ryttere kopieres fra `levels.ts` inn i brettfila første gang de endres i editoren.
+- Toningen foran kameraet ser på punkter på figurene mot selve bildet, så gjennomsiktige deler ikke teller. Angre har 60 steg.
+- Ikke gjort ennå: gjøre en generator om til enkeltkulisser («bake inn»), `solid` og `breakable` på kulisser, og kulisser i flere deler (lagdukke).
+
+Neste er runde A (gørr og teksturer) eller D (AI), etter hva Tom vil først.
 
 ---
 
@@ -103,7 +121,7 @@ Ny del i manifestet, `props`:
 - Treff og kollisjon kommer senere: `solid` for en vogn som stenger veien, `breakable` for gjerder og kasser.
 
 ### 3.4 Forgrunn som gir dybde uten å skjule kampen
-- Rekvisitter i FRONT tones ned til rundt 30 prosent når en helt, en fiende eller en sjef står bak dem i bildet. Boksen rundt figuren sammenlignes med rekvisitten på skjermen, og toningen tar 0,15 sekunder inn og ut. Å tone ut det som står mellom kameraet og spilleren er den vanlige løsningen i 3D-spill, og Dragon's Crown fikk et valg om å gjøre figurer som overlapper, gjennomsiktige.
+- Rekvisitter i FRONT tones ned til rundt 40 prosent når en helt, en fiende eller en sjef står bak dem i bildet. Punkter på figuren sammenlignes med selve bildet (gjennomsiktige deler teller ikke), og toningen tar 0,15 sekunder inn og ut. Å tone ut det som står mellom kameraet og spilleren er den vanlige løsningen i 3D-spill, og Dragon's Crown fikk et valg om å gjøre figurer som overlapper, gjennomsiktige.
 - Toningen gjøres med dithering, så dybden og kantutjevningen virker som før.
 - De svarte silhuettene i dag (`foreground()` i `env/common.ts`: pigger, hodeskalle på stake, kors og stein) blir valgfrie, og editoren kan bytte dem ut med malte PNG-er.
 - Editoren varsler når noe i FRONT dekker mer enn en tredjedel av bildet der kameraet låses for en bølge.
@@ -335,8 +353,10 @@ Bruk TEKSTUR-BLOKKEN i `docs/ART_PROMPTS.md` som første melding i en egen samta
 | `obsidian` | `tex_obsidian.png` | `Texture: black volcanic glass (obsidian) seen straight on, shell-shaped fractures with sharp glassy edges, a faint dark purple sheen, grey ash dust in the cracks.` |
 | `bone` | `tex_bone.png` | `Texture: old yellowed bone surface seen close up, fine pores, hairline cracks and brown stains.` |
 
-### 9.2 Rekvisitter til brett 1 (venter til runde B)
-Verktøyet kjenner ikke `prop_`, `anim_` og `gore_` ennå, og ett ukjent navn stopper hele kjøringen. Legg derfor disse i `art/inbox/venter/` (verken verktøyet eller git ser den mappa) til runde B er ferdig.
+### 9.2 Rekvisitter til brett 1
+Runde B og C er ferdige, og `tools/process_art.py` kjenner nå `prop_` og `anim_`. Den oppdaterte lista med KULISSE-BLOKKEN står i `docs/ART_PROMPTS.md` under «Kulisser til brettverkstedet». Der heter bildeseriene `anim_<navn>_<kolonner>x<rader>.png` (for eksempel `anim_banner_red_4x2.png`), og fakkelen og kråka er med. Lista under er den opprinnelige.
+
+`gore_` kjennes ikke ennå, og ett ukjent navn stopper hele kjøringen. Legg gørrbildene i `art/inbox/venter/` (verken verktøyet eller git ser den mappa) til runde A er ferdig.
 
 Lim inn denne blokken først, i en egen samtale:
 

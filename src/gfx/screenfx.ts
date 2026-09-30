@@ -139,6 +139,12 @@ export class ScreenFX {
     return h;
   }
 
+  /** Fjern en varmekilde (en rekvisitt som slettes i brettverkstedet). */
+  removeHeat(h: { pos: THREE.Vector3 }) {
+    const i = this.heat.indexOf(h as (typeof this.heat)[number]);
+    if (i >= 0) this.heat.splice(i, 1);
+  }
+
   /**
    * Svakeste levende helt (hp delt på maks), eller -1 når ingen helt er i live. Kalles hver frame fra brettet og
    * duellen. Årer under 35 prosent helse, og hjertet slår fortere jo lavere helsa er.

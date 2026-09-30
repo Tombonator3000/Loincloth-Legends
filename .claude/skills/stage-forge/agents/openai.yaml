@@ -1,0 +1,4 @@
+interface:
+  display_name: "STAGE FORGE"
+  short_description: "Brett og kulisser i Loincloth Legends"
+  default_prompt: "Bruk $stage-forge til å endre brettet med brettfila eller editoren, og sjekk resultatet med testene og et skjermbilde."

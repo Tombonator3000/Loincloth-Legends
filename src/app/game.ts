@@ -25,6 +25,9 @@ import { buildHeroDef, cloneHero, HERO_OPTIONS } from '../gfx/chars/hero';
 import { registerChar } from '../gfx/chars';
 import { WEAPONS } from '../data/weapons';
 import { LEVELS } from '../data/levels';
+import { levelWithLayout } from '../data/layout';
+import { EditorScene } from './scenes/editor';
+import { layoutFor } from '../data/layouts';
 import { DUELISTS, type DuelistDef } from '../data/duelists';
 import { MAP_NODES, type MapNode } from '../data/worldmap';
 import { loadSave, writeSave, defaultSave, type SaveData } from './save';
@@ -127,12 +130,20 @@ class StageScene implements Scene {
   name = 'stage';
   pausable = true;
   stage: Stage;
-  constructor(private game: Game, levelId: string, private onEnd: (r: 'complete' | 'duel' | 'gameover') => void) {
+  constructor(private game: Game, levelId: string, private onEnd: (r: 'complete' | 'duel' | 'gameover') => void, startX?: number) {
     const cfgs = game.twoP ? [game.save.heroes[0], game.save.heroes[1]] : [game.save.heroes[0]];
-    const sup = { lives: game.save.supplies?.lives ?? 0, potions: game.save.supplies?.potions ?? 0 };
-    game.save.supplies = { lives: 0, potions: 0 };
-    game.persist();
-    this.stage = new Stage(game.hud, LEVELS[levelId], cfgs, game.input.players, [game.progressOf(0), game.progressOf(1)], sup);
+    // Prøvespill fra brettverkstedet bruker ikke opp forsyningene fra nattleiren
+    const test = startX !== undefined;
+    const sup = test ? { lives: 0, potions: 0 } : { lives: game.save.supplies?.lives ?? 0, potions: game.save.supplies?.potions ?? 0 };
+    if (!test) {
+      game.save.supplies = { lives: 0, potions: 0 };
+      game.persist();
+    }
+    // Spilldata fra brettfila (bølger, tønner, farer, ryttere) går foran levels.ts
+    const level = levelWithLayout(LEVELS[levelId], layoutFor(levelId));
+    this.stage = new Stage(game.hud, level, cfgs, game.input.players, [game.progressOf(0), game.progressOf(1)], sup);
+    // Testspill fra brettverkstedet: start der kameraet sto
+    if (startX !== undefined) this.stage.startAt(startX);
     if (sup.lives || sup.potions) setTimeout(() => game.toast(`SUPPLIES: +${sup.lives} LIFE, +${sup.potions * 2} POTIONS`), 600);
     game.hud.visible(true);
     game.screens.hide();
@@ -184,6 +195,15 @@ class DuelScene implements Scene {
   }
 }
 
+/** ?editor eller ?editor=road i adressen åpner brettverkstedet (null uten). */
+function editorParam(): string | null {
+  try {
+    return new URLSearchParams(location.search).get('editor');
+  } catch {
+    return null;
+  }
+}
+
 class IdleScene implements Scene {
   name = 'idle';
   update() {}
@@ -214,6 +234,8 @@ export class Game {
   private titlePlayers: 0 | 1 | 2 = 0;
   private titleVsP2 = false;
   paused = false;
+  /** Et brett spilles fra brettverkstedet (PLAY FROM HERE): pausen og slutten går tilbake dit. */
+  editorTest: { level: string } | null = null;
   last = performance.now();
   width = 1;
   height = 1;
@@ -300,7 +322,9 @@ export class Game {
     this.resize();
     this.goTitle();
     document.getElementById('boot')?.remove();
-    if (wantSplash()) {
+    const forge = editorParam();
+    if (forge !== null) this.openEditor(forge && LEVELS[forge] ? forge : undefined);
+    else if (wantSplash()) {
       this.splash = new Splash(this.app, () => {
         this.splash = null;
         audio.play('title', true);
@@ -386,8 +410,27 @@ export class Game {
     return lines;
   }
 
+  // ---------------------------------------------------------------- brettverkstedet
+  /** STAGE FORGE, editoren for brettene (app/scenes/editor.ts). */
+  openEditor(levelId?: string) {
+    this.editorTest = null;
+    this.paused = false;
+    this.input.solo = true;
+    this.setScene(() => new EditorScene(this, levelId));
+    this.hud.visible(false);
+  }
+
+  /** Spill et brett fra editoren, fra x. Pausemenyen og slutten av brettet går tilbake til editoren. */
+  testLevel(levelId: string, x: number) {
+    this.editorTest = { level: levelId };
+    this.twoP = false;
+    W.resetStats();
+    this.setScene(() => new StageScene(this, levelId, () => this.openEditor(levelId), x));
+  }
+
   // ---------------------------------------------------------------- tittel
   goTitle() {
+    this.editorTest = null;
     this.input.solo = true;
     this.setScene(() => new TitleScene(this));
     this.hud.visible(false);
@@ -430,6 +473,8 @@ export class Game {
       },
       { label: 'HERO FORGE', hint: 'FORGE YOUR OWN HERO', action: () => this.openCreator([0, 1], () => this.goTitle()) },
       { label: 'OPTIONS', hint: 'GORE, SOUND, SCREEN AND CONTROLS', action: () => this.showSettings(() => this.showTitleMenu(3)) },
+      // Brettverkstedet på tittelen bare under npm run dev (ellers med ?editor i adressen)
+      ...(import.meta.env.DEV ? [{ label: 'STAGE FORGE', hint: 'LEVEL EDITOR: LAYERS, PROPS AND ANIMATION', action: () => this.openEditor() }] : []),
     ];
   }
 
@@ -770,7 +815,9 @@ export class Game {
     this.paused = !this.paused;
     if (this.paused) {
       const items = [{ label: 'RESUME', action: () => this.togglePause() }];
-      if (this.scene.name === 'map') {
+      const test = this.editorTest;
+      if (test && this.scene.name === 'stage') items.push({ label: 'BACK TO STAGE FORGE', action: () => this.openEditor(test.level) });
+      else if (this.scene.name === 'map') {
         items.push({ label: 'HERO FORGE', action: () => this.openCreator(this.twoP ? [0, 1] : [0], () => this.goMap()) });
         items.push({ label: 'TRAINING', action: () => showTraining(this, 0, () => { this.paused = false; this.togglePause(); }) });
       }
@@ -886,7 +933,8 @@ export class Game {
       if (render) this.post.render(W.scene, this.camera, realDt);
       return;
     }
-    if (inp.keyPressedOnce('KeyM')) {
+    // M demper lyden (ikke i brettverkstedet, der tastene er snarveier)
+    if (inp.keyPressedOnce('KeyM') && this.scene.name !== 'editor') {
       audio.init();
       audio.toggleMute();
       this.screens.setMuted(audio.muted);

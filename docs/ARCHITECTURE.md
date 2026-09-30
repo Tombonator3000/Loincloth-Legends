@@ -13,12 +13,14 @@ app/               Spillflyt
   save.ts          Lagring i localStorage (helter, fremgang, opplåsinger, nivåer, kjæledyr, forbruksvarer)
   perf.ts          Automatisk grafikkvalitet (QualityGovernor) og ytelsesmåleren bak ?perf (PerfMeter)
   debug.ts         window.__lib for Playwright-testene
-  scenes/          creator.ts (Hero Forge), map.ts (verdenskart)
+  scenes/          creator.ts (Hero Forge), map.ts (verdenskart), editor.ts (brettverkstedet STAGE FORGE)
 data/              Alt innhold som data (ingen Three.js her)
   enemies.ts       FOES: fiendetyper og oppførsel
   bosses.ts        BOSSES: sjefer satt sammen av trekk
   duelists.ts      DUELISTS: motstandere i 1v1
   levels.ts        LEVELS: brett, bølger, tønner, farer, ryttere, finale (sjef eller duell)
+  layout.ts        Brettfilene: lag, kulisser, rader, animasjoner, validering, JSON-format og levelWithLayout
+  layouts/         Én brettfil per brett (<brett>.json) og index.ts (import.meta.glob, og det som ikke er lagret)
   hazards.ts       HAZARDS: piggrop, myr, råk, lava, piggfelle
   mounts.ts        MOUNTS: ridedyr (fart, angrep, replikker)
   pets.ts          PETS: kjæledyr og fornærmelsene til hodeskallen
@@ -55,6 +57,8 @@ gfx/               Grafikk
                    atmos (tåkelag og lyssøyler), textures (støyteksturer med normalkart, og bilder fra manifestet),
                    surface (triplanar overflatedetalj på alle miljømaterialer, valgfritt snø på flater som vender opp),
                    props (fyrfat, krigsbanner, runesteiner, klipper, fossefall, taubro, istapper, ruiner, taugjerde)
+  props/           Kulissekatalogen: catalog.ts (plassholdere, bilder fra manifestet og 3D-rekvisitter), painted.ts (plassholderne tegnet i kode)
+  scenery.ts       Kulissene på brettene: malte plan med figurlyset, tåke, vind, animasjoner, forgrunn som tones ut og treff med musa
   stagecam.ts      Kameraet på brettene (høyde, avstand, punktet det ser mot, og hvor langt det trekker seg for kjemper)
   noise.ts         Flisbar Perlin- og Worley-støy og fbm, brukt av teksturene, fjellene og 3D-steinene
   envlight.ts      Miljøkart fra himmelen (PMREM), så metall og våte flater speiler himmelen
@@ -86,8 +90,11 @@ core/              Input (tastatur, gamepad, berøring), lyd (WebAudio-synth og 
   soundbank.ts     Lydbanken: CC0-opptak fra public/assets/sound/ oppå synthen (fra Morbidium)
   layers.ts        Lagspiller for syntlyd, torden, zap og fanfarene for drapsrekker, sjef og knockout
   ambience.ts      Stemning per biom (sløyfer med syntetisk reserve, bål i nærheten, fugler)
+editor/            Brettverkstedet: history.ts (angre), io.ts (lagring og bilder), markers.ts (merker i 3D-bildet), editor.css
 assets/            Bilder som bygges inn i spillet (studio-logo.webp)
 ```
+
+Utenfor `src/`: `tools/vite-stage-forge.ts` er Vite-utvidelsen som lar editoren lagre brettfiler og bilder i repoet under `npm run dev`.
 
 Avhengigheter går én vei: `app` bruker `game`, `gfx`, `data`, `ui`. `game` bruker `gfx` og `data`. `data` bruker bare typer. `core/settings.ts` kan brukes fra alle lag.
 
@@ -109,6 +116,8 @@ Avhengigheter går én vei: `app` bruker `game`, `gfx`, `data`, `ui`. `game` bru
 | `MAP_NODES` / `MAP_EDGES` | data/worldmap.ts | Kartet |
 | `WEAPONS` | data/weapons.ts | Heltebyggeren, helter, duellanter |
 | `PART_LOCKS` | data/unlocks.ts | Heltebyggeren, belønninger på kartet, butikken |
+| `LAYOUTS` | data/layouts/index.ts | Brettfilene, via `layoutFor(id)` i Stage og editoren |
+| Kulissekatalogen | gfx/props/catalog.ts | `prop` i brettfilene, biblioteket i editoren |
 
 ## Proporsjoner
 
@@ -204,6 +213,17 @@ Tittelen har fire knapper (STORY, DUEL, HERO FORGE, OPTIONS). OPTIONS (`Game.sho
 
 `InputManager` slår sammen tastatur, mus, gamepad og berøring til to `PlayerInput`. Venstre museknapp på spillflaten (`MOUSE_LEFT`) står i angrepstastene til spiller 1 som en tast, men bare når `InputManager.mouseAttack` er på: `Game.setScene` slår den på for brett og dueller, ikke for kartet (der betyr angrep «gå inn»). Menyene og pausen er egne lag over spillflaten og tar klikkene selv. Knappene er `left right up down attack jump special grab start`, men spillet bruker bare tre handlingsknapper: `grab` er en skjult snarvei. Grep skjer når helten går inn i en fiende eller et ledig ridedyr i `AUTO_GRAB.time` sekunder (`Hero.update`, `Stage.grabContact` og `tryGrab(h, true)` med kortere rekkevidde), og ned + hopp hopper av dyret. Gamepad følger standard mapping (A hopp, X angrep, B spesial, Start pause). I 2-spiller med én gamepad styrer gamepaden spiller 2. Berøring (`ui/touch.ts`) styrer alltid spiller 1 og vises bare når det spilles (ikke i menyer). `W.rumble(player, sterk, svak, ms)` rister riktig gamepad.
 
+## Brett, kulisser og faste frø
+
+Et brett er tre lag oppå hverandre: miljøbyggeren for biomet (`gfx/env/<biom>.ts`), brettfila (`data/layouts/<brett>.json`) og spilldataene i `levels.ts`. `Stage` bygger med `levelWithLayout(LEVELS[id], layoutFor(id))`, så bølger, tønner, farer, ryttere og lengde i brettfila går foran `levels.ts`.
+
+- **Faste frø.** `core/math.ts` har én tilfeldighetskilde (`random`, `rand`, `chance`, `pick`). `withSeed(frø, fn)` låser den mens miljøet bygges, så pynten blir lik hver gang. Kampen bruker vanlige tilfeldige tall. Teksturer som mellomlagres, lages med `unseeded`. I miljøbyggerne gir `gen(o, 'nøkkel')` hver pyntblokk sitt eget frø og en bryter (`generators` i brettfila), så en blokk kan slås av uten at resten flytter seg. Byggekode for miljøet skal aldri bruke `Math.random()`.
+- **Kulissene** (`gfx/scenery.ts`) er plan med fotpunktet i origo. De bruker figurenes lysmodell (`CHAR_VERT` og `CHAR_FRAG` fra `charlight.ts`) med relieff laget fra bildet, tåke, vinden fra `wind.ts`, ruter i bildeserier, dithering når de tones ut og mørkning for FRONT. Et klikk treffer bare der bildet ikke er gjennomsiktig. 3D-rekvisittene bygges med `build` i katalogen, og lys og varmeflimmer de lager, fjernes igjen når de slettes (`LightPool.removeSource`, `ScreenFx.removeHeat`).
+- **Toningen foran:** hver frame projiseres noen punkter på heltene, fiendene og sjefen (`Stage.fighterBoxes`) inn i planet til FRONT-kulissene. Treffer et punkt en del av bildet som ikke er gjennomsiktig, tones kulissen ned til 40 prosent på 0,15 sekunder.
+- **Animasjonene** (sway, swing, bob, spin, flicker, sheet, track) er data i `data/layout.ts` og regnes ut i `Scenery.tick` på spilltid. `trackValue` gir verdien i et spor med myk overgang (etter POSER i Morbidium).
+- **Bilder som tar over:** `imageKind` i `gfx/props/catalog.ts` lager kulissen av et bilde fra manifestet eller editoren. Samme navn som en plassholder beholder mål, lys, flammer og bevegelse. `grid` og `n` gjør bildet til en bildeserie. `anim` i manifestet er hele lista.
+- **Editoren** er en egen scene (`app/scenes/editor.ts`, navn `editor`) som bygger den samme verdenen som spillet med `scenery.editor = true`, pluss merker (`editor/markers.ts`) og DOM-paneler. Tilstanden (`forgeState`) ligger utenfor scenen, så den overlever ombygging, PLAY FROM HERE og veien tilbake. Angre er hele brettfila som JSON (60 steg). Brukerveiledning: `docs/STAGE_FORGE.md`.
+
 ## Oppskrifter
 
 ### Ny fiende
@@ -229,7 +249,17 @@ Istapper (`game/icicles.ts`) og fyrfat som veltes (`Env.tippables`, `Tippable` i
 Rekvisittene i `env/props.ts` kan brukes i alle biomer: `brazier()` gir ild, lys, varmeflimmer og knitring (returnerer punktet flammene skal komme fra), `warBanner()` bølger i vinden, `cliff()` returnerer høyden på toppen så ruiner, bro og fossefall kan settes der. Sett `gore.dustColor` hvis støvet fra bakken ikke er sand (snø i frosten).
 
 ### Nytt brett
-Legg til en `LevelDef` i `data/levels.ts`. Bølger skrives kompakt: `w(at, maxAlive, 'skeleton:R:0.2 hogman:L:1.0', { title, say })`. Farer legges inn med `hz(kind, x, z, bredde, dybde)`, og ryttere med `[bølgeindeks, fiende, ridedyr]`. Finalen er en sjef, en duell eller `{ type: 'dawn' }` (ferdig når bølgene er over og ingen fiender er igjen). `nightCamp: true` gir nattleir-reglene: heltene sover ved start, tyvnisser stjeler krukker, og krukkene blir forsyninger (`Game.campSupplies`).
+Legg til en `LevelDef` i `data/levels.ts`. Kulissene legges i `data/layouts/<id>.json` (tom fil: `{"version": 1, "level": "<id>", "props": [], "runs": []}`), gjerne med STAGE FORGE (`?editor=<id>`). Bølger skrives kompakt: `w(at, maxAlive, 'skeleton:R:0.2 hogman:L:1.0', { title, say })`. Farer legges inn med `hz(kind, x, z, bredde, dybde)`, og ryttere med `[bølgeindeks, fiende, ridedyr]`. Finalen er en sjef, en duell eller `{ type: 'dawn' }` (ferdig når bølgene er over og ingen fiender er igjen). `nightCamp: true` gir nattleir-reglene: heltene sover ved start, tyvnisser stjeler krukker, og krukkene blir forsyninger (`Game.campSupplies`).
+
+### Ny kulisse
+- Et bilde: `prop_<navn>.png` eller `anim_<navn>_<K>x<R>.png` i `art/inbox/` og `python3 tools/process_art.py`, eller dra det inn i editoren. Se «Kulisser til brettverkstedet» i `docs/ART_PROMPTS.md`.
+- En plassholder tegnet i kode: en funksjon i `gfx/props/painted.ts` (lerret, eget frø) og en linje i `PAINTED` i `gfx/props/catalog.ts` med `w`, `anchor`, lag og eventuelt `anim`, `fire` og `preset`.
+- En 3D-rekvisitt: en linje i `MODELS` med `build(ctx)` som bygger ved `(ctx.x, ctx.z)` i `ctx.g`. Oppdateringer legges i `ctx.updates`.
+
+### Ny animasjonstype for kulisser
+1. Legg typen til i `PropAnim` og `ANIM_TYPES` i `data/layout.ts`, og sjekk feltene i `validateLayout`.
+2. Regn den ut i `Scenery.tick` (`gfx/scenery.ts`), på spilltid.
+3. Felter i editoren: `renderAnims` i `app/scenes/editor.ts`, og en standardverdi i lista `fresh`.
 
 ### Ny fare
 1. Legg typen til i `HazardKind` og `HAZARDS` (`data/hazards.ts`).
@@ -330,4 +360,4 @@ Nivåene er målt som hørbar lydstyrke, ikke rå RMS: K-vekting (som LUFS) og "
 
 GitHub Actions (`.github/workflows/pages.yml`) kjører typecheck og bygg på hver push og pull request, og publiserer `dist/` til GitHub Pages fra main når Pages er slått på i repoet (ellers hoppes publiseringen over med en melding).
 
-`tools/tests/` har Playwright-skript som styrer spillet via `window.__game` og `window.__lib` med faste tidssteg (`game.tick(1/60, false)`), tar skjermbilder og samler konsollfeil. Se `tools/tests/README.md`.
+`tools/tests/` har Playwright-skript som styrer spillet via `window.__game` og `window.__lib` med faste tidssteg (`game.tick(1/60, false)`), tar skjermbilder og samler konsollfeil. Se `tools/tests/README.md`, og skillen `game-tests` i `.claude/skills/` for fellene i SwiftShader.

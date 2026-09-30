@@ -15,6 +15,17 @@ type MenuState = { up: boolean; down: boolean; left: boolean; right: boolean; co
 
 /** Venstre museknapp på spillflaten (se InputManager.mouseAttack). Den står i tastelista som en tast. */
 export const MOUSE_LEFT = 'MouseLeft';
+
+/** Skriver brukeren i et tekstfelt? Da skal ikke spillet (eller editoren) reagere på tastene. */
+export function isTyping(t: EventTarget | null) {
+  const el = t as HTMLElement | null;
+  if (!el || !el.tagName) return false;
+  if (el.isContentEditable) return true;
+  if (el.tagName === 'TEXTAREA' || el.tagName === 'SELECT') return true;
+  if (el.tagName !== 'INPUT') return false;
+  const type = (el as HTMLInputElement).type;
+  return !['checkbox', 'radio', 'range', 'button', 'color', 'file'].includes(type);
+}
 const P1_KEYS: KeyMap = {
   left: ['KeyA'], right: ['KeyD'], up: ['KeyW'], down: ['KeyS'],
   attack: ['KeyF', 'KeyJ', MOUSE_LEFT], jump: ['KeyG', 'KeyK'], special: ['KeyH', 'KeyL'], grab: ['KeyR', 'KeyU'],
@@ -126,6 +137,8 @@ export class InputManager {
   constructor() {
     const block = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Slash', 'Tab']);
     window.addEventListener('keydown', (e) => {
+      // Tekstfelt (brettverkstedet, navn i heltesmia): tastene hører til feltet, ikke til spillet
+      if (isTyping(e.target)) return;
       if (block.has(e.code)) e.preventDefault();
       this.keys.add(e.code);
       if (!e.repeat) this.tapped.add(e.code);

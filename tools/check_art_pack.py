@@ -1,4 +1,5 @@
-"""Kontroller grunnpakkens 143 filer, eventuelle ekstra forge_-figurdeler og teksturene fra planen.
+"""Kontroller grunnpakkens 143 filer, eventuelle ekstra forge_-figurdeler, teksturene fra planen og kulissene til
+brettverkstedet (props i manifestet, prop_<navn>.webp).
 
 Bruk: python3 tools/check_art_pack.py (krever Pillow).
 """
@@ -55,7 +56,17 @@ appearance = manifest.get('appearance', [])
 assert len(appearance) == len({a['id'] for a in appearance}), 'Doble utseendelag i manifestet'
 assert all(re.fullmatch(r'appearance_(hair|beard|headgear|eye)_[a-z0-9_]+', a['id']) for a in appearance), 'Ukjent utseendelag'
 names += [a['file'] for a in appearance]
-assert len(names) == len(set(names)) == 143 + len(forge_parts) + len(appearance) + len(extra_textures), 'Feil antall eller doble filnavn'
+# Kulisser fra process_art.py (prop_ og anim_) og brettverkstedet
+props = manifest.get('props', {})
+for key, prop in props.items():
+    assert re.fullmatch(r'[a-z0-9_]{1,40}', key), f'Ukjent kulissenavn: {key}'
+    assert prop.get('file') == f'prop_{key}.webp', f'Feil filnavn for kulissen {key}: {prop.get("file")}'
+    if 'grid' in prop:
+        grid = prop['grid']
+        assert len(grid) == 2 and all(isinstance(v, int) and 1 <= v <= 32 for v in grid), f'Feil rutenett for {key}: {grid}'
+        assert 1 <= prop.get('n', grid[0] * grid[1]) <= grid[0] * grid[1], f'Feil antall bilder for {key}'
+names += [p['file'] for p in props.values()]
+assert len(names) == len(set(names)) == 143 + len(forge_parts) + len(appearance) + len(extra_textures) + len(props), 'Feil antall eller doble filnavn'
 part_files = {p['file'] for p in parts} | {a['file'] for a in appearance}
 for name in names:
     path = ASSETS / name
@@ -81,3 +92,6 @@ if appearance:
     print(f'OK: {len(appearance)} separate hår-, skjegg-, hodeplagg- og øyelag.')
 if extra_textures:
     print(f'OK: {len(extra_textures)} nye teksturer fra planen ({", ".join(sorted(extra_textures))}).')
+if props:
+    sheets = sum(1 for p in props.values() if 'grid' in p)
+    print(f'OK: {len(props)} kulisser til brettverkstedet ({sheets} bildeserier).')

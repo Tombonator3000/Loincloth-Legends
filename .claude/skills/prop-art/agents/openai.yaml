@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kulisser fra ChatGPT"
+  short_description: "Bestill og ta imot kulisser og bildeserier"
+  default_prompt: "Bruk $prop-art til å bestille kulisser og bildeserier fra ChatGPT og ta dem inn med tools/process_art.py."

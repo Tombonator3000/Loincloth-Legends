@@ -7,7 +7,8 @@ Repo: https://github.com/Tombonator3000/Loincloth-Legends. Spillet er fra Tom's 
 1. Les `memory.md` (prosjektets hukommelse og viktige beslutninger).
 2. Les `todo.md` (hva som gjenstår).
 3. Les de siste oppføringene i `log.md`.
-4. Design: `docs/GDD.md`. Arkitektur og oppskrifter: `docs/ARCHITECTURE.md`. Grafikk: `docs/ART_PROMPTS.md`. Målbildet for grafikken: `docs/STYLE_TARGET.md`.
+4. Design: `docs/GDD.md`. Arkitektur og oppskrifter: `docs/ARCHITECTURE.md`. Grafikk: `docs/ART_PROMPTS.md`. Målbildet for grafikken: `docs/STYLE_TARGET.md`. Brettverkstedet: `docs/STAGE_FORGE.md`.
+5. Skills for vanlige oppgaver ligger i `.claude/skills/` (brett og kulisser, grafikk fra ChatGPT, nytt brett, testene). Oversikt i `docs/SKILLS.md`. Claude Code finner dem selv. Andre agenter leser `SKILL.md` i mappa som passer.
 
 ## Mens du jobber
 - Logg alt du gjør i `log.md` med tidsstempel (format: `## YYYY-MM-DD HH:MM (Europe/Oslo)`).
@@ -25,6 +26,7 @@ Repo: https://github.com/Tombonator3000/Loincloth-Legends. Spillet er fra Tom's 
 - Stemmer: replikkene lages med stemmedesign i VoiceStudio (en beskrivelse av stemmen), eller med Toms egen stemme. Aldri kloning av ekte personer uten skriftlig tillatelse. VoiceStudio er AGPL-3.0 og brukes bare som verktøy; ingen kode derfra inn i repoet. Manus og filnavn: `docs/STEMMER.md`.
 - Gjenbruk går foran å skrive nytt (Tom): se etter ferdig kode i Toms egne repoer (særlig Morbidium) og i prosjektbiblioteket før du lager noe fra bunnen. Sjekk lisens og opphav, og krediter i README.
 - Bruk spilltid (dt i update), ikke `setTimeout`, for ting som påvirker spillet (så pause og slowmo virker).
+- Brett og kulisser er data: brettfilene i `src/data/layouts/`, kulissekatalogen i `src/gfx/props/catalog.ts`. Byggekoden for miljøet bruker `random()`, `rand()` og `pick()` fra `src/core/math.ts` (faste frø, så brettet ser likt ut hver gang), aldri `Math.random()`. Nye pyntblokker pakkes i `gen(o, 'nøkkel')`.
 - Heltenes proporsjoner (heroiske: lange bein, brede skuldre, mindre hode enn chibi, enorme muskler, bittesmå lendeklær) ligger i `src/gfx/chars/types.ts` og `src/gfx/chars/muscle.ts`.
 - Stil (Tom): ikke tegneserie. Seriøst og filmatisk, som 80-talls fantasyfilmer spilt helt rett, men morsomt og fullt av parodier. Humoren ligger i replikker, situasjoner, navn og parodier, ikke i tegneserieaktig grafikk. Alt som er 3D skal være så godt og så realistisk som mulig. Se `docs/STYLE_TARGET.md`.
 - Figurstil (Tom): nesten ekte karikatur, etter Toms referansebilde av Valkyra (beskrevet i `docs/STYLE_TARGET.md`). PNG-deler fra ChatGPT etter `docs/ART_PROMPTS.md` er veien dit. De tegnede figurene i koden er reserven og skal ligne så godt det går.

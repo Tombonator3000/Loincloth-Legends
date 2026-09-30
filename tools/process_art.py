@@ -1,9 +1,10 @@
 """Tar imot bilder fra ChatGPT i art/inbox/ og gjør dem til ferdige filer i public/assets/, med manifestet oppdatert.
 
 Gjenbrukt fra Toms Morbidium (tools/skjaer_ark.py, tools/behandle_bilder.py og tools/ta_imot_grafikk.py): magenta
-hjelpelinjer og ensfarget bakgrunn fjernes, ark klippes i ruter, delene beskjæres, og sømmene i teksturer rettes med
-en kopi forskjøvet et halvt bilde. Tilpasset Loincloth Legends: filnavnene under, manifestet i public/assets/manifest.json,
-og ingen fast oppløsning per spillenhet, fordi spillet regner ut størrelsen fra figurens skjelett (se src/gfx/rig.ts).
+hjelpelinjer og ensfarget bakgrunn fjernes, ark klippes i ruter, delene beskjæres, sømmene i teksturer rettes med
+en kopi forskjøvet et halvt bilde, og rutene i bildeserier finnes og klippes likt (ark_ruter og behandle_ark).
+Tilpasset Loincloth Legends: filnavnene under, manifestet i public/assets/manifest.json, og ingen fast oppløsning per
+spillenhet, fordi spillet regner ut størrelsen fra figurens skjelett (se src/gfx/rig.ts).
 
 Filnavnet bestemmer hva bildet er (små bokstaver, .png, .webp eller .jpg):
   <figur>_<del>.png      figurdel: head, hairback, torso, pelvis, arm, leg, weapon, eller body, tail for ridedyr
@@ -15,6 +16,12 @@ Filnavnet bestemmer hva bildet er (små bokstaver, .png, .webp eller .jpg):
   ark__<navn>__<navn>...png
                          ni ting laget på docs/maler/mal_ni_ting.png, 3 x 3, lest fra venstre og ovenfra. Hver rute får
                          navnet i sin plass (et av navnene over, uten .png). _ hopper over en rute
+  prop_<navn>.png        kulisse til brettverkstedet (prop_signpost.png). Samme navn som en plassholder i
+                         src/gfx/props/catalog.ts tar over for den og beholder mål, lys og bevegelse derfra
+  anim_<navn>_<K>x<R>.png
+                         bildeserie til brettverkstedet, K kolonner og R rader lest fra venstre og ovenfra
+                         (anim_crow_4x1.png, anim_banner_red_4x2.png). Alle rutene klippes med den samme boksen, så
+                         fotpunktet står stille fra bilde til bilde. Tomme ruter til slutt telles ikke med
   tex_<navn>.png         tekstur, navnet fra teksturlista i docs/ART_PROMPTS.md (tex_ground_grass.png)
   sky_<biom>.png         himmel (sky_scorch.png, sky_arena-pit.png)
   map.png                verdenskartet
@@ -44,6 +51,9 @@ RIDEDYR = {'warhog', 'cluckatrice', 'magmanewt'}
 HELTER = {'thrugg', 'valkyra'}
 # Største side etter nedskalering. Heltene og forge_-delene vises på nært hold.
 MAKS_HELT, MAKS_ANDRE, MAKS_TEKSTUR, MAKS_HIMMEL = 1024, 768, 1024, 1536
+# Kulisser: store trær rett foran kameraet fyller mer enn skjermhøyden, så de får flere piksler. Bildeserier holdes
+# under 4096 piksler til sammen (grensen for teksturer på de fleste skjermkort).
+MAKS_KULISSE, MAKS_RUTE, MAKS_ARK = 2048, 768, 4096
 FIGURARK = [['head', 'torso', 'pelvis'], ['arm', 'leg', 'weapon']]
 BAND = .12  # hvor langt inn fra kanten en søm blandes ut (andel av bredden eller høyden)
 
@@ -168,8 +178,13 @@ def teksturnavn():
 
 
 def tolk(nøkkel):
-    """Hva et filnavn er: ('del', figur, del), ('pet', id), ('tex', navn), ('sky', biom) eller ('map',)."""
+    """Hva et filnavn er: ('del', figur, del), ('pet', id), ('prop', navn), ('anim', navn, kolonner, rader), ('tex', navn),
+    ('sky', biom) eller ('map',)."""
     if nøkkel == 'map': return ('map',)
+    m = re.fullmatch(r'anim_(.+)_(\d+)x(\d+)', nøkkel)
+    if m: return ('anim', m.group(1), int(m.group(2)), int(m.group(3)))
+    if nøkkel.startswith('anim_'): return ('anim?',)
+    if nøkkel.startswith('prop_'): return ('prop', nøkkel[5:])
     if re.fullmatch(r'appearance_(hair|beard|headgear|eye)_[a-z0-9_]+', nøkkel): return ('appearance', nøkkel)
     if nøkkel.startswith('tex_'): return ('tex', nøkkel[4:])
     if nøkkel.startswith('sky_'): return ('sky', nøkkel[4:])
@@ -204,10 +219,133 @@ def lagre(im, navn, tapsfri, kvalitet=88):
     return fil
 
 
+# ---------------------------------------------------------------- kulisser og bildeserier (brettverkstedet)
+def katalogen():
+    """Plassholderne og 3D-rekvisittene i src/gfx/props/catalog.ts: {navn: 'painted' eller 'model'}."""
+    f = ROT / 'src' / 'gfx' / 'props' / 'catalog.ts'
+    tekst = f.read_text(encoding='utf-8') if f.exists() else ''
+    return {m.group(1): m.group(2) for m in re.finditer(r"id: '([a-z0-9_]+)', label: '[^']*', source: '(painted|model)'", tekst)}
+
+
+def kulissenavn(navn):
+    if not re.fullmatch(r'[a-z0-9_]{1,40}', navn):
+        raise ValueError(f'«{navn}»: navnet kan bare ha a-z, 0-9 og _ (ikke æ, ø, å, bindestrek eller mellomrom)')
+    return navn
+
+
+def alfa_boks(im):
+    return im.getchannel('A').point(lambda v: 255 if v > 12 else 0).getbbox()
+
+
+def ark_ruter(im, kol, rad):
+    """Rutene i et ark (fra Morbidium). ChatGPT leverer bare 1024x1024, 1536x1024 eller 1024x1536, så et ark med fire
+    ruter på rad blir sjelden fire nøyaktige kvadrater. Først deles arket i like store ruter. Krysser tegningen
+    skillelinjene (arket har marg på sidene, eller rutene er ujevne), letes det i stedet etter de tomme stripene mellom
+    bildene. Gir det feil antall, brukes like ruter likevel."""
+    w, h = im.size; cw, ch = w / kol, h / rad
+    like = [(round(c * cw), round(r * ch), round((c + 1) * cw), round((r + 1) * ch)) for r in range(rad) for c in range(kol)]
+    if rad != 1 or kol == 1: return like, True
+    kolonner = list(piksler(im.getchannel('A').point(lambda v: 255 if v > 12 else 0).resize((w, 1), Image.BOX)))
+    grense = 1
+    kryss = sum(1 for c in range(1, kol) for x in range(round(c * cw) - 2, round(c * cw) + 3) if kolonner[x] > grense)
+    if not kryss: return like, True
+    biter, start = [], None
+    for x, v in enumerate(kolonner + [0]):
+        if v > grense and start is None: start = x
+        elif v <= grense and start is not None:
+            if x - start > w * .01: biter.append([start, x])
+            start = None
+    # små hull inni en tegning (dråper med luft mellom) slås sammen til det blir riktig antall
+    while len(biter) > kol:
+        i = min(range(len(biter) - 1), key=lambda j: biter[j + 1][0] - biter[j][1])
+        biter[i][1] = biter[i + 1][1]; del biter[i + 1]
+    if len(biter) != kol:
+        print(f'  obs: fant ikke {kol} ruter i arket, deler det likt')
+        return like, True
+    return [(b[0], 0, b[1], h) for b in biter], False
+
+
+def behandle_ark(im, kol, rad, navn):
+    """Bildeserie (etter behandle_ark i Morbidium): hver rute klippes ut, og alle klippes med den samme boksen (det de
+    har av innhold til sammen), så fotpunktet står stille fra bilde til bilde. Settes sammen igjen i samme rutenett.
+    Gir (ark, antall bilder, rutestørrelse)."""
+    if not (1 <= kol <= 16 and 1 <= rad <= 16): raise ValueError('rutenettet må være mellom 1x1 og 16x16')
+    if im.size[0] % kol or im.size[1] % rad:
+        print(f'  obs: {navn} er {im.size[0]}x{im.size[1]}, som ikke går opp i {kol}x{rad} ruter (rutene rundes av)')
+    im = fjern_bakgrunn(im.convert('RGBA'))
+    bokser, like = ark_ruter(im, kol, rad)
+    celler = [im.crop(b) for b in bokser]
+    if not like:  # funnet ved de tomme stripene: midtstill hver tegning i en felles bredde
+        bred = max(c.width for c in celler)
+        def midtstill(c):
+            u = Image.new('RGBA', (bred, c.height), (0, 0, 0, 0)); u.alpha_composite(c, ((bred - c.width) // 2, 0)); return u
+        celler = [midtstill(c) for c in celler]
+    cw, ch = min(c.width for c in celler), min(c.height for c in celler)
+    celler = [c.crop((0, 0, cw, ch)) for c in celler]
+    fulle = [i for i, c in enumerate(celler) if alfa_boks(c)]
+    if not fulle: raise ValueError('arket er helt gjennomsiktig')
+    n = fulle[-1] + 1
+    boks = None
+    for c in celler[:n]:
+        b = alfa_boks(c)
+        if b: boks = b if not boks else (min(boks[0], b[0]), min(boks[1], b[1]), max(boks[2], b[2]), max(boks[3], b[3]))
+    # To piksler luft rundt, så nabobildet ikke blør inn når teksturen filtreres
+    x0, y0, x1, y1 = max(0, boks[0] - 2), max(0, boks[1] - 2), min(cw, boks[2] + 2), min(ch, boks[3] + 2)
+    bw, bh = x1 - x0, y1 - y0
+    s = min(1, MAKS_RUTE / max(bw, bh), MAKS_ARK / (bw * kol), MAKS_ARK / (bh * rad))
+    fw, fh = max(1, round(bw * s)), max(1, round(bh * s))
+    ut = Image.new('RGBA', (fw * kol, fh * rad), (0, 0, 0, 0))
+    ruter_ = [c.crop((x0, y0, x1, y1)) for c in celler[:n]]
+    for i, r in enumerate(ruter_):
+        ut.alpha_composite(r.resize((fw, fh), Image.LANCZOS) if s < 1 else r, ((i % kol) * fw, (i // kol) * fh))
+    # Løkka går av seg selv fra det siste bildet til det første. Er de like, står bevegelsen stille et øyeblikk.
+    if n > 2 and sum(ImageStat.Stat(ImageChops.difference(ruter_[0], ruter_[-1])).mean) / 4 < 1.5:
+        print(f'  obs: det siste bildet i {navn} er likt det første. Ta det bort for en jevn løkke')
+    return ut, n, (fw, fh)
+
+
+def kulisse_i_manifestet(man, navn, fil, størrelse, ark, kjente):
+    """Oppføringen i manifestet (props). Et nytt bilde av en kulisse som finnes, beholder mål, fotpunkt, lag og
+    animasjon som er justert i editoren. Et navn fra katalogen arver resten fra plassholderen. Helt nye navn får en
+    bredde ut fra formen, som justeres i editoren (IMAGE SETTINGS)."""
+    props = man.setdefault('props', {})
+    meta = props.get(navn)
+    if meta is None:
+        meta = props[navn] = {'file': fil}
+        if navn not in kjente:
+            fw, fh = størrelse; form = fw / fh
+            meta['w'] = 3 if form > 1.6 else 1 if form < .5 else 1.6
+            meta['anchor'] = [0.5, 0.99]
+            meta['label'] = navn.upper().replace('_', ' ')
+    meta['file'] = fil
+    if ark:
+        meta['grid'], meta['n'] = [ark[0], ark[1]], ark[2]
+    else:
+        meta.pop('grid', None); meta.pop('n', None)
+    return meta
+
+
 def behandle(nøkkel, im, man, tekstur_ok):
     t = tolk(nøkkel)
     if not t:
         raise ValueError('ukjent filnavn (se filnavnene øverst i tools/process_art.py)')
+    if t[0] == 'anim?':
+        raise ValueError('bildeserier trenger rutenettet i navnet: anim_<navn>_<kolonner>x<rader>.png, for eksempel anim_crow_4x1.png')
+    if t[0] in ('prop', 'anim'):
+        navn = kulissenavn(t[1])
+        kjente = katalogen()
+        if t[0] == 'anim':
+            im, n, rute = behandle_ark(im, t[2], t[3], nøkkel)
+            ark = (t[2], t[3], n)
+        else:
+            im = beskjær(fjern_bakgrunn(im.convert('RGBA')))
+            if im is None: raise ValueError('bildet er helt gjennomsiktig')
+            im = skaler(im, MAKS_KULISSE); rute = im.size; ark = None
+        fil = lagre(im, f'prop_{navn}', False, 90)
+        kulisse_i_manifestet(man, navn, fil, rute, ark, kjente)
+        hva = {'painted': f', tar over for plassholderen {navn}', 'model': f', tar over for 3D-rekvisitten {navn}'}.get(kjente.get(navn), '')
+        serie = f', {ark[2]} bilder i {ark[0]}x{ark[1]}' if ark else ''
+        return f'{fil} ({im.size[0]}x{im.size[1]}, kulisse {navn}{serie}{hva})'
     if t[0] == 'appearance':
         im = beskjær(fjern_bakgrunn(im.convert('RGBA')))
         if im is None: raise ValueError('bildet er helt gjennomsiktig')

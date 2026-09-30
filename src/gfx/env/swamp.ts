@@ -5,7 +5,7 @@ import { rand, pick } from '../../core/math';
 import type { Gore } from '../gore';
 import {
   M, toon, groundTex, roadTex, texFile, stageBase, finishEnv, mountains, skullPike, rock, endGate,
-  bossMarker, canvasTex, foreground, type Env,
+  bossMarker, canvasTex, foreground, gen, type Env,
 } from './common';
 import { Forest, SPECIES } from './trees';
 import { Meadow } from './meadow';
@@ -30,6 +30,7 @@ export function buildSwamp(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   mountains(g, L, ['#5a6a4a', '#4a5a3e', '#56664a'], null, -90, 6, 12);
 
   // Sumpvann bak veien
+  if (gen(o, 'water')) {
   const waterT = canvasTex(plainCanvas(256, 256, (c) => {
     c.fillStyle = '#2e4a3a';
     c.fillRect(0, 0, 256, 256);
@@ -56,30 +57,35 @@ export function buildSwamp(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     pad.position.set(rand(-10, L + 10), 0.04, rand(-18, -6.5));
     g.add(pad);
   }
+  }
 
   // Knudrete sumptrær med hengende mose, noen står i vannet
   wind.set(0.45, 1, 0.2, 0.4);
-  const trees = new Forest(SPECIES.swamp, 3);
-  for (let x = -6; x < L + 6; x += rand(5, 9)) trees.add(x, rand(-11, -6.8), rand(0.9, 1.3));
-  for (let x = -20; x < L + 20; x += rand(4, 8)) trees.add(x, rand(-30, -15), rand(1.1, 1.6), undefined, false);
-  g.add(trees.build());
+  if (gen(o, 'forest')) {
+    const trees = new Forest(SPECIES.swamp, 3);
+    for (let x = -6; x < L + 6; x += rand(5, 9)) trees.add(x, rand(-11, -6.8), rand(0.9, 1.3));
+    for (let x = -20; x < L + 20; x += rand(4, 8)) trees.add(x, rand(-30, -15), rand(1.1, 1.6), undefined, false);
+    g.add(trees.build());
+  }
   // Siv langs vannkanten og i forgrunnen
-  const reeds = new Meadow({ bands: [[4.35, 8.6, 5], [-7.2, -4.4, 9]], height: [0.6, 1.4], base: '#2e3a1a', tip: '#8a8a44', dry: '#a08a4a', blades: 3, width: 0.06, bend: 0.6 });
-  g.add(reeds.mesh);
-  const mist = fogLayers(g, L, '#b8c8a0', [
-    { z: -5.2, h: 2.2, opacity: 0.4, drift: 1.2 },
-    { z: -12, h: 5, opacity: 0.5, drift: 0.8 },
-    { z: -26, h: 10, opacity: 0.6, drift: 0.5 },
-  ]);
-  updates.push((dt, _t, camX) => {
-    reeds.update(camX);
-    mist(dt);
-  });
-  for (let x = 10; x < L; x += rand(12, 20)) skullPike(g, gore, x, rand(-4.4, -3.6));
+  if (gen(o, 'meadow')) {
+    const reeds = new Meadow({ bands: [[4.35, 8.6, 5], [-7.2, -4.4, 9]], height: [0.6, 1.4], base: '#2e3a1a', tip: '#8a8a44', dry: '#a08a4a', blades: 3, width: 0.06, bend: 0.6 });
+    g.add(reeds.mesh);
+    updates.push((_dt, _t, camX) => reeds.update(camX));
+  }
+  if (gen(o, 'fog')) {
+    const mist = fogLayers(g, L, '#b8c8a0', [
+      { z: -5.2, h: 2.2, opacity: 0.4, drift: 1.2 },
+      { z: -12, h: 5, opacity: 0.5, drift: 0.8 },
+      { z: -26, h: 10, opacity: 0.6, drift: 0.5 },
+    ]);
+    updates.push((dt) => mist(dt));
+  }
+  if (gen(o, 'skullPikes')) for (let x = 10; x < L; x += rand(12, 20)) skullPike(g, gore, x, rand(-4.4, -3.6));
 
   // Lysende sopp
   const glowSpots: THREE.Vector3[] = [];
-  for (let x = 2; x < L; x += rand(6, 12)) {
+  if (gen(o, 'mushrooms')) for (let x = 2; x < L; x += rand(6, 12)) {
     const z = pick([rand(3.4, 5), rand(-4.8, -3.4)]);
     for (let k = 0; k < 3; k++) {
       const s = rand(0.5, 1);
@@ -91,6 +97,7 @@ export function buildSwamp(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   }
 
   // Heksehytte på påler
+  if (gen(o, 'hut')) {
   const hutX = L * 0.45;
   const hut = new THREE.Group();
   hut.position.set(hutX, 0, -12);
@@ -101,17 +108,18 @@ export function buildSwamp(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   win.position.set(0.6, 4.3, 1.42);
   hut.add(win);
   g.add(hut);
+  }
 
   // Ruiner
-  for (let x = 20; x < L; x += rand(24, 34)) {
+  if (gen(o, 'ruins')) for (let x = 20; x < L; x += rand(24, 34)) {
     const h = rand(1.5, 4);
     const col = M(new THREE.CylinderGeometry(0.5, 0.55, h, 8), '#7a7a6a', x, h / 2, rand(-8, -6), 0.05);
     col.rotation.z = rand(-0.2, 0.2);
     g.add(col);
   }
 
-  for (let x = 0; x < L; x += rand(8, 14)) rock(g, x, pick([rand(4, 6), rand(-6, -3.8)]), rand(0.4, 0.9), ['#5a5a4a', '#4a4a3e']);
-  for (let i = 0; i < L / 5; i++) gore.stain(rand(0, L), rand(-2.4, 2.4), rand(0.3, 0.9), pick(['red', 'green'] as const));
+  if (gen(o, 'rocks')) for (let x = 0; x < L; x += rand(8, 14)) rock(g, x, pick([rand(4, 6), rand(-6, -3.8)]), rand(0.4, 0.9), ['#5a5a4a', '#4a4a3e']);
+  if (gen(o, 'stains')) for (let i = 0; i < L / 5; i++) gore.stain(rand(0, L), rand(-2.4, 2.4), rand(0.3, 0.9), pick(['red', 'green'] as const));
 
   if (o.finale === 'duel') endGate(g, gore, L - 4, o.gateTitle ?? 'THE MUD PIT >>>', o.gateSub ?? 'WIPE YOUR FEET', '#6a6a58', '#3a4a2a');
   if (o.finale === 'boss' && o.bossX !== undefined) bossMarker(g, gore, o.bossX - 3, o.bossSign ?? 'ROYAL POND');
@@ -130,6 +138,6 @@ export function buildSwamp(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     void t;
   });
   // Mørke, uskarpe silhuetter nederst i forgrunnen (konseptbildene)
-  foreground(g, L, ['skull', 'rock', 'bones', 'cross'], '#06080a');
+  if (gen(o, 'silhouettes')) foreground(g, L, ['skull', 'rock', 'bones', 'cross'], '#06080a');
   return finishEnv(g, updates, '#8a9a78', GRADES.swamp);
 }

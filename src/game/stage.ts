@@ -19,6 +19,9 @@ import { Pet, type PetWorld } from './pets';
 import { MOUNTS } from '../data/mounts';
 import { W } from './world';
 import { STAGE_BUILDERS } from '../gfx/env';
+import { resetGenerators, usedGenerators } from '../gfx/env/common';
+import { Scenery, type FighterBox } from '../gfx/scenery';
+import { layoutFor } from '../data/layouts';
 import type { PlayerInput } from '../core/input';
 import type { HeroConfig } from '../gfx/chars/hero';
 import { FOES, DEATH_BARKS } from '../data/enemies';
@@ -26,7 +29,7 @@ import { BOSSES } from '../data/bosses';
 import type { LevelDef, SpawnDef, WaveDef } from '../data/levels';
 import { audio, type Surface } from '../core/audio';
 import type { Level } from '../core/conductor';
-import { rand, pick, chance } from '../core/math';
+import { rand, pick, chance, withSeed, hashSeed } from '../core/math';
 import { settings } from '../core/settings';
 import { xpForFoe, XP_BOSS, type HeroProgress } from '../data/progress';
 import type { HUD } from '../ui/hud';
@@ -99,6 +102,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   private stolen = new Map<Foe, { n: number; cd: number }>();
   /** Daggry i nattleiren (skjer bare én gang). */
   private dawned = false;
+  /** Rekvisittene fra brettfila (src/data/layouts, brettverkstedet), med animasjon og forgrunn som tones ut. */
+  scenery: Scenery;
   /** Tilstanden til heltene forrige bilde (en lang drapsrekke ryker når en helt blir truffet). */
   private heroState = new Map<Hero, string>();
   /** Intensiteten i musikken (core/conductor.ts), og hvor lenge det har vært roligere enn den (spilltid). */
@@ -111,13 +116,30 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     const build = STAGE_BUILDERS[level.biome] ?? STAGE_BUILDERS.grass;
     // Juvene er hull i bakken: miljøet lar dem stå åpne, og blod og kroppsdeler legger seg ikke der
     const holes = (level.hazards ?? []).filter((h) => h.kind === 'chasm').map(chasmHole);
-    W.env = build(W.scene, W.gore, {
+    // Brettfila (brettverkstedet): fast frø for pynten, generatorer som er slått av, og rekvisittene
+    const layout = layoutFor(level.id);
+    const seed = layout?.seed ?? hashSeed(level.id);
+    resetGenerators();
+    const env = withSeed(seed, () => build(W.scene, W.gore, {
       length: this.L, finale: level.finale.type, gateTitle: level.gateTitle, gateSub: level.gateSub,
-      bossX: this.bossLock + 2, bossSign: level.bossSign, holes,
-    });
+      bossX: this.bossLock + 2, bossSign: level.bossSign, holes, seed, gen: layout?.generators,
+    }));
+    W.env = env;
+    env.generators = usedGenerators();
     W.gore.bounds = { minX: -8, maxX: this.L + 5, minZ: -6, maxZ: 5 };
     W.gore.holes = holes;
-    for (const h of level.hazards ?? []) this.hazards.push(new Hazard(h, buildHazard(W.env.group, W.gore, h)));
+    withSeed(seed ^ 0x27d4eb2f, () => {
+      for (const h of level.hazards ?? []) this.hazards.push(new Hazard(h, buildHazard(env.group, W.gore, h)));
+    });
+    this.scenery = new Scenery(W.gore, env, W.camera);
+    env.group.add(this.scenery.group);
+    if (layout) this.scenery.load(layout);
+    this.scenery.fighters = () => this.fighterBoxes();
+    const envUpdate = env.update.bind(env);
+    env.update = (dt, t, camX) => {
+      envUpdate(dt, t, camX);
+      this.scenery.tick(dt);
+    };
     this.icicles = new Icicles(level.biome === 'frost', this.nature);
     this.tippables = W.env.tippables ?? [];
     Fighter.onThrownLand = (f, by) => this.thrownLanded(f, by);
@@ -1015,7 +1037,30 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     }
   }
 
+  /** Testspill fra brettverkstedet: start ved x. Bølgene før x regnes som ferdige. */
+  startAt(x: number) {
+    x = Math.max(-1, Math.min(x, this.L - 12));
+    this.camX = x;
+    this.introT = 2;
+    this.heroes.forEach((h, i) => h.f.pos.set(x - 3 + i * 0.6, 0, i === 0 ? 0.6 : -0.8));
+    const waves = this.level.waves;
+    while (this.waveIdx < waves.length && waves[this.waveIdx].at < x - 1) this.waveIdx++;
+  }
+
+  /** Figurene som bokser (forgrunnen tones ut når de står bak den, se gfx/scenery.ts). */
+  private fighterBoxes(): FighterBox[] {
+    const out: FighterBox[] = [];
+    const add = (f: Fighter) => {
+      if (f.rig.root.parent) out.push({ x: f.pos.x, y: f.pos.y, z: f.pos.z, h: 2.1 * f.size, w: 1.1 * f.size });
+    };
+    for (const h of this.heroes) add(h.f);
+    for (const f of this.foes) add(f.f);
+    if (this.boss) add(this.boss.f);
+    return out;
+  }
+
   dispose() {
+    this.scenery.dispose();
     this.metal.stop();
     audio.ambience(null);
     Fighter.onThrownLand = null;

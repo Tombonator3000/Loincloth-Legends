@@ -16,14 +16,15 @@ Målet er satt av Toms referansebilde av Valkyra (se `docs/STYLE_TARGET.md`): **
 | Teksturer for 3D-verdenen (bakke, vei, murer, gulv, treverk, lava) | `textures` | I bruk |
 | Himmel | `sky` | I bruk. Et himmelbilde erstatter den fysiske himmelen i det miljøet |
 | Verdenskart | `map` | I bruk |
+| Kulisser og bildeserier til brettene (stolper, telt, palisade, trær foran kameraet, bannere, fakler) | `props` | I bruk, i brettverkstedet STAGE FORGE |
 
-Trær, steiner, hodeskaller, fjell og bygninger er 3D-modeller laget i kode og trenger ingen bilder. Det 3D-verdenen trenger fra ChatGPT er teksturer (se "Teksturer for 3D-verdenen" lenger ned).
+Trær, steiner, hodeskaller, fjell og bygninger er 3D-modeller laget i kode og trenger ingen bilder. Det 3D-verdenen trenger fra ChatGPT er teksturer (se "Teksturer for 3D-verdenen" lenger ned). I tillegg kan brettene ha malte kulisser, som legges ut i brettverkstedet (se "Kulisser til brettverkstedet").
 
 ---
 
 ## Ta imot bildene (verktøy fra Morbidium)
 
-Legg bildene fra ChatGPT i `art/inbox/` og kjør `python3 tools/process_art.py` (krever Pillow). Skriptet er gjenbrukt fra Toms Morbidium: det fjerner magenta hjelpelinjer og ensfarget bakgrunn når ChatGPT ikke fikk til gjennomsiktighet, klipper ark i ruter, beskjærer og skalerer ned delene, retter sømmene i teksturer og himmelbilder, lagrer alt som WebP i `public/assets/` og skriver manifestet selv. Originalene flyttes til `art/inbox/behandlet/` og kommer ikke i git. Filnavnet bestemmer hva bildet er: `valkyra_head.png`, `tex_ground_grass.png`, `sky_scorch.png`, `pet_rat.png`, `map.png`.
+Legg bildene fra ChatGPT i `art/inbox/` og kjør `python3 tools/process_art.py` (krever Pillow). Skriptet er gjenbrukt fra Toms Morbidium: det fjerner magenta hjelpelinjer og ensfarget bakgrunn når ChatGPT ikke fikk til gjennomsiktighet, klipper ark i ruter, beskjærer og skalerer ned delene, retter sømmene i teksturer og himmelbilder, lagrer alt som WebP i `public/assets/` og skriver manifestet selv. Originalene flyttes til `art/inbox/behandlet/` og kommer ikke i git. Filnavnet bestemmer hva bildet er: `valkyra_head.png`, `tex_ground_grass.png`, `sky_scorch.png`, `pet_rat.png`, `map.png`, `prop_signpost.png` og `anim_crow_4x1.png` (bildeserie med 4 kolonner og 1 rad).
 
 **Ark: en hel fiende i ett bilde.** Last opp `docs/maler/mal_figur.png` til ChatGPT og be om alle seks delene i rutene (HEAD, TORSO, PELVIS øverst, ARM, LEG, WEAPON nederst), med merkene for leddene som guide. Lagre bildet som `figur_<id>.png` (for eksempel `figur_skeleton.png`), så klipper skriptet det i `skeleton_head` og så videre. Samme stil og lys i alle delene, og seks bestillinger blir én. Rutene er rundt 500 piksler, nok for fiender og sjefer. Heltene lages fortsatt del for del i full størrelse. `docs/maler/mal_ni_ting.png` gir ni ting i ett bilde (`ark__navn__navn...png`). Malene lages på nytt med `python3 tools/make_templates.py`.
 
@@ -278,6 +279,62 @@ Confirm that you understand. Then wait for my texture requests.
 Isarenaen og beinarenaen bruker samme navn med `-ice` og `-bone` i stedet for `-pit` (for eksempel `floor_arena-ice`). Lag dem i blåhvit is og stein (ice) og i gammelt, gulnet bein og sandstein (bone).
 
 Nye teksturer til palisaden, teltene, stolpene, hyttene og takene (`bark`, `stake_tip`, `canvas`, `thatch`, `plank`, `roof_slate`, `obsidian`, `bone`) står med prompter i `docs/PLAN_BRETT_GORR_AI.md`, del 9.1. De kan bestilles og kjøres gjennom `tools/process_art.py` nå, og kobles inn i runde A. Malte rekvisitter til brettene (`prop_`, `anim_` og `gore_`) står i del 9.2 og venter til spillet kan lese dem (runde B).
+
+---
+
+## Kulisser til brettverkstedet
+
+Brettene kan ha malte kulisser i fire lag, fra fjellene langt bak til stammene rett foran kameraet. De legges ut og animeres i brettverkstedet STAGE FORGE (`docs/STAGE_FORGE.md`). Spillet har plassholdere tegnet i kode for alle kulissene i tabellen under, så du kan bytte én om gangen. Et bilde med samme navn som en plassholder tar over for den og beholder mål, lys, flammer og bevegelse.
+
+Slik gjør du det:
+1. Lim inn **KULISSE-BLOKKEN** som første melding, i en egen samtale.
+2. Bestill én kulisse om gangen med linjen fra tabellen. Be om bildestørrelsen i tabellen.
+3. Lagre bildet i `art/inbox/` med filnavnet fra tabellen og kjør `python3 tools/process_art.py`. Det fjerner bakgrunnen hvis den ikke er gjennomsiktig, beskjærer, klipper rutene i bildeserier med den samme boksen (så fotpunktet står stille), og skriver `public/assets/prop_<navn>.webp` og manifestet.
+4. Åpne STAGE FORGE, velg kulissen og juster bredden og fotpunktet under IMAGE SETTINGS hvis den står feil. SAVE lagrer det i manifestet.
+
+Nye kulisser: velg et nytt navn (bare a-z, 0-9 og _), `prop_<navn>.png` eller `anim_<navn>_<kolonner>x<rader>.png`. De dukker opp i biblioteket i editoren.
+
+### KULISSE-BLOKK (lim inn først)
+```
+You are making painted set pieces for "Loincloth Legends", a side-scrolling beat 'em up that parodies 1980s sword-and-sorcery films. The characters are near-photorealistic caricatures, and the scenery must match them.
+Rules for ALL images in this conversation:
+- Near-photorealistic, like a high-end matte painting or a 3D render of real materials: real wood with bark and cuts, real canvas, rope, rusty iron, moss, mud, bone.
+- Seen straight from the side at eye level, like a flat theatre set piece. No perspective from above or below, no vanishing point.
+- Soft, even light from the front and slightly above, neutral white balance. No hard cast shadows, no coloured light, no fog. The game adds its own lighting.
+- A single isolated object on a fully transparent background (PNG with alpha). No ground, no drop shadow, no frame. The bottom of the object is where it stands on the ground.
+- NOT cartoon, NOT cel-shaded, NO outlines. No text, no letters, no watermark.
+- Everything is original.
+- When I ask for an ANIMATION SHEET: all frames in one image, in the grid I give (columns x rows, read left to right, top to bottom). Every frame the same size and scale, the object standing on the same base line in every frame, nothing crossing into the next frame, no lines, borders or numbers between the frames. The last frame must lead smoothly back to the first, and must not repeat it.
+Confirm that you understand. Then wait for my requests.
+```
+
+### Regler for bildeserier
+- Høyst 6 x 6 ruter. 4x1 og 4x2 er vanligst.
+- Velg et rutenett som går opp i bildestørrelsen: 4x1 på 1536x1024 gir ruter på 384x1024, 4x2 på 1024x1536 gir 256x768.
+- Løkka går tilbake til det første bildet selv, så det siste skal ikke være likt det første (verktøyet varsler).
+- Tomme ruter til slutt telles ikke med.
+- Står bildene skjevt i en rad, finner verktøyet dem ved de tomme stripene mellom dem (fra Morbidium). Med flere rader deles arket likt, så der må rutene stemme.
+
+### Kulisser til brett 1
+| Fil | Størrelse | Lag | Prompt |
+|---|---|---|---|
+| `prop_palisade_a.png` | 1536x1024 | BACK | `A section of a crude defensive palisade, about 3 metres wide: 6 sharpened vertical logs of different heights, lashed together with thick rope, bark partly stripped, the tips carved to points, moss and dried mud at the bottom, two arrows stuck in it.` |
+| `prop_palisade_b.png` | 1536x1024 | BACK | `Another section of the same palisade: 5 logs, one of them broken and leaning, a torn animal hide hanging from a tip, a skull nailed to the middle log.` |
+| `prop_tent_red.png` | 1024x1024 | BACK | `A worn war tent: a conical tent of faded red canvas with patches, stains and mud at the hem, a wooden centre pole sticking out at the top, guy ropes and wooden pegs.` |
+| `prop_tent_purple.png` | 1024x1024 | BACK | `The same kind of war tent in faded purple canvas, the entrance flap tied open, a dark inside.` |
+| `prop_signpost.png` | 1024x1536 | MID | `A crooked wooden signpost at a roadside: a weathered post with a short crossbar at the top, a rusty iron hook at the end of the crossbar, nothing hanging from it.` |
+| `prop_signpost_sign.png` | 1024x1024 | MID | `A blank weathered wooden sign board hanging from two short rusty chains, the chains meeting at one ring at the top centre. No letters.` (henger i kroken og svinger i vinden) |
+| `prop_roadpost.png` | 1024x1536 | MID | `A thick weathered wooden post by a road with an old iron lantern hanging from a hook, a coil of rope around the post, a few nails and a torn notice.` (lykta får flakkende lys) |
+| `prop_skullpike.png` | 1024x1536 | MID | `A tall sharpened wooden stake with a human skull impaled on top, rags and a few black feathers tied below the skull.` |
+| `prop_cart.png` | 1536x1024 | MID | `A broken wooden farm cart seen from the side: one wheel off and lying against it, spilled sacks and a cracked barrel.` |
+| `prop_tree_front_oak.png` | 1024x1536 | FRONT | `The trunk of a massive gnarled old oak seen straight on, filling the full height of the image and cut off by the top edge: thick roots at the bottom, deep bark with moss and ivy, the start of two big branches near the top with a few autumn leaves.` (står rett foran kameraet og tones ut når noen står bak) |
+| `prop_bush_front.png` | 1536x1024 | FRONT | `A dense clump of dry autumn brambles, tall yellow grass and a few thistles, about 1.5 metres high.` |
+| `anim_banner_red_4x2.png` | 1024x1536 | BACK | `ANIMATION SHEET, 4 x 2 grid, 8 frames: a tattered red war banner with a horned skull emblem, hanging from a crossbar on a tall pole, waving in the wind. The pole stands at the LEFT side of each frame, in exactly the same place in every frame.` |
+| `anim_banner_purple_4x2.png` | 1024x1536 | BACK | `ANIMATION SHEET, 4 x 2 grid, 8 frames: the same kind of war banner in faded purple with the same horned skull emblem, waving in the wind. The pole stands at the LEFT side of each frame, in exactly the same place in every frame.` |
+| `anim_torch_4x1.png` | 1536x1024 | MID | `ANIMATION SHEET, 4 x 1 grid, 4 frames: a wooden torch stuck in the ground, wrapped in oily rags at the top, the flame flickering. Only the flame changes between the frames.` (får lys og gnister fra spillet) |
+| `anim_crow_4x1.png` | 1536x1024 | MID | `ANIMATION SHEET, 4 x 1 grid, 4 frames: a black crow seen from the side, flying to the right, one full wing beat (wings up, level, down, level). Same size and height in every frame.` (flyr frem og tilbake over veien) |
+
+Bildet får bredden plassholderen har: palisaden 3,2 meter, teltene 4,4, skiltstolpen 1,4, skiltet 0,9, veistolpen 1,3, hodeskallestaken 0,55, vogna 3, eika 4,5, busken 2,4, bannerne 1, fakkelen 0,42 og kråka 0,55. Høyden følger av bildet.
 
 ---
 

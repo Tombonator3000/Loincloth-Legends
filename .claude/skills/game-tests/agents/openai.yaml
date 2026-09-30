@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tester i nettleseren"
+  short_description: "Playwright-testene for Loincloth Legends"
+  default_prompt: "Bruk $game-tests til å kjøre testene for det som er endret, og se på skjermbildene før du sier deg ferdig."

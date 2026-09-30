@@ -2,9 +2,9 @@
 // over et skar, ruiner på klippene, runesteiner, fyrfat med ild langs veien, fillete krigsbannere med hornet
 // hodeskalle, istapper, taugjerde foran, frosne krigere i is og tett snøfall med vindkast.
 import * as THREE from 'three';
-import { rand, pick } from '../../core/math';
+import { rand, pick, random } from '../../core/math';
 import type { Gore } from '../gore';
-import { lit, M, groundTex, roadTex, texFile, stageBase, finishEnv, mountains, skullPike, rock, endGate, bossMarker, skull3D, foreground, type Env } from './common';
+import { lit, M, groundTex, roadTex, texFile, stageBase, finishEnv, mountains, skullPike, rock, endGate, bossMarker, skull3D, foreground, gen, type Env } from './common';
 import { Forest, SPECIES, withSnow } from './trees';
 import { Meadow } from './meadow';
 import { fogLayers } from './atmos';
@@ -38,10 +38,10 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
 
   // Klippevegger bak veien, med glipper der skogen og fjellene synes
   const cliffs: { x: number; z: number; w: number; d: number; top: number }[] = [];
-  for (let x = -22; x < L + 24;) {
+  if (gen(o, 'cliffs')) for (let x = -22; x < L + 24;) {
     const w = rand(9, 15), h = rand(8, 14), d = rand(5, 8), z = rand(-17.5, -14);
     cliffs.push({ x: x + w / 2, z, w, d, top: cliff(g, x + w / 2, z, w, h, d) });
-    x += w * rand(0.8, 1.05) + (Math.random() < 0.3 ? rand(6, 9) : 0);
+    x += w * rand(0.8, 1.05) + (random() < 0.3 ? rand(6, 9) : 0);
   }
   // Fossefall ned hver tredje klippe
   cliffs.forEach((c, i) => {
@@ -66,46 +66,52 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
 
   // Snødekt furuskog i glippene og bak klippene, og småfuruer foran
   wind.set(0.95, 1, 0.15, 0.85);
-  const pines = new Forest(withSnow(SPECIES.pine), 3);
-  for (let x = -6; x < L + 6; x += rand(8, 16)) pines.add(x, rand(-11.5, -8), rand(0.75, 1.15));
-  for (let x = -20; x < L + 20; x += rand(3, 5.5)) pines.add(x, rand(-34, -20), rand(1.0, 1.5), undefined, false);
-  // Småfuruer helt fremme: så nær kameraet at bare toppene stikker opp nederst i bildet
-  for (let x = 4; x < L; x += rand(16, 24)) pines.add(x, rand(6.6, 7.2), rand(0.14, 0.2));
-  g.add(pines.build());
+  if (gen(o, 'forest')) {
+    const pines = new Forest(withSnow(SPECIES.pine), 3);
+    for (let x = -6; x < L + 6; x += rand(8, 16)) pines.add(x, rand(-11.5, -8), rand(0.75, 1.15));
+    for (let x = -20; x < L + 20; x += rand(3, 5.5)) pines.add(x, rand(-34, -20), rand(1.0, 1.5), undefined, false);
+    // Småfuruer helt fremme: så nær kameraet at bare toppene stikker opp nederst i bildet
+    for (let x = 4; x < L; x += rand(16, 24)) pines.add(x, rand(6.6, 7.2), rand(0.14, 0.2));
+    g.add(pines.build());
+  }
   // Gresset bak står bak juvet (hullet går til z -5.2)
-  const frostGrass = new Meadow({ bands: [[4.4, 7.5, 3], [holes.length ? -7.4 : -7, holes.length ? -5.5 : -4.4, 3]], height: [0.18, 0.4], base: '#4a5a62', tip: '#d4e0ea', dry: '#b8c4ce', blades: 3 });
-  g.add(frostGrass.mesh);
-  const mist = fogLayers(g, L, '#8aa2c2', [
-    { z: -7, h: 3, opacity: 0.28, drift: 1.4 },
-    { z: -12, h: 3.5, opacity: 0.3, drift: 1 },
-    { z: -21, h: 12, opacity: 0.5, drift: 0.7 },
-    { z: -36, h: 18, opacity: 0.6, drift: 0.5 },
-  ]);
-  updates.push((dt, _t, camX) => {
-    frostGrass.update(camX);
-    mist(dt);
-  });
+  if (gen(o, 'meadow')) {
+    const frostGrass = new Meadow({ bands: [[4.4, 7.5, 3], [holes.length ? -7.4 : -7, holes.length ? -5.5 : -4.4, 3]], height: [0.18, 0.4], base: '#4a5a62', tip: '#d4e0ea', dry: '#b8c4ce', blades: 3 });
+    g.add(frostGrass.mesh);
+    updates.push((_dt, _t, camX) => frostGrass.update(camX));
+  }
+  if (gen(o, 'fog')) {
+    const mist = fogLayers(g, L, '#8aa2c2', [
+      { z: -7, h: 3, opacity: 0.28, drift: 1.4 },
+      { z: -12, h: 3.5, opacity: 0.3, drift: 1 },
+      { z: -21, h: 12, opacity: 0.5, drift: 0.7 },
+      { z: -36, h: 18, opacity: 0.6, drift: 0.5 },
+    ]);
+    updates.push((dt) => mist(dt));
+  }
 
   // Langs veien bak: fyrfat med ild, krigsbannere, hodeskaller på stake og runesteiner
   const flames: THREE.Vector3[] = [];
-  for (let x = 5; x < L - 3; x += rand(11, 15)) {
+  if (gen(o, 'braziers')) for (let x = 5; x < L - 3; x += rand(11, 15)) {
     const z = rand(-3.9, -3.5);
     if (!inHole(x, z)) flames.push(brazier(g, gore, updates, x, z, rand(2.1, 2.5)));
   }
-  for (let x = 12; x < L - 6; x += rand(22, 30)) {
+  if (gen(o, 'banners')) for (let x = 12; x < L - 6; x += rand(22, 30)) {
     const z = rand(-5.4, -4.8);
     if (!inHole(x, z)) warBanner(g, updates, x, z, rand(5, 5.8));
   }
-  for (let x = 20; x < L; x += rand(20, 28)) {
+  if (gen(o, 'skullPikes')) for (let x = 20; x < L; x += rand(20, 28)) {
     const z = rand(-4.4, -3.8);
     if (!inHole(x, z)) skullPike(g, gore, x, z);
   }
-  let runeN = 0;
-  for (let x = 9; x < L; x += rand(16, 24)) runeStone(g, x, rand(-7.5, -5.8), rand(2.4, 3.4), runeN++ % 3 === 1);
-  for (let x = 30; x < L; x += rand(36, 50)) runeStone(g, x, rand(-11, -9.5), rand(4, 5), true);
+  if (gen(o, 'runeStones')) {
+    let runeN = 0;
+    for (let x = 9; x < L; x += rand(16, 24)) runeStone(g, x, rand(-7.5, -5.8), rand(2.4, 3.4), runeN++ % 3 === 1);
+    for (let x = 30; x < L; x += rand(36, 50)) runeStone(g, x, rand(-11, -9.5), rand(4, 5), true);
+  }
 
   // Iskrystaller langs kantene
-  for (let x = 0; x < L; x += rand(7, 13)) {
+  if (gen(o, 'crystals')) for (let x = 0; x < L; x += rand(7, 13)) {
     const z = pick([rand(3.6, 5.4), rand(-5.5, -4.2)]);
     if (inHole(x, z, 1.2)) continue;
     for (let k = 0; k < 3; k++) {
@@ -118,7 +124,7 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   }
 
   // Frosne krigere i isblokker, med istapper langs kanten
-  for (let x = 18; x < L; x += rand(34, 46)) {
+  if (gen(o, 'frozen')) for (let x = 18; x < L; x += rand(34, 46)) {
     const z = rand(-6.4, -5.6);
     if (inHole(x, z, 1.5)) continue;
     const sk = skull3D(0.55);
@@ -131,6 +137,7 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   }
 
   // Vakttårn
+  if (gen(o, 'watchtower')) {
   const tw = new THREE.Group();
   tw.position.set(L * 0.35, 0, -10);
   for (const [dx, dz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) tw.add(M(new THREE.CylinderGeometry(0.14, 0.14, 6, 5), '#5a3a20', dx, 3, dz, 0.06));
@@ -138,14 +145,15 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   tw.add(M(new THREE.ConeGeometry(2.2, 2, 4), '#f2f6fa', 0, 7.6, 0, 0.05));
   g.add(tw);
   icicles(g, L * 0.35 - 1.3, L * 0.35 + 1.3, 5.85, -8.6, 5, 0.5);
+  }
 
-  for (let x = 0; x < L; x += rand(6, 12)) {
+  if (gen(o, 'rocks')) for (let x = 0; x < L; x += rand(6, 12)) {
     const z = pick([rand(4, 6), rand(-6.5, -4.2)]);
     if (!inHole(x, z, 1)) rock(g, x, z, rand(0.4, 1.0), ['#8a96a6', '#a4b0c0'], 0.9);
   }
   // Taugjerde foran veien her og der (kanten av juvet)
-  for (let x = 14; x < L - 6; x += rand(26, 36)) ropeFence(g, x, x + rand(5, 9), rand(4.3, 4.7));
-  for (let i = 0; i < L / 5; i++) {
+  if (gen(o, 'ropeFences')) for (let x = 14; x < L - 6; x += rand(26, 36)) ropeFence(g, x, x + rand(5, 9), rand(4.3, 4.7));
+  if (gen(o, 'stains')) for (let i = 0; i < L / 5; i++) {
     const x = rand(0, L), z = rand(-2.4, 2.4);
     if (!inHole(x, z, 0.3)) gore.stain(x, z, rand(0.3, 0.9));
   }
@@ -176,6 +184,6 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     }
   });
   // Mørke, uskarpe silhuetter nederst i forgrunnen (konseptbildene)
-  foreground(g, L, ['rock', 'spikes', 'skull'], '#05070c');
+  if (gen(o, 'silhouettes')) foreground(g, L, ['rock', 'spikes', 'skull'], '#05070c');
   return finishEnv(g, updates, '#56708f', GRADES.frost);
 }

@@ -14,6 +14,8 @@ Dette er hele arbeidsbeskrivelsen for ChatGPT: hva spillet er, hvordan det bruke
 
 Nyttige kommandoer: `SHOW CHECKLIST` (hva som er gjort), `SHEET <id>` (en hel fiende i ett bilde, last opp `docs/maler/mal_figur.png`), `TEXTURE MODE` (teksturer, himmel og kart, gjerne i en egen samtale), `MEASURE` (ChatGPT sjekker de ferdige filene med Python), `HELP` (alle kommandoene).
 
+Kulisser og bildeserier til brettene (stolper, telt, palisade, trær foran kameraet, bannere, fakler) bestilles ikke med denne prompten. Bruk KULISSE-BLOKKEN i `docs/ART_PROMPTS.md` («Kulisser til brettverkstedet») i en egen samtale. De kommer i tillegg til de 143 filene.
+
 Prompten ble laget av flere agenter: én som kartla hvordan spillet bruker bildene, tre utkast, en dommer og fire kontrollører. Endrer vi hvordan spillet bruker bildene, må prompten oppdateres her.
 
 ## DEL 1

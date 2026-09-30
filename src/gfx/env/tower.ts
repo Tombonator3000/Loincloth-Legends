@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { plainCanvas, INK } from '../draw';
 import { rand, pick } from '../../core/math';
 import { GHOSTFIRE, type Gore } from '../gore';
-import { applyShadows, M, toon, tileTex, stoneTex, texFile, canvasTex, skull3D, bossMarker, endGate, foreground, type Env } from './common';
+import { applyShadows, M, toon, tileTex, stoneTex, texFile, canvasTex, skull3D, bossMarker, endGate, foreground, gen, type Env } from './common';
 import type { StageEnvOpts } from './index';
 import { GRADES } from './grades';
 import { SunShadow } from './sun';
@@ -131,7 +131,7 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     gore.vfx.lights.source(new THREE.Vector3(x + 1.1, 4.4, -3.2), '#b070ff', 12, 12, 0.25);
   }
   // Hengende bur
-  for (let x = 12; x < L; x += rand(18, 26)) {
+  if (gen(o, 'cages')) for (let x = 12; x < L; x += rand(18, 26)) {
     g.add(M(new THREE.CylinderGeometry(0.03, 0.03, 4, 4), '#555', x, 10, -3.8, 0));
     const cage = new THREE.Group();
     cage.position.set(x, 7, -3.8);
@@ -148,15 +148,17 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
       cage.rotation.z = Math.sin(t * 0.8 + ph) * 0.06;
     });
   }
-  for (let i = 0; i < L / 6; i++) gore.stain(rand(0, L), rand(-2.4, 2.4), rand(0.3, 0.9));
+  if (gen(o, 'stains')) for (let i = 0; i < L / 6; i++) gore.stain(rand(0, L), rand(-2.4, 2.4), rand(0.3, 0.9));
 
   // Månelys som faller skrått inn gjennom vinduene, og støv som henger i lufta
-  const moon = godRays(g, Array.from({ length: Math.ceil((L + 12) / 8) }, (_, i) => -4 + i * 8 + 4.8), -4.9, '#8a7aff', 0.38, 12, 2.2, 0.16);
-  const dust = fogLayers(g, L, '#4a3a70', [{ z: -4.3, h: 11, opacity: 0.14, drift: 0.3 }]);
-  updates.push((dt) => {
-    moon(dt);
-    dust(dt);
-  });
+  if (gen(o, 'rays')) {
+    const moon = godRays(g, Array.from({ length: Math.ceil((L + 12) / 8) }, (_, i) => -4 + i * 8 + 4.8), -4.9, '#8a7aff', 0.38, 12, 2.2, 0.16);
+    updates.push((dt) => moon(dt));
+  }
+  if (gen(o, 'fog')) {
+    const dust = fogLayers(g, L, '#4a3a70', [{ z: -4.3, h: 11, opacity: 0.14, drift: 0.3 }]);
+    updates.push((dt) => dust(dt));
+  }
 
   if (o.finale === 'duel') endGate(g, gore, L - 4, o.gateTitle ?? 'THRONE ROOM >>>', o.gateSub ?? 'KNOCK FIRST', '#4a4058', '#5b2a86');
   if (o.finale === 'boss' && o.bossX !== undefined) bossMarker(g, gore, o.bossX - 3, o.bossSign ?? 'THRONE ROOM');
@@ -172,7 +174,7 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     if (Math.random() < dt * 4) gore.ambient(camX + rand(-10, 10), rand(1, 6), rand(-4, 2), rand(-0.1, 0.1), rand(-0.1, 0.1), pick(['#c080ff', '#ffffff']), 0.05, 4, true);
   });
   // Mørke, uskarpe silhuetter nederst i forgrunnen (konseptbildene)
-  foreground(g, L, ['bones', 'skull', 'cross'], '#07040a', [10, 18]);
+  if (gen(o, 'silhouettes')) foreground(g, L, ['bones', 'skull', 'cross'], '#07040a', [10, 18]);
   applyShadows(g);
   return {
     group: g,

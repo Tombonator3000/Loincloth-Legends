@@ -342,6 +342,18 @@ export class LightPool {
     return src;
   }
 
+  /** Fjern en fast kilde (en rekvisitt som slettes i brettverkstedet). Lyset den hadde, slukkes med en gang. */
+  removeSource(src: LightSource) {
+    const i = this.sources.indexOf(src);
+    if (i >= 0) this.sources.splice(i, 1);
+    for (const s of this.slots) {
+      if (s.src !== src) continue;
+      s.src = null;
+      s.w = 0;
+      s.light.intensity = 0;
+    }
+  }
+
   /** Kort lysglimt. */
   flash(pos: THREE.Vector3, color: THREE.ColorRepresentation, intensity: number, range = 8, dur = 0.15) {
     if (this.flashes.length > 6) this.flashes.shift();

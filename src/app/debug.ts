@@ -26,6 +26,13 @@ import { HERO_ATK, ENEMY_ATK, DUEL_ATK, P } from '../game/attacks';
 import { showCamp, showShop, showTraining } from './camp';
 import { FOES } from '../data/enemies';
 import { BOSSES } from '../data/bosses';
+import { LAYOUTS, layoutFor, setUnsavedLayout } from '../data/layouts';
+import { validateLayout, levelWithLayout, layoutToJson, emptyLayout, LAYERS } from '../data/layout';
+import { allProps, propKind, propIds, imageKind } from '../gfx/props/catalog';
+import { Scenery, expandRun, trackValue } from '../gfx/scenery';
+import { withSeed, hashSeed, random } from '../core/math';
+import { LEVELS } from '../data/levels';
+import { forgeState } from './scenes/editor';
 
 export function installDebug() {
   (window as unknown as { __lib: unknown }).__lib = {
@@ -35,5 +42,7 @@ export function installDebug() {
     withHeroAppearance, isModularHeroHead, HERO_APPEARANCE_KEYS, HERO_APPEARANCE, defaultHeroAppearance, sanitizeHeroAppearance, findHeroAppearance,
     heroHeadPreview, heroSkinSupport, heroAppearanceAvailable, heroAppearanceCacheStats, composeHeroHead, applyHeroSkin, purgeHeroAppearance,
     HERO_SKIN_REGIONS, HERO_APPEARANCE_LAYOUTS, getAppearanceAsset, purgeChar, headImage,
+    LAYOUTS, layoutFor, setUnsavedLayout, validateLayout, levelWithLayout, layoutToJson, emptyLayout, LAYERS, LEVELS,
+    allProps, propKind, propIds, imageKind, Scenery, expandRun, trackValue, withSeed, hashSeed, random, forgeState,
   };
 }

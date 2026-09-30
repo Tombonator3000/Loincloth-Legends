@@ -303,7 +303,8 @@ export const charUniforms = {
   uBump: { value: 1 },
 };
 
-const VERT = /* glsl */ `
+/** Skyggeleggerne til figurene. Rekvisittene i gfx/scenery.ts bygger på dem (tåke, vind, bildeserier og toning). */
+export const CHAR_VERT = /* glsl */ `
 varying vec2 vUv;
 varying vec3 vViewPos;
 varying vec3 vT;
@@ -320,7 +321,7 @@ void main() {
   gl_Position = projectionMatrix * mv;
 }`;
 
-const FRAG = /* glsl */ `
+export const CHAR_FRAG = /* glsl */ `
 #include <common>
 #include <lights_pars_begin>
 uniform sampler2D map;
@@ -418,8 +419,8 @@ export function charMaterial(tex: THREE.Texture, relief: THREE.Texture | null, t
   };
   const m = new THREE.ShaderMaterial({
     uniforms,
-    vertexShader: VERT,
-    fragmentShader: FRAG,
+    vertexShader: CHAR_VERT,
+    fragmentShader: CHAR_FRAG,
     lights: true,
     side: THREE.DoubleSide,
     alphaToCoverage: true,

@@ -36,6 +36,8 @@ npm run build:single # én selvstendig HTML-fil i dist-single/
 npm run typecheck
 ```
 
+Brettverkstedet STAGE FORGE: `npm run dev` og http://localhost:5173/?editor=road (eller STAGE FORGE på tittelskjermen). Se `docs/STAGE_FORGE.md`.
+
 `dist-single/index.html` kan åpnes direkte i nettleseren (dobbeltklikk), uten server. `?nosplash` i adressen hopper over studiologoen.
 
 ## Hva er med
@@ -61,6 +63,7 @@ npm run typecheck
 - **Kjæledyr**: Eyeball of Greed, Rabid Rat, Sarcastic Skull, Battle Chicken og Tiny Dragon.
 - **Arena-dueller** i Barbarian-stil: retning + angrep, blokk høy/lav, halshugging, tag team med to spillere.
 - **Gore-innstilling**: FAMILY (konfetti og gummiender), NORMAL, EXCESSIVE, PLEASE SEEK HELP.
+- **STAGE FORGE**: visuell brettredigerer i spillet. Malte kulisser i fire lag, fra fjellene langt bak til trestammer rett foran kameraet som tones ut når noen står bak. Vind, svingende skilt, flakkende lys, bildeserier og bevegelse i spor. Rader, generert pynt som kan slås av, bølger, tønner og farer på en tidslinje, angre, og PLAY FROM HERE. Lagrer brettfilene rett i repoet under `npm run dev`.
 - **2 spillere lokalt**, tastatur, gamepad (med rumble) og **berøringskontroller** på mobil og nettbrett.
 
 ## Kontroller
@@ -82,6 +85,8 @@ Tre knapper. Gå inn i en fiende for å gripe ham, og inn i et ledig ridedyr for
 - `docs/ART_PROMPTS.md` grafikkliste med ferdige prompter til ChatGPT
 - `docs/HERO_FORGE_GRAFIKK.md` filkart, egne utseendelag, hudmasker og kalibrering for heltesmia
 - `docs/CHATGPT_PROMPT.md` startprompt som lar ChatGPT styre hele grafikkjobben (sjekkliste, filnavn, kommandoer)
+- `docs/STAGE_FORGE.md` brettverkstedet: slik lager og endrer du brett, kulisser og animasjoner
+- `docs/SKILLS.md` skills for AI-agentene (i `.claude/skills/`) og andre skills som passer
 - `docs/PLAN_BRETT_GORR_AI.md` plan for brettverkstedet (STAGE FORGE), gørr, bedre AI og teksturer på brettene, med bestilling til GPT
 - `tools/tests/README.md` Playwright-tester
 - `AGENTS.md` og `CLAUDE.md` regler for AI-agenter
@@ -92,7 +97,8 @@ Tre knapper. Gå inn i en fiende for å gripe ham, og inn i et ledig ridedyr for
 Loincloth Legends bygger på kode og ideer fra Toms egne spill og fra åpne kilder.
 
 **Toms egne prosjekter**
-- Morbidium (Tombonator3000/morbidium): bildeverktøyene for ChatGPT-grafikk (maler, klipping, bakgrunn, sømmer og innboks i `tools/process_art.py` og `tools/make_templates.py`) og variasjonen i fiendene (`src/game/foes.ts`).
+- Morbidium (Tombonator3000/morbidium): bildeverktøyene for ChatGPT-grafikk (maler, klipping, bakgrunn, sømmer og innboks i `tools/process_art.py` og `tools/make_templates.py`, og rutene i bildeserier fra `ark_ruter` og `behandle_ark` i `tools/behandle_bilder.py`) og variasjonen i fiendene (`src/game/foes.ts`). Bildeseriene og sporene med nøkler over tid på kulissene (`src/gfx/scenery.ts`) er skrevet om etter `src/16_anim.js` og POSER.
+- The Deep Ones (Tombonator3000/the-deep-ones, `v2/editor.js`): flyten i brettverkstedet (velge og flytte, skala og høyde, lagre, testspill, JSON inn og ut med kontroll). STAGE FORGE er skrevet på nytt i 3D. Angre og gjør om med øyeblikksbilder følger mønsteret i `useUndoRedo.ts` i connect-play.
 - De nye utseendelagene i Hero Forge bruker Morbidium som konseptuelt forbilde: egne lerreter per fargevariant og normaliserte valg i [14_pasient.js](https://github.com/Tombonator3000/Morbidium/blob/main/src/14_pasient.js), lagplassering i [28_oppskrift.js](https://github.com/Tombonator3000/Morbidium/blob/main/src/28_oppskrift.js) og lag som følger hodet i [11_doll.js](https://github.com/Tombonator3000/Morbidium/blob/main/src/11_doll.js). Ingen kode eller kunst fra disse filene er kopiert til denne utvidelsen. Implementasjonen bruker Loincloth Legends sin eksisterende cutout-rigg og egne håndmålte hudmasker, slik at brunt lær og metall beskyttes under hudomfarging.
 - Musikksystemet (bytte på taktstreken med bro, intensitetslag, dukking og innslag i takt, `src/core/conductor.ts`), lydbanken (`src/core/soundbank.ts`), stemningen (`src/core/ambience.ts`) og fanfarene (`src/core/layers.ts`) er tilpasset fra Morbidium. Lagspilleren for syntlyd og zap-lyden bygger på Geometry 3044, og den brune støyen på The Deep Ones.
 - Skjermdråpene (`src/gfx/screenwet.ts`), sjokkbølgene, varmeflimmeret, årene ved lav helse og den brennende kanten (`src/gfx/screenfx.ts`), lyspoolen og den automatiske grafikkvaliteten (`src/app/perf.ts`) er tilpasset fra Morbidium. Målingen av bildetid bygger på The Deep Ones.

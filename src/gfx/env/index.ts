@@ -19,6 +19,10 @@ export interface StageEnvOpts {
   bossSign?: string;
   /** Hull i bakken og veien (juvet langs bakkanten, data/hazards.ts). Miljøet lar dem stå åpne og holder rekvisitter unna. */
   holes?: Hole[];
+  /** Frøet for pynten (brettfila, ellers brettets id). Brukes av gen() i common.ts. */
+  seed?: number;
+  /** Generatorer brettfila har slått av (false). Se gen() i common.ts. */
+  gen?: Record<string, boolean>;
 }
 export type StageBuilder = (scene: THREE.Scene, gore: Gore, o: StageEnvOpts) => Env;
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Nytt brett"
+  short_description: "Et nytt brett fra data til kulisser og test"
+  default_prompt: "Bruk $new-level til å lage brettet som data, legge ut kulisser og teste det til finalen."

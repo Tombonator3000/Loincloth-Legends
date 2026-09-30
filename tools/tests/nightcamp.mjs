@@ -4,6 +4,8 @@ import { chromium } from 'playwright';
 const [url, out] = process.argv.slice(2);
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+// Det første bildet tar over 30 sekunder i SwiftShader (skyggeleggerne kompileres), også før brettverkstedet
+page.setDefaultTimeout(300000);
 const logs = [];
 page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') logs.push(m.type() + ': ' + m.text()); });
 page.on('pageerror', (e) => logs.push('pageerror: ' + e.message + '\n' + e.stack));

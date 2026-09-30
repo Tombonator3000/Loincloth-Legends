@@ -2,6 +2,7 @@
 // Legg filer i public/assets/ og beskriv dem i public/assets/manifest.json (se docs/ART_PROMPTS.md).
 // Finnes ikke manifestet, brukes den prosedyretegnede grafikken som før.
 import { TORSO_Y, ARM_L, LEG_L } from './chars/types';
+import type { LayerId, PropAnim } from '../data/layout';
 
 export interface PartOverride {
   canvas: HTMLCanvasElement;
@@ -61,8 +62,28 @@ interface ManifestPart {
   /** Hoder: tegn hodet foran overkroppen (langt skjegg). */
   front?: boolean;
 }
+/** Rekvisitt til brettverkstedet (malte kulisser, se gfx/props/catalog.ts og docs/PLAN_BRETT_GORR_AI.md). */
+export interface ManifestProp {
+  file: string;
+  /** Bredde i meter. */
+  w?: number;
+  /** Fotpunktet i bildet (0..1, y fra toppen). */
+  anchor?: [number, number];
+  layer?: LayerId;
+  /** Bildeserie: rutenettet [kolonner, rader] og antall bilder (lest fra venstre og ovenfra). */
+  grid?: [number, number];
+  n?: number;
+  /** Hele animasjonslista (ellers plassholderens, se imageKind i gfx/props/catalog.ts). */
+  anim?: PropAnim | PropAnim[];
+  shadow?: boolean;
+  fade?: boolean;
+  dark?: number;
+  label?: string;
+}
 interface Manifest {
   parts?: ManifestPart[];
+  /** Rekvisitter til brettene: navn til bilde og mål. prop_<navn>.png og anim_<navn>_<k>x<r>.png fra process_art.py. */
+  props?: Record<string, ManifestProp>;
   /** Løse hår-, skjegg-, hodeplagg- og irislag. Plassering ligger i hero-appearance-layout.ts. */
   appearance?: { id: string; file: string }[];
   sky?: Record<string, string>;
@@ -133,9 +154,11 @@ export function getAssetRevision() { return assetRevision; }
 export const images: {
   sky: Record<string, HTMLImageElement>;
   textures: Record<string, HTMLImageElement>;
+  /** Rekvisittene fra manifestet (brettverkstedet). */
+  props: Record<string, { img: HTMLImageElement; meta: ManifestProp }>;
   map: HTMLImageElement | null;
   title: HTMLImageElement | null;
-} = { sky: {}, textures: {}, map: null, title: null };
+} = { sky: {}, textures: {}, props: {}, map: null, title: null };
 
 export function getOverride(charId: string, key: string): PartOverride | undefined {
   return parts.get(charId + ':' + key);
@@ -387,6 +410,9 @@ export async function loadAssets(base = './assets/') {
   }
   for (const [name, file] of Object.entries(man.textures ?? {})) {
     jobs.push(loadImage(base + file).then((img) => void (images.textures[name] = img)).catch((e) => console.warn(e)));
+  }
+  for (const [id, meta] of Object.entries(man.props ?? {})) {
+    jobs.push(loadImage(base + meta.file).then((img) => void (images.props[id] = { img, meta })).catch((e) => console.warn(e)));
   }
   if (man.map) jobs.push(loadImage(base + man.map).then((img) => void (images.map = img)).catch((e) => console.warn(e)));
   if (man.title) jobs.push(loadImage(base + man.title).then((img) => void (images.title = img)).catch((e) => console.warn(e)));

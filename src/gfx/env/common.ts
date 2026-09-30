@@ -4,7 +4,7 @@ import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometr
 import { Sky } from 'three/addons/objects/Sky.js';
 import { valueNoise3, fbm3 } from '../noise';
 import { plainCanvas, unitCanvas, INK, shade } from '../draw';
-import { rand, pick } from '../../core/math';
+import { rand, pick, reseed, hashSeed } from '../../core/math';
 import type { Gore } from '../gore';
 import { images } from '../assets';
 import type { Grade } from '../post';
@@ -227,6 +227,36 @@ export function spriteMesh(cv: HTMLCanvasElement, w: number, h: number) {
   return new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: t, alphaTest: 0.5, side: THREE.DoubleSide }));
 }
 
+// ---------------------------------------------------------------- generatorer
+/**
+ * Pynten i et miljø er delt i generatorer (trær, gress, palisade, silhuetter osv.) som brettfila kan slå av
+ * (`generators` i src/data/layouts, se docs/PLAN_BRETT_GORR_AI.md). Hver generator starter på sitt eget frø, så
+ * en generator som slås av, ikke flytter pynten i de andre. Brettverkstedet lister navnene som ble brukt.
+ */
+const usedGens: string[] = [];
+export interface GenOpts {
+  seed?: number;
+  gen?: Record<string, boolean>;
+}
+/** Er generatoren på? Starter samtidig tallrekka for den på et fast frø (når brettet bygges med frø). */
+export function gen(o: GenOpts, key: string): boolean {
+  if (!usedGens.includes(key)) usedGens.push(key);
+  reseed(((o.seed ?? 0) ^ hashSeed(key)) >>> 0);
+  return o.gen?.[key] !== false;
+}
+/** Eget frø for en del som ikke kan slås av (for eksempel leiren i nattleiren), så de andre ikke flytter den. */
+export function genSeed(o: GenOpts, key: string) {
+  reseed(((o.seed ?? 0) ^ hashSeed(key)) >>> 0);
+}
+/** Tøm lista over generatorer (før et miljø bygges). */
+export function resetGenerators() {
+  usedGens.length = 0;
+}
+/** Generatorene det siste miljøet brukte, i rekkefølge. */
+export function usedGenerators() {
+  return usedGens.slice();
+}
+
 // ---------------------------------------------------------------- Env
 export interface Env {
   group: THREE.Group;
@@ -243,6 +273,8 @@ export interface Env {
   tippables?: Tippable[];
   /** Regn, 0..1: vanndråper treffer glasset og renner (gfx/screenwet.ts). Ingen brett har regn ennå. */
   rain?: number;
+  /** Generatorene miljøet brukte (satt av Stage og editoren etter bygging, se gen()). */
+  generators?: string[];
 }
 
 /** Noe som kan veltes (et fyrfat). tip() gir hvor glørne havner og hvor lenge de brenner, eller null om det alt er veltet. */

@@ -10,6 +10,7 @@
 // - barkens v-koordinat følger lengden (ikke vekslende 0/1 per seksjon),
 // - vind på stamme og grener i tillegg til bladene (se gfx/wind.ts), også i skyggene.
 import * as THREE from 'three';
+import { random } from '../../core/math';
 import { plainCanvas } from '../draw';
 import { windifyTree, sunUniforms } from '../wind';
 import { qualityRank } from '../post';
@@ -593,8 +594,8 @@ export class Forest {
     this.protos = Array.from({ length: variants }, (_, i) => treeProto(species, i));
   }
 
-  add(x: number, z: number, scale = 1, rotY = Math.random() * Math.PI * 2, castShadow = true) {
-    this.placed.push({ proto: Math.floor(Math.random() * this.protos.length), x, z, s: scale, r: rotY, shadow: castShadow });
+  add(x: number, z: number, scale = 1, rotY = random() * Math.PI * 2, castShadow = true) {
+    this.placed.push({ proto: Math.floor(random() * this.protos.length), x, z, s: scale, r: rotY, shadow: castShadow });
   }
 
   /** Bygg instansene. chunk = bredden på hver bit langs x. */

@@ -48,6 +48,9 @@ node tools/tests/screenfx.mjs http://localhost:4173/ ./shots              # skje
 node tools/tests/giant.mjs http://localhost:4173/ [./shots]               # kjempetrollet: størrelse, rustning til han vakler, bakkeslag, kameraet trekker seg bakover og inn igjen
 node tools/tests/frostsound.mjs http://localhost:4173/                    # lydene fra frostpasset: snøtrinn, horn og brøl, kjempetrinn, fossesus, ulv, vindkast, isknak, klang, publikum og innleste replikker
 node tools/tests/frostplay.mjs http://localhost:4173/ [./shots]           # spillet i frostpasset: fiender som rygger tas igjen, panikk, kast i juvet, istapper, fyrfat og glør, kjempen som kaster helten, ridedyr stopper ved juvet
+node tools/tests/editor.mjs http://localhost:4173/ [./shots]              # STAGE FORGE: biblioteket, legge ut, dra med musa, angre, slette, rad, slå av generert pynt, tidslinja, lagre (nedlasting), PNG inn, PLAY FROM HERE og tilbake
+node tools/tests/prop-images.mjs http://localhost:4173/                   # bilder som tar over for plassholderne: rutenett fra bildet, lys, flammer og bevegelse fra plassholderen
+node tools/tests/forge-save.mjs http://localhost:5173/                    # lagring gjennom dev-serveren (npm run dev): brettfila, bilde og manifest i repoet, ingen ny innlasting, alt der etter omstart. Setter filene tilbake
 ```
 
 Skriptene skriver ut tilstand og eventuelle konsollfeil (`LOGS:`). Tom logg betyr ingen feil.
@@ -55,5 +58,7 @@ Skriptene skriver ut tilstand og eventuelle konsollfeil (`LOGS:`). Tom logg bety
 `hero-forge.mjs` følger også Ash Raider og Iron Warden gjennom de faktiske bølgekøene i Scorchlands og Tower, angrep mot helten, dødsbelønning og neste bølge. `artcheck.mjs` kontrollerer de nye Forge-overkroppene i hele og blandede figurer med den samme skulder- og halsriggen som resten av spillet.
 
 I headless Chromium trengs WebGL via SwiftShader (`--use-angle=swiftshader`), det er satt opp i skriptene. Skjermbilder tar flere sekunder i SwiftShader, så tester som trenger sanntid (oppstartslogoen) fryser animasjonene før bildet tas.
+
+Ett tegnet bilde av et brett tar rundt 10 sekunder i SwiftShader, og det første skjermbildet 40 til 50 sekunder. Tegn bare før skjermbilder (`tick(1/60, true)` én gang). Tegner en test i hver tick, hoper arbeidet seg opp, og testen ser ut til å henge. Flere feller står i skillen `game-tests` (`.claude/skills/game-tests/SKILL.md`).
 
 Merk: sjefens død har slowmo og en pause før belønningen vises. `story.mjs` venter derfor til skjermen er aktiv før den trykker Enter. Gjør det samme i nye tester i stedet for å vente et fast antall sekunder. Menyer ignorerer trykk de første 350 ms (så et trykk ikke går rett gjennom to skjermer), så vent litt i sanntid før du trykker på en ny skjerm.
