@@ -35,17 +35,17 @@ export interface FoeDef {
 
 const claw: AttackDef = {
   id: 'claw', startup: 0.55, active: 0.12, recovery: 0.6, dmg: 9, reach: 1.5, zr: 0.7, height: 'mid', push: 2, stun: 0.4,
-  wind: { armF: 2.4, armB: 2.2, torso: 0.2, head: 0.2 }, strike: { armF: 0.9, armB: 0.8, torso: -0.4, head: -0.1, bodyY: -0.08 },
+  wind: { armF: 2.4, armB: 2.2, torso: 0.2, head: 0.2 }, strike: { armF: 1.3, armB: 1.1, torso: -0.4, head: -0.1, bodyY: -0.08, bodyX: 0.2 },
   death: ['normal'], swoosh: 'none',
 };
 const spear: AttackDef = {
   id: 'spear', startup: 0.35, active: 0.12, recovery: 0.45, dmg: 8, reach: 1.9, zr: 0.6, height: 'mid', push: 2.5, stun: 0.35,
-  wind: { armF: 0.6, weapon: -1.0, torso: 0.2, armB: -0.4 }, strike: { armF: 1.4, weapon: -2.9, torso: -0.3, legF: 0.6, legB: -0.5 },
+  wind: { armF: 0.6, weapon: -1.9, torso: 0.2, armB: -0.4 }, strike: { armF: 1.4, weapon: -2.9, torso: -0.3, legF: 0.6, legB: -0.5, bodyX: 0.25 },
   death: ['normal'], swoosh: 'side',
 };
 const frogLeap: AttackDef = {
   id: 'frogleap', startup: 0.05, active: 0.3, recovery: 0.2, dmg: 9, reach: 1.7, zr: 0.8, height: 'high', kd: true, launch: 4, push: 3, stun: 0.4, air: true,
-  wind: P.jumpW, strike: { armF: 1.5, weapon: -3.0, torso: -0.4, legF: 0.2, legB: -0.6 }, death: ['normal'], swoosh: 'side',
+  wind: P.jumpW, strike: { armF: 1.5, weapon: -3.0, torso: -0.4, legF: 0.2, legB: -0.6, bodyX: 0.2 }, death: ['normal'], swoosh: 'side',
 };
 const trollSmash: AttackDef = { ...ENEMY_ATK.hog, id: 'trollsmash', dmg: 16, reach: 2.2, startup: 0.75 };
 // Kjempetrollet slår i bakken: langt opptrekk, lang rekkevidde, og bakken rister (quake i game/foes.ts)
@@ -53,10 +53,10 @@ const giantSlam: AttackDef = {
   ...ENEMY_ATK.hog, id: 'giantslam', dmg: 20, reach: 2.5, zr: 1.3, startup: 1.05, recovery: 1.0, launch: 8, push: 7, stun: 0.8, quake: 3.2,
   word: ['KRA-THOOM!', 'AVALANCHE!', 'BONK.'],
 };
-// Kjempetrollet griper en helt, holder ham opp og kaster ham langt
+// Kjempetrollet griper en helt med den fjerne armen (den på forsiden av kroppen), holder ham opp og kaster ham langt
 const giantGrab: AttackDef = {
   ...ENEMY_ATK.hog, id: 'giantgrab', dmg: 4, reach: 2.3, zr: 1.0, startup: 0.6, active: 0.16, recovery: 0.5, grab: true, kd: false, launch: 0, push: 0,
-  heavy: false, wind: { armF: -0.6, armB: -0.3, torso: 0.35, head: 0.1 }, strike: { armF: 1.6, armB: 0.4, torso: -0.2, head: -0.05 }, word: [], swoosh: 'side',
+  heavy: false, wind: { armB: -0.6, armF: -0.3, torso: 0.35, head: 0.1 }, strike: { armB: 1.6, armF: 0.4, torso: -0.2, head: -0.05 }, word: [], swoosh: 'side',
 };
 const emberSlash: AttackDef = { ...ENEMY_ATK.skel, id: 'emberslash', dmg: 8, startup: 0.36 };
 

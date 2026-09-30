@@ -15,6 +15,11 @@ export interface PartDef {
 }
 
 export type V2 = [number, number];
+/**
+ * Leddene i delenes rom. Figuren står i trekvart profil mot høyre: shF er den nære skulderen der våpenarmen sitter
+ * (til venstre i bildet, armen tegnes foran), shB den fjerne (til høyre, armen tegnes bak overkroppen). En malt
+ * overkropp gir riggen sine egne skulderledd (shoulders i manifestet, se gfx/rig.ts).
+ */
 export interface Joints { hipF: V2; hipB: V2; neck: V2; shF: V2; shB: V2; hand: V2 }
 export interface CharDef {
   id: CharId;
@@ -38,7 +43,7 @@ export interface CharDef {
   inherit?: Partial<Record<'leg' | 'arm' | 'pelvis' | 'torso' | 'head' | 'weapon', CharId>>;
 }
 
-export const HERO_J: Joints = { hipF: [0.07, 0], hipB: [-0.08, 0], neck: [0.03, 0.78], shF: [0.15, 0.66], shB: [-0.15, 0.68], hand: [0, -0.6] };
+export const HERO_J: Joints = { hipF: [0.07, 0], hipB: [-0.08, 0], neck: [0.03, 0.78], shF: [-0.15, 0.68], shB: [0.15, 0.66], hand: [0, -0.6] };
 /**
  * Heroiske proporsjoner (konseptbildene, se docs/STYLE_TARGET.md): lengre bein og armer og mindre hode enn
  * de gamle chibi-kroppene, men samme tegnestil. Totalhøyden på skjermen er omtrent den samme.
@@ -48,7 +53,7 @@ export const ARM_L = 1.3;
 /** Overkroppen strekkes litt i høyden (se stretchY i muscle.ts). */
 export const TORSO_Y = 1.14;
 /** Heltene: brede skuldre, lange bein, store armer (se muscle.ts). */
-export const HERO_BIG_J: Joints = { hipF: [0.08, 0], hipB: [-0.08, 0], neck: [0.03, 0.8 * TORSO_Y], shF: [0.42, 0.56 * TORSO_Y], shB: [-0.41, 0.58 * TORSO_Y], hand: [0.035, -0.5 * ARM_L] };
+export const HERO_BIG_J: Joints = { hipF: [0.08, 0], hipB: [-0.08, 0], neck: [0.03, 0.8 * TORSO_Y], shF: [-0.41, 0.58 * TORSO_Y], shB: [0.42, 0.56 * TORSO_Y], hand: [0.035, -0.5 * ARM_L] };
 export const HERO_HIP_Y = 0.645 * LEG_L - 0.005;
 /** Hvor stort hodet tegnes i forhold til resten (var 1.3 med chibi-proporsjoner). */
 export const HEAD_SCALE = 0.84;

@@ -304,7 +304,7 @@ export class Fighter {
     if (!this.alive || this.noSever) return false;
     const which: PartName | null = !this.rig.detached.has('armB') ? 'armB' : !this.rig.detached.has('armF') ? 'armF' : null;
     if (!which) return false;
-    const J = this.def.joints;
+    const J = this.rig.joints;
     const col = bloodOf(this.def);
     const bone = this.def.blood === 'bone';
     const at = this.torsoPoint(0.75);
@@ -315,7 +315,8 @@ export class Fighter {
     });
     const sh = which === 'armB' ? J.shB : J.shF;
     if (!bone) {
-      W.gore.fountain(this.rig.g.torso, sh[0], sh[1], which === 'armB' ? -0.6 : 0.6, 1, 2.4, 1, col);
+      // Sprutet går utover fra skulderen: bakover fra den nære (venstre i bildet), framover fra den fjerne
+      W.gore.fountain(this.rig.g.torso, sh[0], sh[1], sh[0] < 0 ? -0.6 : 0.6, 1, 2.4, 1, col);
       W.gore.spray(at, dir, 0.3, 26, 6, 0.6, 0.1, col);
       audio.rip();
     } else audio.bones();
@@ -367,7 +368,7 @@ export class Fighter {
     if (this.onGround) this.vel.y = 2.5;
     this.onGround = false;
     const tp = this.torsoPoint();
-    const J = this.def.joints;
+    const J = this.rig.joints;
     const g = W.gore;
     if (!bone) {
       audio.scream(this.def.voice);
@@ -435,8 +436,7 @@ export class Fighter {
       case 'dismember': {
         this.fling('armF', dir * rand(2, 5), rand(5, 8), rand(-15, 15), 0.25);
         this.fling('armB', dir * rand(1, 4), rand(6, 9), rand(-15, 15), 0.25);
-        g.fountain(this.rig.g.torso, J.shF[0], J.shF[1], 0.4, 1, 1.8, 0.8, col);
-        g.fountain(this.rig.g.torso, J.shB[0], J.shB[1], -0.4, 1, 1.8, 0.8, col);
+        for (const sh of [J.shF, J.shB]) g.fountain(this.rig.g.torso, sh[0], sh[1], sh[0] < 0 ? -0.4 : 0.4, 1, 1.8, 0.8, col);
         if (chance(0.5)) {
           this.fling('head', dir * rand(1, 3), rand(7, 9), rand(-10, 10), 0.3);
           g.fountain(this.rig.g.torso, J.neck[0], J.neck[1], 0, 1, 2, 1, col);
@@ -747,8 +747,8 @@ export class Fighter {
         const s = Math.sin(ph);
         target = {
           torso: run ? -0.32 : -0.12, head: run ? 0.2 : 0.08,
-          armF: (run ? 0.9 : 0.6) + s * 0.25, armB: -0.2 - s * (run ? 0.8 : 0.5),
-          legF: s * amp, legB: -s * amp, weapon: run ? -1.9 : -1.45,
+          armF: (run ? 0.9 : 0.6) + s * 0.25, armB: (run ? 0.35 : 0.3) - s * (run ? 0.7 : 0.45),
+          legF: s * amp, legB: -s * amp, weapon: run ? -2.45 : -2.1,
           bodyY: -0.04 + Math.abs(Math.cos(ph)) * (run ? 0.1 : 0.06),
           ...this.poseMod,
         };
@@ -817,16 +817,17 @@ export class Fighter {
         speed = 14;
         break;
       case 'hold': {
-        // Kjempen holder helten høyt og rister ham
+        // Kjempen holder helten høyt og rister ham. Den fjerne armen holder: den sitter på forsiden av kroppen og rekker
+        // fram dit den holdte er, våpenarmen sitter bak på den nære skulderen
         if (this.size > 1.8) {
-          target = { armF: 2.3 + Math.sin(t * 9) * 0.12, armB: 0.5, weapon: -1.0, torso: -0.15, head: 0.25, legF: 0.3, legB: -0.3, bodyY: -0.05 };
+          target = { armB: 2.3 + Math.sin(t * 9) * 0.12, armF: 0.5, weapon: -1.75, torso: -0.15, head: 0.25, legF: 0.3, legB: -0.3, bodyY: -0.05 };
           speed = 14;
           break;
         }
         const knee = ((this.data.pummelT as number) ?? 0) > 0;
         target = knee
-          ? { armF: 1.5, armB: 1.3, weapon: -2.0, torso: 0.3, head: -0.2, legF: 1.5, legB: -0.3, bodyY: 0.02 }
-          : { armF: 1.35, armB: 1.2, weapon: -1.9, torso: -0.12, head: 0.05, legF: 0.35, legB: -0.35, bodyY: -0.05 };
+          ? { armF: 0.7, armB: 1.35, weapon: -2.0, torso: 0.3, head: -0.2, legF: 1.5, legB: -0.3, bodyY: 0.02 }
+          : { armF: 0.6, armB: 1.3, weapon: -1.8, torso: -0.12, head: 0.05, legF: 0.35, legB: -0.35, bodyY: -0.05 };
         speed = knee ? 40 : 16;
         break;
       }
@@ -838,7 +839,7 @@ export class Fighter {
         speed = 20;
         break;
       case 'ride':
-        target = { torso: -0.05, head: 0.05, armF: 0.9, armB: 0.6, weapon: -1.5, legF: 1.25, legB: 1.05, bodyY: -0.1, ...this.poseMod };
+        target = { torso: -0.05, head: 0.05, armF: 0.9, armB: 0.6, weapon: -2.3, legF: 1.25, legB: 1.05, bodyY: -0.1, ...this.poseMod };
         speed = 14;
         break;
       case 'dead': {

@@ -2,7 +2,8 @@
 
 All hjelpegrafikk er ren magenta (#ff00ff) på gjennomsiktig bakgrunn, så tools/process_art.py kan fjerne den igjen.
   mal_figur.png    1536 x 1024, 3 x 2 ruter: HEAD, TORSO, PELVIS øverst og ARM, LEG, WEAPON nederst, med merker for
-                   leddene (nakken nederst på hodet, midjen, beltet, skulderen, neven, hofta, sålen og grepet).
+                   leddene (nakken nederst på hodet, halsroten, den nære og den fjerne skulderen og midjen på
+                   overkroppen, beltet, skulderen, neven, hofta, sålen og grepet).
                    Lagres av ChatGPT som figur_<id>.png, og hver rute blir <id>_<del>.
   mal_ni_ting.png  1024 x 1024, 3 x 3 ruter med et kryss nederst i midten. Lagres som ark__<navn>__<navn>...png.
 Bruk: python3 tools/make_templates.py
@@ -61,7 +62,11 @@ def figurmal():
                 kryss(d, cx, bunn); merke(d, cx, bunn - 22, 'bottom of neck', liten)
             elif n == 'TORSO':
                 stiplet(d, (cx - 110, bunn), (cx + 110, bunn)); merke(d, cx, bunn - 16, 'waist', liten)
-                prikk(d, cx, top + 30); merke(d, cx, top + 10, 'base of neck', liten)
+                prikk(d, cx, top + 30); merke(d, cx, top + 10, 'neckline (no neck)', liten)
+                # Trekvart profil mot høyre: den nære skulderen (våpenarmen) til venstre, den fjerne til høyre
+                sy = top + (bunn - top) * .3
+                prikk(d, x0 + cw * .12, sy); merke(d, x0 + cw * .12 + 95, sy + 24, 'near shoulder, weapon arm', liten)
+                prikk(d, x0 + cw * .88, sy); merke(d, x0 + cw * .88 - 30, sy + 24, 'far shoulder', liten)
             elif n == 'PELVIS':
                 stiplet(d, (cx - 110, top), (cx + 110, top)); merke(d, cx, top + 18, 'belt (widest at the top)', liten)
             elif n == 'ARM':

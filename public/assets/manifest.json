@@ -31,7 +31,22 @@
     {
       "char": "valkyra",
       "part": "torso",
-      "file": "valkyra_torso.webp"
+      "file": "valkyra_torso.webp",
+      "shoulders": [
+        [
+          0.07,
+          0.3
+        ],
+        [
+          0.86,
+          0.27
+        ]
+      ],
+      "neck": [
+        0.335,
+        0.12,
+        0.07
+      ]
     },
     {
       "char": "valkyra",
@@ -61,7 +76,22 @@
     {
       "char": "skeleton",
       "part": "torso",
-      "file": "skeleton_torso.webp"
+      "file": "skeleton_torso.webp",
+      "shoulders": [
+        [
+          0.085,
+          0.31
+        ],
+        [
+          0.93,
+          0.29
+        ]
+      ],
+      "neck": [
+        0.545,
+        0.12,
+        0.09
+      ]
     },
     {
       "char": "skeleton",
@@ -104,7 +134,21 @@
     {
       "char": "cultist",
       "part": "torso",
-      "file": "cultist_torso.webp"
+      "file": "cultist_torso.webp",
+      "shoulders": [
+        [
+          0.1,
+          0.31
+        ],
+        [
+          0.91,
+          0.31
+        ]
+      ],
+      "neck": [
+        0.49,
+        0.12
+      ]
     },
     {
       "char": "cultist",
@@ -123,7 +167,8 @@
       "anchor": [
         0.57,
         0.77
-      ]
+      ],
+      "front": true
     },
     {
       "char": "gnome",
@@ -138,7 +183,21 @@
     {
       "char": "gnome",
       "part": "torso",
-      "file": "gnome_torso.webp"
+      "file": "gnome_torso.webp",
+      "shoulders": [
+        [
+          0.425,
+          0.36
+        ],
+        [
+          0.92,
+          0.32
+        ]
+      ],
+      "neck": [
+        0.78,
+        0.12
+      ]
     },
     {
       "char": "hogman",
@@ -163,7 +222,21 @@
     {
       "char": "hogman",
       "part": "torso",
-      "file": "hogman_torso.webp"
+      "file": "hogman_torso.webp",
+      "shoulders": [
+        [
+          0.06,
+          0.31
+        ],
+        [
+          0.88,
+          0.36
+        ]
+      ],
+      "neck": [
+        0.53,
+        0.12
+      ]
     },
     {
       "char": "hogman",
@@ -193,7 +266,22 @@
     {
       "char": "frogman",
       "part": "torso",
-      "file": "frogman_torso.webp"
+      "file": "frogman_torso.webp",
+      "shoulders": [
+        [
+          0.07,
+          0.31
+        ],
+        [
+          0.93,
+          0.31
+        ]
+      ],
+      "neck": [
+        0.53,
+        0.12,
+        0.1
+      ]
     },
     {
       "char": "frogman",
@@ -227,7 +315,22 @@
     {
       "char": "gorthak",
       "part": "torso",
-      "file": "gorthak_torso.webp"
+      "file": "gorthak_torso.webp",
+      "shoulders": [
+        [
+          0.14,
+          0.4
+        ],
+        [
+          0.92,
+          0.33
+        ]
+      ],
+      "neck": [
+        0.615,
+        0.12,
+        0.1
+      ]
     },
     {
       "char": "gorthak",
@@ -257,7 +360,22 @@
     {
       "char": "imp",
       "part": "torso",
-      "file": "imp_torso.webp"
+      "file": "imp_torso.webp",
+      "shoulders": [
+        [
+          0.09,
+          0.27
+        ],
+        [
+          0.93,
+          0.33
+        ]
+      ],
+      "neck": [
+        0.52,
+        0.12,
+        0.08
+      ]
     },
     {
       "char": "imp",
@@ -287,7 +405,22 @@
     {
       "char": "troll",
       "part": "torso",
-      "file": "troll_torso.webp"
+      "file": "troll_torso.webp",
+      "shoulders": [
+        [
+          0.16,
+          0.41
+        ],
+        [
+          0.9,
+          0.35
+        ]
+      ],
+      "neck": [
+        0.6,
+        0.12,
+        0.09
+      ]
     },
     {
       "char": "troll",
@@ -317,7 +450,22 @@
     {
       "char": "zombie",
       "part": "torso",
-      "file": "zombie_torso.webp"
+      "file": "zombie_torso.webp",
+      "shoulders": [
+        [
+          0.07,
+          0.38
+        ],
+        [
+          0.93,
+          0.39
+        ]
+      ],
+      "neck": [
+        0.555,
+        0.12,
+        0.08
+      ]
     },
     {
       "char": "croakus",
@@ -337,7 +485,22 @@
     {
       "char": "croakus",
       "part": "torso",
-      "file": "croakus_torso.webp"
+      "file": "croakus_torso.webp",
+      "shoulders": [
+        [
+          0.08,
+          0.4
+        ],
+        [
+          0.91,
+          0.38
+        ]
+      ],
+      "neck": [
+        0.535,
+        0.12,
+        0.12
+      ]
     },
     {
       "char": "croakus",
@@ -367,7 +530,22 @@
     {
       "char": "fireimp",
       "part": "torso",
-      "file": "fireimp_torso.webp"
+      "file": "fireimp_torso.webp",
+      "shoulders": [
+        [
+          0.07,
+          0.21
+        ],
+        [
+          0.9,
+          0.25
+        ]
+      ],
+      "neck": [
+        0.46,
+        0.12,
+        0.1
+      ]
     },
     {
       "char": "hogmother",
@@ -377,7 +555,22 @@
     {
       "char": "hogmother",
       "part": "torso",
-      "file": "hogmother_torso.webp"
+      "file": "hogmother_torso.webp",
+      "shoulders": [
+        [
+          0.05,
+          0.21
+        ],
+        [
+          0.9,
+          0.22
+        ]
+      ],
+      "neck": [
+        0.555,
+        0.12,
+        0.1
+      ]
     },
     {
       "char": "hogmother",
@@ -407,7 +600,21 @@
     {
       "char": "magmor",
       "part": "torso",
-      "file": "magmor_torso.webp"
+      "file": "magmor_torso.webp",
+      "shoulders": [
+        [
+          0.09,
+          0.33
+        ],
+        [
+          0.95,
+          0.35
+        ]
+      ],
+      "neck": [
+        0.54,
+        0.12
+      ]
     },
     {
       "char": "vorthax",
@@ -425,7 +632,8 @@
       "anchor": [
         0.56,
         0.74
-      ]
+      ],
+      "front": true
     },
     {
       "char": "vorthax",
@@ -444,7 +652,21 @@
     {
       "char": "vorthax",
       "part": "torso",
-      "file": "vorthax_torso.webp"
+      "file": "vorthax_torso.webp",
+      "shoulders": [
+        [
+          0.065,
+          0.31
+        ],
+        [
+          0.925,
+          0.3
+        ]
+      ],
+      "neck": [
+        0.504,
+        0.12
+      ]
     },
     {
       "char": "vorthax",
@@ -478,7 +700,22 @@
     {
       "char": "thrugg",
       "part": "torso",
-      "file": "thrugg_torso.webp"
+      "file": "thrugg_torso.webp",
+      "shoulders": [
+        [
+          0.095,
+          0.34
+        ],
+        [
+          0.94,
+          0.41
+        ]
+      ],
+      "neck": [
+        0.5,
+        0.12,
+        0.08
+      ]
     },
     {
       "char": "thrugg",

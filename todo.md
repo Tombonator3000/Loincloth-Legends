@@ -55,8 +55,11 @@
 - [x] Thrugg og alle fiendene i samme stil (PNG-deler)
 - [x] Visuell kontroll av alle sammensatte figurer med kunstpakken lastet: våpnene satt ved siden av neven og Thrugg manglet den bakre armen. Armene rettes nå etter neven, grepet finnes på skaftet (tools/tests/artcheck.mjs)
 - [ ] Ridedyr og kjæledyr med kunstpakken: se på dem i nettleseren (artcheck dekker bare figurer med armer)
-- [ ] Heltesmia: Tom velger vei. Flere ferdige malte helter (forslag: bruno, hilda, zugga, gromm i docs/ART_PROMPTS.md) eller malte lag for hvert valg (rundt 60 bilder og ny kode)
-- [ ] warhammer_weapon.png fra ChatGPT (stridshammeren i smia tegnes til den finnes)
+- [x] Armene i trekvart profil: våpenarmen på den nære skulderen foran, hodet bak overkroppen, skulderledd og halsrot fra bildene, stillingene rettet så slagene når fram (2026-09-30)
+- [ ] Heltesmia: GPT lager delepoolen i PR #2 (docs/HERO_FORGE_GRAFIKK.md) etter docs/GPT_BESKJED.md. PR #2 må ta inn main først
+- [ ] forge_warhammer_weapon.png fra GPT (stridshammeren i smia tegnes til den finnes)
+- [ ] Nye bilder fra GPT: hogmother_torso (kuttet i høyre kant), imp_arm (tynnere enn skulderkula), gorthak_arm (smalere hette enn platen), og på sikt overkropper uten halsstump
+- [x] docs/maler/mal_figur.png har merker for halsroten (uten hals) og den nære og den fjerne skulderen på overkroppen
 - [ ] Enhåndsøks som eget våpen (Valkyras øks har ett blad, spillets AXE har to)
 - [ ] Hårmanken svaier i vinden (hairback og den tegnede manken)
 

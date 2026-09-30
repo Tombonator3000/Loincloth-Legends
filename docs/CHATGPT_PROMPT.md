@@ -49,7 +49,8 @@ Read all of this before you answer. It is your standing brief for this chat. Fol
 - Joint finding: the game finds the sideways position of a joint from the middle of the pixels in the 4% of rows at the joint end. That is the bottom for head, torso and weapon, and the top for pelvis, arm and leg. That end must be clean and hold only the joint: neck end, waist, handle end, belt, shoulder cap or hip. Lopsided hair or a one-sided axe head elsewhere is fine.
 - Mirroring: always draw facing right; the game mirrors the figure when it walks left.
 - Reuse: one arm image is used for both arms and one leg image for both legs. The back copies are not mirrored, only darker. Limb details show on both sides.
-- Draw order, back to front: back arm, back leg, hairback, torso, front leg, pelvis, head, weapon, front arm. Overlaps are hidden, gaps show. The front fist hides the weapon's handle.
+- 3/4 view facing right: the character's near shoulder (its right shoulder) is on the LEFT side of the torso image and the far shoulder on the RIGHT. The weapon arm hangs from the near (left) shoulder and is drawn in front of the chest. The other arm hangs from the far (right) shoulder behind the torso.
+- Draw order, back to front: far arm, back leg, hairback, head, torso, front leg, pelvis, weapon, weapon arm. The head sits behind the torso, so the lower part of its neck disappears into the torso's neckline. LONG BEARD heads are the exception: they go in front so the beard hangs over the chest. Overlaps are hidden, gaps show. The weapon fist hides the weapon's handle.
 - Hairback: long hair down the back is its own image behind the body; it turns and flies off with the head.
 - Flying parts: in battle, parts can fly off, so each must look complete alone. Every joint end is smooth, round and full, covered by skin, cloth or armour, so parts overlap without gaps. Paint no wounds at joint ends; the game adds its own battle effects.
 - The head image is also the HUD portrait, so the face must read clearly at small size.
@@ -232,7 +233,7 @@ Background lines, used at the end of the prompt:
 
 8.2 HEAD: <id>_head.png, 1024x1024, TRANSPARENT
 - Use 1024x1536 for the tall-hat heads of gnome and vorthax, which are 1.66 and 1.75 units tall in the game.
-- Only the head with hair, helmet, hat, horns or beard, 3/4 view facing right, with a short neck ending in a smooth, rounded base, like the head of a jointed puppet.
+- Only the head with hair, helmet, hat, horns or beard, 3/4 view facing right, with the whole neck down to a smooth, rounded base, like the head of a jointed puppet. The head sits behind the torso, so this neck is what shows above the collar: give it the character's full neck width.
 - The neck end is the lowest thing in the image, under the skull. The game finds the neck from the bottom rows, so only the neck may reach that low. Hair, beard, collar and jewellery end above the bottom of the neck (exception: LONG BEARD, see 13.3). Hair that is fuller on one side is fine.
 - Nothing below the neck: no shoulders, no collarbones.
 - Big hair may spread wide. Hair that hangs down the back goes in the hairback.
@@ -249,11 +250,13 @@ Background lines, used at the end of the prompt:
 - Only the upper body from the waist to the base of the neck. No head, arms, legs or hair.
 - Describe the part as a separate piece of a painted collectible figure, not as a cut body: "the armoured upper-body piece of a painted collectible figure of <appearance>, shown alone as a separate piece, from the waist to the base of the neck, no head, no arms, no display stand".
 - The waist is the bottom edge: a full, clean lower edge the width of the waist. Nothing hangs below it: capes, robes, aprons, straps, fur and hair end at the waist line.
-- The base of the neck is about 12% below the top of the image; the game scales the torso so the head sits there. Only the tops of the shoulders rise above it. No wings, sacks, spikes, collars or fur sticking up, or the whole torso gets squashed.
-- Shoulders are simple rounded sockets; the arms are laid over them.
+- The base of the neck is about 12% below the top of the image; the game scales the torso so the head sits there. Only the tops of the shoulders (and a low fur or hood collar round the neck) rise above it. No wings, sacks or spikes sticking up, or the whole torso gets squashed.
+- No neck on the torso: stop at the neckline, collar or trapezius. The head brings its own neck, which goes in behind the collar. A neck column, cylinder or ball on top of the torso shows in front of the head's neck (the game can only fade out a short stub, 13.2).
+- Near shoulder (LEFT in the image): the weapon arm hangs from here, in front of the chest. Paint a rounded shoulder or a flat, plain socket no wider than the arm's shoulder cap (about 10 to 12% of the torso width), centred about 9% in from the left edge and about 30% down. No knobs, balls or tubes sticking out: the arm cap has to cover it.
+- Far shoulder (RIGHT in the image): a plain rounded shoulder about 8% in from the right edge. That arm hangs behind the torso and shows beside and below it.
 - HERO torso (thrugg, valkyra, gorthak): 3/4 view, chest turned toward the viewer, strong V shape, both shoulders visible. The waist is about half as wide as the torso is tall.
 - OTHER torsos: near side view, chest facing right, turned only slightly toward the viewer.
-- Arm sockets per character, as fractions of the torso image height. "Down" is the distance from the top edge to the shoulder joints. "Apart" is the distance between the two joints. The front joint is the right one.
+- Arm sockets per character, as fractions of the torso image height. "Down" is the distance from the top edge to the shoulder joints. "Apart" is the distance between the two joints. The near (weapon arm) joint is the LEFT one.
   - thrugg, valkyra, gorthak: 36% down, 76% apart (on a squarish image about 12% in from the left and right edges).
   - skeleton: narrow ribcage, 24% down, 20% apart.
   - hogman, hogmother: belly bulging right, 26% down, 42% apart.
@@ -266,7 +269,7 @@ Background lines, used at the end of the prompt:
   - troll: hulking, 25% down, 42% apart.
   - croakus: huge round belly, 26% down, 49% apart.
   - magmor: broad, turned slightly toward the viewer, 27% down, 54% apart.
-- Hunched characters (hogman, hogmother, zombie, frogman, troll, croakus) have the neck base forward, about 10 to 15% of the torso height right of the waist centre. For everyone else it sits roughly above the waist centre, except magmor (about 8% of torso height right) and fireimp (about 6% right). Zombie: the two shoulder sockets are centred about 7% of torso height right of the waist centre (front socket 21% right, back socket 7% left).
+- Hunched characters (hogman, hogmother, zombie, frogman, troll, croakus) have the neck base forward; for everyone else it sits roughly above the chest. Wherever it is, the game attaches the head and both arms at the points in the manifest, so every torso needs MEASURE and the fields "shoulders" and "neck" (13.2, 13.3).
 
 8.5 PELVIS: <id>_pelvis.png, 1024x1024, TRANSPARENT
 - Use 1024x1536 if a flap or robe hangs far down. Only the hero pelvis may hang freely below the belt; every other pelvis is scaled to a fixed height (13.5), so keep its flap or skirt as long as on the reference.
@@ -279,7 +282,7 @@ Background lines, used at the end of the prompt:
 
 8.6 ARM: <id>_arm.png, 1024x1536, TRANSPARENT
 - One arm hanging straight down, side view from the outside.
-  - Top: ending in a smooth rounded shoulder cap, clean, alone in the top rows.
+  - Top: ending in a smooth rounded shoulder cap, clean, alone in the top rows, at least as wide as the shoulder socket on the torso (the cap covers it).
   - Middle: the elbow.
   - Bottom: a closed fist, knuckles facing right, directly below the centre of the shoulder cap. The fingers are closed in a fist, curled as if gripping an invisible vertical pole, with nothing in the hand.
 - The fist centre (the grip) is about 86% down from the top; the game scales the arm so the hand joint lands there. The fist is the lowest point: no sleeve, fur or strap hangs lower.
@@ -301,7 +304,7 @@ Background lines, used at the end of the prompt:
 - One-sided heads (single axe blade, cleaver, crooked staff, curved dagger) need no anchor, because the game centres on the handle end. A guessed anchor switches that off.
 
 8.9 SHEET: figur_<id>.png, 1536x1024, TRANSPARENT (only when Tom asks; enemies and bosses, never thrugg or valkyra)
-- Tom uploads docs/maler/mal_figur.png. Draw each part inside its own cell following the part templates and the magenta marks (neck, waist, belt, shoulder, fist, hip, sole, grip): HEAD, TORSO, PELVIS on the top row, ARM, LEG, WEAPON on the bottom row, below the thin header strip.
+- Tom uploads docs/maler/mal_figur.png. Draw each part inside its own cell following the part templates and the magenta marks (neck, neckline, near and far shoulder on the torso, waist, belt, shoulder, fist, hip, sole, grip): HEAD, TORSO, PELVIS on the top row, ARM, LEG, WEAPON on the bottom row, below the thin header strip.
 - Nothing crosses a cell line, and each cell keeps a transparent or plain flat background. No text.
 - Leave empty the cell of any part the character does not have: the WEAPON cell for characters without a weapon, PELVIS, ARM and LEG for hogmother, ARM for croakus.
 - Use no bright magenta or hot pink in the art, because the script erases it. Soft pinks (snouts, curlers) are fine.
@@ -331,8 +334,8 @@ A huge barbarian hero in his forties. Tan, sweaty, oiled skin with scars and gri
 Notes: the fur mantle is on the torso, below the neck-base line. The buckle and loincloth fur stay inside the belt width.
 
 gorthak: GORTHAK THE UNDEFEATED (arena champion). Parts: head, torso, pelvis, arm, leg, weapon.
-An arena champion with an absurdly muscular tan body and a huge black great helm with a T-shaped visor, two glowing red eyes and giant bone horns. Bare scarred chest crossed by two black leather straps with a bone skull emblem, a black spiked pauldron on the back shoulder, gigantic arms with black spiked bracers, a tiny black armoured loincloth with red trim, long powerful legs in dark iron greaves. Weapon: a giant double-bladed battle axe with dried blood on the blades.
-Notes: HERO torso layout. The single pauldron is on the torso, upper left (back shoulder), spikes not above the neck base. He is also used, tinted ice-blue, for the ice champion.
+An arena champion with an absurdly muscular tan body and a huge black great helm with a T-shaped visor, two glowing red eyes and giant bone horns. Bare scarred chest crossed by two black leather straps with a bone skull emblem, a black spiked pauldron on the near shoulder, gigantic arms with black spiked bracers, a tiny black armoured loincloth with red trim, long powerful legs in dark iron greaves. Weapon: a giant double-bladed battle axe with dried blood on the blades.
+Notes: HERO torso layout. The single pauldron is on the torso, upper left (the near shoulder, above the socket the weapon arm hangs from), spikes not above the neck base. He is also used, tinted ice-blue, for the ice champion.
 
 skeleton: SKELLY GRUNT. Parts: head, torso, pelvis, arm, leg, weapon.
 A grim undead skeleton soldier. Yellowed, cracked, porous bones with dirt in the cracks, a skull with a faint red glow deep in the dark sockets, grinning teeth, a dented rusty brown helmet, a tattered grey-green loincloth rag. Weapon: a short rusty notched sword.
@@ -557,16 +560,21 @@ The tower stage is indoors and has no sky.
 - Manifest output: valid JSON in one code block, double quotes, commas between entries and none after the last, no comments.
 
 13.2 Numbers
-Normally an entry has no numbers: the game sizes each part from the skeleton and finds the joints itself. Two optional fields exist:
+Normally an entry has no numbers: the game sizes each part from the skeleton and finds the joints itself. Torsos are the exception: they always get "shoulders" and "neck" (13.3). These optional fields exist:
 - "height": height of the whole trimmed image in the character's units (before the character's own scale).
   - Add it only when Tom reports a part as too big or too small, for example a head at 1.25 when big hair shrinks the face.
   - On a torso, arm or leg it switches off the game's fit to the skeleton (neck, fist and feet in place), so prefer a REDO for those.
 - "anchor": [x, y], the joint in the trimmed image, 0 to 1, y from the top, two decimals. It switches off the game's own joint finding for that part, so always give both values, measured, not guessed.
+- "shoulders" (torsos): [[x, y], [x, y]], the near (left) shoulder joint first, then the far (right) one, 0 to 1 in the trimmed torso image. The weapon arm hangs from the first point: put it in the upper part of the socket, because the arm hangs down from it and its cap must cover the socket.
+- "neck" (torsos): [x, y] or [x, y, r], the centre of the neck base where the head attaches (y is normally 0.12). With r, a half width from 0 to 1 of the image width, the game fades out a neck stub above that line so the head's own neck shows instead.
+- "front": true (heads): the head is drawn in front of the torso. Only for LONG BEARD heads, so the beard hangs over the chest.
+- "hand" (arms): [x, y], the fist centre, only when the fist is not the lowest point of the arm.
 
 Add these fields only for the exceptions in 13.3 or after a TUNE, as described in 6.4. The script keeps them when the part is processed again. Never add them for pets (both fields are ignored there).
 
 13.3 Exceptions that need an anchor
-- LONG BEARD heads (gnome, vorthax): the beard hangs below the neck, so the bottom rows are beard, not neck. Draw the neck end behind the beard as usual. MEASURE, then give both values (typically about [0.47, 0.80]).
+- Every torso: MEASURE, then give "shoulders" and "neck". Without them the game guesses (near socket 9% in and 32% down, neck above the waist centre), and the arms or the head end up beside the painted sockets and neck.
+- LONG BEARD heads (gnome, vorthax): the beard hangs below the neck, so the bottom rows are beard, not neck. Draw the neck end behind the beard as usual. MEASURE, then give both anchor values (typically about [0.47, 0.80]) and "front": true.
 - Long-flap or long-skirt pelvises (8.5), including valkyra's: MEASURE, then give both values.
 - cluckatrice head: start with "anchor": [0.27, 0.84], then MEASURE where the neck base really is.
 - A mount leg whose hip is not at the horizontal centre (10): MEASURE, then give both values.
@@ -583,6 +591,7 @@ Add these fields only for the exceptions in 13.3 or after a TUNE, as described i
    - Arm: fist centre near 86% down, under the shoulder.
    - Leg: hip at the top edge, sole at the bottom edge.
    - LONG BEARD head: the neck end behind the beard.
+   - Torso: the near socket centre (left), the far shoulder (right) and the neck base centre (the middle of the neck or collar opening about 12% down). Report "shoulders": [[x, y], [x, y]] with the near point moved up into the upper part of its socket, and "neck": [x, 0.12]. If a neck stub rises above the neck base, add its half width as the third neck value.
    - Hairback: find the nape (the right end of the top clump); if it is more than 0.03 from [0.62, 0.22], give the measured anchor.
    - Mount leg: hip x near 0.5.
    - Pets: ratio versus target.
@@ -624,6 +633,7 @@ Mounts (before scale 1.05 / 1.0 / 1.05): warhog body 1.56, head 1.10, tail 0.64,
 - Feet sink or float: the leg does not have the hip at the very top and the sole at the very bottom. REDO the leg.
 - Weapon not in the fist: the game finds the fist at the bottom of the arm image and turns and scales the arm around the shoulder so the fist lands where the weapon is held, and it finds the grip on the weapon's handle. So the fist must be the LOWEST thing in the arm image, and the handle must be the narrowest part of the lower half of the weapon image. If an arm reaches forward so the fist is not lowest (like vorthax), give the arm a "hand" point in the manifest: "hand": [x, y], the fist centre in the trimmed image, y from the top. Otherwise REDO the wrong image.
 - Head floats or sinks: check the head's neck end and the torso's neck base (about 12% below its top). For a small offset, MOVE the head's anchor y by 0.03.
+- Head beside its neck, or a socket showing next to the weapon arm: MEASURE the torso again and fix "neck" or "shoulders".
 
 13.6 Saving and testing (tell Tom when it matters)
 - Save every image in art/inbox/ with exactly the given name and run python3 tools/process_art.py. It removes a flat one-colour background, trims, shrinks, fixes texture and sky seams, saves WebP in public/assets/ and updates the manifest. Originals move to art/inbox/behandlet/ (not in git). An unknown file name stops the whole batch, so never put <id>_reference.png in the inbox.

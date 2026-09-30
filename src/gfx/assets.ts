@@ -16,6 +16,19 @@ export interface PartOverride {
   fixedH: boolean;
   /** Armer: neven i bildet (brøk, y fra toppen). Riggen snur og skalerer armen så neven havner i våpenleddet. */
   hand?: [number, number];
+  /**
+   * Overkropper: skulderleddene i bildet (brøk, y fra toppen), den nære skulderen først. Figurene står i trekvart
+   * profil mot høyre, så den nære skulderen (med skulderplaten) er til venstre i bildet. Våpenarmen festes der og
+   * tegnes foran, den andre armen festes på den fjerne skulderen og tegnes bak overkroppen.
+   */
+  shoulders?: [[number, number], [number, number]];
+  /**
+   * Overkropper: halsroten i bildet (brøk, y fra toppen), der hodet festes. Med en tredje verdi (halv bredde, brøk av
+   * bredden) tones halsstumpen over halsroten ut, så hodets egen hals tar over uten søm.
+   */
+  neck?: [number, number] | [number, number, number];
+  /** Hoder: tegnes foran overkroppen (langt skjegg som henger over brystet). Ellers ligger hodet bak halsen på overkroppen. */
+  front?: boolean;
 }
 
 /** Samme bilde i en annen høyde. Leddpunktet følger med. Riggene bruker den til høyder regnet ut fra leddene. */
@@ -39,6 +52,12 @@ interface ManifestPart {
   anchor?: [number, number];
   /** Armer: neven i det beskårne bildet, [x, y] som anchor. Uten den finner lasteren neven nederst i armen. */
   hand?: [number, number];
+  /** Overkropper: midten av den nære og den fjerne skulderen, [[x, y], [x, y]] som anchor. Standard: SHOULDERS. */
+  shoulders?: [[number, number], [number, number]];
+  /** Overkropper: halsroten [x, y] der hodet festes, og eventuelt halv bredde på halsstumpen som skal tones ut. */
+  neck?: [number, number] | [number, number, number];
+  /** Hoder: tegn hodet foran overkroppen (langt skjegg). */
+  front?: boolean;
 }
 interface Manifest {
   parts?: ManifestPart[];
@@ -61,6 +80,11 @@ const DEFAULT_ANCHOR: Record<PartKey, [number, number]> = {
   body: [0.5, 0.5],
   tail: [0.92, 0.55],
 };
+/**
+ * Skulderleddene i en overkropp uten shoulders i manifestet: skulderplaten ytterst til venstre, en tredjedel ned, og
+ * den fjerne skulderen like innenfor høyre kant. Slik har ChatGPT tegnet overkroppene (se docs/ART_PROMPTS.md).
+ */
+const SHOULDERS: [[number, number], [number, number]] = [[0.09, 0.32], [0.92, 0.32]];
 const DEFAULT_H: Record<PartKey, number> = {
   head: 1.0,
   hairback: 1.3,
@@ -292,8 +316,10 @@ export async function loadAssets(base = './assets/') {
           const edge = EDGE_TOP[p.part];
           if (!p.anchor && !beast && edge !== undefined) ax = edgeX(cv, edge);
           const hand = p.part === 'arm' && !beast ? (p.hand ?? fistPoint(cv)) : undefined;
+          const shoulders = p.part === 'torso' && !beast ? (p.shoulders ?? SHOULDERS) : undefined;
           const w = (cv.width / cv.height) * h;
-          parts.set(p.char + ':' + p.part, { canvas: cv, w, h, ox: ax * w, oy: (1 - ay) * h, ax, ay, fixedH, hand });
+          const neck = p.part === 'torso' && !beast ? p.neck : undefined;
+          parts.set(p.char + ':' + p.part, { canvas: cv, w, h, ox: ax * w, oy: (1 - ay) * h, ax, ay, fixedH, hand, shoulders, neck, front: p.front });
           n++;
         })
         .catch((e) => console.warn(e)),

@@ -40,9 +40,9 @@ const big = (a: Partial<AttackDef> & Pick<AttackDef, 'id' | 'wind' | 'strike'>):
 });
 
 const cleaver = big({ id: 'cleaver', wind: P.chopW, strike: P.chopS, dmg: 18, word: ['CHOP!'] });
-const belly = big({ id: 'belly', wind: { torso: 0.4, armF: 2.6, armB: 2.4, bodyY: 0.1 }, strike: { torso: -0.6, armF: 0.4, armB: 0.2, bodyY: -0.2 }, dmg: 14, reach: 2.2, swoosh: 'none' });
+const belly = big({ id: 'belly', wind: { torso: 0.4, armF: 2.6, armB: 2.4, bodyY: 0.1 }, strike: { torso: -0.6, armF: 0.9, armB: 0.6, bodyY: -0.2, bodyX: 0.2 }, dmg: 14, reach: 2.2, swoosh: 'none' });
 const scepter = big({ id: 'scepter', wind: P.chopW, strike: P.chopS, dmg: 15, reach: 2.4 });
-const fist = big({ id: 'fist', wind: { armF: 3.0, armB: 2.6, torso: 0.3 }, strike: { armF: 0.4, armB: 0.3, torso: -0.5, bodyY: -0.2 }, dmg: 20, reach: 2.6, swoosh: 'none', word: ['CRUNCH!'] });
+const fist = big({ id: 'fist', wind: { armF: 3.0, armB: 2.6, torso: 0.3 }, strike: { armF: 1.2, armB: 1.0, torso: -0.5, bodyY: -0.2, bodyX: 0.25 }, dmg: 20, reach: 2.6, swoosh: 'none', word: ['CRUNCH!'] });
 const staff = big({ id: 'staff', startup: 0.35, wind: P.chopW, strike: P.chopS, dmg: 14, reach: 2.2, kd: false, launch: 0, push: 3 });
 
 export const BOSSES: Record<string, BossDef> = {

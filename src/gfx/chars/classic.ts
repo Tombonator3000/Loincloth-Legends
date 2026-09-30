@@ -13,7 +13,7 @@ const valkyra: CharDef = { ...buildHeroDef(PRESETS.valkyra, 1), id: 'valkyra', n
 // ---------------------------------------------------------------- SKELETON
 const SK = { bone: '#efe8d2', boneD: '#c9bf9f', rust: '#8a5a32', rag: '#5f6b4a', blade: '#b07a45' };
 const skeleton: CharDef = {
-  id: 'skeleton', name: 'SKELLY GRUNT', scale: 0.86, hipY: 0.84, joints: { ...HERO_J, shF: [0.1, 0.64], shB: [-0.08, 0.66], neck: [0.0, 0.76], hand: [0, -0.6] },
+  id: 'skeleton', name: 'SKELLY GRUNT', scale: 0.86, hipY: 0.84, joints: { ...HERO_J, shF: [-0.08, 0.66], shB: [0.1, 0.64], neck: [0.0, 0.76], hand: [0, -0.6] },
   blood: 'bone', voice: 'skeleton', color: '#b8b09a',
   leg: {
     w: 0.46, h: 1.0, ox: 0.16, oy: 0.9,
@@ -93,7 +93,7 @@ const skeleton: CharDef = {
 const HG = { green: '#7d9b45', belly: '#b7c67c', snout: '#e59aa0', tusk: '#fff6de', iron: '#6f757c', leather: '#5b3a1e', cloth: '#6b5a3a', wood: '#8b5a2b' };
 const hogman: CharDef = {
   id: 'hogman', name: 'HOGMAN', skin: [HG.green, HG.belly, HG.snout], scale: 1.12, hipY: 0.74,
-  joints: { hipF: [0.1, 0], hipB: [-0.1, 0], neck: [0.1, 0.8], shF: [0.2, 0.66], shB: [-0.2, 0.68], hand: [0, -0.6] },
+  joints: { hipF: [0.1, 0], hipB: [-0.1, 0], neck: [0.1, 0.8], shF: [-0.2, 0.68], shB: [0.2, 0.66], hand: [0, -0.6] },
   blood: 'red', voice: 'pig', color: '#7d9b45',
   leg: {
     w: 0.62, h: 0.9, ox: 0.26, oy: 0.8,
@@ -174,7 +174,7 @@ const hogman: CharDef = {
 // ---------------------------------------------------------------- CULTIST
 const CU = { robe: '#4b2470', robeL: '#6d3aa0', trim: '#d4a63a', skin: '#c9c2b0', eye: '#ffe34a', dark: '#2c2536' };
 const cultist: CharDef = {
-  id: 'cultist', name: 'CULTIST', skin: [CU.skin], scale: 0.9, hipY: 0.82, joints: { ...HERO_J, shF: [0.12, 0.64], shB: [-0.12, 0.66] },
+  id: 'cultist', name: 'CULTIST', skin: [CU.skin], scale: 0.9, hipY: 0.82, joints: { ...HERO_J, shF: [-0.12, 0.66], shB: [0.12, 0.64] },
   blood: 'red', voice: 'cultist', color: '#6d3aa0',
   leg: {
     w: 0.5, h: 0.98, ox: 0.18, oy: 0.88,
@@ -239,7 +239,7 @@ const cultist: CharDef = {
 const GN = { coat: '#2f5fb3', hat: '#c62b2b', skin: '#f0b48e', beard: '#f4f4f4', pants: '#6b4a2b', shoe: '#3b2414', sack: '#a88a55' };
 const gnome: CharDef = {
   id: 'gnome', name: 'POTION GNOME', skin: [GN.skin], scale: 0.62, hipY: 0.46,
-  joints: { hipF: [0.06, 0], hipB: [-0.06, 0], neck: [0.02, 0.5], shF: [0.12, 0.42], shB: [-0.12, 0.42], hand: [0, -0.38] },
+  joints: { hipF: [0.06, 0], hipB: [-0.06, 0], neck: [0.02, 0.5], shF: [-0.12, 0.42], shB: [0.12, 0.42], hand: [0, -0.38] },
   blood: 'red', voice: 'gnome', color: '#c62b2b',
   leg: {
     w: 0.6, h: 0.6, ox: 0.2, oy: 0.52,
@@ -358,7 +358,7 @@ const gorthak: CharDef = {
 const IM = { skin: '#6fae3e', overall: '#556b8f', cap: '#3a4f7a', eye: '#ffe14a', mop: '#cfc8b6', stick: '#9a6a38' };
 const imp: CharDef = {
   id: 'imp', name: 'CLEANUP IMP', skin: [IM.skin], scale: 0.72, hipY: 0.5,
-  joints: { hipF: [0.06, 0], hipB: [-0.06, 0], neck: [0.02, 0.54], shF: [0.12, 0.44], shB: [-0.12, 0.44], hand: [0, -0.4] },
+  joints: { hipF: [0.06, 0], hipB: [-0.06, 0], neck: [0.02, 0.54], shF: [-0.12, 0.44], shB: [0.12, 0.44], hand: [0, -0.4] },
   blood: 'green', voice: 'imp', color: '#6fae3e',
   leg: {
     w: 0.56, h: 0.64, ox: 0.2, oy: 0.56,

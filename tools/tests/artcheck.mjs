@@ -1,7 +1,7 @@
 // Kunstpakken satt sammen på riggen (de ekte bildene i public/assets, ikke testbilder):
 // - neven i armbildet havner i våpenleddet på alle figurer med malt arm, både i hvilestilling og med armen løftet
 //   (armer fra ChatGPT henger ikke alltid rett ned, så riggen snur og skalerer dem etter neven)
-// - den bakre armen synes på heltene (Thrugg sin arm er tegnet skrått framover og forsvant bak overkroppen)
+// - våpenarmen sitter på den nære skulderen og dekker skulderplaten, hodet ligger bak overkroppen, og hoggene når fram
 // - heltesmia beholder de malte heltene når bare våpen, tøyfarge eller magi byttes, og våpenet hentes fra bildene
 // Med OUTDIR lagres et galleri per figur: fire poser med leddmarkører (blå skulder, rød neve, grønn nakke, gul hofte).
 // Bruk: node tools/tests/artcheck.mjs http://localhost:4173/ [OUTDIR] [id,id,...]
@@ -66,54 +66,115 @@ const fist = await page.evaluate(({ ids }) => {
 }, { ids });
 check('neven i armbildet havner i våpenleddet (under 0,03 enheter, tre poser)', Object.keys(fist).length >= 10 && Object.values(fist).every((d) => d < 0.03), fist);
 
-// 2) Den bakre armen synes på heltene: andelen av armen som ikke skjules av overkroppen. Armen rendres alene, og så
-// med og uten armen i hele figuren; pikslene som endrer seg er den synlige delen.
-const back = await page.evaluate(() => {
-  const g = window.__game, L = window.__lib, T = L.THREE, res = {};
+// 2) Armene og hodet i trekvart profil (Tom: våpenarmen skal sitte ytterst, hodet og halsen bak overkroppen):
+// - våpenarmen dekker skulderplaten på den nære skulderen (venstre i bildet): midten og fire punkter rundt den er dekket
+//   av armen i hvilestilling. Før hang den bakre armen der, og platen (som et hull i skulderen) synes.
+// - hodet ligger bak overkroppen, unntatt hoder med langt skjegg (front i manifestet)
+// - den fjerne armen (på forsiden av kroppen) synes på Thrugg i hvilestilling
+const layer = await page.evaluate(({ ids }) => {
+  const g = window.__game, L = window.__lib, T = L.THREE, res = { cover: {}, headZ: {}, far: 0 };
   const S = new T.Scene();
   S.background = new T.Color(0x000000);
   S.add(new T.AmbientLight(0xffffff, 2));
-  const rt = new T.WebGLRenderTarget(256, 256);
+  const N = 256;
+  const rt = new T.WebGLRenderTarget(N, N);
   const cam = new T.PerspectiveCamera(35, 1, 0.1, 50);
-  cam.position.set(0, 1.25, 5.2);
-  cam.lookAt(0, 1.2, 0);
   const shot = () => {
     g.renderer.setRenderTarget(rt);
     g.renderer.render(S, cam);
-    const px = new Uint8Array(256 * 256 * 4);
-    g.renderer.readRenderTargetPixels(rt, 0, 0, 256, 256, px);
+    const px = new Uint8Array(N * N * 4);
+    g.renderer.readRenderTargetPixels(rt, 0, 0, N, N, px);
     g.renderer.setRenderTarget(null);
     return px;
   };
   const lit = (a, i) => a[i] + a[i + 1] + a[i + 2] > 30;
-  for (const id of ['thrugg', 'valkyra']) {
+  // Vis bare delene i keep (resten skjules), ta bilde og vis alt igjen
+  const only = (f, keep) => {
+    const hidden = [];
+    f.rig.root.traverse((o) => { if (o.isMesh && !keep.includes(o) && o.visible) { o.visible = false; hidden.push(o); } });
+    const px = shot();
+    for (const o of hidden) o.visible = true;
+    return px;
+  };
+  for (const id of ids) {
     const f = new L.Fighter(id, 'foe', { hp: 100, speed: 3 });
     f.addTo(S);
     f.rig.root.visible = true;
+    f.rig.snap({ ...L.NEUTRAL });
     f.rig.sync();
-    const all = shot();
-    f.rig.g.armB.visible = false;
-    const without = shot();
-    // Bare armen: alle andre deler skjult (armen ligger i overkroppsgruppa, så bare selve overkroppsflaten skjules)
-    f.rig.g.armB.visible = true;
-    const hidden = [];
-    f.rig.root.traverse((o) => { if (o.isMesh && !f.rig.g.armB.children.includes(o) && o.visible) { o.visible = false; hidden.push(o); } });
-    const alone = shot();
-    for (const o of hidden) o.visible = true;
-    let diff = 0, arm = 0;
-    for (let i = 0; i < all.length; i += 4) {
-      if (lit(alone, i)) arm++;
-      if (Math.abs(all[i] - without[i]) + Math.abs(all[i + 1] - without[i + 1]) + Math.abs(all[i + 2] - without[i + 2]) > 30) diff++;
+    const sc = f.rig.scale;
+    cam.position.set(0, 1.2 * sc, 5.2 * sc);
+    cam.lookAt(0, 1.15 * sc, 0);
+    cam.updateMatrixWorld();
+    f.rig.root.updateMatrixWorld(true);
+    res.headZ[id] = +f.rig.g.head.position.z.toFixed(3);
+    const arm = f.rig.g.armF.children.filter((c) => c.isMesh);
+    const px = only(f, arm);
+    const [sx, sy] = f.rig.joints.shF;
+    // Ringen er 3 prosent av bredden på overkroppen (platene er 10 til 14 prosent brede)
+    const tp = f.rig.g.torso.children.find((c) => c.isMesh).geometry.attributes.position;
+    const r = 0.03 * Math.abs(tp.getX(1) - tp.getX(0));
+    let hit = 0;
+    const pts = [[0, 0], [r, 0], [-r, 0], [0, r], [0, -r]];
+    for (const [dx, dy] of pts) {
+      const p = f.rig.g.torso.localToWorld(new T.Vector3(sx + dx, sy + dy, 0)).project(cam);
+      const x = Math.round((p.x * 0.5 + 0.5) * (N - 1)), y = Math.round((p.y * 0.5 + 0.5) * (N - 1));
+      if (x >= 0 && y >= 0 && x < N && y < N && lit(px, (y * N + x) * 4)) hit++;
     }
-    res[id] = +((100 * diff) / Math.max(1, arm)).toFixed(0);
+    res.cover[id] = hit / pts.length;
+    if (id === 'thrugg') {
+      // Den fjerne armen: andelen av armen som synes i hele figuren (armen alene mot figuren med og uten armen)
+      const all = shot();
+      f.rig.g.armB.visible = false;
+      const without = shot();
+      f.rig.g.armB.visible = true;
+      const alone = only(f, f.rig.g.armB.children.filter((c) => c.isMesh));
+      let diff = 0, n = 0;
+      for (let i = 0; i < all.length; i += 4) {
+        if (lit(alone, i)) n++;
+        if (Math.abs(all[i] - without[i]) + Math.abs(all[i + 1] - without[i + 1]) + Math.abs(all[i + 2] - without[i + 2]) > 30) diff++;
+      }
+      res.far = Math.round((100 * diff) / Math.max(1, n));
+    }
     f.rig.root.removeFromParent();
   }
   rt.dispose();
   return res;
-});
-check('den bakre armen synes på heltene (minst 25 prosent av armen, før var Thrugg sin 15)', Object.values(back).every((p) => p >= 25), back);
+}, { ids });
+// Impen har en tynn arm og en stor skulderkule i bildet, så noe av kula synes uansett (står på lista til ChatGPT)
+check('våpenarmen dekker skulderplaten på den nære skulderen (hvilestilling, alle fem punktene på heltene, minst tre på alle)',
+  Object.keys(layer.cover).length >= 10 && Object.values(layer.cover).every((c) => c >= 0.6) && ['thrugg', 'valkyra', 'gorthak'].every((id) => layer.cover[id] === 1), layer.cover);
+const bearded = ['gnome', 'vorthax'];
+check('hodet ligger bak overkroppen, hoder med langt skjegg foran', Object.entries(layer.headZ).every(([id, z]) => (bearded.includes(id) ? z > 0 : z < 0)), layer.headZ);
+check('den fjerne armen synes på Thrugg i hvilestilling (minst 25 prosent av armen)', layer.far >= 25, { thrugg: layer.far });
 
-// 3) Heltesmia: våpen, tøyfarge og magi kan byttes uten å miste de malte delene
+// 3) Hoggene når fram: våpentuppen i slaget (steg inn og armen strukket fram) mot det den gamle riggen nådde.
+// Våpenarmen sitter bak på kroppen etter byttet, så uten steget og armen fram ville sverdet stoppet ved hofta.
+const reach = await page.evaluate(() => {
+  const L = window.__lib, T = L.THREE, res = {};
+  for (const id of ['thrugg', 'valkyra']) {
+    for (const a of [L.HERO_ATK.slash1, L.HERO_ATK.chop, L.HERO_ATK.jump]) {
+      const f = new L.Fighter(id, 'foe', { hp: 100, speed: 3 });
+      f.rig.snap({ ...L.NEUTRAL, ...a.strike });
+      f.rig.sync();
+      res[id + ' ' + a.id] = +(f.rig.weaponTip(new T.Vector3()).x - f.pos.x).toFixed(2);
+      f.rig.root.removeFromParent();
+    }
+  }
+  return res;
+});
+check('hoggene når fram (våpentuppen minst 1,3 foran heltene, den gamle riggen nådde 1,4 til 1,7)', Object.values(reach).every((x) => x >= 1.3), reach);
+
+// Hver malt overkropp har målte skulderledd og halsrot i manifestet (ellers gjetter spillet, og armene og hodet havner
+// ved siden av det som er malt)
+const unmeasured = await page.evaluate(async () => {
+  const man = await (await fetch('./assets/manifest.json')).json();
+  const beasts = ['warhog', 'cluckatrice', 'magmanewt'];
+  return man.parts.filter((p) => p.part === 'torso' && !beasts.includes(p.char) && !(p.shoulders && p.neck)).map((p) => p.char);
+});
+check('alle malte overkropper har shoulders og neck i manifestet', unmeasured.length === 0, unmeasured);
+
+// 4) Heltesmia: våpen, tøyfarge og magi kan byttes uten å miste de malte delene
 const forge = await page.evaluate(() => {
   const L = window.__lib, P = L.PRESETS;
   const inh = (cfg) => L.buildHeroDef(cfg, 7).inherit ?? null;
@@ -141,7 +202,7 @@ if (out) {
       S.background = new T.Color(0x5a6470);
       S.fog = null;
       for (const c of S.children) if (!c.isLight && !c.userData.__keep) c.visible = false;
-      const def = L.getChar(id), sc = def.scale, J = def.joints;
+      const def = L.getChar(id), sc = def.scale;
       const dot = (parent, x, y, color) => {
         const m = new T.Mesh(new T.SphereGeometry(0.035 / sc, 10, 8), new T.MeshBasicMaterial({ color, depthTest: false }));
         m.position.set(x, y, 0.2);
@@ -157,7 +218,7 @@ if (out) {
         for (let k = 0; k < 20; k++) f.update(1 / 60, { minX: -40, maxX: 40, minZ: -1, maxZ: 1 });
         if (pose) f.rig.snap({ ...f.rig.pose, ...pose });
         f.rig.sync();
-        const G = f.rig.g;
+        const G = f.rig.g, J = f.rig.joints;
         dot(G.torso, J.shF[0], J.shF[1], 0x2060ff);
         dot(G.torso, J.shB[0], J.shB[1], 0x80a0ff);
         dot(G.torso, J.neck[0], J.neck[1], 0x20c040);

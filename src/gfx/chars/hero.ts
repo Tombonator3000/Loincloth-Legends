@@ -480,7 +480,7 @@ function lookKey(cfg: HeroConfig) {
  * Malte våpen per våpenvalg: et eget bilde (sword_weapon, axe_weapon, warhammer_weapon, club_weapon i manifestet) går
  * foran våpenet til en figur med samme slags våpen. Uten bilde tegnes våpenet.
  */
-const WEAPON_ART: readonly (readonly string[])[] = [['sword', 'thrugg'], ['axe', 'valkyra'], ['warhammer'], ['club', 'hogman']];
+const WEAPON_ART: readonly (readonly string[])[] = [['sword', 'thrugg'], ['axe', 'valkyra'], ['forge_warhammer', 'warhammer'], ['club', 'hogman']];
 
 export function buildHeroDef(cfg: HeroConfig, slot: number): CharDef {
   const fem = cfg.body === 1;

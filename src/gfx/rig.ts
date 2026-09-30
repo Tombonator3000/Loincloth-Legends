@@ -1,7 +1,7 @@
 // Cutout-rigg: hver kroppsdel er et eget plan med pivot i leddet.
 // Gjør animasjon enkel (vinkler per ledd) og lemlestelse gratis (løsne en gruppe).
 import * as THREE from 'three';
-import { getChar, type CharDef, type CharId, type PartDef, type PartName } from './chars';
+import { getChar, type CharDef, type CharId, type Joints, type PartDef, type PartName, type V2 } from './chars';
 import { unitCanvas } from './draw';
 import { getOverride, resized, type PartOverride } from './assets';
 import { damp } from '../core/math';
@@ -11,7 +11,18 @@ const PPU = 150;
 /** Strektykkelse for figurdelene (standard i draw.ts er 0.045). */
 export const INK_W = 0.028;
 
-type Asset = { tex: THREE.Texture; relief: THREE.Texture; geo: THREE.PlaneGeometry; canvas: HTMLCanvasElement };
+type Asset = {
+  tex: THREE.Texture;
+  relief: THREE.Texture;
+  geo: THREE.PlaneGeometry;
+  canvas: HTMLCanvasElement;
+  /** Overkropp fra PNG: skulderleddene i bildet (nær og fjern skulder) i delens enheter. */
+  shoulders?: [V2, V2];
+  /** Overkropp fra PNG: halsroten i bildet i delens enheter (der hodet festes). */
+  neck?: V2;
+  /** Hode fra PNG som skal ligge foran overkroppen (langt skjegg). */
+  front?: boolean;
+};
 const cache = new Map<string, Asset>();
 
 /**
@@ -27,8 +38,8 @@ function rigHeight(ch: CharDef, key: string, def: PartDef, ov: PartOverride): nu
     case 'leg':
       return ch.hipY / Math.max(0.5, 1 - ov.ay);
     case 'torso':
-      // Nakkeleddet omtrent 12 prosent under toppen av overkroppen
-      return J.neck[1] / Math.max(0.4, ov.ay - 0.12);
+      // Nakkeleddet ved halsroten i bildet (neck i manifestet), ellers omtrent 12 prosent under toppen
+      return J.neck[1] / Math.max(0.4, ov.ay - (ov.neck?.[1] ?? 0.12));
     case 'arm': {
       // Avstanden fra skulderen til neven i bildet blir avstanden fra skulderen til våpenleddet i riggen
       if (!ov.hand) return Math.abs(J.hand[1]) / Math.max(0.3, 0.86 - ov.ay);
@@ -56,6 +67,37 @@ function armTurn(ch: CharDef, ov: PartOverride) {
   return Math.atan2(hy, hx) - Math.atan2(-dy, dx);
 }
 
+/**
+ * Ton ut halsstumpen på en malt overkropp over halsroten (u, v, halv bredde r, brøk av bildet). ChatGPT har tegnet hals
+ * både på hodet og på overkroppen. Hodet ligger bak overkroppen, så uten dette synes toppen av stumpen (en flat kant
+ * eller en kule) foran hodets hals. Stumpen er helt borte et stykke over halsroten og kommer gradvis inn ned mot den.
+ */
+function fadeNeck(src: HTMLCanvasElement, u: number, v: number, r: number) {
+  const W = src.width, H = src.height;
+  const cv = document.createElement('canvas');
+  cv.width = W;
+  cv.height = H;
+  const c = cv.getContext('2d', { willReadFrequently: true })!;
+  c.drawImage(src, 0, 0);
+  const y1 = Math.min(H, Math.round(v * H)), y0 = Math.max(0, Math.round((v - 0.07) * H));
+  const x0 = Math.max(0, Math.floor((u - r) * W)), x1 = Math.min(W, Math.ceil((u + r) * W));
+  if (y1 < 1 || x1 <= x0) return cv;
+  const img = c.getImageData(x0, 0, x1 - x0, y1);
+  const d = img.data, bw = x1 - x0;
+  const ease = (t: number) => t * t * (3 - 2 * t);
+  for (let y = 0; y < y1; y++) {
+    const down = ease(Math.min(1, Math.max(0, (y - y0) / Math.max(1, y1 - y0))));
+    for (let x = x0; x < x1; x++) {
+      // Myk kant til sidene også: full virkning i midten, ingen ytterst i vinduet
+      const e = Math.abs(x + 0.5 - u * W) / (r * W);
+      const side = ease(Math.min(1, Math.max(0, (e - 0.7) / 0.3)));
+      d[(y * bw + x - x0) * 4 + 3] *= Math.max(down, side);
+    }
+  }
+  c.putImageData(img, x0, 0);
+  return cv;
+}
+
 export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
   const k = ch.id + ':' + key;
   let a = cache.get(k);
@@ -64,10 +106,20 @@ export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
     const src = ch.inherit?.[(key === 'hairback' ? 'head' : key) as keyof NonNullable<CharDef['inherit']>];
     let ov = getOverride(ch.id, key) ?? (src ? getOverride(src, key) : undefined);
     let turn = 0;
+    let shoulders: [V2, V2] | undefined;
+    let neck: V2 | undefined;
+    let canvas = ov?.canvas;
     if (ov) {
       const h = rigHeight(ch, key, def, ov);
       if (h) ov = resized(ov, h);
       if (key === 'arm' && ov.hand) turn = armTurn(ch, ov);
+      const o = ov;
+      const at = ([u, v]: readonly number[]): V2 => [(u - o.ax) * o.w, (o.ay - v) * o.h];
+      if (key === 'torso' && ov.shoulders) shoulders = [at(ov.shoulders[0]), at(ov.shoulders[1])];
+      if (key === 'torso' && ov.neck) {
+        neck = at(ov.neck);
+        if (ov.neck[2]) canvas = fadeNeck(ov.canvas, ov.neck[0], ov.neck[1], ov.neck[2]);
+      }
       def = { w: ov.w, h: ov.h, ox: ov.ox, oy: ov.oy, draw: () => {} };
     }
     // Store figurer (sjefer, kjempetrollet) tegnes med flere piksler per enhet, så de ikke blir uskarpe, og med
@@ -75,7 +127,7 @@ export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
     const big = Math.max(1, ch.scale / 1.2);
     const ppu = Math.round(PPU * big);
     // Tynnere strek enn standard: figurene skal se malte ut, ikke tegnet (docs/STYLE_TARGET.md)
-    const cv = ov ? ov.canvas : unitCanvas(def.w, def.h, def.ox, def.oy, ppu, def.draw, INK_W / big);
+    const cv = canvas ?? unitCanvas(def.w, def.h, def.ox, def.oy, ppu, def.draw, INK_W / big);
     // Normal- og glanskart ut fra tegningen (volum, muskelfurer, olje på huden), se gfx/charlight.ts.
     // Lages før strekene farges, fordi relieffet bruker blekkstrekene som furer.
     const relief = reliefTexture(cv, ov ? cv.width / def.w : ppu, ch.skin, !!ov);
@@ -88,7 +140,7 @@ export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
     const geo = new THREE.PlaneGeometry(def.w, def.h);
     geo.translate(def.w / 2 - def.ox, def.h / 2 - def.oy, 0);
     if (turn) geo.rotateZ(turn);
-    a = { tex, relief, geo, canvas: cv };
+    a = { tex, relief, geo, canvas: cv, shoulders, neck, front: ov?.front };
     cache.set(k, a);
   }
   return a;
@@ -157,10 +209,20 @@ export interface Pose {
   lift: number;
 }
 
-export const NEUTRAL: Pose = { torso: -0.05, head: 0.05, armF: 0.5, armB: -0.3, legF: 0.22, legB: -0.22, weapon: -1.3, bodyY: -0.03, bodyX: 0, tilt: 0, lift: 0 };
+/** Hvilestilling: våpenet holdes fram foran magen, og den fjerne armen henger litt fram så den synes. */
+export const NEUTRAL: Pose = { torso: -0.05, head: 0.05, armF: 0.55, armB: 0.3, legF: 0.22, legB: -0.22, weapon: -2.0, bodyY: -0.03, bodyX: 0, tilt: 0, lift: 0 };
 const KEYS = Object.keys(NEUTRAL) as (keyof Pose)[];
 
-const Z: Record<PartName, number> = { armB: -0.018, legB: -0.012, torso: 0, legF: 0.006, pelvis: 0.012, head: 0.018, weapon: -0.006, armF: 0.03 };
+/**
+ * Dybden på delene, størst er fremst. Figurene står i trekvart profil mot høyre: bakerst den fjerne armen, så
+ * bakhåret, hodet (bak halsen på en malt overkropp, så halsen går inn under kragen), overkroppen, beina, hofta og
+ * fremst våpenarmen på den nære skulderen. Tegnede overkropper har ingen hals, så der ligger hodet foran
+ * (HEAD_FRONT), og det gjør også hoder med langt skjegg over brystet (front i manifestet).
+ */
+const Z: Record<PartName, number> = { armB: -0.018, legB: -0.012, head: -0.008, torso: 0, legF: 0.006, pelvis: 0.012, weapon: -0.006, armF: 0.03 };
+const HEAD_FRONT = 0.018;
+/** Langt hår bak ryggen (hairback): bak hodet og foran den fjerne armen, uansett hvor hodet ligger. */
+const HAIR_BACK = -0.014;
 const ORDER: PartName[] = ['legB', 'torso', 'armB', 'legF', 'pelvis', 'head', 'armF', 'weapon'];
 
 export class Rig {
@@ -168,6 +230,13 @@ export class Rig {
   tilt = new THREE.Group();
   body = new THREE.Group();
   g = {} as Record<PartName, THREE.Group>;
+  /**
+   * Leddene figuren faktisk bruker: fra figuren, men skuldrene hentes fra en malt overkropp (skulderplatene i
+   * bildet). shF er den nære skulderen der våpenarmen sitter, til venstre i bildet.
+   */
+  joints: Joints;
+  /** Overkroppen er et malt bilde (med hals), og hodet legges bak den. */
+  private painted = false;
   mats: THREE.ShaderMaterial[] = [];
   pose: Pose = { ...NEUTRAL };
   facing = 1;
@@ -177,6 +246,7 @@ export class Rig {
 
   constructor(public def: CharDef, scaleMul = 1, public tint: [number, number, number] = [1, 1, 1]) {
     this.scale = def.scale * scaleMul;
+    this.joints = { ...def.joints };
     this.root.add(this.tilt);
     this.tilt.add(this.body);
     this.body.position.y = def.hipY;
@@ -188,7 +258,7 @@ export class Rig {
   /** Lag (eller gjenskap) en kroppsdel med riktig ledd og forelder. */
   private mkPart(name: PartName) {
     const def = this.def;
-    const J = def.joints;
+    const J = this.joints;
     const spec: Record<PartName, [string, PartDef | undefined, THREE.Object3D | undefined, [number, number], number]> = {
       legB: ['leg', def.leg, this.body, J.hipB, 0.78],
       torso: ['torso', def.torso, this.body, [0, 0], 1],
@@ -202,6 +272,11 @@ export class Rig {
     const [key, pd, parent, [x, y], tint] = spec[name];
     if (!pd || !parent) return null;
     const a = partAsset(def, key, pd);
+    if (name === 'torso') {
+      this.painted = !!a.shoulders;
+      if (a.shoulders) [J.shF, J.shB] = a.shoulders;
+      if (a.neck) J.neck = a.neck;
+    }
     const m = partMaterial(a.tex, tint, a.relief);
     m.userData.shade = tint;
     m.uniforms.tint.value.setRGB(tint * this.tint[0], tint * this.tint[1], tint * this.tint[2]);
@@ -211,7 +286,7 @@ export class Rig {
     mesh.frustumCulled = false;
     mesh.castShadow = true;
     const grp = new THREE.Group();
-    grp.position.set(x, y, Z[name]);
+    grp.position.set(x, y, name === 'head' && (!this.painted || a.front) ? HEAD_FRONT : Z[name]);
     grp.add(mesh);
     if (name === 'head') this.hairBack(grp, tint);
     parent.add(grp);
@@ -221,7 +296,7 @@ export class Rig {
 
   /**
    * Langt hår fra PNG (del hairback i manifestet) henger bak overkroppen men følger hodet: det ligger i
-   * hodegruppa, trukket bak overkroppen (z 0) og foran den bakre armen.
+   * hodegruppa, trukket bak hodet og overkroppen og foran den bakre armen (HAIR_BACK).
    */
   private hairBack(head: THREE.Group, tint: number) {
     const def = this.def;
@@ -236,7 +311,7 @@ export class Rig {
     const mesh = new THREE.Mesh(a.geo, m);
     mesh.frustumCulled = false;
     mesh.castShadow = true;
-    mesh.position.z = -Z.head - 0.01;
+    mesh.position.z = HAIR_BACK - head.position.z;
     head.add(mesh);
   }
 

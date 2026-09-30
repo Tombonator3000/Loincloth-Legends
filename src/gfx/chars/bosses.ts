@@ -67,7 +67,7 @@ const hogmother: CharDef = {
 // ---------------------------------------------------------------- KING CROAKUS
 const croakus: CharDef = {
   id: 'croakus', name: 'KING CROAKUS', scale: 2.0, hipY: 0.68,
-  joints: { ...HERO_J, hipF: [0.12, 0], hipB: [-0.12, 0], neck: [0.1, 0.76], shF: [0.24, 0.62], shB: [-0.2, 0.64] },
+  joints: { ...HERO_J, hipF: [0.12, 0], hipB: [-0.12, 0], neck: [0.1, 0.76], shF: [-0.2, 0.64], shB: [0.24, 0.62] },
   blood: 'red', voice: 'frog', color: '#3f7a2e',
   inherit: { arm: 'frogman' },
   leg: frogLeg(1.3),
@@ -137,7 +137,7 @@ function cracks(p: import('../draw').Pen, pts: number[][]) {
 }
 const magmor: CharDef = {
   id: 'magmor', name: 'MAGMOR THE MOLTEN', scale: 1.9, hipY: 0.8,
-  joints: { hipF: [0.12, 0], hipB: [-0.12, 0], neck: [0.08, 0.84], shF: [0.28, 0.68], shB: [-0.26, 0.7], hand: [0, -0.6] },
+  joints: { hipF: [0.12, 0], hipB: [-0.12, 0], neck: [0.08, 0.84], shF: [-0.26, 0.7], shB: [0.28, 0.68], hand: [0, -0.6] },
   blood: 'lava', voice: 'troll', color: '#ff7a1a',
   leg: {
     w: 0.7, h: 0.96, ox: 0.3, oy: 0.86,
@@ -188,7 +188,7 @@ const magmor: CharDef = {
 // ---------------------------------------------------------------- VORTHAX
 const VX = { robe: '#5b2a86', robeD: '#3a1a5a', trim: '#e8b83a', skin: '#d8c2a8', beard: '#d9d9d9', eye: '#ff3b2f', orb: '#44e0ff', wood: '#4a2e18' };
 const vorthax: CharDef = {
-  id: 'vorthax', name: 'VORTHAX', skin: [VX.skin], scale: 1.15, hipY: 0.82, joints: { ...HERO_J, shF: [0.12, 0.64], shB: [-0.12, 0.66] },
+  id: 'vorthax', name: 'VORTHAX', skin: [VX.skin], scale: 1.15, hipY: 0.82, joints: { ...HERO_J, shF: [-0.12, 0.66], shB: [0.12, 0.64] },
   blood: 'red', voice: 'wizard', color: '#5b2a86',
   leg: {
     w: 0.5, h: 0.98, ox: 0.18, oy: 0.88,
