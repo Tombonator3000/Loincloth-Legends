@@ -302,6 +302,14 @@ Flere lyder og stemmemanus (oppgaven etter frostpasset).
 ## 2026-09-29 23:12 (Europe/Oslo)
 - Frostpasset, kjempetrollet, de nye lydene og stemmemanuset er committet (8f45958) og pushet til main og claude/loincloth-legends-setup-qx39n4. GitHub Pages serverer det samme bygget (index-BXRzWNA7.js), og de nye lydfilene ligger ute. Siste kjøring: lydbanktesten alle OK (også enkeltfil-bygget fra file://), frostsound 10 av 10, giant 9 av 9, dirigenten 35 OK, pngparts, arenaen og looks for frosten uten feil.
 
+## 2026-09-29 23:27 (Europe/Oslo)
+- Ferdigstilte hele ChatGPT-kunstlisten: 89 figurdeler, 12 separate ridedyrdeler, fem kjæledyr, 28 teksturer, åtte himler og kartet. Alle 143 ferdige WebP-filer ligger i public/assets/ og er oppført én gang i manifestet. Valkyras opprinnelige helfigurreferanse er ikke lagt i det offentlige repoet.
+- Laget egne referanser for figurene og ridedyrene, rettet gnomen og Vorthax sine skjegghoder, og laget fire ridedyrdeler på nytt fordi de hadde fått med kropp eller sadel. Renset fem deler for fragmenter fra naboruter og satte målte ankere for langt hår, skjegg, skjørt og forskjøvne ledd.
+- Flisene er kontrollert i 2 x 2 gjentakelse, himmelsømmer er behandlet, og kartnoder er lagt over kartet i en lokal kontrollkopi for å sjekke terrenget. Kontrollkopiene er ikke del av spillet.
+- tools/process_art.py verifiserer nå WebP før en fil legges på plass. Tidligere kunne bildeenkoderen skrive en tom fil uten feil; ti slike filer ble regenerert. tools/check_art_pack.py sjekker alle navn, antall, dekoding, format, dimensjoner og alfakanal. Kontrollen gikk grønt, sammen med npm run typecheck og npm run build.
+- Oppstarten venter på at alle bildefilene er lastet før scenen bygges, slik at en treg forbindelse ikke blander ny grafikk med prosedyregrafikken. Nettlesertest med Playwright ble ikke kjørt i denne økten fordi Chromium-nedlastingen var blokkert; bygg og filkontroll gikk grønt.
+- Etter at hovedgrenen fikk frostpasset, laget jeg frosthimmelen på nytt som blåtime med kaldblå fjell og et svakt varmt bånd ved horisonten, slik den nyeste kunstprompten beskriver.
+
 ## 2026-09-30 06:43 (Europe/Oslo)
 Tom meldte at noen fiender alltid rygger unna og er for raske, så helten aldri når dem, og ba om det neste fra konseptbilde 4 (juvet, istapper, fyrfat som veltes, kjempen som kaster heltene) og fiender som løper i panikk innimellom.
 - Årsaken til ryggingen: fiendene fikk gå tre enheter ut av bildet, og kameraet står stille under en bølge, så de som kaster (kultister, ildimper) rygget ut dit helten ikke kom. Det nye, nærmere kameraet gjorde det verre (bildet er smalere). Nå holdes en fiende innenfor bildet når han først har kommet inn (tyver på flukt og ryttere går fritt), han rygger på halv fart, og ønsket avstand for dem som kaster er begrenset av bredden på bildet.
@@ -358,6 +366,13 @@ Tom: hører ingen forskjell på MP3-ene med ekte instrumenter og de gamle metall
 - Lytteprøver til Tom: seks A/B-filer der synthen spiller 10 sekunder og så de ekte instrumentene 10 sekunder, med samme forsterkning på begge: hele brettlåta, trommene alene, rytmegitarene alene, bassen alene, leadgitaren alene og tittellåta.
 - Nye verktøy: tools/tests/mix.mjs (nivå og bånd per instrument, synth mot opptak, rå, K og mobil) og metal.mjs kan rendre ett instrument alene (drums, guitar, bass, lead).
 - instruments.mjs har to nye sjekker: trommene høres minst 3 dB bedre enn synthtrommene på små høyttalere, og gitarene svarer på anslaget (minst 5 dB til sammen for akkord og leadtone). Kjørt mot forrige bygg (cbc1806) feiler begge (trommene -1,1 dB, anslaget 2,7), mot det nye er alle 9 grønne. Regresjon: soundbank ALL OK, imuse ALL OK, frostsound, metalmode og settings uten feil, typecheck og build.
+
+## 2026-09-30 10:36 (Europe/Oslo)
+- Gjenopptok kunstleveransen etter avbrutt GitHub-opplasting. Alle 143 filer var bevart lokalt. Kunstgrenen er lagt oppå main 70e374d, med nyere musikk, menyer og frostmekanikker bevart; logg og prosjekthukommelse er slått sammen.
+- Uavhengig kontroll mot masterlista bekreftet alle filnavn, full pikseldekoding, ekte alfa på 106 deler og gyldige manifestankere. Gorthaks hoftebilde inneholdt bare lår; det er laget på nytt som kun belte og lendeklede, med målt anker [0.50, 0.17].
+- Oppstarten venter på kunstpakken, men har nå tidsgrenser: 15 sekunder for manifest inkludert JSON, 60 sekunder per bilde. Fastlåste nedlastinger avbrytes, og sene callbacks kan ikke bytte grafikk etter oppstart.
+- Kontrollert: python3 tools/check_art_pack.py, node tools/tests/assets-timeout.mjs, npm run typecheck og npm run build. Timeout-testen dekker hengende fetch, hengende JSON, sen bildefil og vanlig bildefeil. Nettlesertest og samlet visuell riggkontroll gjenstår; Chromium er ikke tilgjengelig i denne økten.
+- Bildene overføres via GitHub-tilkoblingen, med kontroll av hver Git blob-SHA mot lokal fil før grenen publiseres. Valkyras opprinnelige referansebilde er fortsatt utenfor repoet.
 
 ## 2026-09-30 11:17 (Europe/Oslo)
 Tom: rytmegitaren høres fortsatt syntetisk ut, ikke som en ekte el-gitar. Tre grunner, alle rettet.
