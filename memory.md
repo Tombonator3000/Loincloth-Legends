@@ -55,6 +55,8 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - Lagring: localStorage-nøkkel `loincloth-legends-save-v1`, alt i try/catch.
 - Sjefens død: slowmo og 4,5 s spilltid før belønningen. Tester må vente på `screens.active`, ikke på et fast antall sekunder.
 - Pikselfonten (Press Start 2P) mangler Æ Ø Å. Bruk ord uten dem i UI-tekst som vises med den fonten.
+- Menyer (Tom 2026-09-30: lettere å lese, færre knapper): tittelen har fire knapper, valg av typen "ett av flere" er en verdi med piler på én rad (`Item.value` og `adjust`), forklaringen står i ett felt under menyen (`Item.hint`, `.menu-hint`), lister bruker `ul.menu.rows` (navn til venstre, verdi til høyre, VT323), sentrerte menyer og overskrifter Metal Mania. Innstillingene er gruppert (OPTIONS: gore, SOUND, SCREEN, CONTROLS, ERASE SAVE bare fra tittelen). Se ARCHITECTURE.md, Menyer.
+- Menyinput reagerer på kanten av tastetrykket (`prevMenu` i input.ts). Tester som trykker samme tast flere ganger, må kjøre minst to frames per trykk.
 - All tekst i spillet er engelsk (de siste norske restene på tittelen, kontrollskjermen, menyhintene, heltesmia, kartet og i leiren ble oversatt 2026-09-30). Også title- og aria-label-attributter er engelske. Kontrollskjermen viser "-" for tasten `Slash` (norsk tastatur).
 - Artifact: versjon 3 publisert 2026-09-29 fra dist-single via tools/artifact.py (samme URL som versjon 1 og 2).
 - Innstillinger lagres i `loincloth-legends-settings-v1`, separat fra fremgangen (`src/core/settings.ts`). `onSettings` varsler Game.

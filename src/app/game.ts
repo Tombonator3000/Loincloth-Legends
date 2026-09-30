@@ -6,7 +6,7 @@ import { Gore } from '../gfx/gore';
 import { FX } from '../gfx/fx';
 import { buildArena, type Env } from '../gfx/env';
 import { HUD } from '../ui/hud';
-import { Screens, type Item } from '../ui/screens';
+import { Screens, type Item, type ControlsPage } from '../ui/screens';
 import { TouchControls } from '../ui/touch';
 import { Splash, wantSplash } from '../ui/splash';
 import { settings, setSettings, onSettings, touchEnabled, GORE_NAMES, GORE_HINTS, QUALITY_SETTINGS, QUALITY_HINTS, type GoreLevel, type TouchMode, type QualitySetting } from '../core/settings';
@@ -209,6 +209,9 @@ export class Game {
   scene: Scene = new IdleScene();
   save: SaveData = loadSave();
   twoP = false;
+  /** Valgene på tittelskjermen: antall spillere i historien (0 = ikke valgt ennå) og duell mot CPU eller spiller 2. */
+  private titlePlayers: 0 | 1 | 2 = 0;
+  private titleVsP2 = false;
   paused = false;
   last = performance.now();
   width = 1;
@@ -388,86 +391,137 @@ export class Game {
     this.showTitleMenu();
   }
 
-  showTitleMenu() {
+  /** Tittelmenyen har fire knapper. Antall spillere og motstander velges med venstre/høyre på raden. */
+  showTitleMenu(sel = 0) {
+    if (!this.titlePlayers) this.titlePlayers = this.twoP ? 2 : 1;
+    const items = this.titleItems();
+    // Står tittelen allerede fremme, tegnes bare menyen på nytt (ellers starter logoen på nytt ved hver pil)
+    if (this.screens.active && this.screens.kind === 'title' && this.screens.relist(items, sel)) return;
+    this.screens.title(items, audio.muted, sel);
+  }
+
+  private titleItems(): Item[] {
     const s = this.save;
     const progress = s.completed.length > 0;
-    this.screens.title([
-      { label: progress ? 'CONTINUE: 1 PLAYER' : 'STORY: 1 PLAYER', hint: 'WORLD MAP, BOSSES AND DUELS', action: () => this.startStory(false) },
-      { label: progress ? 'CONTINUE: 2 PLAYERS' : 'STORY: 2 PLAYERS', hint: 'CO-OP ON ONE KEYBOARD OR GAMEPADS', action: () => this.startStory(true) },
+    const two = this.titlePlayers === 2;
+    const p2 = this.titleVsP2;
+    return [
+      {
+        label: progress ? 'CONTINUE' : 'STORY', value: two ? '2 PLAYERS' : '1 PLAYER',
+        hint: two ? 'CO-OP ON ONE KEYBOARD OR GAMEPADS' : 'WORLD MAP, BOSSES AND DUELS',
+        action: () => this.startStory(two),
+        adjust: () => {
+          this.titlePlayers = two ? 1 : 2;
+          this.showTitleMenu(0);
+        },
+      },
+      {
+        label: 'DUEL', value: p2 ? 'VS PLAYER 2' : 'VS CPU',
+        hint: p2 ? s.heroes[0].name + ' VS ' + s.heroes[1].name : 'CHOOSE YOUR VICTIM',
+        action: () => (p2 ? this.pvpDuel() : this.duelMenu()),
+        adjust: () => {
+          this.titleVsP2 = !p2;
+          this.showTitleMenu(1);
+        },
+      },
       { label: 'HERO FORGE', hint: 'FORGE YOUR OWN HERO', action: () => this.openCreator([0, 1], () => this.goTitle()) },
-      { label: 'DUEL VS CPU', hint: 'CHOOSE YOUR VICTIM', action: () => this.duelMenu() },
-      { label: 'DUEL P1 VS P2', hint: s.heroes[0].name + ' VS ' + s.heroes[1].name, action: () => this.pvpDuel() },
-      { label: 'SETTINGS', hint: 'GORE, SOUND, RUMBLE, TOUCH', action: () => this.showSettings(() => this.showTitleMenu()) },
-      { label: 'CONTROLS', action: () => this.screens.controls(() => this.showTitleMenu()) },
-      { label: 'NEW GAME', hint: 'ERASE ALL PROGRESS', action: () => this.confirmReset() },
-    ], audio.muted);
+      { label: 'OPTIONS', hint: 'GORE, SOUND, SCREEN AND CONTROLS', action: () => this.showSettings(() => this.showTitleMenu(3)) },
+    ];
   }
 
   // ---------------------------------------------------------------- innstillinger
+  /** OPTIONS: gore og tre grupper (lyd, skjerm, kontroller). Sletting av lagringen bare fra tittelen. */
   showSettings(onBack: () => void, sel = 0) {
+    const again = (i: number) => this.showSettings(onBack, i);
+    const gore = (d: number) => {
+      setSettings({ gore: ((((settings.gore + d) % 4) + 4) % 4) as GoreLevel });
+      again(0);
+    };
+    const items: Item[] = [
+      { label: 'GORE', value: GORE_NAMES[settings.gore], hint: GORE_HINTS[settings.gore], action: () => gore(1), adjust: gore },
+      { label: 'SOUND', more: true, hint: 'MUSIC, THE BAND AND THE CRUNCHES', action: () => this.showSettingsGroup('sound', () => again(1)) },
+      { label: 'SCREEN', more: true, hint: 'GRAPHICS, FULLSCREEN, SHAKE AND FLASHES', action: () => this.showSettingsGroup('screen', () => again(2)) },
+      { label: 'CONTROLS', more: true, hint: 'KEYS, MOVES, RUMBLE AND TOUCH', action: () => this.showControls(() => again(3)) },
+    ];
+    if (this.scene.name === 'title') items.push({ label: 'ERASE SAVE', hint: 'ALL PROGRESS AND HEROES. NO TAKEBACKS.', action: () => this.confirmReset(() => again(4)) });
+    items.push({ label: 'BACK', action: onBack });
+    this.screens.custom(`<div class="panel settings"><h2>OPTIONS</h2><ul class="menu rows"></ul></div>`, items, sel, onBack);
+  }
+
+  /** Én gruppe innstillinger: lyd eller skjerm. */
+  showSettingsGroup(group: 'sound' | 'screen', onBack: () => void, sel = 0) {
     const pct = (v: number) => Math.round(v * 100) + '%';
     const step = (v: number, d: number) => Math.max(0, Math.min(1, Math.round((v + d * 0.1) * 10) / 10));
-    const TOUCH: TouchMode[] = ['auto', 'on', 'off'];
-    const fs = !!document.fullscreenElement;
-    // Hver rad får vite sin egen plass, så menyen tegnes på nytt med riktig rad valgt
+    const onOff = (b: boolean) => (b ? 'ON' : 'OFF');
+    const again = (i: number) => this.showSettingsGroup(group, onBack, i);
     const items: Item[] = [];
-    const row = (make: (again: () => void) => Item) => {
-      const i = items.length;
-      items.push(make(() => this.showSettings(onBack, i)));
-    };
-    row((again) => {
-      const cycle = (d: number) => {
-        setSettings({ gore: ((((settings.gore + d) % 4) + 4) % 4) as GoreLevel });
-        again();
-      };
-      return { label: 'GORE: ' + GORE_NAMES[settings.gore], hint: GORE_HINTS[settings.gore], action: () => cycle(1), adjust: cycle };
-    });
-    row((again) => ({ label: 'MUSIC: ' + pct(settings.music), action: () => { setSettings({ music: settings.music >= 1 ? 0 : step(settings.music, 1) }); again(); }, adjust: (d) => { setSettings({ music: step(settings.music, d) }); again(); } }));
-    row((again) => {
+    // Hver rad får vite sin egen plass, så menyen tegnes på nytt med riktig rad valgt
+    const row = (make: (i: number) => Item) => items.push(make(items.length));
+    const toggle = (label: string, get: () => boolean, set: (b: boolean) => void, hints?: [string, string], after?: () => void) => row((i) => {
       const flip = () => {
-        setSettings({ musicStyle: settings.musicStyle === 'metal' ? 'chip' : 'metal' });
-        again();
+        set(!get());
+        after?.();
+        again(i);
       };
-      return { label: 'MUSIC STYLE: ' + (settings.musicStyle === 'metal' ? 'HEAVY METAL' : '8-BIT'), hint: settings.musicStyle === 'metal' ? 'DISTORTION, DOUBLE KICK, GUITAR SOLOS' : 'THE OLD CHIPTUNES', action: flip, adjust: flip };
+      return { label, value: onOff(get()), hint: hints ? (get() ? hints[0] : hints[1]) : undefined, action: flip, adjust: flip };
     });
-    row((again) => ({ label: 'SOUND FX: ' + pct(settings.sfx), action: () => { setSettings({ sfx: settings.sfx >= 1 ? 0 : step(settings.sfx, 1) }); audio.hit(); again(); }, adjust: (d) => { setSettings({ sfx: step(settings.sfx, d) }); audio.hit(); again(); } }));
-    row((again) => {
-      const flip = () => {
-        setSettings({ recorded: !settings.recorded });
-        audio.hit(true);
-        again();
-      };
-      return { label: 'RECORDED SOUNDS: ' + (settings.recorded ? 'ON' : 'OFF'), hint: settings.recorded ? 'REAL CRUNCHES AND THUNDER OVER THE SYNTH' : 'SYNTH ONLY. VERY 1984.', action: flip, adjust: flip };
-    });
-    row((again) => ({ label: 'SCREEN SHAKE: ' + (settings.shake ? 'ON' : 'OFF'), action: () => { setSettings({ shake: !settings.shake }); again(); }, adjust: () => { setSettings({ shake: !settings.shake }); again(); } }));
-    row((again) => {
-      const flip = () => {
-        setSettings({ flashes: !settings.flashes });
-        again();
-      };
-      return { label: 'FLASHES: ' + (settings.flashes ? 'ON' : 'OFF'), hint: settings.flashes ? 'WHITE FLASHES AND LIGHTNING' : 'NO WHITE FLASHES. EASIER ON THE EYES.', action: flip, adjust: flip };
-    });
-    row((again) => {
-      const flip = () => {
-        setSettings({ distortion: !settings.distortion });
-        again();
-      };
-      return { label: 'SCREEN DISTORTION: ' + (settings.distortion ? 'ON' : 'OFF'), hint: settings.distortion ? 'SHOCKWAVES, ZOOM AND HEAT SHIMMER' : 'A STEADY PICTURE. THE BLOOD STILL RUNS.', action: flip, adjust: flip };
-    });
-    row((again) => ({ label: 'GAMEPAD RUMBLE: ' + (settings.rumble ? 'ON' : 'OFF'), action: () => { setSettings({ rumble: !settings.rumble }); this.input.rumble(-1, 0.6, 0.6, 200); again(); }, adjust: () => { setSettings({ rumble: !settings.rumble }); again(); } }));
-    row((again) => ({ label: 'TOUCH CONTROLS: ' + settings.touch.toUpperCase(), hint: 'AUTO = ON FOR PHONES AND TABLETS', action: () => { setSettings({ touch: TOUCH[(TOUCH.indexOf(settings.touch) + 1) % 3] }); again(); }, adjust: (d) => { setSettings({ touch: TOUCH[(TOUCH.indexOf(settings.touch) + d + 3) % 3] }); again(); } }));
-    row((again) => ({ label: 'FULLSCREEN: ' + (fs ? 'ON' : 'OFF'), action: () => { this.toggleFullscreen(); setTimeout(again, 250); } }));
-    row((again) => {
-      const cycle = (d: number) => {
-        const i = QUALITY_SETTINGS.indexOf(settings.quality);
-        // Et nytt valg gir AUTO en ny sjanse (glemmer hvor langt den har trappet ned)
-        setSettings({ quality: QUALITY_SETTINGS[(i + d + QUALITY_SETTINGS.length) % QUALITY_SETTINGS.length] as QualitySetting, autoQuality: '' });
-        again();
-      };
-      return { label: 'GRAPHICS: ' + settings.quality.toUpperCase() + (settings.quality === 'auto' ? ' (' + this.post.quality.toUpperCase() + ')' : ''), hint: QUALITY_HINTS[settings.quality], action: () => cycle(1), adjust: cycle };
-    });
+    if (group === 'sound') {
+      row((i) => ({ label: 'MUSIC', value: pct(settings.music), hint: 'THE BAND. LEFT AND RIGHT CHANGE THE VOLUME.', action: () => { setSettings({ music: settings.music >= 1 ? 0 : step(settings.music, 1) }); again(i); }, adjust: (d) => { setSettings({ music: step(settings.music, d) }); again(i); } }));
+      row((i) => {
+        const flip = () => {
+          setSettings({ musicStyle: settings.musicStyle === 'metal' ? 'chip' : 'metal' });
+          again(i);
+        };
+        return { label: 'MUSIC STYLE', value: settings.musicStyle === 'metal' ? 'HEAVY METAL' : '8-BIT', hint: settings.musicStyle === 'metal' ? 'DISTORTION, DOUBLE KICK, GUITAR SOLOS' : 'THE OLD CHIPTUNES', action: flip, adjust: flip };
+      });
+      row((i) => ({ label: 'SOUND FX', value: pct(settings.sfx), hint: 'CRUNCHES, SPLATS AND SCREAMS.', action: () => { setSettings({ sfx: settings.sfx >= 1 ? 0 : step(settings.sfx, 1) }); audio.hit(); again(i); }, adjust: (d) => { setSettings({ sfx: step(settings.sfx, d) }); audio.hit(); again(i); } }));
+      toggle('RECORDED SOUNDS', () => settings.recorded, (b) => setSettings({ recorded: b }), ['REAL CRUNCHES AND THUNDER OVER THE SYNTH', 'SYNTH ONLY. VERY 1984.'], () => audio.hit(true));
+    } else {
+      row((i) => {
+        const cycle = (d: number) => {
+          const q = QUALITY_SETTINGS.indexOf(settings.quality);
+          // Et nytt valg gir AUTO en ny sjanse (glemmer hvor langt den har trappet ned)
+          setSettings({ quality: QUALITY_SETTINGS[(q + d + QUALITY_SETTINGS.length) % QUALITY_SETTINGS.length] as QualitySetting, autoQuality: '' });
+          again(i);
+        };
+        return { label: 'GRAPHICS', value: settings.quality.toUpperCase() + (settings.quality === 'auto' ? ' (' + this.post.quality.toUpperCase() + ')' : ''), hint: QUALITY_HINTS[settings.quality], action: () => cycle(1), adjust: cycle };
+      });
+      row((i) => {
+        const flip = () => {
+          this.toggleFullscreen();
+          setTimeout(() => again(i), 250);
+        };
+        return { label: 'FULLSCREEN', value: onOff(!!document.fullscreenElement), hint: 'MORE SCREEN, MORE BLOOD.', action: flip, adjust: flip };
+      });
+      toggle('SCREEN SHAKE', () => settings.shake, (b) => setSettings({ shake: b }), ['THE CAMERA FLINCHES AT THE BIG HITS.', 'THE CAMERA KEEPS ITS COOL.']);
+      toggle('FLASHES', () => settings.flashes, (b) => setSettings({ flashes: b }), ['WHITE FLASHES AND LIGHTNING', 'NO WHITE FLASHES. EASIER ON THE EYES.']);
+      toggle('SCREEN DISTORTION', () => settings.distortion, (b) => setSettings({ distortion: b }), ['SHOCKWAVES, ZOOM AND HEAT SHIMMER', 'A STEADY PICTURE. THE BLOOD STILL RUNS.']);
+    }
     items.push({ label: 'BACK', action: onBack });
-    this.screens.custom(`<div class="panel settings"><h2>SETTINGS</h2><ul class="menu"></ul><p class="line small">GAMEPAD: A JUMP &middot; X ATTACK &middot; B SPECIAL &middot; Y GRAB &middot; START PAUSE</p></div>`, items, sel, onBack);
+    this.screens.custom(`<div class="panel settings"><h2>${group === 'sound' ? 'SOUND' : 'SCREEN'}</h2><ul class="menu rows"></ul></div>`, items, sel, onBack);
+  }
+
+  /** Kontrollskjermen: tre sider (tastene, brettene, duellene), med rumble og berøring nederst. */
+  showControls(onBack: () => void, sel = 0, page: ControlsPage = 'keys') {
+    const PAGES: ControlsPage[] = ['keys', 'stages', 'duels'];
+    const NAMES: Record<ControlsPage, string> = { keys: 'KEYS', stages: "BEAT 'EM UP", duels: 'DUELS' };
+    const TOUCH: TouchMode[] = ['auto', 'on', 'off'];
+    const again = (i: number) => this.showControls(onBack, i, page);
+    const flip = (d: number) => this.showControls(onBack, 0, PAGES[(PAGES.indexOf(page) + d + PAGES.length) % PAGES.length]);
+    const rumble = () => {
+      setSettings({ rumble: !settings.rumble });
+      this.input.rumble(-1, 0.6, 0.6, 200);
+      again(1);
+    };
+    const touch = (d: number) => {
+      setSettings({ touch: TOUCH[(TOUCH.indexOf(settings.touch) + d + 3) % 3] });
+      again(2);
+    };
+    this.screens.controls(page, [
+      { label: 'SHOW', value: NAMES[page], hint: 'LEFT AND RIGHT: KEYS, BEAT \'EM UP MOVES, DUEL MOVES', action: () => flip(1), adjust: flip },
+      { label: 'GAMEPAD RUMBLE', value: settings.rumble ? 'ON' : 'OFF', hint: settings.rumble ? 'THE PAD SHAKES WHEN SOMETHING GETS HIT.' : 'NO SHAKING. THE PAD IS AT PEACE.', action: rumble, adjust: rumble },
+      { label: 'TOUCH CONTROLS', value: settings.touch.toUpperCase(), hint: 'AUTO = ON FOR PHONES AND TABLETS', action: () => touch(1), adjust: touch },
+    ], onBack, sel);
   }
 
   toggleFullscreen() {
@@ -479,24 +533,25 @@ export class Game {
     }
   }
 
-  private confirmReset() {
-    this.screens.result('NEW GAME?', 'ALL PROGRESS AND HEROES WILL BE ERASED. THE HAM REMAINS HALF-EATEN.', [
-      { label: 'NO, GO BACK', action: () => this.showTitleMenu() },
+  private confirmReset(onCancel: () => void) {
+    this.screens.result('ERASE SAVE?', 'ALL PROGRESS AND HEROES WILL BE ERASED. THE HAM REMAINS HALF-EATEN.', [
+      { label: 'NO, GO BACK', action: onCancel },
       { label: 'YES, ERASE', action: () => {
         this.save = defaultSave();
         this.persist();
+        this.titlePlayers = 0;
         this.showTitleMenu();
       } },
-    ]);
+    ], 0, onCancel);
   }
 
   private duelMenu() {
     const done = new Set(this.save.completed);
     const list = Object.values(DUELISTS);
-    this.screens.result('CHOOSE YOUR VICTIM', 'BEAT THEM IN THE STORY TO KNOW THEIR WEAKNESS. OR JUST HIT THEM.', [
+    this.screens.custom(`<div class="panel duels"><h2>CHOOSE YOUR VICTIM</h2><p class="line">BEAT THEM IN THE STORY TO KNOW THEIR WEAKNESS. OR JUST HIT THEM.</p><ul class="menu"></ul></div>`, [
       ...list.map((d) => ({ label: d.char === '@player' ? 'DARK ' + this.save.heroes[0].name : d.name, hint: d.title, action: () => this.quickDuel(d) })),
-      { label: 'BACK', action: () => this.showTitleMenu() },
-    ]);
+      { label: 'BACK', action: () => this.showTitleMenu(1) },
+    ], 0, () => this.showTitleMenu(1));
     void done;
   }
 
@@ -716,7 +771,7 @@ export class Game {
         items.push({ label: 'TRAINING', action: () => showTraining(this, 0, () => { this.paused = false; this.togglePause(); }) });
       }
       else items.push({ label: 'WORLD MAP', action: () => (this.save.completed.length || this.scene.name !== 'duel' ? this.goMap() : this.goTitle()) });
-      items.push({ label: 'SETTINGS', action: () => this.showSettings(() => { this.paused = false; this.togglePause(); }) });
+      items.push({ label: 'OPTIONS', action: () => this.showSettings(() => { this.paused = false; this.togglePause(); }) });
       items.push({ label: 'QUIT TO TITLE', action: () => this.goTitle() });
       this.screens.pause(items);
     } else this.screens.hide();
@@ -830,7 +885,7 @@ export class Game {
     if (inp.keyPressedOnce('KeyM')) {
       audio.init();
       audio.toggleMute();
-      if (this.scene.name === 'title' && !this.screens.active) this.showTitleMenu();
+      this.screens.setMuted(audio.muted);
     }
     inp.clearOnce();
     let toggled = false;

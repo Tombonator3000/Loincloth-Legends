@@ -155,9 +155,22 @@ Portet og forbedret fra Morbidium (Toms eget spill): dråpene fra `src/43_vaatt.
 ### Nytt tre eller ny art
 Legg en `Species` i `SPECIES` (`env/trees.ts`): lengde, radius, seksjoner, barn, vinkler, knudrethet og blader per nivå. Bruk den med `new Forest(art).add(x, z, skala)` og `forest.build()` i biomet.
 
+## Menyer
+
+Alle menyene går gjennom `Screens.menu()` i `ui/screens.ts`. Et `Item` har `label` og `action`, og kan ha:
+- `value`: verdien vises til høyre i lister (`<ul class="menu rows">`) og under navnet i sentrerte menyer (`<ul class="menu">`, tittelen, pausen, borgen).
+- `adjust`: venstre/høyre (og pilene rundt verdien) endrer verdien.
+- `hint`: forklaringen står i ett felt under menyen (`.menu-hint`) og følger valgt rad, så det bare står én forklaring om gangen.
+- `more`: raden åpner en undermeny og får en pil.
+- `disabled`: grå rad som sier nei.
+
+Enkel regel for nye menyer: få rader, en verdi i stedet for flere knapper når valget er "ett av flere" (som 1 eller 2 spillere), og lange forklaringer i `hint`. `relist()` tegner bare menyen på nytt, så tittelen ikke starter logoen igjen når en verdi endres. Menyen ruller ikke til første rad når den åpnes, så lange sider åpner på toppen.
+
+Tittelen har fire knapper (STORY, DUEL, HERO FORGE, OPTIONS). OPTIONS (`Game.showSettings`) har gore, gruppene SOUND og SCREEN (`showSettingsGroup`), CONTROLS (`showControls`: tastene, trekkene på brettene og trekkene i duellene som tre sider man blar i med SHOW, pluss rumble og berøring) og ERASE SAVE (bare fra tittelen). `tools/tests/menus.mjs` sjekker at alt er med.
+
 ## Innstillinger og gore-nivå
 
-`core/settings.ts` lagrer gore-nivå, lydnivå, musikkstil (heavy metal eller 8-bit), innspilte lyder (RECORDED SOUNDS), risting, blink (FLASHES), forvrengning (SCREEN DISTORTION), rumble, berøringsmodus, grafikknivå og hvor langt AUTO har trappet ned (`loincloth-legends-settings-v1`). `Game` lytter med `onSettings` og setter `Gore.level`, lydnivåene og musikkstilen. Nye felt må også inn i `load()` med sjekk, ellers forsvinner de. Radene i innstillingsmenyen legges inn med `row()`, som gir hver rad sin egen plass, så nye valg kan settes inn hvor som helst. Gore-nivået skalerer partikler, gibs, fontener og blod på skjermen. FAMILY bytter blod mot konfetti og gibs mot gummiender, blomster og stjerner.
+`core/settings.ts` lagrer gore-nivå, lydnivå, musikkstil (heavy metal eller 8-bit), innspilte lyder (RECORDED SOUNDS), risting, blink (FLASHES), forvrengning (SCREEN DISTORTION), rumble, berøringsmodus, grafikknivå og hvor langt AUTO har trappet ned (`loincloth-legends-settings-v1`). `Game` lytter med `onSettings` og setter `Gore.level`, lydnivåene og musikkstilen. Nye felt må også inn i `load()` med sjekk, ellers forsvinner de. Nye valg legges i riktig gruppe i `showSettingsGroup` med `row()` eller `toggle()`, som gir hver rad sin egen plass, så de kan settes inn hvor som helst. Hold toppnivået i OPTIONS kort. Gore-nivået skalerer partikler, gibs, fontener og blod på skjermen. FAMILY bytter blod mot konfetti og gibs mot gummiender, blomster og stjerner.
 
 ## Input
 

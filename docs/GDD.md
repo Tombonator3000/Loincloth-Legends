@@ -33,7 +33,7 @@ En 2.5D fantasy-brawler der Castle Crashers møter Golden Axe, og der brettene e
 8. **Hjemborgen**: Hero Forge, butikk og trening
 9. Siste brett: Vorthax i tårnet. Så slutt-skjerm, og kartet er åpent for mer vold
 
-Menyen har også *Duel vs CPU*, *Duel P1 vs P2* og *Settings*.
+Tittelmenyen har fire knapper: *Story* (1 eller 2 spillere, velges med venstre/høyre på raden), *Duel* (mot CPU eller spiller 2, på samme måte), *Hero Forge* og *Options* (gore, lyd, skjerm, kontroller og sletting av lagringen). Forklaringen til valgt knapp står under menyen.
 
 ## 4. Verdenskartet
 

@@ -107,7 +107,8 @@ export function showShop(g: Game, onBack: () => void, sel = 0) {
     const why = stock(g, it);
     const extra = it.kind === 'life' ? ` [${s.supplies.lives}/3]` : it.kind === 'potions' ? ` [${s.supplies.potions}/3]` : it.kind === 'manual' ? ` [${s.manuals}/5]` : '';
     return {
-      label: `${it.name}${extra} &middot; ${why ?? it.price + ' G'}`,
+      label: it.name + extra,
+      value: why ?? it.price + ' G',
       hint: it.desc,
       disabled: !!why || s.gold < it.price,
       action: () => {
@@ -119,7 +120,7 @@ export function showShop(g: Game, onBack: () => void, sel = 0) {
   items.push({ label: 'BACK', action: onBack });
   const quip = SHOPKEEPER[Math.floor(Math.random() * SHOPKEEPER.length)];
   g.screens.custom(
-    `<div class="panel wide shop"><h2>YE OLDE SHOPPE</h2><p class="line">GOLD: <b class="gold-big">${s.gold} G</b> &nbsp;&middot;&nbsp; SHOPKEEPER: "${quip}"</p><ul class="menu"></ul></div>`,
+    `<div class="panel wide shop"><h2>YE OLDE SHOPPE</h2><p class="line">GOLD: <b class="gold-big">${s.gold} G</b> &nbsp;&middot;&nbsp; SHOPKEEPER: "${quip}"</p><ul class="menu rows"></ul></div>`,
     items, sel, onBack,
   );
 }
@@ -136,7 +137,7 @@ export function showTraining(g: Game, slotIdx: number, onBack: () => void, sel =
   const items: Item[] = [];
   if (slots.length > 1) {
     const sw = () => showTraining(g, (slotIdx + 1) % slots.length, onBack, 0);
-    items.push({ label: 'HERO: ' + hero.name, hint: 'SWITCH HERO', action: sw, adjust: sw });
+    items.push({ label: 'HERO', value: hero.name, hint: 'SWITCH HERO', action: sw, adjust: sw });
   }
   for (const k of STAT_KEYS) {
     const i = items.length;
@@ -151,7 +152,8 @@ export function showTraining(g: Game, slotIdx: number, onBack: () => void, sel =
       audio.levelUp();
       again(i);
     };
-    items.push({ label: `${STAT_NAMES[k]}: ${'|'.repeat(p[k])}${'.'.repeat(STAT_MAX - p[k])} ${p[k]}`, hint: STAT_HINTS[k], action: up, adjust: (d) => (d > 0 ? up() : audio.denied()) });
+    const pips = '<span class="pips">' + '<i class="on"></i>'.repeat(p[k]) + '<i></i>'.repeat(STAT_MAX - p[k]) + '</span>';
+    items.push({ label: STAT_NAMES[k], value: pips, hint: STAT_HINTS[k], action: up, adjust: (d) => (d > 0 ? up() : audio.denied()) });
   }
   const pets = [null, ...g.save.pets];
   const cyclePet = (d: number) => {
@@ -160,7 +162,7 @@ export function showTraining(g: Game, slotIdx: number, onBack: () => void, sel =
     g.persist();
     again(items.length - 2);
   };
-  items.push({ label: 'PET: ' + (p.pet ? PETS[p.pet].name : 'NONE'), hint: g.save.pets.length ? (p.pet ? PETS[p.pet].desc : 'BUY PETS IN THE SHOPPE') : 'BUY PETS IN THE SHOPPE', action: () => cyclePet(1), adjust: cyclePet, disabled: !g.save.pets.length });
+  items.push({ label: 'PET', value: p.pet ? PETS[p.pet].name : 'NONE', hint: g.save.pets.length ? (p.pet ? PETS[p.pet].desc : 'BUY PETS IN THE SHOPPE') : 'BUY PETS IN THE SHOPPE', action: () => cyclePet(1), adjust: cyclePet, disabled: !g.save.pets.length });
   items.push({ label: 'BACK', action: onBack });
   const pct = Math.round((p.xp / need) * 100);
   g.screens.custom(
@@ -169,7 +171,7 @@ export function showTraining(g: Game, slotIdx: number, onBack: () => void, sel =
       <div class="tr-head"><b>${hero.name}</b> &nbsp; LEVEL <b>${p.level}</b> &nbsp; POINTS <b class="${p.points ? 'hot' : ''}">${p.points}</b></div>
       <div class="xpbar"><i style="width:${pct}%"></i><span>XP ${p.xp} / ${need}</span></div>
       <div class="tr-fx">DAMAGE x${fx.dmgMul.toFixed(2)} &middot; DAMAGE TAKEN ${Math.round(fx.dmgTaken * 100)}% &middot; HP +${fx.hpBonus} &middot; MAGIC x${fx.magicMul.toFixed(2)} &middot; SPEED +${Math.round((fx.speedMul - 1) * 100)}% &middot; START POTIONS ${fx.startPotions}</div>
-      <ul class="menu"></ul>
+      <ul class="menu rows"></ul>
     </div>`,
     items, sel, onBack,
   );

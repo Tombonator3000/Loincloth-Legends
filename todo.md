@@ -1,5 +1,13 @@
 # todo.md
 
+## Menyene (fra 2026-09-30 07:38)
+- [x] Tittelen fra åtte til fire knapper (STORY og DUEL med venstre/høyre, HERO FORGE, OPTIONS)
+- [x] Innstillingene i grupper (gore, SOUND, SCREEN, CONTROLS), ERASE SAVE bare fra tittelen
+- [x] Forklaringen til valgt rad i ett felt under menyen, navn til venstre og verdi til høyre i lister, treningspoeng som ruter
+- [x] Kontrollskjermen i tre sider (tastene, brettene, duellene) med tastetegn og gamepad-knapper i farger, "/ OR -" for spiller 2
+- [ ] Tom: si fra om "knapper" også gjaldt spillknappene. Da kan grip skje av seg selv når man går inn i en fiende (som i Streets of Rage), så det holder med tre knapper
+- [ ] HUD-en: større og tydeligere tall og navn (livene, gullet og METAL-måleren er små)
+
 ## Frostpasset som konseptbilde 4 (fra 2026-09-29 22:23)
 - [x] Kameraet nærmere og lavere (gfx/stagecam.ts), og det trekker seg bakover når en kjempe er i bildet
 - [x] Avalanche Troll: kjempe med rustning til han vakler, bakkeslag som rister, midtveis i frostpasset (tools/tests/giant.mjs)

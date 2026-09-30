@@ -50,9 +50,9 @@ const level = async (id) => {
 };
 
 // ---------------------------------------------------------------- innstillingsmenyen
-await page.evaluate(() => { const g = window.__game; g.save = window.__lib.defaultSave(); g.showSettings(() => g.showTitleMenu()); });
+await page.evaluate(() => { const g = window.__game; g.save = window.__lib.defaultSave(); g.showSettingsGroup('screen', () => g.showTitleMenu()); });
 await run(0.1);
-const labels = await page.evaluate(() => [...document.querySelectorAll('#screen .menu li')].map((li) => li.textContent));
+const labels = await page.evaluate(() => [...document.querySelectorAll('#screen .menu li')].map((li) => li.querySelector('.lbl').textContent + ': ' + (li.querySelector('.val .v')?.textContent ?? '')));
 check('settings rows', labels.some((l) => l.includes('FLASHES: ON')) && labels.some((l) => l.includes('SCREEN DISTORTION: ON')), { rows: labels.length });
 await shot('settings');
 await page.evaluate(() => window.__game.screens.hide());

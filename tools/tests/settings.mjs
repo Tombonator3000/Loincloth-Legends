@@ -20,11 +20,11 @@ const run = (sec) => page.evaluate((sec) => { const g = window.__game; for (let 
 const shot = async (n) => { await page.evaluate(() => window.__game.tick(1 / 60, true)); await page.screenshot({ path: `${out}/${n}.png` }); console.log('shot', n); };
 const state = () => page.evaluate(() => {
   const li = document.querySelector('#screen .menu li[data-i="0"]');
-  return { label: li ? li.firstChild?.nextSibling?.textContent ?? li.textContent : null, setting: window.__lib.settings.gore, gore: window.__game.gore.level };
+  return { label: li ? li.querySelector('.lbl')?.textContent + ': ' + li.querySelector('.val .v')?.textContent : null, setting: window.__lib.settings.gore, gore: window.__game.gore.level };
 });
 
 await page.waitForTimeout(400);
-await page.click('#screen .menu li:has-text("SETTINGS")');
+await page.click('#screen .menu li:has-text("OPTIONS")');
 await run(0.1);
 console.log('open', JSON.stringify(await state()));
 await shot('set1-menu');

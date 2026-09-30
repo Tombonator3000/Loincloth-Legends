@@ -2,13 +2,30 @@
 import { audio } from '../core/audio';
 import type { Stats } from '../game/world';
 
-export type Item = { label: string; action: () => void; hint?: string; adjust?: (dir: number) => void; disabled?: boolean };
+export type Item = {
+  label: string;
+  action: () => void;
+  /** Forklaring som vises under menyen når raden er valgt (bare én om gangen, så menyen blir ryddig). */
+  hint?: string;
+  /** Venstre/høyre endrer verdien. Pilene står rundt verdien. */
+  adjust?: (dir: number) => void;
+  disabled?: boolean;
+  /** Verdien vises til høyre i lister og under navnet i sentrerte menyer. */
+  value?: string;
+  /** Åpner en undermeny (vises med en pil). */
+  more?: boolean;
+};
 type MenuIn = { up: boolean; down: boolean; left: boolean; right: boolean; confirm: boolean; back: boolean };
+export type ControlsPage = 'keys' | 'stages' | 'duels';
 
 export class Screens {
   root: HTMLDivElement;
   private items: Item[] = [];
   private sel = 0;
+  private list: HTMLElement | null = null;
+  private hintEl: HTMLElement | null = null;
+  /** Hvilken bakgrunn skjermen har ('title', 'dim', 'black'), så tittelmenyen kan tegnes om uten å starte logoen på nytt. */
+  kind = '';
   private onBack: (() => void) | null = null;
   private onConfirm: (() => void) | null = null;
   private typer: { lines: string[]; li: number; ci: number; t: number; el: HTMLElement; done: () => void; hold: number } | null = null;
@@ -34,6 +51,9 @@ export class Screens {
 
   private set(html: string, cls: string) {
     this.setAt = performance.now();
+    this.kind = cls;
+    this.list = null;
+    this.hintEl = null;
     this.root.className = cls;
     this.root.innerHTML = html;
     this.root.style.display = '';
@@ -55,16 +75,37 @@ export class Screens {
 
   private menu(items: Item[], container: HTMLElement, sel = 0) {
     this.items = items;
-    container.innerHTML = items
-      .map((it, i) => `<li data-i="${i}" class="${it.disabled ? 'off' : ''}${it.adjust ? ' has-adj' : ''}">${it.adjust ? '<b class="adj l">&lsaquo;</b>' : ''}${it.label}${it.adjust ? '<b class="adj r">&rsaquo;</b>' : ''}${it.hint ? `<small>${it.hint}</small>` : ''}</li>`)
-      .join('');
+    this.list = container;
+    container.innerHTML = items.map((it, i) => {
+      const cls = [it.disabled ? 'off' : '', it.adjust ? 'has-adj' : '', it.value !== undefined ? 'has-val' : '', it.more ? 'more' : ''].filter(Boolean).join(' ');
+      const arrows = !!it.adjust;
+      const val = it.value !== undefined
+        ? `<span class="val">${arrows ? '<b class="adj l">&lsaquo;</b>' : ''}<span class="v">${it.value}</span>${arrows ? '<b class="adj r">&rsaquo;</b>' : ''}</span>`
+        : it.more ? '<span class="val go">&rsaquo;</span>' : '';
+      // Justerbar rad uten verdi: pilene i hver kant som før
+      const edge = arrows && it.value === undefined;
+      return `<li data-i="${i}" class="${cls}">${edge ? '<b class="adj l">&lsaquo;</b>' : ''}<span class="lbl">${it.label}</span>${val}${edge ? '<b class="adj r">&rsaquo;</b>' : ''}</li>`;
+    }).join('');
+    // Forklaringen står i ett felt under menyen og følger valget
+    const old = container.nextElementSibling as HTMLElement | null;
+    this.hintEl = old?.classList.contains('menu-hint') ? old : null;
+    if (items.some((it) => it.hint)) {
+      if (!this.hintEl) {
+        this.hintEl = document.createElement('p');
+        this.hintEl.className = 'menu-hint';
+        container.after(this.hintEl);
+      }
+    } else if (this.hintEl) {
+      this.hintEl.remove();
+      this.hintEl = null;
+    }
     container.querySelectorAll('li').forEach((li) => {
       const i = Number((li as HTMLElement).dataset.i);
-      li.addEventListener('mouseenter', () => this.select(i));
+      li.addEventListener('mouseenter', () => this.select(i, false));
       li.addEventListener('click', (e) => {
         e.stopPropagation();
         if (performance.now() - this.setAt < 150) return;
-        this.select(i);
+        this.select(i, false);
         const adj = (e.target as HTMLElement).closest('.adj');
         if (adj && this.items[i]?.adjust) {
           audio.menu();
@@ -74,20 +115,31 @@ export class Screens {
         this.activate();
       });
     });
-    this.select(sel);
+    // Første rad: ikke rull (lange sider som kontrollene skal åpne på toppen)
+    this.select(sel, sel > 0);
+  }
+
+  /** Tegn bare menyen på nytt (samme skjerm), for eksempel når en verdi på tittelskjermen endres. */
+  relist(items: Item[], sel = 0) {
+    if (!this.list || !this.active) return false;
+    const keep = this.setAt;
+    this.menu(items, this.list, sel);
+    this.setAt = keep;
+    return true;
   }
 
   get selected() {
     return this.sel;
   }
 
-  private select(i: number) {
+  private select(i: number, scroll = true) {
     if (!this.items.length) return;
     this.sel = (i + this.items.length) % this.items.length;
     this.root.querySelectorAll('.menu li').forEach((li, k) => {
       li.classList.toggle('sel', k === this.sel);
-      if (k === this.sel) (li as HTMLElement).scrollIntoView?.({ block: 'nearest' });
+      if (k === this.sel && scroll) (li as HTMLElement).scrollIntoView?.({ block: 'nearest' });
     });
+    if (this.hintEl) this.hintEl.innerHTML = this.items[this.sel]?.hint ?? '';
   }
 
   private activate() {
@@ -101,7 +153,7 @@ export class Screens {
     it.action();
   }
 
-  title(items: Item[], muted: boolean) {
+  title(items: Item[], muted: boolean, sel = 0) {
     this.set(`
       <div class="title-wrap">
         <div class="logo"><div class="l1">LOINCLOTH</div><div class="l2">LEGENDS</div></div>
@@ -109,53 +161,60 @@ export class Screens {
         <ul class="menu"></ul>
         <div class="press">W/S + F &nbsp;|&nbsp; ARROWS + ENTER &nbsp;|&nbsp; GAMEPAD &nbsp;|&nbsp; TAP</div>
         <div class="foot">&copy; 1986 TOM'S HAPPY HAPPY FUNTIMES EMPORIUM &nbsp;&middot;&nbsp; NO GNOMES WERE HARMED. MOST GNOMES WERE HARMED.
-        <br>M: SOUND ${muted ? 'OFF' : 'ON'} &nbsp;&middot;&nbsp; P/ESC: PAUSE</div>
+        <br><span class="mute">M: SOUND ${muted ? 'OFF' : 'ON'}</span> &nbsp;&middot;&nbsp; P/ESC: PAUSE</div>
       </div>`, 'title');
-    this.menu(items, this.root.querySelector('.menu')!);
+    this.menu(items, this.root.querySelector('.menu')!, sel);
   }
 
-  controls(onBack: () => void) {
+  /**
+   * Kontrollskjermen, én side om gangen så alt får plass uten å rulle: tastene, trekkene på brettene og trekkene i
+   * duellene. `rows` (sidevalg, rumble, berøring) står over BACK.
+   */
+  controls(page: ControlsPage, rows: Item[], onBack: () => void, sel = 0) {
+    const k = (...keys: string[]) => keys.map((x) => `<kbd>${x}</kbd>`).join('');
+    const pad = (b: string) => `<kbd class="pad ${b.toLowerCase()}">${b}</kbd>`;
+    const moves = (title: string, list: [string, string][], tips: string[] = []) => `
+      <h3>${title}</h3>
+      <dl class="moves">${list.map(([a, b]) => `<dt>${a}</dt><dd>${b}</dd>`).join('')}${tips.map((t) => `<p class="tip">${t}</p>`).join('')}</dl>`;
+    const body = page === 'keys'
+      ? `<table class="keys">
+          <tr><th></th><th>PLAYER 1</th><th>PLAYER 2</th><th>GAMEPAD</th></tr>
+          <tr><td>MOVE</td><td>${k('W', 'A', 'S', 'D')}</td><td>${k('ARROWS')}</td><td>${k('STICK')}</td></tr>
+          <tr><td>ATTACK</td><td>${k('F')}</td><td>${k(',')}</td><td>${pad('X')}</td></tr>
+          <tr><td>JUMP</td><td>${k('G')}</td><td>${k('.')}</td><td>${pad('A')}</td></tr>
+          <tr><td>SPECIAL / BLOCK</td><td>${k('H')}</td><td>${k('/')} <i>OR</i> ${k('-')}</td><td>${pad('B')}</td></tr>
+          <tr><td>GRAB / THROW / RIDE</td><td>${k('R')}</td><td>${k('R.SHIFT')}</td><td>${pad('Y')}</td></tr>
+          <tr><td>PAUSE</td><td colspan="2">${k('P')} <i>OR</i> ${k('ESC')}</td><td>${k('START')}</td></tr>
+        </table>
+        <p class="also">ALSO WORKS: J K L U FOR PLAYER 1 &middot; NUMPAD 1 2 3 0 FOR PLAYER 2 &middot; ALONE: ARROWS + Z X C V<br>ON A PHONE: STICK ON THE LEFT, BUTTONS ON THE RIGHT</p>`
+      : page === 'stages'
+        ? moves("STAGES (BEAT 'EM UP)", [
+          ['ATTACK x3', 'combo, the third hit floors them'],
+          ['JUMP + ATTACK', 'jump attack'],
+          ['DOUBLE-TAP', 'run, then ATTACK for a shoulder charge'],
+          ['SPECIAL', 'magic, burns your blue potions'],
+          ['NO POTIONS?', 'SPECIAL becomes a berserk spin (costs HP)'],
+          ['GRAB', 'seize a foe, then ATTACK to knee him'],
+          ['DIRECTION + ATTACK', 'throw the foe you are holding'],
+          ['GRAB BY A MOUNT', 'ride it, GRAB again to hop off'],
+        ], ['Throw foes into spikes, bogs, lava and gorges. Or bowl them into their friends.', 'Smack the little gnome for potions. Barrels hold food.'])
+        : moves('DUELS (BARBARIAN STYLE)', [
+          ['ATTACK', 'slash (mid)'],
+          ['UP + ATTACK', 'overhead chop (high, heavy)'],
+          ['DOWN + ATTACK', 'leg sweep (low, knocks down)'],
+          ['TOWARD + ATTACK', 'kick, breaks blocks'],
+          ['AWAY + ATTACK', 'whirlwind, 3 hits'],
+          ['JUMP, THEN ATTACK', 'flying neck chop: <em>beheads</em> if it lands unblocked'],
+          ['HOLD SPECIAL', 'block high, add DOWN to block low'],
+          ['DOWN', 'duck, add JUMP (or GRAB) to roll'],
+        ]);
     this.set(`
       <div class="panel controls">
         <h2>CONTROLS</h2>
-        <table>
-          <tr><th></th><th>PLAYER 1</th><th>PLAYER 2</th><th>GAMEPAD</th></tr>
-          <tr><td>MOVE</td><td>W A S D</td><td>ARROW KEYS</td><td>STICK / D-PAD</td></tr>
-          <tr><td>ATTACK</td><td>F (or J)</td><td>, &nbsp;(or NUMPAD 1)</td><td>X / RT</td></tr>
-          <tr><td>JUMP</td><td>G (or K)</td><td>. &nbsp;(or NUMPAD 2)</td><td>A</td></tr>
-          <tr><td>SPECIAL / BLOCK</td><td>H (or L)</td><td>- &nbsp;(or NUMPAD 3)</td><td>B / LB / LT</td></tr>
-          <tr><td>GRAB / THROW / RIDE</td><td>R (or U)</td><td>R.SHIFT (or NUMPAD 0)</td><td>Y / RB</td></tr>
-          <tr><td>PAUSE</td><td colspan="2">P / ESC</td><td>START</td></tr>
-        </table>
-        <div class="cols">
-          <div>
-            <h3>STAGES (BEAT 'EM UP)</h3>
-            <p><b>ATTACK x3</b> combo, the third hit floors them</p>
-            <p><b>JUMP + ATTACK</b> jump attack</p>
-            <p><b>DOUBLE-TAP</b> run, <b>RUN + ATTACK</b> shoulder charge</p>
-            <p><b>SPECIAL</b> magic (burns all your blue potions)</p>
-            <p><b>SPECIAL with no potions</b> berserk spin (costs a little HP)</p>
-            <p><b>GRAB</b> seize a foe: <b>ATTACK</b> knee, <b>DIRECTION + ATTACK</b> or <b>JUMP</b> throw</p>
-            <p>Throw foes into spikes, bogs, ice holes, lava and gorges. Or bowl them into their friends.</p>
-            <p><b>GRAB</b> by a free mount: saddle up. <b>ATTACK</b> the beast's attack, <b>GRAB</b> hop off</p>
-            <p>Smack the little gnome for potions. Barrels hold food.</p>
-          </div>
-          <div>
-            <h3>DUELS (BARBARIAN STYLE)</h3>
-            <p><b>ATTACK</b> slash (mid)</p>
-            <p><b>UP + ATTACK</b> overhead chop (high, heavy)</p>
-            <p><b>DOWN + ATTACK</b> leg sweep (low, knocks down)</p>
-            <p><b>TOWARD + ATTACK</b> kick (breaks blocks)</p>
-            <p><b>AWAY + ATTACK</b> whirlwind (3 hits)</p>
-            <p><b>JUMP, then ATTACK</b> flying neck chop: <em>beheads</em> if it lands unblocked</p>
-            <p><b>HOLD SPECIAL</b> block high, <b>+ DOWN</b> block low. <b>DOWN</b> alone = duck</p>
-            <p><b>DOWN + JUMP</b> or <b>GRAB</b> roll</p>
-            <p><b>TOUCH</b> stick on the left, buttons on the right</p>
-          </div>
-        </div>
-        <ul class="menu"></ul>
+        <div class="ctl-page">${body}</div>
+        <ul class="menu rows"></ul>
       </div>`, 'dim');
-    this.menu([{ label: 'BACK', action: onBack }], this.root.querySelector('.menu')!);
+    this.menu([...rows, { label: 'BACK', action: onBack }], this.root.querySelector('.menu')!, sel);
     this.onBack = onBack;
   }
 
@@ -196,9 +255,16 @@ export class Screens {
     this.menu([{ label: 'CONTINUE', action: onDone }], this.root.querySelector('.menu')!);
   }
 
-  result(title: string, sub: string, items: Item[], sel = 0) {
+  result(title: string, sub: string, items: Item[], sel = 0, onBack?: () => void) {
     this.set(`<div class="panel result"><div class="big-title">${title}</div><p class="line">${sub}</p><ul class="menu"></ul></div>`, 'dim');
     this.menu(items, this.root.querySelector('.menu')!, sel);
+    this.onBack = onBack ?? null;
+  }
+
+  /** Lydteksten nederst på tittelen (M slår lyden av og på). */
+  setMuted(muted: boolean) {
+    const el = this.root.querySelector('.foot .mute');
+    if (el) el.textContent = 'M: SOUND ' + (muted ? 'OFF' : 'ON');
   }
 
   /** Fritt panel: html må inneholde en <ul class="menu">. Brukes av innstillinger, butikk og nivåer. */
