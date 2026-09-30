@@ -1,6 +1,6 @@
 // Spillmotoren: renderer, løkke, scenebytte og spillflyt (tittel, kart, brett, dueller, heltebygger).
 import * as THREE from 'three';
-import { InputManager } from '../core/input';
+import { InputManager, MOUSE_LEFT } from '../core/input';
 import { audio } from '../core/audio';
 import { Gore } from '../gfx/gore';
 import { FX } from '../gfx/fx';
@@ -336,6 +336,9 @@ export class Game {
     this.paused = false;
     this.hud.clear();
     this.scene = make();
+    // Venstre museknapp slår bare på brettene og i duellene (på kartet ville et klikk startet et brett)
+    this.input.mouseAttack = this.scene.name === 'stage' || this.scene.name === 'duel';
+    if (!this.input.mouseAttack) this.input.keys.delete(MOUSE_LEFT);
     this.post.focus = -1;
     // make() kan ha satt W.env; TypeScript tror den fortsatt er null her
     const env = (W as { env: Env | null }).env;

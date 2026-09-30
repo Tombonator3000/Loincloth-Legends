@@ -131,14 +131,14 @@ CLASSIC BUILDER beholder de prosedyretegnede valgene nedenfor. Malt hår, hjelme
 - Bevegelse i X og Z (dybde), hopp i Y
 - Combo: angrep x3 (hugg, bakhånd, tungt hugg som slår ned)
 - Hoppangrep, løp (dobbelttrykk) og skulderdytt, juggling i lufta
-- **Tre knapper** (angrep, hopp, spesial), som i Golden Axe. Grep og ridning har ingen egen knapp.
+- **Tre knapper** (angrep, hopp, spesial), som i Golden Axe. Grep og ridning har ingen egen knapp. Spiller 1 kan også slå med venstre museknapp på brettene og i duellene.
 - **Grep og kast**: gå inn i en fiende, så tar helten tak i ham (som i Streets of Rage). Angrep = kne (tredje gang kastes han), retning + angrep eller hopp = kast. Opp eller ned kaster i dybden, for eksempel over taugjerdet og ned i juvet. Den kastede fienden velter andre fiender (bowling: STRIKE!) og dør hvis han lander i en fare. Store beist og sjefer er for tunge.
 - **Juvet** (frostpasset): langs bakkanten av veien går juvet bak et taugjerde. Ingen går utfor av seg selv, men fiender som kastes eller slås inn, faller ned i dypet (SEE YOU NEVER!).
 - **Istapper**: av og til løsner en istapp over kampfeltet. En skygge på bakken og snø som drysser varsler den, og den treffer alle, helter som fiender. Kjempens bakkeslag river løs flere.
 - **Fyrfat som veltes**: slag, kastede fiender og bakkeslag velter fyrfatene. Glørne renner ut og brenner en stund, og fiender som tråkker i dem, tar fyr og løper i panikk.
 - **Panikk**: fiender får panikk av og til (grufulle drap i nærheten, nesten død, i brann, når METAL MODE starter). De løper skrikende vekk med armene i været, alltid saktere enn helten, og kommer tilbake etterpå.
 - **Fiender som rygger**: de holder avstand, men rygger på halv fart og blir i bildet når de først har kommet inn, så helten alltid når dem.
-- **Ridedyr**: slå rytteren av og gå inn i dyret for å sitte opp. Angrep bruker dyrets angrep, ned + hopp hopper av. Treff kaster rytteren av. Etter tre avkastinger stikker dyret av.
+- **Ridedyr**: slå rytteren av og gå inn i dyret for å sitte opp. Angrep bruker dyrets angrep, ned + hopp hopper av. Treff kaster rytteren av. Etter tre avkastinger stikker dyret av. Fiende-ryttere holder seg i bildet når de har ridd inn, rygger på halv fart og angriper med dyret (stormløp, halesvip, ildpust), men ikke en helt som ligger nede eller nettopp har reist seg.
   - War Hog: stormløp som spidder alt foran seg
   - Cluckatrice (halvt hane, halvt øgle): halesvip som treffer begge sider
   - Magma Newt: ildpust som griller alt foran

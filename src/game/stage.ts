@@ -248,6 +248,10 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   }
   mountBounds(m: Mount): Bounds {
     if (m.rider?.team === 'hero') return this.bounds;
+    // En fiende-rytter som har kommet inn i bildet, holdes der (også i stormløpet), så helten når ham, og under en bølge
+    // gjelder det også dyr uten rytter (en fiende som setter seg opp igjen, gjør det inne i bildet). Dyret selv holder
+    // seg 0,6 innenfor grensene, så midten av dyret er aldri lenger ut enn helten kan gå.
+    if (m.entered && (m.rider || this.lockX !== null)) return { minX: this.camX - this.halfW + 0.2, maxX: this.camX + this.halfW - 0.2, minZ: Z_MIN, maxZ: Z_MAX };
     return { minX: this.camX - this.halfW - 4, maxX: this.camX + this.halfW + 4, minZ: Z_MIN, maxZ: Z_MAX };
   }
 
@@ -748,7 +752,13 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     for (const fo of this.foes) fo.update(dt, this);
     this.boss?.update(dt);
     if (this.magic) this.updateMagic(dt);
-    for (const m of this.mounts) m.update(dt, this);
+    for (const m of this.mounts) {
+      const inside = Math.abs(m.pos.x - this.camX) < this.halfW - 0.8;
+      if (inside && (m.rider?.team === 'enemy' || (!m.rider && this.lockX !== null))) m.entered = true;
+      // Et dyr uten rytter som blir liggende igjen etter bølgen, kan vandre ut og hentes inn igjen av en ny rytter
+      if (!inside && !m.rider && this.lockX === null) m.entered = false;
+      m.update(dt, this);
+    }
     for (const p of this.pets) p.update(dt, this);
     this.mounts = this.mounts.filter((m) => {
       const gone = m.removeMe || (!m.rider && m.pos.x < this.camX - this.halfW - 8);

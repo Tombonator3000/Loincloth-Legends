@@ -13,9 +13,11 @@ const BTNS: Btn[] = ['left', 'right', 'up', 'down', 'attack', 'jump', 'special',
 type KeyMap = Record<Btn, string[]>;
 type MenuState = { up: boolean; down: boolean; left: boolean; right: boolean; confirm: boolean; back: boolean };
 
+/** Venstre museknapp på spillflaten (se InputManager.mouseAttack). Den står i tastelista som en tast. */
+export const MOUSE_LEFT = 'MouseLeft';
 const P1_KEYS: KeyMap = {
   left: ['KeyA'], right: ['KeyD'], up: ['KeyW'], down: ['KeyS'],
-  attack: ['KeyF', 'KeyJ'], jump: ['KeyG', 'KeyK'], special: ['KeyH', 'KeyL'], grab: ['KeyR', 'KeyU'],
+  attack: ['KeyF', 'KeyJ', MOUSE_LEFT], jump: ['KeyG', 'KeyK'], special: ['KeyH', 'KeyL'], grab: ['KeyR', 'KeyU'],
   start: [],
 };
 const P2_KEYS: KeyMap = {
@@ -115,6 +117,11 @@ export class InputManager {
   pads: PadInfo[] = [];
   /** Kalles når en gamepad kobles til eller fra. */
   onPad: ((msg: string) => void) | null = null;
+  /**
+   * Venstre museknapp på spillflaten slår for spiller 1. Bare på brettene og i duellene (Game.setScene): på kartet
+   * betyr angrep «gå inn», og et klikk for å gi vinduet fokus skal ikke starte et brett.
+   */
+  mouseAttack = false;
 
   constructor() {
     const block = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space', 'Slash', 'Tab']);
@@ -126,9 +133,17 @@ export class InputManager {
     });
     window.addEventListener('keyup', (e) => this.keys.delete(e.code));
     window.addEventListener('blur', () => this.keys.clear());
-    window.addEventListener('pointerdown', () => {
+    window.addEventListener('pointerdown', (e) => {
       window.focus();
       this.first();
+      // Bare selve spillflaten: menyene, pausen og heltesmia er egne lag over den og tar klikkene selv
+      if (this.mouseAttack && e.pointerType === 'mouse' && e.button === 0 && e.target instanceof HTMLCanvasElement) {
+        this.keys.add(MOUSE_LEFT);
+        this.tapped.add(MOUSE_LEFT);
+      }
+    });
+    window.addEventListener('pointerup', (e) => {
+      if (e.button === 0) this.keys.delete(MOUSE_LEFT);
     });
     window.addEventListener('gamepadconnected', (e) => {
       const n = (e as GamepadEvent).gamepad;

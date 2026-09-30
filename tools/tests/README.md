@@ -17,6 +17,8 @@ node tools/tests/closeup.mjs http://localhost:4173/ ./shots '{"body":1}'  # nær
 node tools/tests/violence.mjs http://localhost:4173/ ./shots              # arm ryker, halshugging, hodet i skjermen, hodeløs kylling
 node tools/tests/grab.mjs http://localhost:4173/ ./shots road             # grep, kne, kast, bowling og fare (road, swamp, frost, scorch, tower)
 node tools/tests/mounts.mjs http://localhost:4173/ ./shots                # ridedyr, fiende-ryttere, avkasting, sitte opp, stormløp
+node tools/tests/riders.mjs http://localhost:4173/                         # fiende-ryttere kan tas: en bot jager dem med låst kamera, de holder seg innen rekkevidde, rygger saktere enn helten og slås av og drepes
+node tools/tests/mouse.mjs http://localhost:4173/                          # venstre museknapp slår på brett og i duell, ikke på kartet eller i pausen
 node tools/tests/mountride.mjs http://localhost:4173/ ./shots             # halesvip og ildpust
 node tools/tests/progress.mjs http://localhost:4173/ ./shots              # borgen, butikk, trening, kjæledyr og XP
 node tools/tests/pets.mjs http://localhost:4173/ ./shots                  # alle fem kjæledyrene

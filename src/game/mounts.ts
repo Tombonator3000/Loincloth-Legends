@@ -16,6 +16,10 @@ const base = (a: Partial<AttackDef> & Pick<AttackDef, 'id'>): AttackDef => ({
   startup: 0, active: 0.1, recovery: 0, dmg: 12, reach: 2, zr: 0.9, height: 'mid', kd: true, launch: 6, push: 7, stun: 0.6, heavy: true,
   wind: P.hurt, strike: P.hurt, death: ['explode', 'normal'], swoosh: 'none', ...a,
 });
+/** Hvor langt inn fra kanten av bildet en fiende-rytter holder standplassen (midten av dyret, i enheter). */
+const MOUNT_EDGE = 1.3;
+/** Sekunder en fiende-rytter venter etter at helten har kommet seg på beina, før han angriper igjen. */
+const RIDER_GRACE = 0.7;
 const GORE = base({ id: 'gore', dmg: 14, launch: 7, push: 9, death: ['explode', 'bisect', 'normal'], word: ['GORED!', 'SNORT!', 'TUSKED!'] });
 const WHIP = base({ id: 'whip', dmg: 11, launch: 5.5, push: 7, death: ['dismember', 'decap', 'normal'], word: ['WHIPPED!', 'BAWK!', 'TAIL SLAP!'] });
 const FLAME = base({ id: 'flame', dmg: 7, kd: false, heavy: false, launch: 0, push: 1.8, stun: 0.35, death: ['normal'], word: ['TOASTY!'] });
@@ -64,6 +68,13 @@ export class Mount implements MountLike {
   running = false;
   onGround = true;
   removeMe = false;
+  /**
+   * Dyret er inne i bildet med en fiende på ryggen, eller uten rytter under en bølge. Da holdes det der (se
+   * Stage.mountBounds), så helten når rytteren, og en fiende som setter seg opp, gjør det inne i bildet.
+   */
+  entered = false;
+  /** Fiende-rytteren rygger: dyret ser mot helten mens det går bakover, så det kan angripe når det er klart. */
+  private backing = false;
   private hits = new Set<number>();
   private tick = 0;
   private remountT = 0;
@@ -191,13 +202,15 @@ export class Mount implements MountLike {
       case 'idle':
       case 'walk': {
         if (this.rider?.team === 'enemy') this.ai(w);
+        // AI-en startet et angrep: ikke overskriv det med gange (før angrep fiende-rytterne aldri, Tom 2026-09-30)
+        if (this.state !== 'idle' && this.state !== 'walk') break;
         const len = Math.hypot(this.wantX, this.wantZ);
         const sp = this.rider ? spd * (this.running ? 1.35 : 1) : 0;
         if (this.onGround) {
           this.vel.x = len > 0.05 ? (this.wantX / Math.max(1, len)) * sp : this.vel.x * 0.8;
           this.vel.z = len > 0.05 ? (this.wantZ / Math.max(1, len)) * sp * 0.7 : this.vel.z * 0.8;
         }
-        if (Math.abs(this.wantX) > 0.05) this.facing = Math.sign(this.wantX);
+        if (Math.abs(this.wantX) > 0.05 && !this.backing) this.facing = Math.sign(this.wantX);
         this.state = len > 0.05 ? 'walk' : 'idle';
         break;
       }
@@ -295,6 +308,7 @@ export class Mount implements MountLike {
 
   /** Fiende-rytter: finn nærmeste helt og bruk dyrets angrep når han er innen rekkevidde. */
   private ai(w: MountWorld) {
+    this.backing = false;
     let tgt: Fighter | null = null;
     let bd = 1e9;
     for (const h of w.heroFighters()) {
@@ -313,17 +327,28 @@ export class Mount implements MountLike {
     const dz = tgt.pos.z - this.pos.z;
     const want = this.def.attack === 'charge' ? 4.2 : this.def.attack === 'fire' ? 2.4 : 1.6;
     const side = dx > 0 ? -1 : 1;
-    const tx = tgt.pos.x + side * want;
+    // Standplassen holdes inne i bildet. Kameraet står stille under en bølge, og før rygget villsvinet og salamanderen
+    // ut av bildet for å holde avstand, dit helten aldri nådde dem (Tom 2026-09-30)
+    const tx = clamp(tgt.pos.x + side * want, w.camX - w.halfW + MOUNT_EDGE, w.camX + w.halfW - MOUNT_EDGE);
     const inLine = Math.abs(dz) < 0.45;
-    const inRange = this.def.attack === 'charge' ? Math.abs(dx) < 5.5 && Math.abs(dx) > 1.5 : Math.abs(dx) < want + 0.6;
-    if (this.cd <= 0 && inLine && inRange && Math.sign(dx) === this.facing) {
+    // Halesvippen når 2,4 bakover og forover, lenger enn heltens slag. Den brukes først når helten er innenfor 1,8, så
+    // han kan rekke å slå rytteren av først (ellers svippet kakatrissen ham ned hver gang han kom nær)
+    const inRange = this.def.attack === 'charge' ? Math.abs(dx) < 5.5 && Math.abs(dx) > 1.5 : Math.abs(dx) < (this.def.attack === 'tail' ? 1.8 : want + 0.6);
+    // Ligger helten nede eller reiser seg, venter rytteren, og gir ham et øyeblikk på beina før neste angrep
+    if (tgt.state === 'down' || tgt.state === 'getup' || tgt.invuln > 0) this.cd = Math.max(this.cd, RIDER_GRACE);
+    // Ingen angrep fra utenfor bildet: rytteren må ha ridd inn først
+    if (this.entered && this.cd <= 0 && inLine && inRange && Math.sign(dx) === this.facing) {
       this.attack();
-      this.cd = this.def.cd * 1.8;
+      this.cd = this.def.cd * 2 + rand(0.5, 1.2);
       return;
     }
-    const mx = Math.abs(tx - this.pos.x) > 0.3 ? Math.sign(tx - this.pos.x) * 0.6 : 0;
+    // Rygger dyret unna helten, går det på halv fart og ser mot ham, så helten tar det igjen (som fiendene til fots,
+    // RETREAT i foes.ts), og dyret kan angripe så snart det har avstand nok
+    const dir = Math.abs(tx - this.pos.x) > 0.3 ? Math.sign(tx - this.pos.x) : 0;
+    this.backing = dir !== 0 && dir === -Math.sign(dx);
+    const mx = dir * (this.backing ? 0.3 : 0.6);
     this.drive(mx, Math.abs(dz) > 0.15 ? Math.sign(dz) * 0.7 : 0, false);
-    if (Math.abs(mx) < 0.01) this.facing = Math.sign(dx) || this.facing;
+    if (Math.abs(mx) < 0.01 || this.backing) this.facing = Math.sign(dx) || this.facing;
   }
 
   /** Treff alle motstandere i en sone foran/bak dyret. */

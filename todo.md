@@ -67,6 +67,9 @@
 - [x] Thrugg og alle fiendene i samme stil (PNG-deler)
 - [x] Visuell kontroll av alle sammensatte figurer med kunstpakken lastet: våpnene satt ved siden av neven og Thrugg manglet den bakre armen. Armene rettes nå etter neven, grepet finnes på skaftet (tools/tests/artcheck.mjs)
 - [ ] Ridedyr og kjæledyr med kunstpakken: se på dem i nettleseren (artcheck dekker bare figurer med armer)
+- [x] Slag med venstre museknapp på brett og i dueller (2026-09-30)
+- [x] Fiende-ryttere holder seg innen rekkevidde og kan tas, og de angriper nå (2026-09-30, tools/tests/riders.mjs)
+- [ ] Balansetest av fiende-ryttere i ekte spill: de angriper nå for første gang, så sjekk at bølgene med ryttere ikke er blitt for harde
 - [x] Armene i trekvart profil: våpenarmen på den nære skulderen foran, hodet bak overkroppen, skulderledd og halsrot fra bildene, stillingene rettet så slagene når fram (2026-09-30)
 - [x] Heltesmia bruker en felles delpool: 44 valg, inkludert 25 Forge-bilder. Kalibrering og kontroll av siste tillegg står over; egne hår-, hjelm- og fargelag er fortsatt senere utvidelser
 - [x] Malt stridshammer: `forge_warhammer_weapon.webp`, med WARHAMMER-egenskaper og eksisterende opplåsingskrav

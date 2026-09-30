@@ -180,7 +180,7 @@ export class Screens {
       ? `<table class="keys">
           <tr><th></th><th>PLAYER 1</th><th>PLAYER 2</th><th>GAMEPAD</th></tr>
           <tr><td>MOVE</td><td>${k('W', 'A', 'S', 'D')}</td><td>${k('ARROWS')}</td><td>${k('STICK')}</td></tr>
-          <tr><td>ATTACK</td><td>${k('F')}</td><td>${k(',')}</td><td>${pad('X')}</td></tr>
+          <tr><td>ATTACK</td><td>${k('F')} <i>OR</i> ${k('LEFT CLICK')}</td><td>${k(',')}</td><td>${pad('X')}</td></tr>
           <tr><td>JUMP</td><td>${k('G')}</td><td>${k('.')}</td><td>${pad('A')}</td></tr>
           <tr><td>SPECIAL / BLOCK</td><td>${k('H')}</td><td>${k('/')} <i>OR</i> ${k('-')}</td><td>${pad('B')}</td></tr>
           <tr><td>PAUSE</td><td colspan="2">${k('P')} <i>OR</i> ${k('ESC')}</td><td>${k('START')}</td></tr>

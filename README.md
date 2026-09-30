@@ -68,7 +68,7 @@ npm run typecheck
 | | Spiller 1 | Spiller 2 | Gamepad |
 |---|---|---|---|
 | Beveg | WASD | Piltaster | Stikke / D-pad |
-| Angrep | F (eller J) | , (eller Numpad 1) | X / RT |
+| Angrep | F (eller J, eller venstre museknapp) | , (eller Numpad 1) | X / RT |
 | Hopp | G (eller K) | . (eller Numpad 2) | A |
 | Spesial / blokk | H (eller L) | / eller - (eller Numpad 3) | B / LB / LT |
 | Pause | P / Esc | | Start |
