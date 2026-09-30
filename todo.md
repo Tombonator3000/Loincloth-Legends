@@ -7,7 +7,9 @@
 - [x] Levert og importert 52 kulissebilder som WebP med alfa, 43 `env_*` og ni `fg_*`, i manifestets `props` og STAGE FORGE, LIBRARY, IMAGES. Egen filoversikt i docs/ENVIRONMENT_PACK.md; forgrunnsbildene har FRONT som standardlag
 - [x] Miljøpakken satt sammen: seks sett med målte festepunkter (lykt i kroken og flamme på veken, fakkel, veggfakkel, bål, banner, eik), deler som henger på en annen del (`on`), bevegelse (WAVE, SWING, SWAY, FLICKER med lys, PULSE, REACT), flammer som lyser selv (`emit`, SELF-LIT i editoren), og ankere flyttet til der tingen står
 - [x] Spillet henter bare kulissebildene brettene bruker (28 av 52 på brett 1), editoren resten (`loadPropImages`)
-- [ ] Kalibrer resten av miljøpakken når bildene tas i bruk: murene (teglmur, steinmur, borgmur) trenger skala og overlapp i rader, porten, alteret, gravene og gravsteinene er ikke prøvd på et brett
+- [x] Murene og gravene på de andre brettene (Tom 2026-09-30): gravplass i sumpen (også ute i vannet), steinmur, gravplass, borgruin og borgmur fram til porten i frosten, nedbrente teglmurer og borgruin i Scorchlands, ras og krypt i tårnet, liten gravplass i nattleiren. Farge per brett med tint
+- [ ] Porten (`env_palisade_gate`), alteret, steinblokka og den falne stokken er ikke brukt på noe brett ennå
+- [ ] Generert eik rett foran kameraet dekker hele bildet i nattleiren ved daggry (x 34,5) og rundt x 55 på brett 1 (skoggeneratorene i env/night.ts og env/grass.ts). Foreslått som egen oppgave
 - [ ] Rett alfagjenkjenningen varig i process_art.py: ekte RGBA skal ikke miste mørke detaljer når mindre enn 20 prosent av flaten er gjennomsiktig. Portens importkopi er foreløpig klargjort med 48 piksler gjennomsiktig marg på hver side; original og skript er uendret
 - [ ] Tom: si om rekkefølgen passer (A, B, C, D, E), eller om AI del 1 (D) skal før editoren (C)
 - [ ] Tom: si fra om blodmengden nå som dråpene synes (standard EXCESSIVE)
@@ -21,7 +23,7 @@
 - [x] Brett 1 med miljøpakken: palisaderad med ender og veggfakler ved åpningene, telt, lyktestolpe, skilt med kråke, tre bål, fire bannere, fakler, vogn med tønne og kasse, busker, eiker, dødt tre, og gress, stamme, steiner og røtter foran kameraet (tools/tests/env-pack.mjs)
 - [ ] Tom: se på brett 1 med de nye bildene og si fra om noe skal flyttes, byttes eller fjernes (i STAGE FORGE eller her)
 - [ ] Vurder mykere bunn på bålflammen (ny bestilling, se ART_PROMPTS.md) så den kan stå foran kubbene
-- [ ] Brettfiler med kulisser for swamp, frost, scorch, tower og nattleiren (bare tomme filer nå)
+- [ ] Flere kulisser på swamp, frost, scorch, tower og nattleiren (de har murene og gravene nå, men ikke resten av miljøpakken)
 - [ ] `gore_` i process_art.py (runde A)
 - [ ] Senere i editoren: gjøre en generator om til enkeltkulisser («bake inn»), `solid` og `breakable` på kulisser, InstancedMesh for lange rader hvis det blir tungt
 - [ ] Sporformatet (track) på riggens stillinger: angrep i flere faser og dødsanimasjoner som data (runde A eller E)

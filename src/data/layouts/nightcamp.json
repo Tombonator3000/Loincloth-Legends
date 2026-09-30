@@ -1,6 +1,14 @@
 {
   "version": 1,
   "level": "nightcamp",
-  "props": [],
+  "props": [
+    {"id":"p1","prop":"env_stone_wall_broken","layer":"back","x":28.6,"y":-0.05,"z":-8.6},
+    {"id":"p2","prop":"env_gravestone_simple","layer":"back","x":26.4,"z":-7.6,"rot":6},
+    {"id":"p3","prop":"env_gravestone_cracked","layer":"back","x":27.8,"z":-7.9},
+    {"id":"p4","prop":"env_gravestone_skull","layer":"back","x":29.4,"z":-7.7},
+    {"id":"p5","prop":"env_gravestone_simple","layer":"back","x":31,"z":-7.8,"flip":true,"rot":-5},
+    {"id":"p6","prop":"env_grave_mound","layer":"back","x":27.3,"z":-6.9},
+    {"id":"p7","prop":"env_grave_open","layer":"back","x":30.1,"z":-6.8}
+  ],
   "runs": []
 }

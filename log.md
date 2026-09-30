@@ -538,3 +538,19 @@ Miljøpakken (52 bilder fra GPT, d1f4b2b) er satt sammen, animert og tatt i bruk
 - Tester: ny `tools/tests/env-pack.mjs` (9 av 9: lastingen, settet i tre ledd, svingen, emit, SAVE AS SET med on, alle settene, brett 1 uten plassholdere og advarsler, kråka på skiltet i spillet). `prop-anim.mjs` bruker nå testbrettet `tools/tests/fixtures/road-placeholders.json` (det gamle brett 1), 19 av 19. editor (19 av 19, antall rader leses fra fila), forge-save (8 av 8, ny sjekk av emit, fire og on), prop-images (7), assets-timeout, particles, riders, mouse, story, alle fem brettene til finalen, looks for brett 1, check_art_pack, typecheck og build.
 - Arbeidsprosessen ble startet på nytt midt i forge-save. Testen rakk ikke å sette road.json og manifest.json tilbake, og prop_forgetest.webp ble liggende. Filene ble satt tilbake fra kopiene tatt rett før, testbildet slettet, og testen kjørt på nytt.
 - Dokumentasjon: ENVIRONMENT_PACK (sett og animasjon, brett 1, lasting), STAGE_FORGE, ARCHITECTURE, ART_PROMPTS (flammer med myk bunn), skillene stage-forge og prop-art, tests/README, memory og todo.
+
+## 2026-09-30 23:08 (Europe/Oslo)
+Tom: «bruk murene og gravene på de andre brettene også.»
+- Målt murene og gravene: de rette murene går helt ut i begge kanter (rader med litt overlapp), teglmurens ende har den ferdige kanten til venstre, ruinen trapper seg ned mot høyre, steinmuren har et brudd på midten, og borgmuren har tårn og brudd. Den åpne graven slutter ved v 0,89 på midten, så ankeret er flyttet til [0.5, 0.9] i manifestet.
+- Brettfilene for de fem andre brettene er skrevet av et skript (layoutToJson og validateLayout), med farge per brett (`tint`), fordi bildene er malt i varmt dagslys:
+  - Sumpen (31 kulisser): gravplassen ved starten, der zombiene i bølge 1 kommer fra (åpne graver, haug, gravsteiner, halvt sunket steinmur i vannet), enkeltgraver langs bredden, og gravsteiner og murrester som står skjevt ute i vannet. De sto først for langt ute og forsvant i tåka, og er flyttet nærmere bredden.
+  - Frosten (20): steinmur langs veien ved starten, gravplass for falne krigere, borgruin bak skogen og borgmuren med tårn og brudd fram til porten ved Kaldors grop. Kald farge. Ingenting over juvene (x 32,5 til 41,5 og 85 til 95, bakover til z -5,2).
+  - Scorchlands (26): nedbrente teglmurer i grupper foran lavaelva, gravsteiner med hodeskalle og en borgruin bak elva. Murene var bleke med den første fargen og er gjort mørkere.
+  - Tårnet (6): ras langs veggen og en krypt før tronsalen, med lilla skjær. To løse gravsteiner midt i gangen ble tatt bort igjen, de så rare ut.
+  - Nattleiren (7): liten gravplass mellom de to bålene bak leiren, med en brutt steinmur bak.
+- Spillet henter nå 41 av 52 kulissebilder ved oppstart (det brettene bruker).
+- `env-pack.mjs` har en ny sjekk: alle fem brettene har murer eller graver, ingen advarsler i editoren, ingen ukjente kulisser, og ingenting over juvene i frosten (10 av 10).
+- Tester: env-pack (10 av 10), alle fem brettene til finalen (sjefen død på road, swamp, scorch og tower, duellen starter i frosten), nightcamp (daggry og belønning), looks for sumpen, frosten, Scorchlands og tårnet, typecheck og build.
+- Funnet underveis, fantes fra før: i nattleiren står en generert eik rett foran kameraet (skoggeneratoren i env/night.ts legger eiker på z 8,4 til 9,8, kameraet står på z 11,4), og ved daggry (x 34,5) dekker den hele bildet. Foreslått som egen oppgave, ikke rørt her.
+- Dev-serveren og preview-serveren ble stoppet av tidsgrensen for bakgrunnsoppgaver (30 minutter). Preview-serveren er startet på nytt med to timers grense.
+- Dokumentasjon: ENVIRONMENT_PACK (De andre brettene), memory og todo.

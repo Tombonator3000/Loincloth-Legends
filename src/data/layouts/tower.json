@@ -1,6 +1,13 @@
 {
   "version": 1,
   "level": "tower",
-  "props": [],
+  "props": [
+    {"id":"p1","prop":"env_stone_wall_broken","layer":"back","x":30,"z":-5.1,"scale":0.9,"tint":"#a898b8"},
+    {"id":"p2","prop":"env_brick_wall_ruined","layer":"back","x":70,"z":-5.1,"scale":0.9,"flip":true,"tint":"#a898b8"},
+    {"id":"p3","prop":"env_stone_wall_broken","layer":"back","x":96,"z":-5.1,"flip":true,"tint":"#a898b8"},
+    {"id":"p4","prop":"env_gravestone_skull","layer":"back","x":104,"z":-4.9,"tint":"#a898b8"},
+    {"id":"p5","prop":"env_gravestone_cracked","layer":"back","x":105.8,"z":-5,"rot":-4,"tint":"#a898b8"},
+    {"id":"p6","prop":"env_gravestone_skull","layer":"back","x":107.6,"z":-4.9,"flip":true,"tint":"#a898b8"}
+  ],
   "runs": []
 }

@@ -10,7 +10,7 @@ Originalkunsten er laget med GPT-image for Loincloth Legends: slitte materialer,
 
 Hvert bilde har en egen manifest-ID som er lik originalens PNG-navn uten filendelse. For eksempel blir `env_tent.png` til ID `env_tent`, med filen `public/assets/prop_env_tent.webp`. Det samme mønsteret gjelder hele tabellen: `public/assets/prop_<id>.webp`.
 
-De nye ID-ene erstatter ingen av de eksisterende plassholderne eller 3D-rekvisittene. Plassholderne finnes fortsatt i biblioteket, men brett 1 bruker nå bildene fra pakken (se «Brett 1» under). Bredder og ankere er startverdier. Juster **WIDTH**, fotpunkt, lag og skala i editoren før en scene lagres. Se også [STAGE_FORGE.md](STAGE_FORGE.md).
+De nye ID-ene erstatter ingen av de eksisterende plassholderne eller 3D-rekvisittene. Plassholderne finnes fortsatt i biblioteket, men brett 1 bruker nå bildene fra pakken, og de andre brettene bruker murene og gravene (se «Brett 1» og «De andre brettene» under). Bredder og ankere er startverdier. Juster **WIDTH**, fotpunkt, lag og skala i editoren før en scene lagres. Se også [STAGE_FORGE.md](STAGE_FORGE.md).
 
 Spillet henter bare bildene brettfilene bruker når det starter (`main.ts`), så en spiller slipper å laste ned hele pakken. Editoren henter resten før den åpnes (`loadPropImages` i `src/gfx/assets.ts`), og med `?editor` i adressen hentes alt med en gang.
 
@@ -106,6 +106,20 @@ Flammebildene har ikke partikkelflammer (`fire`) i tillegg. Det ble prøvd, og p
 
 Brett 1 (`src/data/layouts/road.json`) bruker pakken i stedet for plassholderne: palisaden som en rad med ender og veggfakler ved de to åpningene, telt bak åpningene, lyktestolpe, skilt med kråke, bål, bannere, fakler, vogn med tønne og kasse, busker, eiker og et dødt tre bak palisaden, og gress, stamme, steiner og røtter rett foran kameraet. Den genererte 3D-palisaden, teltene, bålene og bannerne er slått av der. Eikekronene har en varm farge (`tint`), så de passer den røde og gule skogen.
 
+## De andre brettene
+
+Murene og gravene er tatt i bruk på de andre brettene (Tom 2026-09-30). Fargen er justert per brett med `tint`, fordi bildene er malt i varmt dagslys:
+
+| Brett | Hva |
+|---|---|
+| Sumpen (`swamp.json`) | Gravplassen ved starten, der zombiene i bølge 1 kommer fra: åpne graver, en haug og gravsteiner på bredden, med en halvt sunket steinmur i vannet bak. Enkeltgraver langs bredden, og gravsteiner og murrester som står skjevt ute i vannet (senket med `y` under vannflaten). |
+| Frosten (`frost.json`) | En gammel steinmur langs veien ved starten, en liten gravplass for falne krigere midt i passet, en borgruin bak skogen, og borgmuren med tårn og brudd som leder fram til porten ved Kaldors grop. Kald farge (#aab8d0). Ingenting står over juvene. |
+| Scorchlands (`scorch.json`) | En nedbrent landsby: grupper av teglmur (ende, rett og ruin) foran lavaelva, gravsteiner med hodeskalle, og en borgruin på den andre siden av elva. Brent farge (#7c6a62), ruinen bak elva mørkere. |
+| Tårnet (`tower.json`) | Steinras langs veggen og en krypt med gravsteiner før tronsalen. Lilla farge (#a898b8). |
+| Nattleiren (`nightcamp.json`) | En liten gravplass mellom de to bålene bak leiren, med en brutt steinmur bak. |
+
+Den åpne graven har fått ankeret [0.5, 0.9]: midten av bildet slutter ved v 0,89, og bare kanten til høyre går helt ned. Graven er tegnet sett ovenfra, så den ser ut som en lav, gravd grop med jordkant fra spillkameraet.
+
 ## Import og originaler
 
 Bildene følger repoets `prop-art`-flyt: `prop_<id>.png` i `art/inbox/`, behandling med `tools/process_art.py`, og WebP samt manifestoppføring i `public/assets/`. Originale PNG-er ligger i den leverte `Loincloth-Legends-Miljopakke-52-PNG.zip`, ikke i git. Eventuelle lokale importkopier og `art/inbox/behandlet/` er arbeidsfiler.
@@ -114,4 +128,4 @@ Importen beskjærer etter alfa og bevarer gjennomsiktigheten i WebP. Originalpak
 
 Porten `env_palisade_gate` krevde en særskilt klargjøring av importkopien. Bildet har ekte alfa, men for liten gjennomsiktig flate til at importskriptets bakgrunnstest hopper over bakgrunnsfjerning. Importkopien fikk derfor 48 piksler gjennomsiktig marg på venstre og høyre side. Skriptets vanlige beskjæring fjerner denne marga igjen. RGBA-innholdet etter beskjæring ble kontrollert byte for byte mot originalens tilsvarende beskjæring før import. PNG-originalen og importskriptet er uendret.
 
-Settene, bevegelsene og brett 1 er kontrollert med skjermbilder i editoren og i spillet (`tools/tests/env-pack.mjs` sjekker lastingen, settene og brett 1). Bredder og ankere på bildene som ikke er nevnt over, er fortsatt startverdier.
+Settene, bevegelsene og brettene er kontrollert med skjermbilder i editoren og i spillet (`tools/tests/env-pack.mjs` sjekker lastingen, settene, brett 1 og murene og gravene på de andre brettene). Porten (`env_palisade_gate`), alteret, steinblokka og den falne stokken er ennå ikke brukt på noe brett, og bredde og anker på dem er fortsatt startverdier.

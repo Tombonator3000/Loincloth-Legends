@@ -1,6 +1,27 @@
 {
   "version": 1,
   "level": "frost",
-  "props": [],
+  "props": [
+    {"id":"p1","prop":"env_stone_wall_straight","layer":"back","x":3,"z":-6.6,"tint":"#aab8d0"},
+    {"id":"p2","prop":"env_stone_wall_broken","layer":"back","x":5.9,"z":-6.6,"tint":"#aab8d0"},
+    {"id":"p3","prop":"env_stone_wall_straight","layer":"back","x":8.8,"z":-6.6,"tint":"#aab8d0"},
+    {"id":"p4","prop":"env_stone_wall_straight","layer":"back","x":11.7,"z":-6.6,"flip":true,"tint":"#aab8d0"},
+    {"id":"p5","prop":"env_stone_wall_broken","layer":"back","x":14.6,"z":-6.6,"flip":true,"tint":"#aab8d0"},
+    {"id":"p6","prop":"env_gravestone_cracked","layer":"back","x":55.2,"z":-6.9,"rot":-4,"tint":"#aab8d0"},
+    {"id":"p7","prop":"env_grave_mound","layer":"back","x":56.9,"z":-6.5,"tint":"#aab8d0"},
+    {"id":"p8","prop":"env_gravestone_simple","layer":"back","x":58.6,"z":-7,"rot":3,"tint":"#aab8d0"},
+    {"id":"p9","prop":"env_gravestone_skull","layer":"back","x":60.3,"z":-7.2,"tint":"#aab8d0"},
+    {"id":"p10","prop":"env_gravestone_cracked","layer":"back","x":61.9,"z":-6.8,"scale":0.9,"flip":true,"rot":6,"tint":"#aab8d0"},
+    {"id":"p11","prop":"env_castle_wall_breach","layer":"back","x":64,"z":-11.5,"tint":"#aab8d0"},
+    {"id":"p12","prop":"env_castle_wall_pillar","layer":"back","x":68.3,"z":-11.45,"tint":"#aab8d0"},
+    {"id":"p13","prop":"env_castle_wall_straight","layer":"back","x":71.9,"z":-11.5,"tint":"#aab8d0"},
+    {"id":"p14","prop":"env_castle_wall_pillar","layer":"back","x":75.5,"z":-11.45,"tint":"#aab8d0"},
+    {"id":"p15","prop":"env_castle_wall_pillar","layer":"back","x":97.2,"z":-8.55,"tint":"#aab8d0"},
+    {"id":"p16","prop":"env_castle_wall_straight","layer":"back","x":100.7,"z":-8.6,"tint":"#aab8d0"},
+    {"id":"p17","prop":"env_castle_wall_pillar","layer":"back","x":104.3,"z":-8.55,"tint":"#aab8d0"},
+    {"id":"p18","prop":"env_castle_wall_breach","layer":"back","x":108.4,"z":-8.6,"flip":true,"tint":"#aab8d0"},
+    {"id":"p19","prop":"env_castle_wall_pillar","layer":"back","x":112.5,"z":-8.55,"tint":"#aab8d0"},
+    {"id":"p20","prop":"env_castle_wall_straight","layer":"back","x":116.1,"z":-8.6,"tint":"#aab8d0"}
+  ],
   "runs": []
 }

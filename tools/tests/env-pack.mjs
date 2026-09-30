@@ -1,7 +1,8 @@
-// Miljøpakken fra ChatGPT (52 bilder, Tom 2026-09-30: "ta inn gpt png filer"): spillet henter bare kulissebildene
-// brettene bruker, og editoren henter resten før den åpnes; settene legges ut med delene hengt riktig (flammen henger
-// på lykta, som henger på stolpen, og følger svingen); flammene lyser selv; SAVE AS SET husker hvilken del en del
-// henger på; brett 1 bruker bildene uten advarsler, og kråka på skiltet flyr når helten kommer.
+// Miljøpakken fra ChatGPT (52 bilder, Tom 2026-09-30: "ta inn gpt png filer" og "bruk murene og gravene på de andre
+// brettene også"): spillet henter bare kulissebildene brettene bruker, og editoren henter resten før den åpnes;
+// settene legges ut med delene hengt riktig (flammen henger på lykta, som henger på stolpen, og følger svingen);
+// flammene lyser selv; SAVE AS SET husker hvilken del en del henger på; brett 1 bruker bildene uten advarsler; de andre
+// brettene har murer og graver uten advarsler og utenfor juvene; kråka på skiltet flyr når helten kommer.
 // Bruk: node tools/tests/env-pack.mjs http://localhost:4173/ [./shots]
 import { chromium } from 'playwright';
 import fs from 'node:fs';
@@ -55,6 +56,29 @@ const road = await page.evaluate(() => {
   };
 });
 check('brett 1 bruker bildene fra miljøpakken, uten plassholdere og uten advarsler', road.warnings.length === 0 && road.unknown.length === 0 && road.images >= 40 && road.placeholders.length === 0, road);
+
+// De andre brettene: murene og gravene (Tom 2026-09-30), uten advarsler og ingen kulisser oppå juvene i frosten
+const WALLS = /^env_(brick|stone|castle)_wall_/, GRAVES = /^env_grave/;
+const others = {};
+for (const id of ['swamp', 'frost', 'scorch', 'tower', 'nightcamp']) {
+  await page.evaluate((id) => window.__game.openEditor(id), id);
+  await page.waitForFunction((id) => window.__game.scene?.name === 'editor' && window.__lib.forgeState().level === id, id);
+  others[id] = await page.evaluate(({ id, walls, graves }) => {
+    const L = window.__lib, sc = window.__game.scene, props = L.forgeState().layout.props;
+    // Juvet går fra forkanten av faren og bakover til CHASM_BACK (-5,2 i data/hazards.ts)
+    const chasms = (L.LEVELS[id].hazards ?? []).filter((h) => h.kind === 'chasm');
+    return {
+      warnings: sc.collectWarnings().map((w) => w.text),
+      unknown: props.filter((p) => !L.propKind(p.prop)).map((p) => p.prop),
+      walls: props.filter((p) => new RegExp(walls).test(p.prop)).length,
+      graves: props.filter((p) => new RegExp(graves).test(p.prop)).length,
+      inChasm: props.filter((p) => chasms.some((h) => Math.abs(p.x - h.x) < h.w / 2 + 1 && p.z > -5.2 - 0.5 && p.z < h.z + h.d / 2)).map((p) => p.id),
+    };
+  }, { id, walls: WALLS.source, graves: GRAVES.source });
+}
+check('murene og gravene brukes på de andre brettene, uten advarsler og utenfor juvene', Object.values(others).every((o) => o.warnings.length === 0 && o.unknown.length === 0 && o.walls + o.graves > 0 && o.inChasm.length === 0) && others.swamp.graves >= 10, others);
+await page.evaluate(() => window.__game.openEditor('road'));
+await page.waitForFunction(() => window.__game.scene?.name === 'editor' && window.__lib.forgeState().level === 'road');
 
 // ---------------------------------------------------------------- et sett i tre ledd
 await page.evaluate(() => {
@@ -139,6 +163,6 @@ for (let i = 0; i < 16 && !fled && crowId; i++) {
 check('i spillet flyr kråka på skiltet når helten kommer', !!crowId && fled, { crowId, fled });
 
 if (logs.length) console.log('LOGS:\n' + logs.join('\n'));
-console.log(fails.length ? `FEIL: ${fails.length} (${fails.join(', ')})` : 'OK: miljøpakken lastes, settes sammen og brukes på brett 1');
+console.log(fails.length ? `FEIL: ${fails.length} (${fails.join(', ')})` : 'OK: miljøpakken lastes, settes sammen og brukes på alle brettene');
 process.exitCode = fails.length || logs.length ? 1 : 0;
 await browser.close();
