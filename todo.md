@@ -11,7 +11,9 @@
 
 ## Ekte instrumenter i musikken (fra 2026-09-30 08:10)
 - [x] Trommer, gitar og bass fra Karoryfer (CC0) spilt av bandet, synth som reserve (tools/tests/instruments.mjs)
-- [ ] Tom: lytt (MP3-ene med og uten, eller i spillet) og si hva som skal justeres: nivå på trommer, gitar og bass, mer eller mindre forvrengning, mer bunn
+- [x] Tom hørte ikke forskjell: egne forsterkere med mindre gain for gitarene, egen basskjede, trommer med EQ, panorering og rimshot, og trommene 4 til 6 dB over synthtrommene
+- [ ] Tom: lytt på A/B-filene (ab-1 til ab-6, først synth, så ekte) og si hva som skal justeres: trommenivå, mer eller mindre forvrengning, mer bunn i gitarene, bassen
+- [ ] Dobbeltinnspillingen: ulike opptak på hver side også for toner over E3 (der finnes bare én variant, så begge sider får ofte samme opptak)
 - [ ] Leadgitaren: egne opptak med mer sustain (i dag er lange soloer over 2,4 s synth)
 - [ ] Når freesound.org er åpnet igjen: vurdere en ekte el-gitar med humbuckere til rytmegitaren (Gretschen er en hul gitar)
 

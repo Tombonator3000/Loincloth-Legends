@@ -1,10 +1,11 @@
 // Offline-rendring av metal-låtene (src/core/metal.ts) i nettleseren: WAV-fil, spektrogram og målinger
 // (toppnivå, RMS, klipping, NaN og frekvensbalanse), så lyden kan sjekkes uten høyttalere.
-// Bruk: node tools/tests/metal.mjs http://localhost:4173/ ./shots [title,stage,...|all] [sekunder] [shred] [real|both]
+// Bruk: node tools/tests/metal.mjs http://localhost:4173/ ./shots [title,stage,...|all] [sekunder] [shred] [real|both] [instrument]
 // real: med instrumentopptakene fra lydbanken (Karoryfer), both: både synth og opptak.
+// instrument: drums, guitar (rytmegitarene), bass eller lead alene (standard: alt), til lytteprøver og målinger.
 import { chromium } from 'playwright';
 import fs from 'fs';
-const [url, out, only = 'all', secsArg = '14', shredArg = '', realArg = ''] = process.argv.slice(2);
+const [url, out, only = 'all', secsArg = '14', shredArg = '', realArg = '', stem = 'all'] = process.argv.slice(2);
 const secs = Number(secsArg);
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
@@ -26,7 +27,7 @@ if (realArg) {
 }
 for (const name of names) {
   for (const [shred, real] of (shredArg ? [false, true] : [false]).flatMap((sh) => (realArg === 'both' ? [false, true] : [realArg === 'real']).map((re) => [sh, re]))) {
-    const r = await page.evaluate(async ({ name, secs, shred, real }) => {
+    const r = await page.evaluate(async ({ name, secs, shred, real, stem }) => {
       const L = window.__lib;
       const sr = 44100;
       const ctx = new OfflineAudioContext(2, Math.floor(sr * secs), sr);
@@ -42,6 +43,17 @@ for (const name of names) {
       const band = new L.MetalBand(ctx, bus);
       band.shred = shred;
       if (real) band.samples = { pick: (g, m) => L.audio.bank.pick(g, m), full: (g) => L.audio.bank.full(g) };
+      // Ett instrument alene: de andre blir stille (bassen følger akkordene, så den spilles fra powerChord)
+      const nop = () => {};
+      const kit = ['kick', 'snare', 'hat', 'crash', 'tom'];
+      if (stem === 'drums') { band.powerChord = nop; band.leadNote = nop; }
+      if (stem === 'guitar') { for (const d of kit) band[d] = nop; band.leadNote = nop; band.bass = nop; }
+      if (stem === 'lead') { for (const d of kit) band[d] = nop; band.powerChord = nop; }
+      if (stem === 'bass') {
+        for (const d of kit) band[d] = nop;
+        band.leadNote = nop;
+        band.powerChord = function (t, root, dur, open, vel = 1, withBass = true) { if (withBass) this.bass(t, root - 12, open ? dur : Math.min(dur, 0.24), vel); };
+      }
       const tr = L.METAL_TRACKS[name];
       const sd = 60 / tr.bpm / 4;
       for (let s = 0, t = 0.05; t < secs - 0.4; s++, t += sd) band.playStep(tr, s % tr.steps, t, sd);
@@ -141,8 +153,8 @@ for (const name of names) {
         peak: peak.toFixed(3), rmsDb: (20 * Math.log10(rms + 1e-12)).toFixed(1), clipPct: ((clip / Lc.length) * 100).toFixed(2),
         nan, dc: (dc / n).toFixed(4), width: (Math.sqrt(side / Lc.length) / (rms + 1e-12)).toFixed(2), pct,
       };
-    }, { name, secs, shred, real });
-    const tag = name + (shred ? '-shred' : '') + (real ? '-real' : '');
+    }, { name, secs, shred, real, stem });
+    const tag = name + (stem !== 'all' ? '-' + stem : '') + (shred ? '-shred' : '') + (real ? '-real' : '');
     fs.writeFileSync(`${out}/metal-${tag}.wav`, Buffer.from(r.wav, 'base64'));
     fs.writeFileSync(`${out}/metal-${tag}.png`, Buffer.from(r.png, 'base64'));
     console.log(tag, 'render', r.ms, 'ms', 'peak', r.peak, 'rms', r.rmsDb, 'dBFS', 'clip%', r.clipPct, 'nan', r.nan, 'dc', r.dc, 'stereo', r.width, JSON.stringify(r.pct));

@@ -122,11 +122,14 @@ Black And Green Guitars (gitaren, en Gretsch Anniversary), Growlybass (bassen, e
 | `ins_hihat_1.mp3` | Samples/hihat_14/tc/cl/ht_tc_vl7_rr1.flac + Samples/hihat_14/tc/oh/ht_tc_vl7_rr1.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
 | `ins_hihat_2.mp3` | Samples/hihat_14/tc/cl/ht_tc_vl7_rr2.flac + Samples/hihat_14/tc/oh/ht_tc_vl7_rr2.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
 | `ins_hihat_3.mp3` | Samples/hihat_14/tc/cl/ht_tc_vl7_rr3.flac + Samples/hihat_14/tc/oh/ht_tc_vl7_rr3.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
-| `ins_skarp_1.mp3` | Samples/snare_14/center/top/sn_center_vl9_rr1.flac + Samples/snare_14/center/btm/sn_center_vl9_rr1.flac + Samples/snare_14/center/oh/sn_center_vl9_rr1.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
-| `ins_skarp_2.mp3` | Samples/snare_14/center/top/sn_center_vl9_rr2.flac + Samples/snare_14/center/btm/sn_center_vl9_rr2.flac + Samples/snare_14/center/oh/sn_center_vl9_rr2.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
-| `ins_skarp_3.mp3` | Samples/snare_14/center/top/sn_center_vl9_rr3.flac + Samples/snare_14/center/btm/sn_center_vl9_rr3.flac + Samples/snare_14/center/oh/sn_center_vl9_rr3.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_hihat_4.mp3` | Samples/hihat_14/tc/cl/ht_tc_vl7_rr4.flac + Samples/hihat_14/tc/oh/ht_tc_vl7_rr4.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_skarp_1.mp3` | Samples/snare_14/rimshot/top/sn_rims_vl6_rr1.flac + Samples/snare_14/rimshot/btm/sn_rims_vl6_rr1.flac + Samples/snare_14/rimshot/oh/sn_rims_vl6_rr1.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_skarp_2.mp3` | Samples/snare_14/rimshot/top/sn_rims_vl6_rr2.flac + Samples/snare_14/rimshot/btm/sn_rims_vl6_rr2.flac + Samples/snare_14/rimshot/oh/sn_rims_vl6_rr2.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_skarp_3.mp3` | Samples/snare_14/rimshot/top/sn_rims_vl6_rr3.flac + Samples/snare_14/rimshot/btm/sn_rims_vl6_rr3.flac + Samples/snare_14/rimshot/oh/sn_rims_vl6_rr3.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_skarp_4.mp3` | Samples/snare_14/rimshot/top/sn_rims_vl6_rr4.flac + Samples/snare_14/rimshot/btm/sn_rims_vl6_rr4.flac + Samples/snare_14/rimshot/oh/sn_rims_vl6_rr4.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
 | `ins_stortromme_1.mp3` | Samples/kick_24/kick/kick/k_vl13_rr1.flac + Samples/kick_24/kick/oh/k_vl13_rr1.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
 | `ins_stortromme_2.mp3` | Samples/kick_24/kick/kick/k_vl13_rr2.flac + Samples/kick_24/kick/oh/k_vl13_rr2.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
 | `ins_stortromme_3.mp3` | Samples/kick_24/kick/kick/k_vl13_rr3.flac + Samples/kick_24/kick/oh/k_vl13_rr3.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_stortromme_4.mp3` | Samples/kick_24/kick/kick/k_vl13_rr4.flac + Samples/kick_24/kick/oh/k_vl13_rr4.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
 | `ins_tam_1.mp3` | Samples/tom_14/center/cl/t14_vl5_rr1.flac + Samples/tom_14/center/oh/t14_vl5_rr1.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
 | `ins_tam_2.mp3` | Samples/tom_15/center/cl/t15_vl6_rr1.flac + Samples/tom_15/center/oh/t15_vl6_rr1.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |

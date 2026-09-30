@@ -284,6 +284,23 @@ export function impulse(ctx: BaseAudioContext, dur: number, gated: boolean) {
 
 interface Amp { input: GainNode }
 
+/**
+ * En forsterker: gain, høypass inn (Hz), kabinettet (lavpass, Hz), nivå ut, og klangen etter forvrengningen: dunken i
+ * kabinettet (dB ved 110 Hz), midten (dB ved 450 Hz) og nærværet (dB ved 1,9 kHz).
+ */
+interface AmpSpec { drive: number; hp: number; lp: number; level: number; thump: number; mid: number; pres: number }
+/**
+ * Synthen trenger mye gain for å likne en gitar. Opptakene (Karoryfer) kjøres som et stack fra 80-tallet, med mye
+ * mindre gain, så anslaget, klangen i strengene og uttoningen høres gjennom forvrengningen, og med mer dunk i
+ * kabinettet, siden en ekte streng gir mindre bunn enn en sagtann etter forvrengningen.
+ */
+const AMPS: Record<'rhythm' | 'lead' | 'rhythmReal' | 'leadReal', AmpSpec> = {
+  rhythm: { drive: 18, hp: 110, lp: 5200, level: 0.42, thump: 0, mid: -4, pres: 4 },
+  lead: { drive: 34, hp: 320, lp: 4600, level: 0.26, thump: 0, mid: -4, pres: 4 },
+  rhythmReal: { drive: 10, hp: 90, lp: 5400, level: 0.5, thump: 6, mid: -7, pres: 6 },
+  leadReal: { drive: 20, hp: 250, lp: 4800, level: 0.3, thump: 0, mid: -3, pres: 4 },
+};
+
 /** Intensitet (core/conductor.ts): 0 rolig, 1 kamp (låta som skrevet), 2 hete, 3 sjef. */
 export type Level = 0 | 1 | 2 | 3;
 
@@ -300,7 +317,7 @@ const MIX: Record<Level, readonly [number, number, number, number, number]> = {
 };
 
 /** Inngangene til gitarene og bassen for én låt. Ved et bytte kveles det som fortsatt klinger fra den gamle. */
-interface Section { nodes: GainNode[]; r: GainNode[]; lead: GainNode; bass: GainNode; end: number }
+interface Section { nodes: GainNode[]; r: GainNode[]; rr: GainNode[]; lead: GainNode; leadR: GainNode; bass: GainNode; bassR: GainNode; end: number }
 
 /** Et opptak bandet kan bruke (VCSL-bekkenet): bufferet og stillheten foran i sekunder. */
 export interface Sample { buf: AudioBuffer; lead: number }
@@ -319,11 +336,25 @@ export interface SampleSource {
   full(group: string): boolean;
 }
 
+/** Hvor hardt gitar- og bassopptakene går inn i forsterkerne sine (AMPS og BASS_R). */
+const REAL = { chord: 1.2, mute: 4, lead: 1, bass: 1.2 };
+/** Den ekte bassen: nivået på den rene bunnen, gain og nivå på knurren over 160 Hz. */
+const BASS_R = { low: 6, drive: 4, growl: 0.8 };
+/** Et filter i EQ-en på et trommeopptak: type, frekvens (Hz), Q og forsterkning (dB). */
+type Eq = readonly [BiquadFilterType, number, number, number];
 /**
- * Nivået på opptakene inn i bandet, satt så de ligger omtrent der synthen lå (målt med tools/tests/metal.mjs).
- * Gitaren og bassen går inn i forvrengningen, så der er det mest hvor hardt forsterkeren kjøres.
+ * De ekte trommene mikset som på en metalplate fra 80-tallet: nivå og EQ. Stortromma får klikket fra køllen og
+ * mindre boks, så den høres gjennom gitarveggen, skarptromma smell, tammene anslag, og bekkenene mister rumlingen fra
+ * resten av settet (og crashen den skarpe ringen på 546 Hz). Plassen i stereobildet er sett fra publikum: hi-hat og de
+ * små tammene til høyre.
  */
-const REAL = { kick: 0.8, snare: 0.74, hat: 0.16, crash: 0.74, tom: 0.72, chord: 2.5, mute: 3.4, lead: 1.55, bass: 11 };
+const KIT: Record<'kick' | 'snare' | 'hat' | 'crash' | 'tom', { vol: number; eq: readonly Eq[] }> = {
+  kick: { vol: 1.6, eq: [['highpass', 55, 0.7, 0], ['peaking', 115, 1, 5], ['peaking', 450, 1.2, -5], ['peaking', 3800, 1.2, 11]] },
+  snare: { vol: 2.6, eq: [['highpass', 100, 0.7, 0], ['peaking', 200, 1.3, 2], ['peaking', 5000, 0.9, 5], ['highshelf', 8000, 0.7, 3]] },
+  hat: { vol: 0.45, eq: [['highpass', 500, 0.7, 0]] },
+  crash: { vol: 1.3, eq: [['highpass', 650, 0.7, 0], ['peaking', 546, 4, -9], ['highshelf', 7000, 0.7, 3]] },
+  tom: { vol: 1.3, eq: [['peaking', 480, 1.2, -6], ['peaking', 4000, 1.2, 7]] },
+};
 const DRUMS = ['ins_stortromme', 'ins_skarp', 'ins_hihat', 'ins_crash', 'ins_tam'];
 const GUITARS = ['ins_gitar', 'ins_gitarkort'];
 /** Palm mute bruker de korte gitartonene opp til denne tonen, lysere toner de lange (med kort konvolutt). */
@@ -399,6 +430,12 @@ export class MetalBand {
   private rhythm: Amp[] = [];
   private lead: Amp;
   private bassIn: GainNode;
+  /** Forsterkerne og bassinngangen for opptakene (AMPS.rhythmReal og leadReal). */
+  private rhythmR: Amp[] = [];
+  private leadR: Amp;
+  private bassInR: GainNode;
+  /** Crashen veksler mellom to bekkener, ett på hver side. */
+  private crashSide = 1;
   private drums: GainNode;
   private hall: GainNode;
   private gate: GainNode;
@@ -411,7 +448,8 @@ export class MetalBand {
   private extraKit: GainNode;
   private fx: GainNode;
   private fxKit: GainNode;
-  private stingIn: GainNode | null = null;
+  /** Stingergitaren, for synthen og for opptakene. */
+  private stingIn: (GainNode | null)[] = [null, null];
   private sec: Section;
   private oldSecs: Section[] = [];
   private soloPhrase = 0;
@@ -451,19 +489,24 @@ export class MetalBand {
     this.gate = c.createGain();
     this.gate.connect(gate);
 
-    // To rytmegitarer, én på hver side (dobbeltinnspilling), på hver sin buss for lagene
+    // To rytmegitarer, én på hver side (dobbeltinnspilling), på hver sin buss for lagene. Opptakene har egne
+    // forsterkere på de samme plassene.
     this.rhythmBus = bus(1);
     for (const pan of [-0.8, 0.8]) {
-      const amp = this.makeAmp(18, 110, 5200, 0.42);
-      const p = c.createStereoPanner();
-      p.pan.value = pan;
-      amp.out.connect(p).connect(this.rhythmBus);
-      this.rhythm.push({ input: amp.input });
+      for (const [spec, list] of [[AMPS.rhythm, this.rhythm], [AMPS.rhythmReal, this.rhythmR]] as const) {
+        const amp = this.makeAmp(spec);
+        const p = c.createStereoPanner();
+        p.pan.value = pan;
+        amp.out.connect(p).connect(this.rhythmBus);
+        list.push({ input: amp.input });
+      }
     }
     // Leadgitar i midten, mer gain, ekko og hall. Ekkoet og hallen hentes etter lagbussen, så halen følger med ned.
-    const lead = this.makeAmp(34, 320, 4600, 0.26);
+    const lead = this.makeAmp(AMPS.lead);
+    const leadR = this.makeAmp(AMPS.leadReal);
     this.leadBus = bus(1);
     lead.out.connect(this.leadBus);
+    leadR.out.connect(this.leadBus);
     this.echo = c.createDelay(1.5);
     this.echo.delayTime.value = 0.3;
     const fb = c.createGain();
@@ -478,6 +521,7 @@ export class MetalBand {
     echoTone.connect(echoOut).connect(out);
     this.leadBus.connect(this.hall);
     this.lead = { input: lead.input };
+    this.leadR = { input: leadR.input };
 
     // Bassgitar: litt knurr, ikke mye
     this.bassIn = c.createGain();
@@ -488,6 +532,26 @@ export class MetalBand {
     bassLp.frequency.value = 1100;
     this.bassOut = bus(0.3);
     this.bassIn.connect(bassDrive).connect(bassLp).connect(this.bassOut);
+    // Den ekte bassen som på en metalplate: ren bunn under 200 Hz, og knurr med plekteret over, blandet
+    this.bassInR = c.createGain();
+    const low = c.createBiquadFilter();
+    low.type = 'lowpass';
+    low.frequency.value = 200;
+    const lowG = c.createGain();
+    lowG.gain.value = BASS_R.low;
+    this.bassInR.connect(low).connect(lowG).connect(this.bassOut);
+    const growlHp = c.createBiquadFilter();
+    growlHp.type = 'highpass';
+    growlHp.frequency.value = 160;
+    const growl = c.createWaveShaper();
+    growl.curve = driveCurve(BASS_R.drive);
+    growl.oversample = '2x';
+    const growlLp = c.createBiquadFilter();
+    growlLp.type = 'lowpass';
+    growlLp.frequency.value = 2600;
+    const growlG = c.createGain();
+    growlG.gain.value = BASS_R.growl;
+    this.bassInR.connect(growlHp).connect(growl).connect(growlLp).connect(growlG).connect(this.bassOut);
 
     this.drums = bus(0.72);
     // Ekstralaget (hete og sjef) og stingerne, som går utenom lagene
@@ -502,48 +566,62 @@ export class MetalBand {
     this.sec = this.section();
   }
 
-  /** Forvrenger og kabinett: inn, høypass, forvrengning, to lavpass (4x12-kabinett), litt nærvær, ut. */
-  private makeAmp(drive: number, hp: number, lp: number, level: number) {
+  /** Forvrenger og kabinett: inn, høypass, forvrengning, to lavpass (4x12-kabinett), dunk, midt og nærvær, ut. */
+  private makeAmp(a: AmpSpec) {
     const c = this.ctx;
     const input = c.createGain();
     const pre = c.createBiquadFilter();
     pre.type = 'highpass';
-    pre.frequency.value = hp;
+    pre.frequency.value = a.hp;
     const shaper = c.createWaveShaper();
-    shaper.curve = driveCurve(drive);
+    shaper.curve = driveCurve(a.drive);
     shaper.oversample = '4x';
     const cab1 = c.createBiquadFilter();
     cab1.type = 'lowpass';
-    cab1.frequency.value = lp;
+    cab1.frequency.value = a.lp;
     cab1.Q.value = 0.9;
     const cab2 = c.createBiquadFilter();
     cab2.type = 'lowpass';
-    cab2.frequency.value = lp * 1.3;
+    cab2.frequency.value = a.lp * 1.3;
+    let tail: AudioNode = input.connect(pre).connect(shaper).connect(cab1).connect(cab2);
+    if (a.thump) {
+      const thump = c.createBiquadFilter();
+      thump.type = 'peaking';
+      thump.frequency.value = 110;
+      thump.Q.value = 0.9;
+      thump.gain.value = a.thump;
+      tail = tail.connect(thump);
+    }
     const mid = c.createBiquadFilter();
     mid.type = 'peaking';
     mid.frequency.value = 450;
     mid.Q.value = 1.1;
-    mid.gain.value = -4;
+    mid.gain.value = a.mid;
     const pres = c.createBiquadFilter();
     pres.type = 'peaking';
     pres.frequency.value = 1900;
     pres.Q.value = 1.2;
-    pres.gain.value = 4;
+    pres.gain.value = a.pres;
     const out = c.createGain();
-    out.gain.value = level;
-    input.connect(pre).connect(shaper).connect(cab1).connect(cab2).connect(mid).connect(pres).connect(out);
+    out.gain.value = a.level;
+    tail.connect(mid).connect(pres).connect(out);
     return { input, out };
   }
 
-  /** Leadgitaren for stingerne: en egen forsterker utenom lagene og bytteinngangene, laget første gang den trengs. */
-  private sting(): GainNode {
-    if (!this.stingIn) {
-      const a = this.makeAmp(34, 320, 4600, 0.26);
+  /**
+   * Leadgitaren for stingerne: en egen forsterker utenom lagene og bytteinngangene, laget første gang den trengs.
+   * real = forsterkeren for opptakene.
+   */
+  private sting(real = false): GainNode {
+    const i = real ? 1 : 0;
+    let input = this.stingIn[i];
+    if (!input) {
+      const a = this.makeAmp(real ? AMPS.leadReal : AMPS.lead);
       a.out.connect(this.fx);
       a.out.connect(this.hall);
-      this.stingIn = a.input;
+      input = this.stingIn[i] = a.input;
     }
-    return this.stingIn;
+    return input;
   }
 
   private section(): Section {
@@ -554,9 +632,12 @@ export class MetalBand {
       return g;
     };
     const r = this.rhythm.map((a) => mk(a.input));
+    const rr = this.rhythmR.map((a) => mk(a.input));
     const lead = mk(this.lead.input);
+    const leadR = mk(this.leadR.input);
     const bass = mk(this.bassIn);
-    return { nodes: [...r, lead, bass], r, lead, bass, end: Infinity };
+    const bassR = mk(this.bassInR);
+    return { nodes: [...r, ...rr, lead, leadR, bass, bassR], r, rr, lead, leadR, bass, bassR, end: Infinity };
   }
 
   /**
@@ -622,17 +703,44 @@ export class MetalBand {
     return { src, g };
   }
 
+  /**
+   * Et trommeopptak gjennom EQ-en i KIT og eventuelt panorering til bussen. Gir det siste leddet, så romklangen kan
+   * hentes etter EQ-en.
+   */
+  private drum(p: Pitched, t: number, kind: keyof typeof KIT, vel: number, dest: AudioNode, pan = 0) {
+    const c = this.ctx;
+    const chain: AudioNode[] = KIT[kind].eq.map(([type, hz, q, db]) => {
+      const b = c.createBiquadFilter();
+      b.type = type;
+      b.frequency.value = hz;
+      b.Q.value = q;
+      b.gain.value = db;
+      return b;
+    });
+    if (pan) {
+      const s = c.createStereoPanner();
+      s.pan.value = pan;
+      chain.push(s);
+    }
+    if (!chain.length) chain.push(c.createGain());
+    for (let i = 1; i < chain.length; i++) chain[i - 1].connect(chain[i]);
+    const tail = chain[chain.length - 1];
+    tail.connect(dest);
+    this.voice(p, t, KIT[kind].vol * vel, chain[0]);
+    return tail;
+  }
+
   // ---------------------------------------------------------------- gitarer
   /** Kraftakkord (grunntone, kvint og oktav) på begge gitarene. Palm mute er mørk og kort. Bassen følger med. */
   powerChord(t: number, root: number, dur: number, open: boolean, vel = 1, withBass = true) {
     const c = this.ctx;
     const real = this.real(GUITARS);
     this.rhythm.forEach((_amp, side) => {
-      const input = this.sec.r[side];
+      const input = (real ? this.sec.rr : this.sec.r)[side];
       const t0 = t + side * 0.007;
       const f = c.createBiquadFilter();
       f.type = 'lowpass';
-      f.frequency.value = open ? 3800 : 620;
+      f.frequency.value = open ? 3800 : real ? 450 : 620;
       f.Q.value = open ? 0.7 : 1.4;
       const g = c.createGain();
       const len = open ? dur : Math.min(dur, 0.2);
@@ -648,7 +756,7 @@ export class MetalBand {
       f.connect(g).connect(input);
       const notes = open ? [0, 7, 12] : [0, 7];
       const cents = side ? [-4, 5, 3] : [2, -2, -3];
-      // Ekte gitar: én ren tone per streng inn i forvrengningen, som på en ekte forsterker (plekteret er i opptaket)
+      // Ekte gitar: én ren tone per streng inn i sin egen forsterker, som på en ekte forsterker (plekteret er i opptaket)
       if (real) {
         notes.forEach((iv, k) => {
           const m = root + iv;
@@ -677,6 +785,8 @@ export class MetalBand {
 
   private bass(t: number, m: number, dur: number, vel: number) {
     const c = this.ctx;
+    // Ekte bass (en Jazz Bass tatt opp direkte) i sin egen kjede, med lavpasset åpnere så plekteret høres
+    const p = this.real(['ins_bass']) ? this.samples!.pick('ins_bass', m) : null;
     const g = c.createGain();
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(vel, t + 0.005);
@@ -684,16 +794,12 @@ export class MetalBand {
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.05);
     const f = c.createBiquadFilter();
     f.type = 'lowpass';
-    f.frequency.setValueAtTime(1400, t);
-    f.frequency.exponentialRampToValueAtTime(380, t + dur + 0.05);
-    f.connect(g).connect(this.sec.bass);
-    // Ekte bass (en Jazz Bass tatt opp direkte) inn i den samme knurren og lavpasset
-    if (this.real(['ins_bass'])) {
-      const p = this.samples!.pick('ins_bass', m);
-      if (p) {
-        this.voice(p, t, REAL.bass, f, dur + 0.06, 0.04);
-        return;
-      }
+    f.frequency.setValueAtTime(p ? 3200 : 1400, t);
+    f.frequency.exponentialRampToValueAtTime(p ? 900 : 380, t + dur + 0.05);
+    f.connect(g).connect(p ? this.sec.bassR : this.sec.bass);
+    if (p) {
+      this.voice(p, t, REAL.bass, f, dur + 0.06, 0.04);
+      return;
     }
     for (const type of ['sawtooth', 'sine'] as const) {
       const o = c.createOscillator();
@@ -705,9 +811,12 @@ export class MetalBand {
     }
   }
 
-  /** Én leadtone med forsinket vibrato og eventuelt bend. dest er stingergitaren for innslagene. */
-  leadNote(t: number, m: number, dur: number, bend = 0, vel = 1, pan = 0, dest: AudioNode = this.sec.lead) {
+  /** Én leadtone med forsinket vibrato og eventuelt bend. sting = på stingergitaren (innslagene). */
+  leadNote(t: number, m: number, dur: number, bend = 0, vel = 1, pan = 0, sting = false) {
     const c = this.ctx;
+    // Ekte gitar (opptaket) i sin egen forsterker. Lange toner (over 2,4 s) spilles av synthen.
+    const p = dur < 2.4 && this.real(['ins_gitar']) ? this.samples!.pick('ins_gitar', m) : null;
+    let dest: AudioNode = sting ? this.sting(!!p) : p ? this.sec.leadR : this.sec.lead;
     const g = c.createGain();
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(vel, t + 0.006);
@@ -731,20 +840,17 @@ export class MetalBand {
       vg.gain.linearRampToValueAtTime(bend ? 22 : 30, t + 0.3);
     }
     vib.connect(vg);
-    // Ekte gitar: vibrato og bend på detune (cent). Lange toner (over 2,4 s) spilles av synthen.
-    if (dur < 2.4 && this.real(['ins_gitar'])) {
-      const p = this.samples!.pick('ins_gitar', m);
-      if (p) {
-        const v = this.voice(p, t, REAL.lead, g, dur + 0.08, 0.05);
-        if (bend) {
-          v.src.detune.setValueAtTime(0, t);
-          v.src.detune.linearRampToValueAtTime(bend * 100, t + Math.min(0.18, dur * 0.4));
-        }
-        vg.connect(v.src.detune);
-        vib.start(t);
-        vib.stop(t + dur + 0.1);
-        return;
+    // Ekte gitar: vibrato og bend på detune (cent)
+    if (p) {
+      const v = this.voice(p, t, REAL.lead, g, dur + 0.08, 0.05);
+      if (bend) {
+        v.src.detune.setValueAtTime(0, t);
+        v.src.detune.linearRampToValueAtTime(bend * 100, t + Math.min(0.18, dur * 0.4));
       }
+      vg.connect(v.src.detune);
+      vib.start(t);
+      vib.stop(t + dur + 0.1);
+      return;
     }
     for (const [type, det] of [['sawtooth', 0], ['square', 7]] as const) {
       const o = c.createOscillator();
@@ -768,7 +874,7 @@ export class MetalBand {
     if (this.real(DRUMS)) {
       const p = this.samples!.pick('ins_stortromme', 36);
       if (p) {
-        this.voice(p, t, REAL.kick * vel, dest);
+        this.drum(p, t, 'kick', vel, dest);
         return;
       }
     }
@@ -792,10 +898,9 @@ export class MetalBand {
       const p = this.samples!.pick('ins_skarp', 60);
       if (p) {
         // Litt av den korte romklangen også på den ekte skarptromma: det er lyden fra 1986
-        const v = this.voice(p, t, REAL.snare * vel, this.drums);
         const send = this.ctx.createGain();
         send.gain.value = 0.55;
-        v.g.connect(send).connect(this.gate);
+        this.drum(p, t, 'snare', vel, this.drums).connect(send).connect(this.gate);
         return;
       }
     }
@@ -820,7 +925,7 @@ export class MetalBand {
     if (this.real(DRUMS)) {
       const p = this.samples!.pick('ins_hihat', 60);
       if (p) {
-        this.voice(p, t, REAL.hat * vel, this.drums);
+        this.drum(p, t, 'hat', vel, this.drums, 0.3);
         return;
       }
     }
@@ -831,8 +936,8 @@ export class MetalBand {
     if (this.real(DRUMS)) {
       const p = this.samples!.pick('ins_crash', 60);
       if (p) {
-        const v = this.voice(p, t, REAL.crash * vel, dest);
-        v.g.connect(this.hall);
+        this.crashSide = -this.crashSide;
+        this.drum(p, t, 'crash', vel, dest, 0.35 * this.crashSide).connect(this.hall);
         return;
       }
     }
@@ -843,11 +948,10 @@ export class MetalBand {
 
   tom(t: number, pitch: number, vel = 1) {
     if (this.real(DRUMS)) {
-      // To tammer i opptak (14 og 15 tommer): den nærmeste stemmes til tonen
+      // To tammer i opptak (14 og 15 tommer): den nærmeste stemmes til tonen. Virvlene går fra høyre mot venstre.
       const p = this.samples!.pick('ins_tam', hzToMidi(pitch));
       if (p) {
-        const v = this.voice(p, t, REAL.tom * vel, this.drums);
-        v.g.connect(this.gate);
+        this.drum(p, t, 'tom', vel, this.drums, Math.max(-0.5, Math.min(0.5, (pitch - 140) / 130))).connect(this.gate);
         return;
       }
     }
@@ -1218,7 +1322,7 @@ export class MetalBand {
       this.kick(t, 1.2, this.fxKit);
       this.timpani(t, r, 0.8, this.fxKit);
       const top = fold(r + 24, 62);
-      this.leadNote(t, top - 2, 2.3, 2, 0.85, 0, this.sting());
+      this.leadNote(t, top - 2, 2.3, 2, 0.85, 0, true);
     }
   }
 
@@ -1227,7 +1331,7 @@ export class MetalBand {
     const m = fold(root, 64) + 12;
     const d = sd / 2;
     const from = Math.max(t, until - 4 * sd);
-    for (let x = from; x < until - d * 0.5; x += d) this.leadNote(x, m, d * 0.9, 0, 0.4 + (0.45 * (x - from)) / Math.max(d, until - from), 0, this.sting());
+    for (let x = from; x < until - d * 0.5; x += d) this.leadNote(x, m, d * 0.9, 0, 0.4 + (0.45 * (x - from)) / Math.max(d, until - from), 0, true);
   }
 
   /** Bølge ryddet: tvillinglick opp akkorden i åttendeler (grunntone, ters, kvint og oktav) med crash. */
@@ -1236,8 +1340,8 @@ export class MetalBand {
     [0, 2, 4, 7].forEach((d, i) => {
       const m = deg(base, d, scale);
       const len = (i === 3 ? 6 : 2) * sd;
-      this.leadNote(t + i * 2 * sd, m, len * 0.95, 0, 0.8, 0, this.sting());
-      this.leadNote(t + i * 2 * sd + 0.004, deg(m, 2, scale), len * 0.95, 0, 0.55, 0.35, this.sting());
+      this.leadNote(t + i * 2 * sd, m, len * 0.95, 0, 0.8, 0, true);
+      this.leadNote(t + i * 2 * sd + 0.004, deg(m, 2, scale), len * 0.95, 0, 0.55, 0.35, true);
     });
     this.crash(t, 0.6, this.fxKit);
     this.kick(t, 0.9, this.fxKit);
@@ -1246,10 +1350,10 @@ export class MetalBand {
   /** Nytt nivå: skalaløp opp en oktav i sekstendeler, og toppen holdes med tvillingstemme og crash. */
   run(t: number, root: number, scale: number[], sd: number) {
     const base = snap(fold(root, 62), scale);
-    for (let i = 0; i < 8; i++) this.leadNote(t + i * sd, deg(base, i, scale), sd * 1.02, 0, 0.7 + i * 0.02, 0, this.sting());
+    for (let i = 0; i < 8; i++) this.leadNote(t + i * sd, deg(base, i, scale), sd * 1.02, 0, 0.7 + i * 0.02, 0, true);
     const top = base + 12;
-    this.leadNote(t + 8 * sd, top, 6 * sd, 0, 0.9, 0, this.sting());
-    this.leadNote(t + 8 * sd + 0.004, deg(top, 2, scale), 6 * sd, 0, 0.6, 0.35, this.sting());
+    this.leadNote(t + 8 * sd, top, 6 * sd, 0, 0.9, 0, true);
+    this.leadNote(t + 8 * sd + 0.004, deg(top, 2, scale), 6 * sd, 0, 0.6, 0.35, true);
     this.crash(t + 8 * sd, 0.7, this.fxKit);
     this.kick(t + 8 * sd, 0.9, this.fxKit);
   }

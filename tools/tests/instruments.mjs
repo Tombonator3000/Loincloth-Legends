@@ -1,6 +1,7 @@
 // Ekte instrumenter i musikken (Karoryfer, CC0): alle gruppene lastes, gitaren og bassen spiller riktig tone gjennom
-// forsterkerne, en låt rendres rent med opptakene (ingen klipping eller NaN, nivået nær synthen), og uten opptak
-// (RECORDED SOUNDS av) spiller bandet synth som før.
+// forsterkerne, en låt rendres rent med opptakene (ingen klipping eller NaN, nivået nær synthen), trommene høres
+// tydelig bedre enn synthtrommene på små høyttalere, gitarene har egne forsterkere med mindre gain (de svarer på hvor
+// hardt det slås an), og uten opptak (RECORDED SOUNDS av) spiller bandet synth som før.
 // Bruk: node tools/tests/instruments.mjs http://localhost:4173/
 import { chromium } from 'playwright';
 const [url] = process.argv.slice(2);
@@ -81,6 +82,65 @@ const song = (real) => page.evaluate(async ({ real }) => {
 const synth = await song(false), real = await song(true);
 check('låta med opptakene er ren (ingen klipping eller NaN)', real.nan === 0 && real.clip === 0 && real.peak < 0.9, real);
 check('nivået er nær synthen (innen 3 dB)', Math.abs(real.rms - synth.rms) <= 3, { synth, real });
+
+// Trommene alene i låta, med synth og med opptak. Lydstyrken måles som på en mobilhøyttaler (K-vekting som LUFS, pluss
+// høypass 150 Hz og lavpass 9 kHz). Med de første opptakene lå de ekte trommene 1 dB under synthtrommene her.
+const drumsOnly = (real) => page.evaluate(async ({ real }) => {
+  const L = window.__lib, sr = 44100, secs = 8;
+  const ctx = new OfflineAudioContext(2, sr * secs, sr);
+  const bus = ctx.createGain(); bus.gain.value = 0.314 * 0.7;
+  const master = ctx.createGain(); master.gain.value = 0.8;
+  const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 6;
+  bus.connect(master).connect(comp).connect(ctx.destination);
+  const b = new L.MetalBand(ctx, bus);
+  if (real) b.samples = { pick: (g, m) => L.audio.bank.pick(g, m), full: (g) => L.audio.bank.full(g) };
+  b.powerChord = () => {};
+  b.leadNote = () => {};
+  const tr = L.METAL_TRACKS.stage, sd = 60 / tr.bpm / 4;
+  for (let s = 0, t = 0.05; t < secs - 0.4; s++, t += sd) b.playStep(tr, s % tr.steps, t, sd);
+  const buf = await ctx.startRendering();
+  const biq = (x, type, f0, q, db = 0) => {
+    const w = (2 * Math.PI * f0) / sr, cw = Math.cos(w), al = Math.sin(w) / (2 * q), A = Math.pow(10, db / 40);
+    let b0, b1, b2, a0, a1, a2;
+    if (type === 'hp') { b0 = (1 + cw) / 2; b1 = -(1 + cw); b2 = b0; a0 = 1 + al; a1 = -2 * cw; a2 = 1 - al; }
+    else if (type === 'lp') { b0 = (1 - cw) / 2; b1 = 1 - cw; b2 = b0; a0 = 1 + al; a1 = -2 * cw; a2 = 1 - al; }
+    else { const sA = 2 * Math.sqrt(A) * al; b0 = A * (A + 1 + (A - 1) * cw + sA); b1 = -2 * A * (A - 1 + (A + 1) * cw); b2 = A * (A + 1 + (A - 1) * cw - sA); a0 = A + 1 - (A - 1) * cw + sA; a1 = 2 * (A - 1 - (A + 1) * cw); a2 = A + 1 - (A - 1) * cw - sA; }
+    const y = new Float32Array(x.length);
+    let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+    for (let i = 0; i < x.length; i++) { const v = (b0 * x[i] + b1 * x1 + b2 * x2 - a1 * y1 - a2 * y2) / a0; x2 = x1; x1 = x[i]; y2 = y1; y1 = v; y[i] = v; }
+    return y;
+  };
+  let e = 0;
+  for (let ch = 0; ch < 2; ch++) {
+    const y = biq(biq(biq(biq(biq(buf.getChannelData(ch), 'hs', 1681.97, 0.7072, 4), 'hp', 38.14, 0.5003), 'hp', 150, 0.707), 'hp', 150, 0.707), 'lp', 9000, 0.707);
+    for (let i = 0; i < y.length; i++) e += y[i] * y[i];
+  }
+  return +(-0.691 + 10 * Math.log10(e / buf.length + 1e-12)).toFixed(1);
+}, { real });
+const drums = { synth: await drumsOnly(false), real: await drumsOnly(true) };
+check('de ekte trommene høres over synthtrommene på små høyttalere (minst 3 dB)', drums.real - drums.synth >= 3, drums);
+
+// Anslaget: hvor mye svakere en åpen akkord og en leadtone blir når de slås an med 0,3 i stedet for 0,9. En forsterker
+// med mye gain flater ut forskjellen (synthen: under 1 dB). Opptakene går i egne forsterkere med mindre gain, så
+// gitaren svarer på anslaget som en ekte gitar (de første opptakene gikk i synthforsterkerne: 1 til 2 dB).
+const touch = (real) => page.evaluate(async ({ real }) => {
+  const L = window.__lib, sr = 44100;
+  const level = async (code) => {
+    const ctx = new OfflineAudioContext(2, sr, sr);
+    const b = new L.MetalBand(ctx, ctx.destination);
+    if (real) b.samples = { pick: (g, m) => L.audio.bank.pick(g, m), full: (g) => L.audio.bank.full(g) };
+    new Function('b', code)(b);
+    const buf = await ctx.startRendering();
+    const x = buf.getChannelData(0), y = buf.getChannelData(1);
+    let s = 0;
+    for (let i = Math.floor(0.03 * sr); i < Math.floor(0.8 * sr); i++) s += x[i] * x[i] + y[i] * y[i];
+    return 10 * Math.log10(s + 1e-12);
+  };
+  const diff = async (f) => +((await level(f(0.9))) - (await level(f(0.3)))).toFixed(1);
+  return { chord: await diff((v) => `b.powerChord(0.02, 40, 1.0, true, ${v}, false)`), lead: await diff((v) => `b.leadNote(0.02, 64, 0.7, 0, ${v})`) };
+}, { real });
+const tch = { synth: await touch(false), real: await touch(true) };
+check('de ekte gitarene svarer på anslaget (egne forsterkere med mindre gain)', tch.real.chord + tch.real.lead >= 5, tch);
 
 // Uten opptak (RECORDED SOUNDS av): synth
 const off = await page.evaluate(() => {

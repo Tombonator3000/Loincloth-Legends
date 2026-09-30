@@ -27,7 +27,9 @@ node tools/tests/menus.mjs http://localhost:4173/ ./shots                 # meny
 node tools/tests/looks.mjs http://localhost:4173/ ./shots all             # faste skjermbilder av alle brett med tegnekall og trekanter (QUALITY=low osv.)
 node tools/tests/metal.mjs http://localhost:4173/ ./shots all 14 shred    # metal-låtene rendret offline: WAV, spektrogram, nivå, klipping (shred = også med solo)
 node tools/tests/metal.mjs http://localhost:4173/ ./shots all 14 '' both  # samme med og uten de ekte instrumentene (-real i filnavnet)
-node tools/tests/instruments.mjs http://localhost:4173/                   # ekte trommer, gitar og bass: lastet, riktig tone, ren låt, nivå nær synthen, synth uten opptak
+node tools/tests/metal.mjs http://localhost:4173/ ./shots stage 12 '' both drums  # ett instrument alene (drums, guitar, bass eller lead), til lytteprøver
+node tools/tests/instruments.mjs http://localhost:4173/                   # ekte trommer, gitar og bass: lastet, riktig tone, ren låt, nivå nær synthen, trommene høres på små høyttalere, gitarene svarer på anslaget, synth uten opptak
+node tools/tests/mix.mjs http://localhost:4173/ [kick,snare,...]         # blandingen per instrument, synth mot opptak: rå RMS, K-vektet (som LUFS) og mobil, topp og bånd
 node tools/tests/buttons.mjs http://localhost:4173/ ./shots               # tre knapper: grep og ridning ved å gå inn i fienden eller dyret, ned + hopp
 node tools/tests/metalmode.mjs http://localhost:4173/ ./shots             # METAL MODE: måleren fylles av drap, solo, skadebonus, lyn og brennende våpen
 node tools/tests/soundbank.mjs http://localhost:4173/                     # lydbanken: opptak oppå synthen, torden, FAMILY, dukking, pause, stemning, fanfarer og file:// (bygg dist-single først)
