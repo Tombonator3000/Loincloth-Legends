@@ -29,9 +29,12 @@ function rigHeight(ch: CharDef, key: string, def: PartDef, ov: PartOverride): nu
     case 'torso':
       // Nakkeleddet omtrent 12 prosent under toppen av overkroppen
       return J.neck[1] / Math.max(0.4, ov.ay - 0.12);
-    case 'arm':
-      // Neven (der våpenet sitter) omtrent 86 prosent ned i bildet
-      return Math.abs(J.hand[1]) / Math.max(0.3, 0.86 - ov.ay);
+    case 'arm': {
+      // Avstanden fra skulderen til neven i bildet blir avstanden fra skulderen til våpenleddet i riggen
+      if (!ov.hand) return Math.abs(J.hand[1]) / Math.max(0.3, 0.86 - ov.ay);
+      const asp = ov.canvas.width / ov.canvas.height;
+      return Math.hypot(J.hand[0], J.hand[1]) / Math.max(0.2, Math.hypot((ov.hand[0] - ov.ax) * asp, ov.hand[1] - ov.ay));
+    }
     case 'head':
     case 'pelvis':
     case 'weapon':
@@ -41,6 +44,18 @@ function rigHeight(ch: CharDef, key: string, def: PartDef, ov: PartOverride): nu
   }
 }
 
+/**
+ * Vinkelen et armbilde må snus om skulderen for at neven skal ligge der riggen har våpenleddet. Armer fra ChatGPT
+ * henger ikke alltid rett ned (de kan være bøyd eller strukket fram), og da havnet våpenet ved siden av neven, og
+ * den bakre armen forsvant bak overkroppen.
+ */
+function armTurn(ch: CharDef, ov: PartOverride) {
+  const asp = ov.canvas.width / ov.canvas.height;
+  const dx = (ov.hand![0] - ov.ax) * asp, dy = ov.hand![1] - ov.ay;
+  const [hx, hy] = ch.joints.hand;
+  return Math.atan2(hy, hx) - Math.atan2(-dy, dx);
+}
+
 export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
   const k = ch.id + ':' + key;
   let a = cache.get(k);
@@ -48,9 +63,11 @@ export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
     // Hårmanken bak ryggen følger hodet (også når en helt arver PNG-ene fra thrugg eller valkyra)
     const src = ch.inherit?.[(key === 'hairback' ? 'head' : key) as keyof NonNullable<CharDef['inherit']>];
     let ov = getOverride(ch.id, key) ?? (src ? getOverride(src, key) : undefined);
+    let turn = 0;
     if (ov) {
       const h = rigHeight(ch, key, def, ov);
       if (h) ov = resized(ov, h);
+      if (key === 'arm' && ov.hand) turn = armTurn(ch, ov);
       def = { w: ov.w, h: ov.h, ox: ov.ox, oy: ov.oy, draw: () => {} };
     }
     // Store figurer (sjefer, kjempetrollet) tegnes med flere piksler per enhet, så de ikke blir uskarpe, og med
@@ -70,6 +87,7 @@ export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
     tex.minFilter = THREE.LinearMipmapLinearFilter;
     const geo = new THREE.PlaneGeometry(def.w, def.h);
     geo.translate(def.w / 2 - def.ox, def.h / 2 - def.oy, 0);
+    if (turn) geo.rotateZ(turn);
     a = { tex, relief, geo, canvas: cv };
     cache.set(k, a);
   }

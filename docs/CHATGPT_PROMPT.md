@@ -1,6 +1,6 @@
 # Startprompt til ChatGPT
 
-Oppdatert 30. september 2026: de 143 filene nedenfor er grunnpakken og finnes nå i repoet. Hero Forge bruker en felles pool av eksisterende delbilder. Nye delvarianter, manglende krigshammer og senere hår-, hjelm- og fargelag står i `docs/HERO_FORGE_GRAFIKK.md`; de er ikke inkludert i tallet 143. Les den listen før neste kunstbestilling.
+Oppdatert 30. september 2026: de 143 filene nedenfor er grunnpakken og finnes i repoet. Hero Forge har i tillegg 13 nye delbilder, inkludert `forge_warhammer_weapon.webp`, og en felles pool med 32 valg. Filkart og senere hår-, hjelm- og fargelag står i `docs/HERO_FORGE_GRAFIKK.md`. Ikke bestill grunnpakken eller hammeren på nytt.
 
 Dette er hele arbeidsbeskrivelsen for ChatGPT: hva spillet er, hvordan det bruker bildene, stilen (nesten ekte karikatur), arbeidsflyten, kommandoene du kan skrive, alle figurene, teksturene og himmelbildene, og en sjekkliste over alle 143 filene. Den er på engelsk fordi den er til ChatGPT. ChatGPT svarer deg på norsk.
 
@@ -400,7 +400,7 @@ Notes:
 - The wide sleeve ends above the bony fist; the fist is still the lowest thing.
 - The orb glows inside the orb only.
 
-The duels need no extra files: the ice champion is gorthak tinted ice-blue, the hog champion is hogman, the bone champion is skeleton, and the shadow duel uses the player's own hero, tinted. Hero Forge now mixes individual painted parts from the shared catalogue in src/data/hero-parts.ts. Thrugg and Valkyra are starting recipes, not a restriction on mixing. The separate expansion list in docs/HERO_FORGE_GRAFIKK.md covers missing Forge variants; those files are outside this original 143-file checklist.
+The duels need no extra files: the ice champion is gorthak tinted ice-blue, the hog champion is hogman, the bone champion is skeleton, and the shadow duel uses the player's own hero, tinted. Hero Forge now mixes individual painted parts from the shared catalogue in src/data/hero-parts.ts. Thrugg and Valkyra are starting recipes, not a restriction on mixing. The separate expansion list in docs/HERO_FORGE_GRAFIKK.md lists the delivered Forge variants and future separate layers; those files are outside this original 143-file checklist.
 
 # 10. Mounts
 
@@ -620,11 +620,11 @@ Mounts (before scale 1.05 / 1.0 / 1.05): warhog body 1.56, head 1.10, tail 0.64,
 - Face too small (big hair, horns, hat): raise the head "height" by 10 to 20%.
 - Position (MOVE): change "anchor" in steps of 0.03 and always write both values.
   - To move a part right (forward), lower anchor x; to move it left, raise x. To move it up, raise y; to move it down, lower y.
-  - Start from the x that MEASURE reports for the joint end, and the default y: head 0.95, hairback 0.22 (x 0.62), torso 0.96, pelvis 0.12, arm 0.06, leg 0.04, weapon 0.82.
+  - Start from the x that MEASURE reports for the joint end, and the default y: head 0.95, hairback 0.22 (x 0.62), torso 0.96, pelvis 0.12, arm 0.06, leg 0.04. The weapon grip is found by the game on the handle (the narrow shaft in the lower half, half a fist above the end), so a weapon rarely needs an anchor.
   - Mount defaults: body [0.5, 0.5], head [0.15, 0.55], tail [0.92, 0.55], leg [0.5, 0.06].
   - On a torso, arm or leg the game also recomputes the size from anchor y, so prefer a REDO there.
 - Feet sink or float: the leg does not have the hip at the very top and the sole at the very bottom. REDO the leg.
-- Weapon not in the fist: check the arm (fist centre about 86% down, under the shoulder, nothing below it) and the weapon (grip 82% down, handle end lowest). REDO the wrong one, or MOVE the weapon with a measured anchor.
+- Weapon not in the fist: the game finds the fist at the bottom of the arm image and turns and scales the arm around the shoulder so the fist lands where the weapon is held, and it finds the grip on the weapon's handle. So the fist must be the LOWEST thing in the arm image, and the handle must be the narrowest part of the lower half of the weapon image. If an arm reaches forward so the fist is not lowest (like vorthax), give the arm a "hand" point in the manifest: "hand": [x, y], the fist centre in the trimmed image, y from the top. Otherwise REDO the wrong image.
 - Head floats or sinks: check the head's neck end and the torso's neck base (about 12% below its top). For a small offset, MOVE the head's anchor y by 0.03.
 
 13.6 Saving and testing (tell Tom when it matters)
@@ -632,7 +632,7 @@ Mounts (before scale 1.05 / 1.0 / 1.05): warhog body 1.56, head 1.10, tail 0.64,
 - Use the exact lower-case names; the script reads the name to know what the image is.
 - A missing or unlisted file is simply drawn by the game's code instead, so he can add images one at a time and test as he goes.
 - Images show when the game runs from a web server (the local dev start, a preview or the published web version). They do not show in the single-file version opened by double-click.
-- The game waits at most 4 seconds for the listed files before it starts. A file that arrives later is missing from whatever was already built (for example the hero) and shows up only on things built afterwards, so the look becomes inconsistent. Keep files small: the script shrinks them and saves WebP. If Tom cannot run the script, use PACK.
+- The game waits for the listed files before it starts (up to 15 seconds for the manifest and 60 seconds per image), so a slow connection means a slower start, not a mixed look. Keep files small: the script shrinks them and saves WebP. If Tom cannot run the script, use PACK.
 - Keep reference images outside the game folder; the repository is public.
 
 # 14. Master checklist (143 game files)
@@ -652,7 +652,7 @@ Mounts (before scale 1.05 / 1.0 / 1.05): warhog body 1.56, head 1.10, tail 0.64,
   - floor_arena, sand_arena, wall_arena, pillar_arena for each of -pit, -ice, -bone
 - Skies (8): grass, swamp, frost, scorch, night, arena-pit, arena-ice, arena-bone.
 - Map (1).
-- Optional, not counted: hogmother_arm.png, hogmother_leg.png, hogmother_pelvis.png and croakus_arm.png (own versions that replace the inherited ones), and a hairback for any character whose approved reference shows long hair down the back.
+- Optional, not counted: hogmother_arm.png, hogmother_leg.png, hogmother_pelvis.png and croakus_arm.png (own versions that replace the inherited ones), a hairback for any character whose approved reference shows long hair down the back. Hero Forge already has forge_warhammer_weapon.webp, separate from this original checklist. New weapon variants need an explicit entry in src/data/hero-parts.ts as well as the manifest.
 - References (not counted, not in the game): one per character and mount, except Valkyra's, which Tom has.
 
 SHOW CHECKLIST prints every file with its mark, grouped like this, with totals at the top.

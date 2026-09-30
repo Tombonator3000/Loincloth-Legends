@@ -74,6 +74,11 @@ try {
       if (hair) checks.push([`${title}: hårmanken følger hodet`, f.rig.g.head.children.some((m) => m.material?.map?.image === hair)]);
       f.remove();
     };
+    const catalog = Object.values(L.HERO_PARTS).flat();
+    const added = ['forge_bald_head', 'forge_eyepatch_head', 'forge_crownbraid_head', 'forge_silvercut_head', 'forge_leather_torso', 'forge_plate_torso', 'forge_kilt_pelvis', 'forge_tassets_pelvis', 'forge_leather_arm', 'forge_plate_arm', 'forge_sandals_leg', 'forge_greaves_leg', 'forge_warhammer_weapon'];
+    checks.push(['poolen har 32 valg, med alle 13 nye bilder', catalog.length === 32 && added.every((id) => catalog.some((p) => p.id === id && L.getOverride(p.source, p.slot)?.canvas.width > 0))]);
+    const hammer = catalog.find((p) => p.id === 'forge_warhammer_weapon');
+    checks.push(['krigshammeren er våpenklasse 2 og følger weapon:2-låsen', hammer?.weapon === 2 && hammer?.unlock === 'weapon:2']);
     checks.push(['alle katalogdeler har lastet bildefil', Object.entries(L.HERO_PARTS).every(([slot, options]) => options.every((p) => !!L.getOverride(p.source, slot)))]);
     painted(L.PRESETS.thrugg, 41, 'Thrugg');
     painted(L.PRESETS.valkyra, 42, 'Valkyra');
@@ -81,6 +86,12 @@ try {
       head: 'valkyra_head', torso: 'thrugg_torso', pelvis: 'gorthak_pelvis', arm: 'valkyra_arm', leg: 'gorthak_leg', weapon: 'gorthak_weapon',
     });
     painted(mixed, 43, 'Blandet helt');
+    painted(L.withHeroParts(L.PRESETS.thrugg, {
+      head: 'forge_bald_head', torso: 'forge_leather_torso', pelvis: 'forge_kilt_pelvis', arm: 'forge_leather_arm', leg: 'forge_sandals_leg', weapon: 'forge_warhammer_weapon',
+    }), 46, 'Ny lærhelt');
+    painted(L.withHeroParts(L.PRESETS.valkyra, {
+      head: 'forge_crownbraid_head', torso: 'forge_plate_torso', pelvis: 'forge_tassets_pelvis', arm: 'forge_plate_arm', leg: 'forge_greaves_leg', weapon: 'forge_warhammer_weapon',
+    }), 47, 'Ny platehelt');
     const changed = L.withHeroParts(mixed, { ...mixed.parts, head: 'thrugg_head' });
     checks.push(['endret del gir ny teksturnøkkel', L.buildHeroDef(mixed, 43).id !== L.buildHeroDef(changed, 43).id]);
     const original = JSON.stringify(L.PRESETS);
@@ -110,6 +121,21 @@ try {
     checks.push(['gammelt uendret preset beholder malt grafikk', legacy.heroes[1].parts?.head === 'valkyra_head']);
     L.writeSave(s);
     checks.push(['nytt klassisk valg blir ikke malt igjen etter lagring', !L.loadSave().heroes[1].parts]);
+    const oldWeapons = L.defaultSave();
+    delete oldWeapons.heroPartsVersion;
+    oldWeapons.heroes = [{ ...L.PRESETS.thrugg, weapon: 1, cloth: 4, magic: 2 }, { ...L.PRESETS.valkyra, weapon: 0 }];
+    oldWeapons.heroes.forEach((hero) => delete hero.parts);
+    localStorage.setItem('loincloth-legends-save-v1', JSON.stringify(oldWeapons));
+    const migrated = L.loadSave().heroes;
+    checks.push(['eldre våpenvalg migreres med malt kropp, tøyfarge og magi i behold', migrated[0].parts?.torso === 'thrugg_torso' && migrated[0].parts.weapon === 'valkyra_weapon' && migrated[0].cloth === 4 && migrated[0].magic === 2 && migrated[1].parts?.head === 'valkyra_head' && migrated[1].parts.weapon === 'thrugg_weapon']);
+    oldWeapons.heroes[0].weapon = 2;
+    localStorage.setItem('loincloth-legends-save-v1', JSON.stringify(oldWeapons));
+    const restrictedLegacy = L.loadSave().heroes[0];
+    checks.push(['eldre hammer uten opplåsing beholdes klassisk uten stille nedgradering', !restrictedLegacy.parts && restrictedLegacy.weapon === 2]);
+    oldWeapons.unlocked = ['weapon:2'];
+    localStorage.setItem('loincloth-legends-save-v1', JSON.stringify(oldWeapons));
+    const oldHammer = L.loadSave().heroes[0];
+    checks.push(['eldre opplåst hammer får det nye hammerbildet', oldHammer.parts?.weapon === 'forge_warhammer_weapon' && oldHammer.weapon === 2]);
     s.heroes[0] = L.withHeroParts(L.PRESETS.thrugg, { ...L.defaultHeroParts(0), arm: 'valkyra_arm', head: 'gorthak_head', weapon: 'hogman_weapon' });
     s.heroes[0].parts.leg = 'removed_asset';
     s.heroes[0].parts.pelvis = null;
@@ -121,6 +147,14 @@ try {
     L.writeSave(s);
     const unlocked = L.loadSave().heroes[0];
     checks.push(['opplåste lagrede deler beholdes med riktig våpenstatistikk', unlocked.parts.head === 'gorthak_head' && unlocked.parts.weapon === 'hogman_weapon' && unlocked.weapon === 3]);
+    s.heroes[0] = L.withHeroParts(L.PRESETS.thrugg, { ...L.defaultHeroParts(0), weapon: 'forge_warhammer_weapon' });
+    L.writeSave(s);
+    const lockedHammer = L.loadSave().heroes[0];
+    checks.push(['lagret hammer krever sin egen opplåsing', lockedHammer.parts.weapon === 'thrugg_weapon' && lockedHammer.weapon === 0]);
+    s.unlocked.push('weapon:2');
+    L.writeSave(s);
+    const unlockedHammer = L.loadSave().heroes[0];
+    checks.push(['opplåst hammer overlever lagring med riktig våpenklasse', unlockedHammer.parts.weapon === 'forge_warhammer_weapon' && unlockedHammer.weapon === 2]);
     localStorage.removeItem('loincloth-legends-save-v1');
     return checks;
   });
@@ -171,6 +205,11 @@ try {
   // Programmatisk klikk tester også at handleren avviser et låst valg.
   await lock.evaluate((el) => el.click());
   check('låst hode beholdes ikke som utstyr', (await config()).parts.head === 'valkyra_head' && (await page.locator('.cr-info').innerText()).includes('LOCKED'));
+  await row('weapon').locator('.k').click();
+  const hammerLock = page.locator('.cr-part[data-part="forge_warhammer_weapon"]');
+  check('låst krigshammer vises i poolen', await hammerLock.getAttribute('aria-disabled') === 'true');
+  await hammerLock.evaluate((el) => el.click());
+  check('låst krigshammer kan ikke utstyres i UI', (await config()).parts.weapon === 'thrugg_weapon' && (await page.locator('.cr-info').innerText()).includes('LOCKED'));
   await selectPart('torso', 'valkyra_torso');
   await selectPart('weapon', 'valkyra_weapon');
   check('valgt øks gir samme kampstatistikk i UI og figur', await page.evaluate(() => {
@@ -208,12 +247,25 @@ try {
   });
   check('tilfeldige helter bruker bare tilgjengelige opplåste bilder', random.every(Boolean), random);
 
+  // Spillbelønningen er gitt; åpne smia igjen så den leser den nye opplåsingen.
+  await page.locator('.cr-cancel').click();
+  await page.evaluate(() => {
+    const g = window.__game;
+    g.save.unlocked.push('weapon:2');
+    g.openCreator([0, 1], () => g.goTitle());
+  });
+  await selectPart('weapon', 'forge_warhammer_weapon');
+  check('opplåst hammerkort utstyrer malt hammer med riktige kampverdier', await page.evaluate(() => {
+    const s = window.__game.scene, L = window.__lib;
+    return s.cfgs[0].weapon === 2 && s.preview.weapon === L.WEAPONS[2] && s.preview.rig.g.weapon.children[0].material.map.image === L.getOverride('forge_warhammer', 'weapon').canvas;
+  }));
+
   // Lag to forskjellige helter gjennom de samme kontrollene spilleren bruker.
-  const p1 = { head: 'valkyra_head', torso: 'thrugg_torso', arm: 'valkyra_arm', pelvis: 'gorthak_pelvis', leg: 'gorthak_leg', weapon: 'gorthak_weapon' };
+  const p1 = { head: 'forge_eyepatch_head', torso: 'forge_leather_torso', arm: 'forge_plate_arm', pelvis: 'forge_tassets_pelvis', leg: 'forge_greaves_leg', weapon: 'forge_warhammer_weapon' };
   for (const [slot, id] of Object.entries(p1)) await selectPart(slot, id);
   await page.locator('#hero-name').fill('MIXED ONE');
   await page.locator('.cr-tabs [data-slot="1"]').click();
-  const p2 = { head: 'thrugg_head', torso: 'valkyra_torso', arm: 'gorthak_arm', pelvis: 'thrugg_pelvis', leg: 'valkyra_leg', weapon: 'thrugg_weapon' };
+  const p2 = { head: 'forge_silvercut_head', torso: 'forge_plate_torso', arm: 'forge_leather_arm', pelvis: 'forge_kilt_pelvis', leg: 'forge_sandals_leg', weapon: 'thrugg_weapon' };
   for (const [slot, id] of Object.entries(p2)) await selectPart(slot, id);
   await page.locator('#hero-name').fill('MIXED TWO');
   check('spillerne har uavhengige deler', await page.evaluate(({ p1, p2 }) => {
@@ -226,6 +278,13 @@ try {
   await page.setViewportSize({ width: 915, height: 412 });
   await shot(page, 'mobile-landscape');
   await page.setViewportSize({ width: 412, height: 915 });
+  await selectPart('head', 'forge_silvercut_head');
+  check('siste hodekort forblir synlig etter valg i mobilpoolen', await page.evaluate(() => {
+    const card = document.querySelector('.cr-part[data-part="forge_silvercut_head"]').getBoundingClientRect();
+    const pool = document.querySelector('.cr-part-grid').getBoundingClientRect();
+    return card.left >= pool.left - 1 && card.right <= pool.right + 1;
+  }));
+  await selectPart('head', p1.head);
   await shot(page, 'mobile-portrait');
   const fits = await page.evaluate(() => {
     const el = document.querySelector('.creator'), box = el.getBoundingClientRect();
@@ -241,7 +300,7 @@ try {
   check('begge spillernes seks deler og navn overlever full sidelasting', await page.evaluate(() => JSON.stringify(window.__game.save.heroes)) === saved);
   check('lagring bevarer valgt kroppstype og våpen', await page.evaluate(() => {
     const [a, b] = window.__game.save.heroes;
-    return a.body === 0 && a.weapon === 1 && a.name === 'MIXED ONE' && b.body === 1 && b.weapon === 0 && b.name === 'MIXED TWO';
+    return a.body === 0 && a.weapon === 2 && a.name === 'MIXED ONE' && b.body === 1 && b.weapon === 0 && b.name === 'MIXED TWO';
   }));
 
   // Manglende fil: bare den delen bruker reservetegningen. De andre fem er fortsatt malt.

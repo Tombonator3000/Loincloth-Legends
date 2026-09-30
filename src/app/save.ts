@@ -1,6 +1,6 @@
 // Lagring av fremgang i localStorage. Alt er pakket i try/catch, så spillet virker også uten lagring.
-import { PRESETS, HERO_OPTIONS, cloneHero, heroKey, withHeroParts, type HeroConfig } from '../gfx/chars/hero';
-import { HERO_PART_SLOTS, defaultHeroParts, findHeroPart, sanitizeHeroParts } from '../data/hero-parts';
+import { PRESETS, HERO_OPTIONS, cloneHero, withHeroParts, type HeroConfig } from '../gfx/chars/hero';
+import { HERO_PARTS, HERO_PART_SLOTS, defaultHeroParts, findHeroPart, sanitizeHeroParts } from '../data/hero-parts';
 import { PART_LOCKS } from '../data/unlocks';
 import { defaultProgress, STAT_KEYS, STAT_MAX, LEVEL_MAX, type HeroProgress } from '../data/progress';
 import { PETS } from '../data/pets';
@@ -27,6 +27,8 @@ export interface SaveData {
 }
 
 const KEY = 'loincloth-legends-save-v1';
+// Den gamle malte byggeren tillot egne våpen, tøyfarger og magi på preset-kroppene.
+const LEGACY_LOOK_KEYS = ['body', 'skin', 'face', 'hair', 'hairColor', 'beard', 'helmet', 'torso', 'pelvis', 'boots'] as const;
 
 export function defaultSave(): SaveData {
   return {
@@ -68,10 +70,14 @@ function validHero(h: unknown, fallback: HeroConfig, unlocked: string[], migrate
     }
     return withHeroParts(out, parts);
   }
-  // Bare gamle figurer som allerede brukte preset-grafikk migreres til malte deler.
+  // Bevar både malte preset-kropper og eget våpen fra den gamle byggeren.
   if (migrateLegacy) {
-    const preset = Object.values(PRESETS).find((p) => heroKey({ ...p, parts: undefined }) === heroKey(out));
-    if (preset?.parts) return withHeroParts(out, preset.parts);
+    const preset = Object.values(PRESETS).find((p) => LEGACY_LOOK_KEYS.every((k) => p[k] === out[k]));
+    const weapon = HERO_PARTS.weapon.find((part) => part.weapon === out.weapon);
+    // Et gammelt låst våpen forblir klassisk med samme stats, i stedet for å byttes stille ved neste innlesing.
+    if (preset?.parts && weapon && (!weapon.unlock || unlocked.includes(weapon.unlock))) {
+      return withHeroParts(out, { ...preset.parts, weapon: weapon.id });
+    }
   }
   return out;
 }

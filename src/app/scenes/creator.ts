@@ -377,6 +377,17 @@ export class CreatorScene implements Scene {
       grid.appendChild(b);
     }
     box.appendChild(grid);
+    // Hold kortet synlig også ved tastaturvalg, uten å rulle hele smiapanelet.
+    const selectedId = this.partCursor[this.slot][slot] ?? cfg.parts[slot];
+    const selectedCard = Array.from(grid.children).find((card) => (card as HTMLElement).dataset.part === selectedId) as HTMLElement | undefined;
+    if (selectedCard) {
+      const card = selectedCard.getBoundingClientRect();
+      const frame = grid.getBoundingClientRect();
+      if (card.left < frame.left) grid.scrollLeft -= frame.left - card.left;
+      else if (card.right > frame.right) grid.scrollLeft += card.right - frame.right;
+      if (card.top < frame.top) grid.scrollTop -= frame.top - card.top;
+      else if (card.bottom > frame.bottom) grid.scrollTop += card.bottom - frame.bottom;
+    }
   }
 
   private refresh(rebuild: boolean) {

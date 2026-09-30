@@ -2,12 +2,12 @@
 
 ## Hero Forge: felles pool av malte deler (2026-09-30)
 - [x] Finn årsaken til at malte deler forsvant ved endring av preset; kontroller alle 143 grunnfiler
-- [x] 19 uavhengige delvalg med miniatyrer, bakhår fra valgt hode, samme figur i forhåndsvisning og kamp
+- [x] 32 uavhengige delvalg med miniatyrer, bakhår fra valgt hode, samme figur i forhåndsvisning og kamp
 - [x] Lagre blandinger for begge spillere, bevare gamle helter og klassisk modus, beholde opplåsinger og riktige våpenegenskaper
 - [x] Innlesing og kontroll av ekstra `forge_*`-deler uten å svekke kontrollen av de 143 grunnfilene
-- [ ] Lag de 13 nye delene i `docs/HERO_FORGE_GRAFIKK.md`, først krigshammeren; registrer hvert ferdige bilde i manifest og delkatalog
+- [x] Lag de 13 nye delene i `docs/HERO_FORGE_GRAFIKK.md`, inkludert krigshammeren; registrer hvert bilde i manifest og delkatalog
 - [ ] Egne ansikts-, hår-, skjegg- og hjelmlag samt masker for hud/hår/tøy
-- [ ] Visuell finjustering av blandede kroppsdeler og ledd, med nye deler kontrollert mot helteriggen
+- [x] Visuell finjustering av de 13 nye delene i fire blandede helter og fire poser: hodehøyde, torsoanker, beltefeste, bakarm og våpengrep
 
 ## Menyene (fra 2026-09-30 07:38)
 - [x] Tittelen fra åtte til fire knapper (STORY og DUEL med venstre/høyre, HERO FORGE, OPTIONS)
@@ -62,7 +62,10 @@
 - [x] Valkyras sju deler i samme stil, med ankere for hår, hode og lendeklede
 - [x] Alle 28 teksturer, åtte himler og verdenskartet i manifestet
 - [x] Thrugg og alle fiendene i samme stil (PNG-deler)
-- [ ] Visuell kontroll av alle sammensatte figurer, ridedyr og kjæledyr i nettleseren med kunstpakken lastet (filer, manifest, alfa og bygg er kontrollert)
+- [x] Visuell kontroll av alle sammensatte figurer med kunstpakken lastet: våpnene satt ved siden av neven og Thrugg manglet den bakre armen. Armene rettes nå etter neven, grepet finnes på skaftet (tools/tests/artcheck.mjs)
+- [ ] Ridedyr og kjæledyr med kunstpakken: se på dem i nettleseren (artcheck dekker bare figurer med armer)
+- [x] Heltesmia bruker en felles delpool: 32 valg, inkludert 13 nye bilder. Egne hår-, hjelm- og fargelag står som senere utvidelse over
+- [x] Malt stridshammer: `forge_warhammer_weapon.webp`, med WARHAMMER-egenskaper og eksisterende opplåsingskrav
 - [ ] Enhåndsøks som eget våpen (Valkyras øks har ett blad, spillets AXE har to)
 - [ ] Hårmanken svaier i vinden (hairback og den tegnede manken)
 

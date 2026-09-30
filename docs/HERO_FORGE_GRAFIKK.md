@@ -1,6 +1,6 @@
-# Hero Forge: grafikkstatus og neste deler
+# Hero Forge: felles pool av malte deler
 
-Kontrollert 30. september 2026 mot repoets manifest, bildefiler, kunstlister og kode. Dette er en oversikt over eksisterende og manglende grafikk. Ingen nye bilder er produsert i denne endringen.
+Oppdatert 30. september 2026. Hero Forge har nå 32 malte delvalg: 19 fra grunnpakken og 13 nye bilder. Alle velges uavhengig i PAINTED PARTS. Manifestet inneholder de 143 opprinnelige bildene pluss de 13 Forge-bildene, totalt 156 filer.
 
 ## Hva som faktisk manglet
 
@@ -10,7 +10,7 @@ Problemet i Hero Forge var koblingen til bildene. `buildHeroDef()` arvet bildene
 
 `docs/CHATGPT_PROMPT.md` sin 143-filers sjekkliste omfatter ikke den utvidede heltebyggeren. Den opprinnelige briefen beskrev bare uendrede presets; den er nå merket med lenke til denne mangellisten. Separate ansikter, hår, hjelmer og skjegg står under «Planlagt (ikke koblet inn i koden ennå)» i `docs/ART_PROMPTS.md`. Disse filene finnes ikke.
 
-## Første pool, med eksisterende bilder
+## Grunnlaget: 19 valg fra eksisterende bilder
 
 Katalogen i `src/data/hero-parts.ts` kobler uavhengige valg til de eksisterende filene. Thrugg og Valkyra er startoppsett; hver del skal kunne byttes uten at resten av helten mister grafikken.
 
@@ -25,29 +25,49 @@ Katalogen i `src/data/hero-parts.ts` kobler uavhengige valg til de eksisterende 
 
 Dette gir **19 delvalg fra 19 eksisterende filer**. `valkyra_hairback.webp` følger Valkyra-hodet automatisk, så poolen bruker 20 bildefiler med bakhåret inkludert. Ett arm- og ett beinbilde brukes på begge sider, som i den eksisterende riggen. Gorthak-hodet følger opplåsingen `helmet:5`; Hogmans klubbe følger `weapon:3`.
 
-De fire våpenbildene dekker sverd, to økseutseender og piggklubbe. **WARHAMMER mangler et malt bilde**. At våpenklassen allerede finnes i spilldataene gjør ikke hammergrafikken ferdig.
+De fire opprinnelige våpenbildene dekker sverd, to økseutseender og piggklubbe. Den nye `forge_warhammer_weapon.webp` dekker WARHAMMER og følger opplåsingen `weapon:2` fra første brett.
 
-## Neste kunstbestilling: 13 nye deler
+## Produsert tillegg: 13 nye deler
 
-Dette er et foreslått første tillegg med tydelig forskjellige silhuetter. Navnene nedenfor er en kontrakt for produksjonen, ikke filer som allerede finnes. Behold materialer, lys og detaljnivå fra den godkjente kunsten.
+Bildene er laget enkeltvis med imagegen med repoets eksisterende Thrugg- og Valkyra-deler som referanser for materialer og rendering. Ferdige WebP-filer ligger i `public/assets/`, er registrert i manifestet og har stabile valg i `src/data/hero-parts.ts`. Originale PNG-er behandles av `tools/process_art.py`; de originale arbeidsfilene sjekkes ikke inn i det offentlige repoet.
 
-| Prioritet | Foreslått original i `art/inbox/` | Innhold |
+| Gruppe | Ferdig fil i `public/assets/` | Innhold |
 |---|---|---|
-| 1 | `forge_warhammer_weapon.png` | Tung krigshammer av slitt jern, kort bredt hammerhode, lærviklet skaft. Kobles til WARHAMMER. |
-| 2 | `forge_bald_head.png` | Voksen mann, barbert hode, brekt nese og kort skjeggstubb, varm hud som Thrugg. |
-| 2 | `forge_eyepatch_head.png` | Voksen mann med øyelapp, grovt ansikt og kort mørkt hår, varm hud som Thrugg. |
-| 2 | `forge_crownbraid_head.png` | Voksen kvinne med stram flettet hårkrans og bestemt uttrykk, lys hud som Valkyra. Alt hår over nakkeleddet. |
-| 2 | `forge_silvercut_head.png` | Voksen kvinne med kort sølvgrått hår, arr og skjevt smil, lys hud som Valkyra. |
-| 3 | `forge_leather_torso.png` | Bred mannlig overkropp med slitt lærsele og brystvern, varm hud som Thrugg. |
-| 3 | `forge_plate_torso.png` | Kraftig kvinnelig overkropp i bulkete brystpanser, lys hud som Valkyra. |
-| 3 | `forge_kilt_pelvis.png` | Kort mørkerød krigskilt på bredt lærbelte. Ingen hud eller bein. |
-| 3 | `forge_tassets_pelvis.png` | Belte med overlappende jernplater og slitte lærremmer. Ingen hud eller bein. |
-| 3 | `forge_leather_arm.png` | Kraftig arm med enkle lærbeskyttere, varm hud som Thrugg. |
-| 3 | `forge_plate_arm.png` | Kraftig arm med jernskinne og hanske, lys hud som Valkyra ved skulderen. |
-| 3 | `forge_sandals_leg.png` | Sterkt bein med lærremmer og tunge sandaler, varm hud som Thrugg. |
-| 3 | `forge_greaves_leg.png` | Sterkt bein med bulkete jernskinne og støvel, lys hud som Valkyra ved hoften. |
+| Våpen | `forge_warhammer_weapon.webp` | Tung krigshammer av slitt jern, kort bredt hammerhode, lærviklet skaft. Kobles til WARHAMMER. |
+| Hode | `forge_bald_head.webp` | Voksen mann, barbert hode, brekt nese og kort skjeggstubb, varm hud som Thrugg. |
+| Hode | `forge_eyepatch_head.webp` | Voksen mann med øyelapp, grovt ansikt og kort mørkt hår, varm hud som Thrugg. |
+| Hode | `forge_crownbraid_head.webp` | Voksen kvinne med stram flettet hårkrans og bestemt uttrykk, lys hud som Valkyra. Alt hår over nakkeleddet. |
+| Hode | `forge_silvercut_head.webp` | Voksen kvinne med kort sølvgrått hår, arr og skjevt smil, lys hud som Valkyra. |
+| Kropp | `forge_leather_torso.webp` | Bred mannlig overkropp med slitt lærsele og brystvern, varm hud som Thrugg. |
+| Kropp | `forge_plate_torso.webp` | Kraftig kvinnelig overkropp i bulkete brystpanser, lys hud som Valkyra. |
+| Kropp | `forge_kilt_pelvis.webp` | Kort mørkerød krigskilt på bredt lærbelte. Ingen hud eller bein. |
+| Kropp | `forge_tassets_pelvis.webp` | Belte med overlappende jernplater og slitte lærremmer. Ingen hud eller bein. |
+| Kropp | `forge_leather_arm.webp` | Kraftig arm med enkle lærbeskyttere, varm hud som Thrugg. |
+| Kropp | `forge_plate_arm.webp` | Kraftig arm med jernskinne og hanske, lys hud som Valkyra ved skulderen. |
+| Kropp | `forge_sandals_leg.webp` | Sterkt bein med lærremmer og tunge sandaler, varm hud som Thrugg. |
+| Kropp | `forge_greaves_leg.webp` | Sterkt bein med bulkete jernskinne og støvel, lys hud som Valkyra ved hoften. |
 
-Hoder, overkropper og belter: 1024 x 1024. Armer, bein og våpen: 1024 x 1536. Ekte transparent PNG, én del per bilde, vendt mot høyre. Bruk heltemalene i `docs/CHATGPT_PROMPT.md`, mål leddpunktene etter behandling, og kontroller delene i blandede figurer. Det er ikke nødvendig å lage hvert fargevalg som en egen komplett figur.
+Hvert bilde inneholder én del med ekte alfa. Innleseren beskjærer den transparente margen og beholder opptil 1024 piksler på lengste side. Nye deler følger samme helterigg som Thrugg og Valkyra.
+
+Den samlede poolen har sju hoder og fem valg i hver av de andre fem kategoriene: overkropp, belte, arm, bein og våpen. Alle 32 valg bruker bildefiler. Valkyras bakhår kommer i tillegg og følger hodet automatisk. Skinntone og materialer ligger i hvert bilde; spilleren kan også velge bevisste blandinger.
+
+Claudes justering av armer og våpen er bevart: lasteren finner skulder, neve og grep, og riggen roterer og skalerer armen rundt skulderen slik at neven møter våpenet. `hand`, `anchor` og `height` i manifestet brukes når en del krever målte verdier. Både hovedarm og bakarm bruker samme bilde.
+
+## Kalibrering og kontroll
+
+Nye hoder uten stor hjelm eller hårmanke har egne høyder, slik at selve ansiktet ikke blir like stort som hele Thrugg-hjelmen. Beltenes buede overkant og torsoenes avrundede nedkant krever et uttrykkelig festepunkt. Verdiene er brøker av det beskårne bildet, med y fra toppen.
+
+| Kilde | Felt i manifestet | Verdi |
+|---|---|---|
+| `forge_bald` hode | `height` | 0.74 |
+| `forge_eyepatch` hode | `height` | 0.80 |
+| `forge_crownbraid` hode | `height` | 0.84 |
+| `forge_silvercut` hode | `height` | 0.82 |
+| `forge_leather` og `forge_plate` overkropp | `anchor` | [0.55, 0.96] |
+| `forge_kilt` belte | `anchor` | [0.53, 0.19] |
+| `forge_tassets` belte | `anchor` | [0.52, 0.22] |
+
+Armer, bein og hammer bruker automatisk måling. Våpengrep testes på de 13 opprinnelige bevæpnede figurene og fire nye blandinger i tre poser. Galleriet viser de fire blandingene i fire poser med leddmarkører. Det er nødvendig å se på bildene i tillegg til å måle grepet: første kontroll fant en skulderglippe med utstrakt arm selv om neven traff våpenleddet. Torsoankrene over er justert for dette. Alfakontakttesten krever at overkroppen faktisk møter den øvre delen av armen i utstrakt pose; en negativ kontroll med gammelt torsoanker avvises.
 
 ## Hva fri finjustering fortsatt trenger
 
@@ -60,9 +80,9 @@ Poolen over bytter hele malte deler. Hår, skjegg, hjelm og hudfarge er i hoveds
 
 Thrugg, Valkyra og Gorthak har helteoverkropper i trekvart profil. Mange fiender er tegnet fra siden, har fremskutt hals og helt andre skulderfester. Ikke legg samtlige fiendedeler i heltepoolen uten å tilpasse og kontrollere dem. Våpen kan gjenbrukes når grep og størrelse passer.
 
-## Innlesing før neste kunstpakke
+## Innlesing av flere deler
 
-`process_art.py` godtar allerede vilkårlige figurnavn med støttet del til slutt. `forge_warhammer_weapon.png` blir eksempelvis `char: forge_warhammer`, `part: weapon`, `file: forge_warhammer_weapon.webp`. Men filen må også legges inn som valg i delkatalogen med riktig våpenklasse og eventuelt opplåsingskrav.
+`process_art.py` godtar allerede vilkårlige figurnavn med støttet del til slutt. `forge_warhammer_weapon.png` blir eksempelvis `char: forge_warhammer`, `part: weapon`, `file: forge_warhammer_weapon.webp`. Hvert nytt bilde må også ha et valg i delkatalogen med riktig våpenklasse og eventuelt opplåsingskrav. Hammeren er allerede registrert begge steder.
 
 Innlesing og kontroll er klargjort for de nye standarddelene:
 
@@ -83,4 +103,4 @@ Disse finnes heller ikke som bildefiler. De er dokumenterte utvidelser; dagens f
 | FAMILY-detaljer | `gib_duck`, `gib_flower`, `gib_star` |
 | Frostpasset | Eget krigsbanner med hornet hodeskalle; mangler godkjent filnavn og egen kategori i innleseren |
 
-Filkontrollen bekrefter fildekning, format, størrelser og alfakanal. Den godkjenner ikke utseende, sømmer eller leddplassering. Samlet visuell kontroll av kunstpakken står fortsatt som egen oppgave i `todo.md`.
+Filkontrollen bekrefter fildekning, format, størrelser og alfakanal. Den godkjenner ikke utseende, sømmer eller leddplassering. `tools/tests/hero-forge.mjs` dekker delpool, lagring og opplåsinger; `tools/tests/artcheck.mjs` kontrollerer håndgrep, synlig bakarm og blandede figurer med de ekte bildene. Ridedyr og kjæledyr har fortsatt egen visuell kontroll i `todo.md`.

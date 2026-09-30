@@ -14,6 +14,8 @@ export interface PartOverride {
   ay: number;
   /** Høyden er satt i manifestet (eller av beltet) og skal ikke regnes om fra riggen. */
   fixedH: boolean;
+  /** Armer: neven i bildet (brøk, y fra toppen). Riggen snur og skalerer armen så neven havner i våpenleddet. */
+  hand?: [number, number];
 }
 
 /** Samme bilde i en annen høyde. Leddpunktet følger med. Riggene bruker den til høyder regnet ut fra leddene. */
@@ -33,8 +35,10 @@ interface ManifestPart {
   file: string;
   /** Høyde i verdensenheter. Standard: se DEFAULT_H. */
   height?: number;
-  /** Leddpunkt i det beskårne bildet, [x, y] fra 0 til 1, y fra toppen. */
+  /** Leddpunkt i det beskårne bildet, [x, y] fra 0 til 1, y fra toppen. For våpen er det grepet. */
   anchor?: [number, number];
+  /** Armer: neven i det beskårne bildet, [x, y] som anchor. Uten den finner lasteren neven nederst i armen. */
+  hand?: [number, number];
 }
 interface Manifest {
   parts?: ManifestPart[];
@@ -165,7 +169,63 @@ function edgeX(cv: HTMLCanvasElement, top: boolean) {
       }
   return k ? (sum / k + 0.5) / cv.width : 0.5;
 }
-const EDGE_TOP: Partial<Record<PartKey, boolean>> = { head: false, torso: false, weapon: false, pelvis: true, arm: true, leg: true };
+const EDGE_TOP: Partial<Record<PartKey, boolean>> = { head: false, torso: false, pelvis: true, arm: true, leg: true };
+
+/**
+ * Neven i et armbilde: midten av det som er tegnet mellom 80 og 97 prosent ned. Armen fra ChatGPT henger ikke alltid
+ * rett ned (den kan være bøyd eller strukket fram), men neven er nederst.
+ */
+function fistPoint(cv: HTMLCanvasElement): [number, number] {
+  const y0 = Math.floor(cv.height * 0.8), y1 = Math.max(y0 + 1, Math.floor(cv.height * 0.97));
+  const d = cv.getContext('2d')!.getImageData(0, y0, cv.width, y1 - y0).data;
+  let sx = 0, sy = 0, k = 0;
+  for (let y = 0; y < y1 - y0; y++)
+    for (let x = 0; x < cv.width; x++)
+      if (d[(y * cv.width + x) * 4 + 3] > 128) {
+        sx += x;
+        sy += y;
+        k++;
+      }
+  return k ? [(sx / k + 0.5) / cv.width, (sy / k + y0 + 0.5) / cv.height] : [0.5, 0.86];
+}
+
+/**
+ * Grepet på et våpen: det lengste smale strekket i nedre halvdel er skaftet eller håndtaket (knappen, ringen,
+ * parerstanga og bladet er bredere). Hånden holder nederst på det, en halv neve over enden, midt på skaftet.
+ */
+function gripPoint(cv: HTMLCanvasElement): [number, number] {
+  const W = cv.width, H = cv.height;
+  const d = cv.getContext('2d')!.getImageData(0, 0, W, H).data;
+  const wid: number[] = [], mid: number[] = [];
+  for (let y = 0; y < H; y++) {
+    let x0 = -1, x1 = -1, s = 0, k = 0;
+    for (let x = 0; x < W; x++)
+      if (d[(y * W + x) * 4 + 3] > 128) {
+        if (x0 < 0) x0 = x;
+        x1 = x;
+        s += x;
+        k++;
+      }
+    wid.push(x0 < 0 ? 0 : x1 - x0 + 1);
+    mid.push(k ? s / k : W / 2);
+  }
+  const lo = Math.floor(H * 0.45);
+  const low = wid.slice(lo).filter((w) => w > 0).sort((a, b) => a - b);
+  if (!low.length) return [0.5, 0.82];
+  const narrow = low[Math.floor(low.length * 0.1)] * 1.35;
+  let len = 0, top = 0, bot = 0, run = -1;
+  for (let y = lo; y <= H; y++) {
+    const n = y < H && wid[y] > 0 && wid[y] <= narrow;
+    if (n && run < 0) run = y;
+    if (!n && run >= 0) {
+      if (y - run > len) [len, top, bot] = [y - run, run, y - 1];
+      run = -1;
+    }
+  }
+  if (len < H * 0.04) return [0.5, 0.82];
+  const gy = bot - Math.min(0.5 * (bot - top), 0.08 * H);
+  return [(mid[Math.round(gy)] + 0.5) / W, gy / H];
+}
 
 /** Bredden på beltet øverst i en hoftedel, i piksler: bredeste rad blant de øverste 8 prosentene. */
 function beltWidth(cv: HTMLCanvasElement) {
@@ -228,11 +288,13 @@ export async function loadAssets(base = './assets/') {
               fixedH = true;
             }
           }
-          let [ax, ay] = p.anchor ?? (beast ? BEAST_ANCHOR[p.part] : undefined) ?? DEFAULT_ANCHOR[p.part] ?? [0.5, 0.5];
+          const grip = !p.anchor && !beast && p.part === 'weapon' ? gripPoint(cv) : undefined;
+          let [ax, ay] = p.anchor ?? (beast ? BEAST_ANCHOR[p.part] : undefined) ?? grip ?? DEFAULT_ANCHOR[p.part] ?? [0.5, 0.5];
           const edge = EDGE_TOP[p.part];
           if (!p.anchor && !beast && edge !== undefined) ax = edgeX(cv, edge);
+          const hand = p.part === 'arm' && !beast ? (p.hand ?? fistPoint(cv)) : undefined;
           const w = (cv.width / cv.height) * h;
-          parts.set(p.char + ':' + p.part, { canvas: cv, w, h, ox: ax * w, oy: (1 - ay) * h, ax, ay, fixedH });
+          parts.set(p.char + ':' + p.part, { canvas: cv, w, h, ox: ax * w, oy: (1 - ay) * h, ax, ay, fixedH, hand });
           n++;
         })
         .catch((e) => console.warn(e)),
