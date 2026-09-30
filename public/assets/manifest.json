@@ -581,6 +581,91 @@
       "char": "pet_skull",
       "part": "body",
       "file": "pet_skull.webp"
+    },
+    {
+      "char": "forge_bald",
+      "part": "head",
+      "file": "forge_bald_head.webp",
+      "height": 0.74
+    },
+    {
+      "char": "forge_crownbraid",
+      "part": "head",
+      "file": "forge_crownbraid_head.webp",
+      "height": 0.84
+    },
+    {
+      "char": "forge_eyepatch",
+      "part": "head",
+      "file": "forge_eyepatch_head.webp",
+      "height": 0.8
+    },
+    {
+      "char": "forge_greaves",
+      "part": "leg",
+      "file": "forge_greaves_leg.webp"
+    },
+    {
+      "char": "forge_kilt",
+      "part": "pelvis",
+      "file": "forge_kilt_pelvis.webp",
+      "anchor": [
+        0.53,
+        0.19
+      ]
+    },
+    {
+      "char": "forge_leather",
+      "part": "arm",
+      "file": "forge_leather_arm.webp"
+    },
+    {
+      "char": "forge_leather",
+      "part": "torso",
+      "file": "forge_leather_torso.webp",
+      "anchor": [
+        0.55,
+        0.96
+      ]
+    },
+    {
+      "char": "forge_plate",
+      "part": "arm",
+      "file": "forge_plate_arm.webp"
+    },
+    {
+      "char": "forge_plate",
+      "part": "torso",
+      "file": "forge_plate_torso.webp",
+      "anchor": [
+        0.55,
+        0.96
+      ]
+    },
+    {
+      "char": "forge_sandals",
+      "part": "leg",
+      "file": "forge_sandals_leg.webp"
+    },
+    {
+      "char": "forge_silvercut",
+      "part": "head",
+      "file": "forge_silvercut_head.webp",
+      "height": 0.82
+    },
+    {
+      "char": "forge_tassets",
+      "part": "pelvis",
+      "file": "forge_tassets_pelvis.webp",
+      "anchor": [
+        0.52,
+        0.22
+      ]
+    },
+    {
+      "char": "forge_warhammer",
+      "part": "weapon",
+      "file": "forge_warhammer_weapon.webp"
     }
   ],
   "textures": {

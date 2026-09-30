@@ -26,12 +26,13 @@ if (scenario === 'creator') {
   await ev(() => window.__game.openCreator([0, 1], () => window.__game.goTitle()));
   await run(0.5);
   await shot('02-creator');
-  for (let i = 0; i < 3; i++) { await ev(() => { const c = window.__game.scene; c.sel = 15; c.activate(); }); await run(1.2); await shot('03-random' + i); }
+  for (let i = 0; i < 3; i++) { await page.locator('.cr-row[data-key="random"]').click(); await run(1.2); await shot('03-random' + i); }
   await ev(() => { const c = window.__game.scene; c.setSlot(1); });
   await run(0.5);
   await shot('04-p2');
-  // Helmet row, step to locked
-  await ev(() => { const c = window.__game.scene; c.change(7, 1); c.change(7, 1); c.change(7, 1); });
+  // Den klassiske byggeren har separat hjelmvalg; ikke bruk faste radnumre.
+  await page.locator('.cr-row[data-key="builder"] .r').click();
+  for (let i = 0; i < 3; i++) await page.locator('.cr-row[data-key="helmet"] .r').click();
   await run(0.3);
   await shot('05-locked');
 } else if (scenario === 'map') {

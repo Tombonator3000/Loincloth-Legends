@@ -21,7 +21,7 @@ import { Stage } from '../game/stage';
 import { Duel, type DuelConfig, type DuelSide } from '../game/duel';
 import { Fighter } from '../game/fighter';
 import { DUEL_ATK } from '../game/attacks';
-import { buildHeroDef, HERO_OPTIONS, type HeroConfig } from '../gfx/chars/hero';
+import { buildHeroDef, cloneHero, HERO_OPTIONS } from '../gfx/chars/hero';
 import { registerChar } from '../gfx/chars';
 import { WEAPONS } from '../data/weapons';
 import { LEVELS } from '../data/levels';
@@ -76,7 +76,8 @@ class TitleScene implements Scene {
   constructor(private game: Game) {
     W.env = buildArena(W.scene, W.gore, 'pit');
     const s = game.save;
-    const a = new Fighter(registerChar(buildHeroDef(s.heroes[0], 0)), 'hero', { hp: 100, speed: 3, weapon: WEAPONS[s.heroes[0].weapon] });
+    const cfg = cloneHero(s.heroes[0]);
+    const a = new Fighter(registerChar(buildHeroDef(cfg, 0)), 'hero', { hp: 100, speed: 3, weapon: WEAPONS[cfg.weapon] });
     a.pos.set(-3.2, 0, 0.1);
     a.facing = 1;
     const b = new Fighter('gorthak', 'enemy', { hp: 100, speed: 3 });
@@ -557,7 +558,7 @@ export class Game {
 
   // ---------------------------------------------------------------- helter og dueller
   heroSide(slot: number, human = true): DuelSide {
-    const cfg = this.save.heroes[slot];
+    const cfg = cloneHero(this.save.heroes[slot]);
     const prog = this.progressOf(slot);
     const fx = statEffects(prog);
     return {
@@ -572,7 +573,7 @@ export class Game {
     let name = d.name;
     let weapon;
     if (d.char === '@player') {
-      const cfg: HeroConfig = { ...this.save.heroes[0] };
+      const cfg = cloneHero(this.save.heroes[0]);
       cid = registerChar(buildHeroDef(cfg, 7));
       name = 'DARK ' + cfg.name;
       weapon = WEAPONS[cfg.weapon];
@@ -622,8 +623,8 @@ export class Game {
   }
 
   // ---------------------------------------------------------------- heltebygger
-  openCreator(slots: number[], onDone: () => void) {
-    this.setScene(() => new CreatorScene(this, slots, onDone));
+  openCreator(slots: number[], onDone: () => void, onCancel: () => void = onDone) {
+    this.setScene(() => new CreatorScene(this, slots, onDone, onCancel));
   }
 
   // ---------------------------------------------------------------- historie og kart
@@ -643,7 +644,7 @@ export class Game {
         this.screens.intro(INTRO, () => this.goMap());
       } else this.goMap();
     };
-    if (missing.length) this.openCreator(need, go);
+    if (missing.length) this.openCreator(need, go, () => this.goTitle());
     else go();
   }
 

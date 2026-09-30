@@ -1,4 +1,4 @@
-"""Kontroller at hele kunstpakken finnes og kan dekodes.
+"""Kontroller grunnpakkens 143 filer og eventuelle ekstra forge_-figurdeler.
 
 Bruk: python3 tools/check_art_pack.py (krever Pillow).
 """
@@ -33,14 +33,21 @@ expected_sky = {'grass', 'swamp', 'frost', 'scorch', 'night',
 parts = manifest['parts']
 actual_parts = {(p['char'], p['part']) for p in parts}
 assert len(parts) == len(actual_parts), 'Doble figurdeler i manifestet'
-assert actual_parts == expected_parts, f'Mangler {expected_parts - actual_parts}; ekstra {actual_parts - expected_parts}'
+missing_parts = expected_parts - actual_parts
+extra_parts = actual_parts - expected_parts
+forge_parts = {(char, part) for char, part in extra_parts
+               if char.startswith('forge_') and len(char) > len('forge_')
+               and part in six | {'hairback'}}
+assert not missing_parts, f'Mangler {missing_parts}'
+assert extra_parts == forge_parts, f'Ukjente ekstra figurdeler: {extra_parts - forge_parts}'
 assert set(manifest['textures']) == expected_textures
 assert set(manifest['sky']) == expected_sky
 assert manifest['map'] == 'map.webp'
 
 names = [p['file'] for p in parts] + list(manifest['textures'].values())
 names += list(manifest['sky'].values()) + [manifest['map']]
-assert len(names) == len(set(names)) == 143, 'Feil antall eller doble filnavn'
+assert len(names) == len(set(names)) == 143 + len(forge_parts), 'Feil antall eller doble filnavn'
+part_files = {p['file'] for p in parts}
 for name in names:
     path = ASSETS / name
     assert path.is_file() and path.stat().st_size > 0, f'Mangler/er tom: {name}'
@@ -48,7 +55,9 @@ for name in names:
         image.verify()
     with Image.open(path) as image:
         assert image.format == 'WEBP', f'Ikke WebP: {name}'
-        if name.startswith('tex_'):
+        if name in part_files:
+            assert image.mode == 'RGBA', f'Mangler alfa: {name}'
+        elif name.startswith('tex_'):
             assert image.size == (1024, 1024), f'Feil teksturstorrelse: {name}'
         elif name.startswith('sky_') or name == 'map.webp':
             assert image.size == (1536, 1024), f'Feil panoramastorrelse: {name}'
@@ -56,3 +65,5 @@ for name in names:
             assert image.mode == 'RGBA', f'Mangler alfa: {name}'
 
 print('OK: 89 figurdeler, 12 ridedyrdeler, 5 kjaeledyr, 28 teksturer, 8 himler og kart (143 filer).')
+if forge_parts:
+    print(f'OK: {len(forge_parts)} ekstra Hero Forge-deler ({len(names)} filer totalt).')

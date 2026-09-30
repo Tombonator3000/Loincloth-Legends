@@ -1086,3 +1086,52 @@ button:focus-visible, .menu li:focus-visible { outline: 3px solid var(--gold); o
 /* Berøringsmodus: skjul tastaturhint og gi plass til knappene */
 .touchmode .mp-keys, .touchmode .cr-help { display: none; }
 .touchmode .mp-card { left: 16px; transform: none; width: min(560px, calc(100vw - 270px)); }
+
+/* Hero Forge: felles bildepulje med uavhengige kroppsdelvalg. */
+.creator { overflow: hidden; gap: 6px; touch-action: pan-x pan-y; }
+.creator .cr-head { flex-shrink: 0; }
+.creator .cr-head h2 { font-size: 30px; }
+.creator .cr-status, .creator .cr-pool, .creator .cr-info, .creator .cr-footer { flex-shrink: 0; }
+.creator .cr-rows { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.creator .cr-rows > .cr-row { flex-shrink: 0; }
+.creator .cr-info { min-height: 2em; font-size: 17px; }
+.creator .cr-row { grid-template-columns: 6.1em 26px minmax(0, 1fr) 26px; }
+.creator .cr-row .arr { width: 26px; }
+.cr-status { color: var(--gold); font-family: var(--f-body); font-size: 16px; line-height: 1.1; }
+.cr-status.missing { color: var(--bone); }
+.cr-pool[hidden] { display: none; }
+.cr-pool { border-top: 1px solid var(--gold-dim); padding-top: 6px; }
+.cr-pool-title { color: var(--gold); font-family: var(--f-num); font-size: 10px; margin-bottom: 5px; }
+.cr-part-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(75px, 1fr)); gap: 5px; max-height: 212px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.cr-part { display: flex; flex-direction: column; align-items: center; min-width: 0; padding: 3px; border: 1px solid #654822; background: #190e0b; color: var(--bone); cursor: pointer; }
+.cr-part canvas { display: block; width: 100%; height: 64px; object-fit: contain; }
+.cr-part span { font-family: var(--f-body); font-size: 15px; line-height: 1; min-height: 2em; text-align: center; overflow-wrap: anywhere; }
+.cr-part.equipped { border-color: var(--gold); background: #493216; box-shadow: inset 0 0 0 1px var(--gold); }
+.cr-part:hover, .cr-part:focus-visible { outline: 2px solid var(--bone); outline-offset: 1px; }
+.cr-part.locked { color: #baaaa0; background: #201717; }
+.cr-part.locked canvas { opacity: 0.5; }
+.cr-pool-empty { color: var(--bone); font-size: 18px; line-height: 1.1; padding: 6px 0; }
+.cr-footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.cr-actions { display: flex; gap: 6px; align-items: stretch; }
+.creator .cr-done-slot .cr-row { display: flex; align-items: center; justify-content: center; height: 100%; padding: 2px 10px; box-sizing: border-box; background: #493216; border: 1px solid var(--gold); }
+.creator .cr-done-slot .cr-row.sel { background: var(--blood); }
+.creator .cr-done-slot .k.wide { font-size: 20px; }
+.cr-cancel { color: var(--bone); background: #2a1410; border: 1px solid var(--gold-dim); font-family: var(--f-body); font-size: 18px; padding: 3px 7px; cursor: pointer; }
+@media (max-height: 520px) and (orientation: landscape) {
+  .creator .cr-row { grid-template-columns: 5em 26px minmax(0, 1fr) 26px; }
+  .creator { gap: 4px; }
+  .creator .cr-head h2 { font-size: 22px; }
+  .cr-status { font-size: 13px; }
+  .cr-part canvas { height: 40px; }
+  .cr-part span { font-size: 12px; }
+  .cr-pool-title { font-size: 8px; }
+  .cr-footer { justify-content: flex-end; }
+  .cr-cancel { font-size: 15px; }
+}
+
+/* Flere valg skal ikke skyve valgradene eller lagreknappene ut av små skjermer. */
+@media (max-width: 760px), (max-height: 520px) and (orientation: landscape) {
+  .cr-part-grid { grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: 84px; max-height: none; overflow-x: auto; overflow-y: hidden; padding-bottom: 4px; scroll-snap-type: x proximity; touch-action: pan-x; }
+  .cr-part { scroll-snap-align: start; }
+  .cr-pool-title::after { content: ' · SWIPE FOR MORE'; }
+}
