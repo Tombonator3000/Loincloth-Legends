@@ -63,6 +63,8 @@ interface ManifestPart {
 }
 interface Manifest {
   parts?: ManifestPart[];
+  /** Løse hår-, skjegg-, hodeplagg- og irislag. Plassering ligger i hero-appearance-layout.ts. */
+  appearance?: { id: string; file: string }[];
   sky?: Record<string, string>;
   /** Flisbare teksturer for 3D-verdenen, navn til fil. Navnene står i docs/ART_PROMPTS.md (ground_grass, road_grass ...). */
   textures?: Record<string, string>;
@@ -119,6 +121,15 @@ const BEAST_ANCHOR: Partial<Record<PartKey, [number, number]>> = { head: [0.15, 
 const BEAST_H: Partial<Record<PartKey, number>> = { head: 0.9, body: 1.3, tail: 0.6, leg: 0.75 };
 
 const parts = new Map<string, PartOverride>();
+const appearanceAssets = new Map<string, HTMLCanvasElement>();
+let assetRevision = 0;
+
+/** Delte kilder er skrivebeskyttet i bruk: farging og sammensetting skal alltid lage et nytt lerret. */
+export function getAppearanceAsset(id: string): HTMLCanvasElement | undefined {
+  return appearanceAssets.get(id);
+}
+
+export function getAssetRevision() { return assetRevision; }
 export const images: {
   sky: Record<string, HTMLImageElement>;
   textures: Record<string, HTMLImageElement>;
@@ -173,7 +184,7 @@ function trim(img: HTMLImageElement) {
   const out = document.createElement('canvas');
   out.width = x1 - x0 + 1;
   out.height = y1 - y0 + 1;
-  out.getContext('2d')!.drawImage(cv, x0, y0, out.width, out.height, 0, 0, out.width, out.height);
+  out.getContext('2d', { willReadFrequently: true })!.drawImage(cv, x0, y0, out.width, out.height, 0, 0, out.width, out.height);
   return out;
 }
 
@@ -330,6 +341,13 @@ export async function loadAssets(base = './assets/') {
   }
   let n = 0;
   const jobs: Promise<void>[] = [];
+  for (const p of man.appearance ?? []) {
+    jobs.push(loadImage(base + p.file).then((img) => {
+      appearanceAssets.set(p.id, trim(img));
+      assetRevision++;
+      n++;
+    }).catch((e) => console.warn(e)));
+  }
   for (const p of man.parts ?? []) {
     jobs.push(
       loadImage(base + p.file)
@@ -358,6 +376,7 @@ export async function loadAssets(base = './assets/') {
           parts.set(p.char + ':' + p.part, {
             canvas: faded ?? cv, full: faded ? cv : undefined, w, h, ox: ax * w, oy: (1 - ay) * h, ax, ay, fixedH, hand, shoulders, neck, front: p.front,
           });
+          assetRevision++;
           n++;
         })
         .catch((e) => console.warn(e)),

@@ -3,15 +3,17 @@
 import * as THREE from 'three';
 import { getChar, type CharDef, type CharId, type Joints, type PartDef, type PartName, type V2 } from './chars';
 import { unitCanvas } from './draw';
-import { getOverride, resized, type PartOverride } from './assets';
+import { getAssetRevision, getOverride, resized, type PartOverride } from './assets';
 import { damp } from '../core/math';
 import { charMaterial, reliefTexture, paintInk } from './charlight';
+import { applyHeroSkin, appearanceSkinColors, composeHeroHead, heroHeadPreview, purgeHeroAppearance } from './hero-appearance';
 
 const PPU = 150;
 /** Strektykkelse for figurdelene (standard i draw.ts er 0.045). */
 export const INK_W = 0.028;
 
 type Asset = {
+  owners: Set<string>;
   tex: THREE.Texture;
   relief: THREE.Texture;
   geo: THREE.PlaneGeometry;
@@ -22,8 +24,49 @@ type Asset = {
   neck?: V2;
   /** Hode fra PNG som skal ligge foran overkroppen (langt skjegg). */
   front?: boolean;
+  /** Svake pekere: cacheopprydding må aldri frigjøre en del som fortsatt tegnes i en scene. */
+  users: Set<WeakRef<THREE.Object3D>>;
 };
 const cache = new Map<string, Asset>();
+/** Varianter fra smia skal ikke beholde alle tidligere fargevalg i GPU-minnet. */
+const appearanceAssets = new Set<string>();
+const APPEARANCE_ASSET_LIMIT = 84;
+
+function disposeAsset(a: Asset) {
+  a.tex.dispose(); a.relief.dispose(); a.geo.dispose();
+}
+
+function assetInScene(a: Asset) {
+  for (const ref of a.users) {
+    const mesh = ref.deref();
+    if (!mesh) { a.users.delete(ref); continue; }
+    for (let node: THREE.Object3D | null = mesh; node; node = node.parent) {
+      if ((node as THREE.Scene).isScene) return true;
+    }
+  }
+  return false;
+}
+
+function pruneAppearanceAssets(buildingOwner: string) {
+  for (const key of appearanceAssets) {
+    if (appearanceAssets.size <= APPEARANCE_ASSET_LIMIT) break;
+    const a = cache.get(key);
+    // Aktive figurer og løse hoder eier fortsatt ressursene. Bare ubrukte cacheposter begrenses.
+    // Den nye riggen er ennå ikke satt inn i scenen. Behold også delene som bygges i samme kallkjede.
+    if (a && (a.owners.has(buildingOwner) || assetInScene(a))) continue;
+    appearanceAssets.delete(key);
+    if (a) { disposeAsset(a); cache.delete(key); }
+  }
+}
+
+function headAssembly(ch: CharDef) {
+  const source = ch.inherit?.head ?? ch.id;
+  let ov = getOverride(ch.id, 'head') ?? getOverride(source, 'head');
+  if (!ov || !ch.appearance) return;
+  const h = rigHeight(ch, 'head', ch.head, ov);
+  if (h) ov = resized(ov, h);
+  return composeHeroHead(ch, ov);
+}
 
 /**
  * Høyde for en PNG-del regnet ut fra riggen, så bilder fra ChatGPT passer på alle figurer uten tall i manifestet:
@@ -68,18 +111,30 @@ function armTurn(ch: CharDef, ov: PartOverride) {
 }
 
 export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
-  const k = ch.id + ':' + key;
+  let k = ch.id + ':' + key;
+  // Hår og øyne endrer ikke kroppen. Del malte kroppsressurser på tvers av hodevalg, men aldri reservegrafikk.
+  if (ch.appearance && ['torso', 'pelvis', 'arm', 'leg', 'weapon'].includes(key)) {
+    const source = ch.inherit?.[key as keyof NonNullable<CharDef['inherit']>] ?? ch.id;
+    const direct = getOverride(ch.id, key), ov = direct ?? getOverride(source, key);
+    if (ov) {
+      const h = rigHeight(ch, key, def, ov) ?? ov.h;
+      const turn = key === 'arm' && ov.hand ? armTurn(ch, ov) : 0;
+      k = ['painted', getAssetRevision(), direct ? ch.id : source, key, h, turn, ch.appearance.skinTone, appearanceSkinColors(ch)?.join(',')].join('|');
+    }
+  }
   let a = cache.get(k);
   if (!a) {
     // Hårmanken bak ryggen følger hodet (også når en helt arver PNG-ene fra thrugg eller valkyra)
-    const src = ch.inherit?.[(key === 'hairback' ? 'head' : key) as keyof NonNullable<CharDef['inherit']>];
-    let ov = getOverride(ch.id, key) ?? (src ? getOverride(src, key) : undefined);
+    const detailLayer = key === 'appearanceBack' || key === 'appearanceFront';
+    const src = ch.inherit?.[(key === 'hairback' || detailLayer ? 'head' : key) as keyof NonNullable<CharDef['inherit']>];
+    let ov = detailLayer ? headAssembly(ch)?.[key === 'appearanceBack' ? 'back' : 'front'] : getOverride(ch.id, key) ?? (src ? getOverride(src, key) : undefined);
     let turn = 0;
     let shoulders: [V2, V2] | undefined;
     let neck: V2 | undefined;
     if (ov) {
       const h = rigHeight(ch, key, def, ov);
       if (h) ov = resized(ov, h);
+      if (ch.appearance && !detailLayer) ov = key === 'head' ? composeHeroHead(ch, ov).head : applyHeroSkin(ch, key, src ?? ch.id, ov);
       if (key === 'arm' && ov.hand) turn = armTurn(ch, ov);
       const o = ov;
       const at = ([u, v]: readonly number[]): V2 => [(u - o.ax) * o.w, (o.ay - v) * o.h];
@@ -96,7 +151,22 @@ export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
     // Normal- og glanskart ut fra tegningen (volum, muskelfurer, olje på huden), se gfx/charlight.ts.
     // Lages før strekene farges, fordi relieffet bruker blekkstrekene som furer. En malt overkropp med uttonet
     // halsstump får relieffet fra det opprinnelige bildet (full): ellers blir kanten på uttoningen en ny ytterkant med kantlys.
-    const relief = reliefTexture(ov?.full ?? cv, ov ? cv.width / def.w : ppu, ch.skin, !!ov);
+    let reliefSource = ov?.full ?? cv;
+    let reliefPpu = ov ? cv.width / def.w : ppu;
+    // Ansiktslagene beholder full fargeoppløsning. Relieffet trenger bare skjermdetaljene og er dyrt å beregne
+    // for hvert hår- eller øyevalg. Skaler også ppu, så volumet beholder samme størrelse i verden.
+    if (ch.appearance && (key === 'head' || detailLayer) && Math.max(reliefSource.width, reliefSource.height) > 512) {
+      const small = document.createElement('canvas');
+      const ratio = 512 / Math.max(reliefSource.width, reliefSource.height);
+      small.width = Math.max(1, Math.round(reliefSource.width * ratio));
+      small.height = Math.max(1, Math.round(reliefSource.height * ratio));
+      const c = small.getContext('2d', { willReadFrequently: true })!;
+      c.imageSmoothingQuality = 'high';
+      c.drawImage(reliefSource, 0, 0, small.width, small.height);
+      reliefPpu *= small.width / reliefSource.width;
+      reliefSource = small;
+    }
+    const relief = reliefTexture(reliefSource, reliefPpu, appearanceSkinColors(ch), !!ov);
     if (!ov) paintInk(cv);
     const tex = new THREE.CanvasTexture(cv);
     // sRGB: sampleren dekoder til lineært lys, så figurene passer inn i HDR-pipelinen (gfx/post.ts)
@@ -106,33 +176,46 @@ export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
     const geo = new THREE.PlaneGeometry(def.w, def.h);
     geo.translate(def.w / 2 - def.ox, def.h / 2 - def.oy, 0);
     if (turn) geo.rotateZ(turn);
-    a = { tex, relief, geo, canvas: cv, shoulders, neck, front: ov?.front };
+    a = { owners: new Set([ch.id]), tex, relief, geo, canvas: cv, shoulders, neck, front: ov?.front, users: new Set() };
     cache.set(k, a);
+    if (ch.appearance) {
+      appearanceAssets.delete(k);
+      appearanceAssets.add(k);
+      pruneAppearanceAssets(ch.id);
+    }
+  } else if (appearanceAssets.has(k)) {
+    appearanceAssets.delete(k); appearanceAssets.add(k);
   }
+  a.owners.add(ch.id);
   return a;
 }
 
 export function headCanvas(id: CharId) {
   const ch = getChar(id);
+  if (ch.appearance) {
+    const portrait = heroHeadPreview(ch);
+    if (portrait) return portrait;
+  }
   return partAsset(ch, 'head', ch.head).canvas;
 }
 
 const tintedHeads = new Map<string, HTMLCanvasElement>();
 /** Hodets tegning med fargetone (brukes når hodet klasker i skjermen). */
 export function headImage(id: CharId, tint?: [number, number, number], flip = false) {
-  const k = id + (tint ? tint.join(',') : '') + (flip ? 'f' : '');
+  const k = id + '|' + (tint ? tint.join(',') : '') + (flip ? 'f' : '');
   let cv = tintedHeads.get(k);
   if (cv) return cv;
   const src = headCanvas(id);
   cv = document.createElement('canvas');
   cv.width = src.width;
   cv.height = src.height;
-  const c = cv.getContext('2d')!;
+  const c = cv.getContext('2d', { willReadFrequently: true })!;
   if (flip) {
     c.translate(cv.width, 0);
     c.scale(-1, 1);
   }
-  c.drawImage(src, 0, 0);
+  if (!tint && !flip) c.putImageData(src.getContext('2d')!.getImageData(0, 0, src.width, src.height), 0, 0);
+  else c.drawImage(src, 0, 0);
   if (tint) {
     const to255 = (v: number) => Math.round(Math.min(1, v) * 255);
     c.globalCompositeOperation = 'multiply';
@@ -142,18 +225,21 @@ export function headImage(id: CharId, tint?: [number, number, number], flip = fa
     c.drawImage(src, 0, 0);
   }
   tintedHeads.set(k, cv);
+  while (tintedHeads.size > 96) tintedHeads.delete(tintedHeads.keys().next().value!);
   return cv;
 }
 
 /** Fjern teksturer for en figur (brukes når heltebyggeren lager en ny variant). */
 export function purgeChar(id: CharId) {
   for (const [k, a] of cache) {
-    if (!k.startsWith(id + ':')) continue;
-    a.tex.dispose();
-    a.relief.dispose();
-    a.geo.dispose();
+    if (!a.owners.delete(id) || a.owners.size) continue;
+    if (appearanceAssets.has(k) && assetInScene(a)) continue;
+    disposeAsset(a);
     cache.delete(k);
+    appearanceAssets.delete(k);
   }
+  for (const key of tintedHeads.keys()) if (key === id || key.startsWith(id + '|')) tintedHeads.delete(key);
+  purgeHeroAppearance(id);
 }
 
 /** Lyssatt materiale for en figurdel (se gfx/charlight.ts). Uten relieffkart blir delen flat. */
@@ -249,12 +335,13 @@ export class Rig {
     m.uniforms.flash.value = this.flashV;
     this.mats.push(m);
     const mesh = new THREE.Mesh(a.geo, m);
+    a.users.add(new WeakRef(mesh));
     mesh.frustumCulled = false;
     mesh.castShadow = true;
     const grp = new THREE.Group();
     grp.position.set(x, y, name === 'head' && (!this.painted || a.front) ? HEAD_FRONT : Z[name]);
     grp.add(mesh);
-    if (name === 'head') this.hairBack(grp, tint);
+    if (name === 'head') { this.hairBack(grp, tint); this.appearanceLayers(grp, tint); }
     parent.add(grp);
     this.g[name] = grp;
     return grp;
@@ -275,10 +362,32 @@ export class Rig {
     m.uniforms.flash.value = this.flashV;
     this.mats.push(m);
     const mesh = new THREE.Mesh(a.geo, m);
+    a.users.add(new WeakRef(mesh));
     mesh.frustumCulled = false;
     mesh.castShadow = true;
     mesh.position.z = HAIR_BACK - head.position.z;
     head.add(mesh);
+  }
+
+  /** Løse bakhår og skjegg følger hodet, også når hodet løsner. Halsen beholder sin gamle dybde. */
+  private appearanceLayers(head: THREE.Group, tint: number) {
+    const assembly = headAssembly(this.def);
+    if (!assembly) return;
+    for (const [layer, key, z] of [['back', 'appearanceBack', HAIR_BACK], ['front', 'appearanceFront', HEAD_FRONT + 0.002]] as const) {
+      if (!assembly[layer]) continue;
+      const a = partAsset(this.def, key, { w: 1, h: 1, ox: 0, oy: 0, draw: () => {} });
+      const m = partMaterial(a.tex, tint, a.relief);
+      m.userData.shade = tint;
+      m.uniforms.tint.value.setRGB(tint * this.tint[0], tint * this.tint[1], tint * this.tint[2]);
+      m.uniforms.flash.value = this.flashV;
+      this.mats.push(m);
+      const mesh = new THREE.Mesh(a.geo, m);
+      a.users.add(new WeakRef(mesh));
+      mesh.name = key;
+      mesh.frustumCulled = false; mesh.castShadow = true;
+      mesh.position.z = z - head.position.z;
+      head.add(mesh);
+    }
   }
 
   /** Gro ut igjen en del som er kappet av eller skjult (kyllingen har helbredende krefter). */

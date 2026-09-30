@@ -78,7 +78,8 @@ try {
     const added = ['forge_bald_head', 'forge_eyepatch_head', 'forge_crownbraid_head', 'forge_silvercut_head', 'forge_leather_torso', 'forge_plate_torso', 'forge_kilt_pelvis', 'forge_tassets_pelvis', 'forge_leather_arm', 'forge_plate_arm', 'forge_sandals_leg', 'forge_greaves_leg', 'forge_warhammer_weapon'];
     added.push(...['orc', 'frost'].flatMap((source) => ['head', 'torso', 'pelvis', 'arm', 'leg'].map((slot) => `forge_${source}_${slot}`)), 'forge_sabre_weapon', 'forge_boneclub_weapon');
     added.push(...['ash', 'warden'].flatMap((source) => ['head', 'torso', 'pelvis', 'arm', 'leg'].map((slot) => `forge_${source}_${slot}`)), ...['cleaver', 'doubleaxe', 'maul', 'flangedmace'].map((weapon) => `forge_${weapon}_weapon`));
-    checks.push(['poolen har 58 valg og alle 39 forge-bilder', catalog.length === 58 && catalog.filter((p) => p.id.startsWith('forge_')).length === 39 && added.every((id) => catalog.some((p) => p.id === id && L.getOverride(p.source, p.slot)?.canvas.width > 0))]);
+    added.push('forge_custom_m_head', 'forge_custom_f_head');
+    checks.push(['poolen har 60 valg og alle 41 forge-bilder', catalog.length === 60 && catalog.filter((p) => p.id.startsWith('forge_')).length === 41 && added.every((id) => catalog.some((p) => p.id === id && L.getOverride(p.source, p.slot)?.canvas.width > 0))]);
     const part = (id) => catalog.find((p) => p.id === id);
     checks.push(['orkens kroppstype er kvinnelig og frostkrigerens mannlig', part('forge_orc_torso')?.body === 1 && part('forge_frost_torso')?.body === 0]);
     checks.push(['bare frostfigurens hudbærende deler krever skin:6', ['head', 'torso', 'arm', 'leg'].every((slot) => part(`forge_frost_${slot}`)?.unlock === 'skin:6') && !part('forge_frost_pelvis')?.unlock]);
@@ -452,9 +453,9 @@ try {
   await page.setViewportSize({ width: 915, height: 412 });
   await shot(page, 'mobile-landscape');
   await page.setViewportSize({ width: 412, height: 915 });
-  await selectPart('head', 'forge_warden_head');
+  await selectPart('head', 'forge_custom_f_head');
   check('siste hodekort forblir synlig etter valg i mobilpoolen', await page.evaluate(() => {
-    const card = document.querySelector('.cr-part[data-part="forge_warden_head"]').getBoundingClientRect();
+    const card = document.querySelector('.cr-part[data-part="forge_custom_f_head"]').getBoundingClientRect();
     const pool = document.querySelector('.cr-part-grid').getBoundingClientRect();
     return card.left >= pool.left - 1 && card.right <= pool.right + 1;
   }));

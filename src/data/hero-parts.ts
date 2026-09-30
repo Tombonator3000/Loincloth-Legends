@@ -15,6 +15,8 @@ export interface HeroPartOption {
   weapon?: number;
   /** Eksisterende opplåsingsnøkkel fra PART_LOCKS. */
   unlock?: string;
+  /** Rene hoder som støtter uavhengige hår-, skjegg-, øye- og hodeplagglag. */
+  modular?: boolean;
 }
 
 export const HERO_PARTS: Record<HeroPartSlot, HeroPartOption[]> = {
@@ -30,6 +32,8 @@ export const HERO_PARTS: Record<HeroPartSlot, HeroPartOption[]> = {
     { id: 'forge_frost_head', label: 'FROST WARRIOR', source: 'forge_frost', slot: 'head', unlock: 'skin:6' },
     { id: 'forge_ash_head', label: 'ASH RAIDER', source: 'forge_ash', slot: 'head' },
     { id: 'forge_warden_head', label: 'WARDEN GREATHELM', source: 'forge_warden', slot: 'head', unlock: 'helmet:5' },
+    { id: 'forge_custom_m_head', label: 'CUSTOM MALE', source: 'forge_custom_m', slot: 'head', modular: true },
+    { id: 'forge_custom_f_head', label: 'CUSTOM FEMALE', source: 'forge_custom_f', slot: 'head', modular: true },
   ],
   torso: [
     { id: 'thrugg_torso', label: 'THRUGG FUR', source: 'thrugg', slot: 'torso', body: 0 },
@@ -92,6 +96,10 @@ export const HERO_PARTS: Record<HeroPartSlot, HeroPartOption[]> = {
 
 export function findHeroPart(slot: HeroPartSlot, id: string): HeroPartOption | undefined {
   return HERO_PARTS[slot].find((part) => part.id === id);
+}
+
+export function isModularHeroHead(headId: string): boolean {
+  return findHeroPart('head', headId)?.modular === true;
 }
 
 /** Alltid et nytt sett: presets, spiller 1 og spiller 2 skal ikke dele redigerbare valg. */

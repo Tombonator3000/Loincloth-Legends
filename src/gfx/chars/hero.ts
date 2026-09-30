@@ -3,6 +3,7 @@ import { Pen, INK, shade, blobPath, polyPath } from '../draw';
 import { HERO_BIG_J, HERO_HIP_Y, HEAD_SCALE, TORSO_Y, skinD, type CharDef, type PartDef } from './types';
 import { maleChest, femChest, maleTorsoPath, muscleArm, muscleLeg, tinyLoins, scalePart, stretchY, type TopKind, type Shoulder, type Footwear, type Loins } from './muscle';
 import { HERO_PART_SLOTS, defaultHeroParts, findHeroPart, sanitizeHeroParts, type HeroParts } from '../../data/hero-parts';
+import { HERO_APPEARANCE_KEYS, sanitizeHeroAppearance, type HeroAppearance } from '../../data/hero-appearance';
 
 export interface HeroConfig {
   name: string;
@@ -22,6 +23,8 @@ export interface HeroConfig {
   magic: number;
   /** Malte deler fra den felles katalogen. Uten feltet brukes den gamle tegnebyggeren. */
   parts?: HeroParts;
+  /** Uavhengige lag og maskefarger. Gamle helter uten feltet beholder bildene urørt. */
+  appearance?: HeroAppearance;
 }
 
 export const SKINS = ['#f2c59c', '#e2a26b', '#c98a5a', '#9c6440', '#6e4428', '#8fb46a', '#9fb4c8'];
@@ -29,7 +32,7 @@ export const HAIRS = ['#2a1a12', '#6b3e1f', '#e8c65a', '#e0661f', '#e8e4dc', '#b
 export const CLOTHS = ['#7a4b28', '#8e1b1b', '#3a6fc0', '#3f6b2a', '#5b2a86', '#2a2a30', '#c8962a'];
 
 /** Navn på alle valg, i samme rekkefølge som indeksene. Brukes av skaper-UI. */
-export const HERO_OPTIONS: Record<Exclude<keyof HeroConfig, 'name' | 'parts'>, string[]> = {
+export const HERO_OPTIONS: Record<Exclude<keyof HeroConfig, 'name' | 'parts' | 'appearance'>, string[]> = {
   body: ['MALE', 'FEMALE'],
   skin: ['PEACH', 'TAN', 'BRONZE', 'UMBER', 'DEEP', 'ORC GREEN', 'FROST BLUE'],
   face: ['GRIM', 'BATTLE CRY', 'UNHINGED', 'EYEPATCH', 'SMUG'],
@@ -53,7 +56,10 @@ export const PRESETS: Record<string, HeroConfig> = {
 
 /** Kopier konfigurasjonen uten å dele valgene med et preset eller en annen spiller. */
 export function cloneHero(cfg: HeroConfig): HeroConfig {
-  return cfg.parts === undefined ? { ...cfg } : withHeroParts(cfg, cfg.parts);
+  if (cfg.parts !== undefined) return withHeroParts(cfg, cfg.parts);
+  const classic = { ...cfg };
+  delete classic.appearance;
+  return classic;
 }
 
 /** Bytt deler og hold kroppstype og våpenets kampegenskaper i takt med bildene. */
@@ -62,9 +68,17 @@ export function withHeroParts(cfg: HeroConfig, parts: HeroParts): HeroConfig {
   return {
     ...cfg,
     parts: clean,
+    ...(cfg.appearance !== undefined ? { appearance: sanitizeHeroAppearance(cfg.appearance) } : {}),
     body: findHeroPart('torso', clean.torso)?.body ?? cfg.body,
     weapon: findHeroPart('weapon', clean.weapon)?.weapon ?? cfg.weapon,
   };
+}
+
+/** Endrer bare utseendelagene. Valgt malt hode, kropp og våpen bevares. */
+export function withHeroAppearance(cfg: HeroConfig, appearance: HeroAppearance): HeroConfig {
+  const out = cloneHero(cfg);
+  if (out.parts) out.appearance = sanitizeHeroAppearance(appearance);
+  return out;
 }
 
 const M = {
@@ -493,7 +507,8 @@ function legacyHeroKey(cfg: HeroConfig) {
 export function heroKey(cfg: HeroConfig) {
   const c = cloneHero(cfg);
   const parts = c.parts;
-  return legacyHeroKey(c) + (parts ? ':' + HERO_PART_SLOTS.map((slot) => parts[slot]).join('.') : '');
+  return legacyHeroKey(c) + (parts ? ':' + HERO_PART_SLOTS.map((slot) => parts[slot]).join('.') : '')
+    + (c.appearance ? ':appearance:' + HERO_APPEARANCE_KEYS.map((key) => c.appearance![key]).join('.') : '');
 }
 
 export function buildHeroDef(cfg: HeroConfig, slot: number): CharDef {
@@ -507,6 +522,7 @@ export function buildHeroDef(cfg: HeroConfig, slot: number): CharDef {
   }
   return {
     inherit,
+    ...(cfg.appearance ? { appearance: { ...cfg.appearance } } : {}),
     id: `hero${slot}:${heroKey(cfg)}`,
     name: cfg.name || 'NAMELESS',
     scale: fem ? 0.9 : 0.93,

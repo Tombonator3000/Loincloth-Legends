@@ -56,7 +56,17 @@ const forgeCases = await page.evaluate(() => {
       pelvis: `forge_${pelvis}_pelvis`, leg: `forge_${leg}_leg`, weapon: `forge_${weapon}_weapon`,
     });
     return { label, id: L.registerChar(L.buildHeroDef(cfg, 61 + i)), negativeControl: i < 4 };
-  });
+  }).concat([
+    ['forge-custom-m', 'thrugg', 'm', { hair: 'wild', beard: 'full', headgear: 'crown', hairColor: 'ginger', eyeColor: 'green' }],
+    ['forge-custom-f', 'valkyra', 'f', { hair: 'long', headgear: 'headband', skinTone: 'deep', hairColor: 'black', eyeColor: 'amber' }],
+    ['forge-custom-orc', 'valkyra', 'm', { hair: 'mohawk', beard: 'braided', headgear: 'horned', skinTone: 'orc', hairColor: 'white', eyeStyle: 'slit' }],
+    ['forge-custom-frost', 'thrugg', 'f', { hair: 'braids', headgear: 'skull', skinTone: 'frost', hairColor: 'white', eyeColor: 'blue' }],
+  ].map(([label, preset, sex, look], i) => {
+    const cfg = L.withHeroAppearance(L.withHeroParts(L.PRESETS[preset], {
+      ...L.PRESETS[preset].parts, head: `forge_custom_${sex}_head`,
+    }), { ...L.defaultHeroAppearance(), ...look });
+    return { label, id: L.registerChar(L.buildHeroDef(cfg, 80 + i)), negativeControl: false };
+  }));
 });
 const labels = Object.fromEntries(forgeCases.map(({ id, label }) => [id, label]));
 
@@ -303,7 +313,7 @@ const shoulders = await page.evaluate((forgeCases) => {
       const def = L.getChar(id);
       const current = contact(def, ':shoulder-current');
       result[label] = negativeControl ? { current, previous: contact(def, ':shoulder-off', 0.35) } : { current };
-      if (label.startsWith('forge-ash') || label.startsWith('forge-warden')) result[label].neck = contact(def, ':neck-current', 0, 'neck');
+      if (label.startsWith('forge-ash') || label.startsWith('forge-warden') || label.startsWith('forge-custom')) result[label].neck = contact(def, ':neck-current', 0, 'neck');
     }
   } finally {
     g.renderer.setRenderTarget(oldTarget);
@@ -313,11 +323,11 @@ const shoulders = await page.evaluate((forgeCases) => {
   return result;
 }, forgeCases);
 const shoulderMeets = ({ upperPixels, touchPixels }) => upperPixels > 0 && touchPixels >= 8;
-check('alle tolv torso/arm-mikser har faktisk alfakontakt ved utstrakt skulder', Object.values(shoulders).every(({ current }) => shoulderMeets(current)), shoulders);
+check('alle seksten torso/arm-mikser har faktisk alfakontakt ved utstrakt skulder', Object.values(shoulders).every(({ current }) => shoulderMeets(current)), shoulders);
 const oldShoulders = Object.values(shoulders).filter(({ previous }) => previous);
 check('skuldersjekken slår ut når armen flyttes 0,35 ut fra skulderen (fire negative kontroller)', oldShoulders.length === 4 && oldShoulders.every(({ previous }) => !shoulderMeets(previous)));
 const newNecks = Object.fromEntries(Object.entries(shoulders).filter(([, v]) => v.neck).map(([k, v]) => [k, v.neck]));
-check('nye Ash-/Warden-overkropper møter hodets hals i hele og blandede sett', Object.keys(newNecks).length === 4 && Object.values(newNecks).every(shoulderMeets), newNecks);
+check('Ash-/Warden-sett og de fire modulære heltene har kontakt ved halsroten', Object.keys(newNecks).length === 8 && Object.values(newNecks).every(shoulderMeets), newNecks);
 
 // 4) Heltesmia: eksplisitte delvalg er fasiten for bilde og våpenstatistikk.
 const forge = await page.evaluate(() => {

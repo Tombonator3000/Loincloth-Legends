@@ -6,9 +6,11 @@ import { W } from '../../game/world';
 import { Fighter } from '../../game/fighter';
 import { HERO_ATK } from '../../game/attacks';
 import { buildArena } from '../../gfx/env';
-import { buildHeroDef, cloneHero, withHeroParts, HERO_OPTIONS, PRESETS, randomHero, randomName, type HeroConfig } from '../../gfx/chars/hero';
-import { HERO_PARTS, HERO_PART_SLOTS, defaultHeroParts, findHeroPart, type HeroParts, type HeroPartSlot } from '../../data/hero-parts';
+import { buildHeroDef, cloneHero, withHeroParts, withHeroAppearance, HERO_OPTIONS, PRESETS, randomHero, randomName, type HeroConfig } from '../../gfx/chars/hero';
+import { HERO_PARTS, HERO_PART_SLOTS, defaultHeroParts, findHeroPart, isModularHeroHead, type HeroParts, type HeroPartSlot } from '../../data/hero-parts';
 import { getOverride } from '../../gfx/assets';
+import { HERO_APPEARANCE, defaultHeroAppearance, findHeroAppearance, type HeroAppearance, type HeroAppearanceKey } from '../../data/hero-appearance';
+import { heroAppearanceAvailable, heroHeadPreview, heroSkinSupport } from '../../gfx/hero-appearance';
 import { registerChar } from '../../gfx/chars';
 import { purgeChar } from '../../gfx/rig';
 import { WEAPONS, scaleAttack } from '../../data/weapons';
@@ -18,15 +20,24 @@ import { audio } from '../../core/audio';
 import { pick } from '../../core/math';
 
 type OptKey = keyof typeof HERO_OPTIONS;
-type RowKey = OptKey | HeroPartSlot | 'builder' | 'name' | 'preset' | 'random' | 'done';
+type AppearanceRowKey = `appearance:${HeroAppearanceKey}`;
+type EditorPage = 'parts' | 'head';
+type RowKey = OptKey | HeroPartSlot | AppearanceRowKey | 'builder' | 'editor' | 'name' | 'preset' | 'random' | 'done';
 type Row = { k: RowKey; label: string };
 const FIRST_ROWS: Row[] = [{ k: 'name', label: 'NAME' }, { k: 'builder', label: 'BUILDER' }];
 const LAST_ROWS: Row[] = [
   { k: 'magic', label: 'MAGIC' }, { k: 'preset', label: 'PRESET' },
   { k: 'random', label: 'RANDOMIZE' }, { k: 'done', label: 'DONE' },
 ];
+const PAINTED_FIRST_ROWS: Row[] = [...FIRST_ROWS, { k: 'editor', label: 'EDIT' }];
+const HEAD_DETAIL_ROWS: Row[] = [
+  { k: 'appearance:hair', label: 'HAIR' }, { k: 'appearance:hairColor', label: 'HAIR COLOUR' },
+  { k: 'appearance:beard', label: 'BEARD' }, { k: 'appearance:headgear', label: 'HEADGEAR' },
+  { k: 'appearance:eyeStyle', label: 'EYES' }, { k: 'appearance:eyeColor', label: 'EYE COLOUR' },
+];
+const appearanceKey = (key: RowKey): HeroAppearanceKey | undefined => key.startsWith('appearance:') ? key.slice(11) as HeroAppearanceKey : undefined;
 const PAINTED_ROWS: Row[] = [
-  ...FIRST_ROWS,
+  ...PAINTED_FIRST_ROWS,
   { k: 'head', label: 'HEAD' }, { k: 'torso', label: 'TORSO' },
   { k: 'arm', label: 'ARMS' }, { k: 'pelvis', label: 'LOINS' },
   { k: 'leg', label: 'LEGS' }, { k: 'weapon', label: 'WEAPON' },
@@ -53,7 +64,11 @@ export class CreatorScene implements Scene {
   cursor: Record<string, number>[];
   partCursor: Partial<HeroParts>[];
   private paintedDrafts: (HeroParts | undefined)[];
+  private appearanceDrafts: (HeroAppearance | undefined)[];
+  private appearanceCursor: HeroAppearance[];
+  private pages: EditorPage[];
   private rows: Row[] = [];
+  private rowsSignature = '';
   private poolKey = '';
   sel = 0;
   preview: Fighter | null = null;
@@ -68,6 +83,9 @@ export class CreatorScene implements Scene {
     this.cursor = this.cfgs.map(optionCursor);
     this.partCursor = this.cfgs.map((c) => ({ ...c.parts }));
     this.paintedDrafts = this.cfgs.map((c) => c.parts ? { ...c.parts } : undefined);
+    this.appearanceDrafts = this.cfgs.map((c) => c.appearance ? { ...c.appearance } : undefined);
+    this.appearanceCursor = this.cfgs.map((c) => ({ ...this.appearance(c) }));
+    this.pages = this.cfgs.map((c) => c.parts && isModularHeroHead(c.parts.head) ? 'head' : 'parts');
     W.env = buildArena(W.scene, W.gore, 'pit');
     this.framePreview();
     game.hud.visible(false);
@@ -79,12 +97,16 @@ export class CreatorScene implements Scene {
     this.el.innerHTML = `
       <div class="cr-head"><h2>HERO FORGE</h2><div class="cr-tabs"></div></div>
       <div class="cr-status"></div>
+      <div class="cr-pages" aria-label="Hero editor pages"><button type="button" data-page="parts">HERO PARTS</button><button type="button" data-page="head">HEAD DETAILS</button></div>
+      <div class="cr-custom-head" hidden><p>Hair and headgear are painted into this head. Choose a custom head to edit them.</p><div><button type="button" data-head="forge_custom_m_head">CUSTOM MALE</button><button type="button" data-head="forge_custom_f_head">CUSTOM FEMALE</button></div></div>
       <div class="cr-rows"></div>
       <div class="cr-pool" hidden></div>
       <div class="cr-info" aria-live="polite"></div>
       <div class="cr-footer"><div class="cr-help">W/S: PICK &nbsp; A/D: CHANGE<br>F/ENTER: OK &nbsp; ESC: CANCEL</div><div class="cr-actions"><div class="cr-done-slot"></div><button class="cr-cancel" type="button">CANCEL</button></div></div>`;
     game.app.appendChild(this.el);
     this.el.querySelector('.cr-cancel')!.addEventListener('click', () => this.cancel());
+    this.el.querySelectorAll<HTMLButtonElement>('.cr-pages button').forEach((b) => b.addEventListener('click', () => this.setPage(b.dataset.page as EditorPage)));
+    this.el.querySelectorAll<HTMLButtonElement>('.cr-custom-head button').forEach((b) => b.addEventListener('click', () => this.choosePart('head', b.dataset.head!)));
     const tabs = this.el.querySelector('.cr-tabs')!;
     for (const sl of slots) {
       const b = document.createElement('button');
@@ -93,8 +115,25 @@ export class CreatorScene implements Scene {
       b.addEventListener('click', () => this.setSlot(sl));
       tabs.appendChild(b);
     }
-    this.sel = this.cfgs[this.slot].parts ? 2 : 0;
+    this.sel = this.cfgs[this.slot].parts ? 3 : 0;
     this.setSlot(this.slot);
+  }
+
+  private appearance(cfg = this.cfgs[this.slot]): HeroAppearance {
+    return cfg.appearance ?? defaultHeroAppearance();
+  }
+
+  private skinSupport() {
+    return heroSkinSupport(buildHeroDef(this.cfgs[this.slot], 9 + this.slot));
+  }
+
+  private setPage(page: EditorPage) {
+    if (!this.cfgs[this.slot].parts) return;
+    this.pages[this.slot] = page;
+    this.refresh(false);
+    const headRow = this.rows.findIndex((r) => r.k === 'head');
+    if (headRow >= 0) this.select(headRow, true);
+    audio.menu();
   }
 
   private available(slot: HeroPartSlot) {
@@ -121,11 +160,21 @@ export class CreatorScene implements Scene {
     const cfg = this.cfgs[this.slot];
     this.cursor[this.slot] = optionCursor(cfg);
     this.partCursor[this.slot] = { ...cfg.parts };
+    this.appearanceCursor[this.slot] = { ...this.appearance(cfg) };
   }
 
   private renderRows() {
-    const nextRows = this.cfgs[this.slot].parts ? PAINTED_ROWS : CLASSIC_ROWS;
-    if (this.rows === nextRows) return;
+    const cfg = this.cfgs[this.slot];
+    let nextRows = cfg.parts ? PAINTED_ROWS : CLASSIC_ROWS;
+    if (cfg.parts && this.pages[this.slot] === 'head') {
+      nextRows = [...PAINTED_FIRST_ROWS, { k: 'head', label: 'HEAD' }];
+      if (this.skinSupport().supported.length) nextRows.push({ k: 'appearance:skinTone', label: 'SKIN COLOUR' });
+      if (isModularHeroHead(cfg.parts.head)) nextRows.push(...HEAD_DETAIL_ROWS);
+      nextRows.push({ k: 'done', label: 'DONE' });
+    }
+    const signature = nextRows.map((r) => r.k).join('|');
+    if (this.rowsSignature === signature) return;
+    this.rowsSignature = signature;
     const selected = this.rows[this.sel]?.k;
     this.rows = nextRows;
     if (selected) this.sel = Math.max(0, this.rows.findIndex((r) => r.k === selected));
@@ -146,7 +195,11 @@ export class CreatorScene implements Scene {
         row.querySelector('.l')!.addEventListener('click', () => this.change(i, -1));
         row.querySelector('.r')!.addEventListener('click', () => this.change(i, 1));
       }
-      row.addEventListener('mouseenter', () => this.select(i));
+      // En endret korthøyde kan flytte rader under en stillestående peker.
+      // Bare virkelig pekerbevegelse velger rad, ellers oppstår en render-/hoverløkke.
+      row.addEventListener('pointermove', (e) => {
+        if (e.pointerType === 'mouse' && (e.movementX || e.movementY) && this.sel !== i) this.select(i);
+      });
       row.addEventListener('click', (e) => {
         if ((e.target as HTMLElement).closest('button, input')) return;
         this.select(i);
@@ -192,16 +245,28 @@ export class CreatorScene implements Scene {
     const r = this.rows[i];
     this.select(i);
     const cfg = this.cfgs[this.slot];
+    if (r.k === 'editor') {
+      this.setPage(this.pages[this.slot] === 'parts' ? 'head' : 'parts');
+      return;
+    }
+    const detail = appearanceKey(r.k);
+    if (detail && cfg.parts) {
+      const choices = HERO_APPEARANCE[detail].filter((option) => heroAppearanceAvailable(detail, option.id));
+      if (!choices.length) return;
+      const idx = choices.findIndex((option) => option.id === this.appearanceCursor[this.slot][detail]);
+      const next = idx < 0 ? (d > 0 ? 0 : choices.length - 1) : (idx + d + choices.length) % choices.length;
+      this.chooseAppearance(detail, choices[next].id);
+      return;
+    }
     if (r.k === 'builder') {
       if (cfg.parts) {
         this.paintedDrafts[this.slot] = { ...cfg.parts };
-        const classic = cloneHero(cfg);
-        delete classic.parts;
-        this.cfgs[this.slot] = classic;
+        this.appearanceDrafts[this.slot] = { ...this.appearance(cfg) };
+        this.cfgs[this.slot] = cloneHero({ ...cfg, parts: undefined });
       } else {
         const parts = this.availableSet(cfg, this.paintedDrafts[this.slot] ?? defaultHeroParts(cfg.body));
         if (!parts) { this.info(); return; }
-        this.cfgs[this.slot] = withHeroParts(cfg, parts);
+        this.cfgs[this.slot] = withHeroAppearance(withHeroParts(cfg, parts), this.appearanceDrafts[this.slot] ?? defaultHeroAppearance());
       }
       this.syncCursors();
       audio.menu();
@@ -245,6 +310,18 @@ export class CreatorScene implements Scene {
     this.refresh(this.unlocked(part));
   }
 
+  private chooseAppearance(key: HeroAppearanceKey, id: string) {
+    const cfg = this.cfgs[this.slot];
+    const option = findHeroAppearance(key, id);
+    if (!cfg.parts || !option || !heroAppearanceAvailable(key, id)) return;
+    if (key !== 'skinTone' && !isModularHeroHead(cfg.parts.head)) return;
+    if (key === 'skinTone' && !this.skinSupport().supported.length) return;
+    this.appearanceCursor[this.slot][key] = id;
+    if (this.unlocked(option)) this.cfgs[this.slot] = withHeroAppearance(cfg, { ...this.appearance(cfg), [key]: id });
+    audio.menu();
+    this.refresh(this.unlocked(option));
+  }
+
   private activate() {
     const r = this.rows[this.sel];
     const cfg = this.cfgs[this.slot];
@@ -258,7 +335,7 @@ export class CreatorScene implements Scene {
       let preset = cloneHero(PRESETS[name]);
       const parts = this.availableSet(preset);
       if (parts) preset = withHeroParts(preset, parts);
-      else delete preset.parts;
+      else preset = cloneHero({ ...preset, parts: undefined });
       this.cfgs[this.slot] = preset;
       this.syncCursors();
       audio.confirm();
@@ -270,7 +347,16 @@ export class CreatorScene implements Scene {
         const parts = this.availableSet(cfg);
         if (!parts) return;
         for (const slot of HERO_PART_SLOTS) parts[slot] = pick(this.available(slot).filter((part) => this.unlocked(part))).id;
-        this.cfgs[this.slot] = withHeroParts({ ...cloneHero(cfg), name: randomName(), magic: Math.floor(Math.random() * HERO_OPTIONS.magic.length) }, parts);
+        let randomized = withHeroParts({ ...cloneHero(cfg), name: randomName(), magic: Math.floor(Math.random() * HERO_OPTIONS.magic.length) }, parts);
+        const appearance = { ...this.appearance(randomized) };
+        for (const key of Object.keys(HERO_APPEARANCE) as HeroAppearanceKey[]) {
+          if (key !== 'skinTone' && !isModularHeroHead(parts.head)) continue;
+          if (key === 'skinTone' && !heroSkinSupport(buildHeroDef(randomized, 9 + this.slot)).supported.length) continue;
+          const choices = HERO_APPEARANCE[key].filter((option) => this.unlocked(option) && heroAppearanceAvailable(key, option.id));
+          if (choices.length) appearance[key] = pick(choices).id;
+        }
+        randomized = withHeroAppearance(randomized, appearance);
+        this.cfgs[this.slot] = randomized;
       } else this.cfgs[this.slot] = randomHero((k, i) => isUnlocked(this.game.save, k + ':' + i));
       this.syncCursors();
       audio.confirm();
@@ -303,19 +389,34 @@ export class CreatorScene implements Scene {
     const r = this.rows[this.sel];
     const box = this.el.querySelector('.cr-info') as HTMLElement;
     const cfg = this.cfgs[this.slot];
+    const detail = appearanceKey(r.k);
     let html = '';
     if (r.k === 'weapon' || r.k === 'magic' || r.k === 'name' || r.k === 'body') {
       const w = WEAPONS[cfg.weapon];
       html = `<b>${w.name}</b> ${w.desc}<br><span class="st">DMG ${Math.round(w.dmg * 100)}% &nbsp; SPEED ${Math.round(w.speed * 100)}% &nbsp; REACH ${Math.round(w.reach * 100)}%</span>`;
     }
     if (r.k === 'builder') html = this.availableSet(cfg)
-      ? 'PAINTED PARTS: mix the artwork. CLASSIC BUILDER: customise skin, hair and armour.'
+      ? 'PAINTED PARTS: mix body parts and customise your head. CLASSIC BUILDER: the original drawn hero.'
       : 'Painted artwork is unavailable here. Use CLASSIC BUILDER to customise your hero.';
+    else if (r.k === 'editor') html = 'HERO PARTS: body, weapon and magic. HEAD DETAILS: head, hair, beard and colours.';
+    else if (detail && cfg.parts) {
+      const option = findHeroAppearance(detail, this.appearanceCursor[this.slot][detail]);
+      if (option && !this.unlocked(option)) html = `<b class="lock">LOCKED</b> ${PART_LOCKS[option.unlock!]}. Your equipped choice stays on.`;
+      else if (detail === 'skinTone') html = this.skinSupport().unsupported.length
+        ? 'Colours supported skin areas. Some painted parts keep their original skin colour.'
+        : 'Colours exposed skin while keeping armour, clothing and shading.';
+      else if (detail === 'hairColor') html = 'Colours your separate hair and beard layers. Choose hair or a beard to see the colour.';
+      else if (detail === 'hair' && ['horned', 'skull'].includes(this.appearance(cfg).headgear)) html = 'Your helmet covers front hair. The style stays selected and returns when you remove the helmet.';
+      else if (detail === 'eyeColor' || detail === 'eyeStyle') html = 'Choose the eyes independently of hair, beard and headgear.';
+      else html = 'Mix separate hair, beard and headgear. NONE removes only this layer.';
+    }
     else if (cfg.parts && isPart(r.k)) {
       const part = findHeroPart(r.k, this.partCursor[this.slot][r.k] ?? cfg.parts[r.k]);
       if (part && !this.unlocked(part)) html = `<b class="lock">LOCKED</b> ${PART_LOCKS[part.unlock!]}. Your equipped part stays on.`;
       else if (!part || !getOverride(part.source, part.slot)) html = 'This artwork did not load. Choose another part or switch to CLASSIC BUILDER.';
-      else if (r.k !== 'weapon') html = r.k === 'head' ? 'Choose any head. Its hair follows automatically.' : 'Mix this part with any head, body, arms or legs in the pool.';
+      else if (r.k !== 'weapon') html = r.k === 'head'
+        ? isModularHeroHead(part.id) ? 'CUSTOM HEAD: choose separate hair, beard, headgear and eyes in HEAD DETAILS.' : 'This head includes painted hair and headgear. Pick a CUSTOM HEAD in HEAD DETAILS to edit each layer.'
+        : 'Mix this part with any head, body, arms or legs in the pool.';
     } else if (r.k in HERO_OPTIONS) {
       const k = r.k as OptKey;
       const cur = this.cursor[this.slot][k];
@@ -332,54 +433,85 @@ export class CreatorScene implements Scene {
     const box = this.el.querySelector('.cr-pool') as HTMLElement;
     const cfg = this.cfgs[this.slot];
     const r = this.rows[this.sel];
-    if (!cfg.parts || !isPart(r.k)) { box.hidden = true; this.poolKey = ''; return; }
+    const detail = appearanceKey(r.k);
+    const slot = isPart(r.k) ? r.k : undefined;
+    if (!cfg.parts || (!slot && !detail)) { box.hidden = true; this.poolKey = ''; return; }
     box.hidden = false;
-    const slot = r.k;
-    const choices = this.available(slot);
-    const key = [this.slot, slot, cfg.parts[slot], this.partCursor[this.slot][slot]].join(':');
+    const selectedId = detail ? this.appearanceCursor[this.slot][detail] : this.partCursor[this.slot][slot!] ?? cfg.parts[slot!];
+    const key = JSON.stringify([this.slot, r.k, cfg.parts, this.appearance(cfg), selectedId]);
     if (this.poolKey === key) return;
     this.poolKey = key;
     box.replaceChildren();
     const title = document.createElement('div');
     title.className = 'cr-pool-title';
-    title.textContent = `${r.label} POOL · ${choices.length} PARTS`;
     box.appendChild(title);
-    if (!choices.length) {
-      const empty = document.createElement('div');
-      empty.className = 'cr-pool-empty';
-      empty.textContent = 'No painted parts loaded. CLASSIC BUILDER is still available.';
-      box.appendChild(empty);
-      return;
-    }
     const grid = document.createElement('div');
     grid.className = 'cr-part-grid';
-    for (const part of choices) {
-      const ov = getOverride(part.source, part.slot)!;
-      const locked = !this.unlocked(part);
+    const makeCard = (option: { id: string; label: string; unlock?: string }, equipped: boolean, choose: () => void) => {
+      const locked = !this.unlocked(option);
       const b = document.createElement('button');
       b.type = 'button';
-      b.className = 'cr-part' + (cfg.parts[slot] === part.id ? ' equipped' : '') + (locked ? ' locked' : '');
-      b.dataset.part = part.id;
-      b.setAttribute('aria-pressed', String(cfg.parts[slot] === part.id));
+      b.className = 'cr-part' + (equipped ? ' equipped' : '') + (locked ? ' locked' : '');
+      b.dataset.option = option.id;
+      b.setAttribute('aria-pressed', String(equipped));
       b.setAttribute('aria-disabled', String(locked));
-      b.title = locked ? `${part.label}: ${PART_LOCKS[part.unlock!]}` : part.label;
+      b.title = locked ? `${option.label}: ${PART_LOCKS[option.unlock!]}` : option.label;
+      const label = document.createElement('span');
+      label.textContent = (locked ? 'LOCKED: ' : '') + option.label;
+      b.appendChild(label);
+      b.addEventListener('click', choose);
+      grid.appendChild(b);
+      return b;
+    };
+    const thumbnail = (b: HTMLButtonElement, source: HTMLCanvasElement | undefined) => {
+      if (!source) return;
       const canvas = document.createElement('canvas');
       canvas.width = 120;
       canvas.height = 96;
-      const scale = Math.min(112 / ov.canvas.width, 88 / ov.canvas.height);
-      const w = ov.canvas.width * scale, h = ov.canvas.height * scale;
-      canvas.getContext('2d')!.drawImage(ov.canvas, (120 - w) / 2, (96 - h) / 2, w, h);
+      const scale = Math.min(112 / source.width, 88 / source.height);
+      const w = source.width * scale, h = source.height * scale;
+      canvas.getContext('2d')!.drawImage(source, (120 - w) / 2, (96 - h) / 2, w, h);
       canvas.setAttribute('aria-hidden', 'true');
-      const label = document.createElement('span');
-      label.textContent = (locked ? 'LOCKED: ' : '') + part.label;
-      b.append(canvas, label);
-      b.addEventListener('click', () => this.choosePart(slot, part.id));
-      grid.appendChild(b);
+      b.prepend(canvas);
+    };
+    if (detail) {
+      const choices = HERO_APPEARANCE[detail].filter((option) => heroAppearanceAvailable(detail, option.id));
+      const colors = detail === 'skinTone' || detail === 'eyeColor' || detail === 'hairColor';
+      grid.classList.toggle('cr-colors', colors);
+      title.textContent = `${r.label} · ${choices.length} CHOICES`;
+      for (const option of choices) {
+        const b = makeCard(option, this.appearance(cfg)[detail] === option.id, () => this.chooseAppearance(detail, option.id));
+        b.dataset.appearance = detail;
+        if (colors) {
+          const swatch = document.createElement('i');
+          swatch.className = 'cr-swatch' + (option.color ? '' : ' original');
+          if (option.color) swatch.style.backgroundColor = option.color;
+          swatch.setAttribute('aria-hidden', 'true');
+          b.prepend(swatch);
+        } else thumbnail(b, heroHeadPreview(buildHeroDef(withHeroAppearance(cfg, { ...this.appearance(cfg), [detail]: option.id }), 9 + this.slot)));
+      }
+    } else if (slot) {
+      const choices = this.available(slot);
+      title.textContent = `${r.label} POOL · ${choices.length} PARTS`;
+      for (const part of choices) {
+        const b = makeCard(part, cfg.parts[slot] === part.id, () => this.choosePart(slot, part.id));
+        b.dataset.part = part.id;
+        const source = slot === 'head'
+          ? heroHeadPreview(buildHeroDef(withHeroParts(cfg, { ...cfg.parts, head: part.id }), 9 + this.slot))
+          : getOverride(part.source, part.slot)?.canvas;
+        thumbnail(b, source);
+      }
+    }
+    if (!grid.childElementCount) {
+      const empty = document.createElement('div');
+      empty.className = 'cr-pool-empty';
+      empty.textContent = 'No artwork loaded for this choice. Your other selections stay available.';
+      box.appendChild(empty);
+      return;
     }
     box.appendChild(grid);
     // Hold kortet synlig også ved tastaturvalg, uten å rulle hele smiapanelet.
-    const selectedId = this.partCursor[this.slot][slot] ?? cfg.parts[slot];
-    const selectedCard = Array.from(grid.children).find((card) => (card as HTMLElement).dataset.part === selectedId) as HTMLElement | undefined;
+    const selectedCard = Array.from(grid.children).find((card) => (card as HTMLElement).dataset.option === selectedId) as HTMLElement | undefined;
     if (selectedCard) {
       const card = selectedCard.getBoundingClientRect();
       const frame = grid.getBoundingClientRect();
@@ -395,13 +527,28 @@ export class CreatorScene implements Scene {
     const cfg = this.cfgs[this.slot];
     const cur = this.cursor[this.slot];
     this.el.classList.toggle('cr-painted', !!cfg.parts);
+    const pages = this.el.querySelector('.cr-pages') as HTMLElement;
+    pages.hidden = !cfg.parts;
+    pages.querySelectorAll<HTMLButtonElement>('button').forEach((b) => {
+      const active = b.dataset.page === this.pages[this.slot];
+      b.classList.toggle('on', active);
+      b.setAttribute('aria-pressed', String(active));
+    });
+    const custom = this.el.querySelector('.cr-custom-head') as HTMLElement;
+    custom.hidden = !cfg.parts || this.pages[this.slot] !== 'head' || isModularHeroHead(cfg.parts.head);
+    custom.querySelectorAll<HTMLButtonElement>('button').forEach((b) => {
+      const available = this.available('head').some((part) => part.id === b.dataset.head);
+      b.disabled = !available;
+      b.title = available ? 'Keep your body, weapon and saved head details.' : 'This custom head artwork did not load.';
+    });
     const status = this.el.querySelector('.cr-status') as HTMLElement;
     const missing = cfg.parts && HERO_PART_SLOTS.some((slot) => {
       const part = findHeroPart(slot, cfg.parts![slot]);
       return !part || !getOverride(part.source, part.slot);
     });
     status.textContent = cfg.parts
-      ? missing ? 'Some artwork did not load. Pick another part or use CLASSIC BUILDER.' : 'A SHARED POOL. YOUR OWN LEGEND.'
+      ? missing ? 'Some artwork did not load. Pick another part or use CLASSIC BUILDER.'
+        : this.pages[this.slot] === 'head' ? 'YOUR FACE. YOUR FINISHING TOUCHES.' : 'A SHARED POOL. YOUR OWN LEGEND.'
       : 'CLASSIC BUILDER · SKIN, HAIR & ARMOUR';
     status.classList.toggle('missing', !!missing);
     if (document.activeElement !== this.input) this.input.value = cfg.name;
@@ -409,12 +556,18 @@ export class CreatorScene implements Scene {
       const r = this.rows[i];
       const v = row.querySelector('.v') as HTMLElement | null;
       if (!v) return;
-      if (r.k === 'preset' || r.k === 'builder') {
-        v.textContent = r.k === 'preset' ? Object.keys(PRESETS)[this.presetIdx].toUpperCase() : cfg.parts ? 'PAINTED PARTS' : 'CLASSIC BUILDER';
+      if (r.k === 'preset' || r.k === 'builder' || r.k === 'editor') {
+        v.textContent = r.k === 'editor' ? this.pages[this.slot] === 'head' ? 'HEAD DETAILS' : 'HERO PARTS'
+          : r.k === 'preset' ? Object.keys(PRESETS)[this.presetIdx].toUpperCase() : cfg.parts ? 'PAINTED PARTS' : 'CLASSIC BUILDER';
         return;
       }
       let locked = false;
-      if (cfg.parts && isPart(r.k)) {
+      const detail = appearanceKey(r.k);
+      if (detail && cfg.parts) {
+        const option = findHeroAppearance(detail, this.appearanceCursor[this.slot][detail]);
+        locked = !!option && !this.unlocked(option);
+        v.textContent = !option || !heroAppearanceAvailable(detail, option.id) ? 'ART UNAVAILABLE' : (locked ? 'LOCKED: ' : '') + option.label;
+      } else if (cfg.parts && isPart(r.k)) {
         const part = findHeroPart(r.k, this.partCursor[this.slot][r.k] ?? cfg.parts[r.k]);
         locked = !!part && !this.unlocked(part);
         v.textContent = !part || !getOverride(part.source, part.slot) ? 'ART UNAVAILABLE' : (locked ? 'LOCKED: ' : '') + part.label;
