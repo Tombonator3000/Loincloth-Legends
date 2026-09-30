@@ -53,7 +53,10 @@
 - [x] Valkyras sju deler i samme stil, med ankere for hår, hode og lendeklede
 - [x] Alle 28 teksturer, åtte himler og verdenskartet i manifestet
 - [x] Thrugg og alle fiendene i samme stil (PNG-deler)
-- [ ] Visuell kontroll av alle sammensatte figurer, ridedyr og kjæledyr i nettleseren med kunstpakken lastet (filer, manifest, alfa og bygg er kontrollert)
+- [x] Visuell kontroll av alle sammensatte figurer med kunstpakken lastet: våpnene satt ved siden av neven og Thrugg manglet den bakre armen. Armene rettes nå etter neven, grepet finnes på skaftet (tools/tests/artcheck.mjs)
+- [ ] Ridedyr og kjæledyr med kunstpakken: se på dem i nettleseren (artcheck dekker bare figurer med armer)
+- [ ] Heltesmia: Tom velger vei. Flere ferdige malte helter (forslag: bruno, hilda, zugga, gromm i docs/ART_PROMPTS.md) eller malte lag for hvert valg (rundt 60 bilder og ny kode)
+- [ ] warhammer_weapon.png fra ChatGPT (stridshammeren i smia tegnes til den finnes)
 - [ ] Enhåndsøks som eget våpen (Valkyras øks har ett blad, spillets AXE har to)
 - [ ] Hårmanken svaier i vinden (hairback og den tegnede manken)
 

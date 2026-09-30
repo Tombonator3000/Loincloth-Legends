@@ -412,7 +412,11 @@
     {
       "char": "vorthax",
       "part": "arm",
-      "file": "vorthax_arm.webp"
+      "file": "vorthax_arm.webp",
+      "hand": [
+        0.84,
+        0.51
+      ]
     },
     {
       "char": "vorthax",

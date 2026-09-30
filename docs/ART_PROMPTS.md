@@ -74,7 +74,9 @@ Confirm that you understand. Then wait for my asset requests.
 
 Hver figur er en "papirdukke" som settes sammen i spillet. Alle deler lages **vendt mot høyre**, isolert, uten de andre kroppsdelene: heltene i trekvart profil, fiendene og sjefene mest fra siden (armene deres sitter tett på brystet i riggen). Leddpunktet (der delen festes) må være der templatet sier, ellers sitter delen skjevt.
 
-Spillet regner selv ut størrelsen på hver del fra figurens skjelett: beinet blir så langt at foten når bakken, armen så lang at våpenet havner i neven, og overkroppen så høy at nakken sitter like under toppen. Festepunktet til siden finner spillet selv der leddet er (midten av halsstumpen nederst på hodet, skaftet nederst på våpenet, beltet, skulderen og hofta øverst). Derfor er det nok at bildene følger reglene i templatene, uten tall i manifestet.
+Spillet regner selv ut størrelsen på hver del fra figurens skjelett: beinet blir så langt at foten når bakken, armen så lang at våpenet havner i neven, og overkroppen så høy at nakken sitter like under toppen. Festepunktet til siden finner spillet selv der leddet er (midten av halsstumpen nederst på hodet, beltet, skulderen og hofta øverst). Derfor er det nok at bildene følger reglene i templatene, uten tall i manifestet.
+
+Armen og våpenet passer sammen selv om ChatGPT ikke tegner helt etter templatet: spillet finner neven nederst i armbildet og snur og skalerer armen om skulderen, så neven havner nøyaktig der våpenet sitter (en arm som er bøyd eller strukket litt fram, blir rettet opp). Grepet på våpenet finner spillet også selv: det smale skaftet eller håndtaket i nedre halvdel, en halv neve over enden (over knappen eller ringen). Det som må stemme i bildet, er at neven er det laveste i armbildet. Er den ikke det (en arm som strekkes rett fram, som Vorthax sin), sett `hand` i manifestet. `node tools/tests/artcheck.mjs http://localhost:4173/ mappe` viser alle figurene i fire poser med merker på leddene, og sjekker at neven og våpenet møtes.
 
 | Del | Filnavn | Leddpunkt (anker) | Template |
 |---|---|---|---|
@@ -83,9 +85,9 @@ Spillet regner selv ut størrelsen på hver del fra figurens skjelett: beinet bl
 | Hårmanke bak | `<id>_hairback.png` | Nakken, litt ned fra toppen og til høyre | HAIRBACK |
 | Overkropp | `<id>_torso.png` | Midjen nederst | TORSO |
 | Hofte / lendeklede | `<id>_pelvis.png` | Beltet øverst | PELVIS |
-| Arm | `<id>_arm.png` | Skulderen øverst, neven nederst | ARM |
+| Arm | `<id>_arm.png` | Skulderen øverst, neven nederst (spillet retter armen etter neven) | ARM |
 | Bein | `<id>_leg.png` | Hofteleddet øverst, sålen nederst | LEG |
-| Våpen | `<id>_weapon.png` | Grepet, 82 prosent ned; skaftenden nederst | WEAPON |
+| Våpen | `<id>_weapon.png` | Grepet på skaftet (spillet finner det); skaftenden nederst | WEAPON |
 
 Samme arm og samme bein brukes både foran og bak (spillet gjør den bakre litt mørkere). Hårmanken legges bak overkroppen og følger hodet.
 
@@ -182,6 +184,40 @@ Tom har et godkjent referansebilde av Valkyra (ligger ikke i repoet, repoet er o
 ### Størrelser
 
 Spillet regner ut høyden på hver del fra figurens skjelett (se over), så de samme reglene virker for helter, fiender og sjefer. Hoftedelen til heltene skaleres etter beltet: beltet øverst blir 0.5 bredt (like bredt som midjen), så en lang ringbrynjeflik som Valkyras får plass uten at beltet krymper. Hodet får omtrent samme høyde som det tegnede hodet, med håret. Karikaturen ligger i selve bildet: tegn hodet, håret, hendene og støvlene store. Ser noe for lite eller for stort ut, sett `height` i manifestet (for eksempel 1.25 for et hode).
+
+---
+
+## Heltesmia (HERO FORGE)
+
+Heltesmia har tolv valg og flere tusen kombinasjoner. De malte delene finnes i dag for to helter, Thrugg og Valkyra. Slik virker det nå:
+
+- Velger du THRUGG eller VALKYRA under LEGENDARY PRESET, er helten malt. Våpen, tøyfarge og magi kan byttes uten å miste de malte delene: SWORD bruker Thrugg sitt sverd, AXE Valkyra sin øks og SPIKED CLUB Hogman sin kølle. Tøyfargen gjelder da bare fargen i HUD-en.
+- WARHAMMER har ikke noe bilde ennå og tegnes i koden (se under).
+- Endrer du kropp, hud, ansikt, hår, hårfarge, skjegg, hodeplagg, rustning, lendeklede eller bein, blir helten tegnet i koden, i den gamle stilen. De valgene trenger malte deler som ikke finnes ennå.
+
+### Bestill nå (virker med en gang)
+
+| Fil | Template | Beskrivelse |
+|---|---|---|
+| `warhammer_weapon.png` | WEAPON | `Weapon: a huge two-handed warhammer, a rusty iron hammer head with a heavy spike on the back and rivets, a long leather-wrapped wooden haft, an iron ring at the bottom. Nicked, dented and a bit bloody.` |
+| `sword_weapon.png`, `axe_weapon.png`, `club_weapon.png` | WEAPON | Valgfritt: egne heltevåpen i stedet for de lånte. |
+
+Legg filene i `art/inbox/` og kjør `python3 tools/process_art.py` som vanlig. Spillet finner grepet selv.
+
+### Flere ferdige helter (anbefalt neste steg)
+
+Den enkleste veien til flere malte valg er flere ferdige helter som Thrugg og Valkyra: seks eller sju bilder hver (head, eventuelt hairback, torso, pelvis, arm, leg, og weapon hvis den har et nytt våpen). Når bildene er på plass, legges helten inn som et preset i koden (`PRESETS` i `src/gfx/chars/hero.ts`), og da kan den velges under LEGENDARY PRESET, med våpen, tøyfarge og magi fritt. Forslag som dekker andre valg i smia (Tom bestemmer):
+
+| id | Valg i smia | Beskrivelse til ChatGPT |
+|---|---|---|
+| `bruno` | MALE, BRONZE, BATTLE CRY, BALD, BRAIDED BEARD, NONE, PLATE, TASSETS, GREAVES, WARHAMMER | `Character: BRUNO THE BALD, a huge bald barbarian in his fifties with bronze skin, a shiny scarred scalp, a long braided grey-black beard with iron rings, a roaring mouth, battered steel plate armour on the chest and shoulders, steel tassets over a leather skirt, steel greaves over leather boots.` |
+| `hilda` | FEMALE, PEACH, GRIM, BRAIDS, BLOND, WINGED, CHAINMAIL, CHAINMAIL BRIEFS, LEATHER BOOTS, SWORD | `Character: HILDA SKULLKICKER, a tall grim shieldmaiden with pale freckled skin, two thick blond braids, a steel helmet with white wings, a rusty chainmail top, chainmail briefs on a studded belt, and knee-high leather boots; clearly an adult, never nude.` |
+| `zugga` | FEMALE, ORC GREEN, UNHINGED, MOHAWK, BLOOD RED, BEAST SKULL, LEATHER, BATTLE SKIRT, FUR BOOTS, SPIKED CLUB | `Character: ZUGGA THE UNREASONABLE, a wild orc warrior woman with green skin, small tusks, a blood-red mohawk under a beast skull helmet, studded leather armour, a battle skirt of leather strips and fur boots; clearly an adult, never nude.` |
+| `gromm` | MALE, FROST BLUE, EYEPATCH, PONYTAIL, WHITE, FULL BEARD, CROWN, LEATHER, KILT, RED BOOTS, AXE | `Character: GROMM THE FROSTBITTEN, an old frost-blue barbarian king with an eyepatch, a white ponytail and a full white beard, a dented iron crown, a leather jerkin, a woollen kilt and bright red boots.` |
+
+### Hele smia malt (større jobb, må avtales)
+
+At hvert enkelt valg i smia skal være malt, krever lag som legges oppå hverandre: ett ansikt per ansiktsvalg og kropp, hår, skjegg og hodeplagg som egne lag i nøyaktig samme utsnitt, hår og tøy i nøytral grå så spillet kan farge dem, og en overkropp, hofte og bein per rustning, lendeklede og fottøy. Det er rundt 60 bilder der alle lagene må passe nøyaktig oppå hverandre, pluss kode for lagene og fargingen. ChatGPT treffer sjelden nøyaktig samme utsnitt fra bilde til bilde, så dette bør prøves med ett ansikt og to frisyrer først.
 
 ---
 
@@ -284,7 +320,8 @@ Eksempel (`public/assets/manifest.json`):
 ```
 
 - `height` (valgfri) er delens høyde i spillenheter. Uten den regner spillet ut høyden fra figurens skjelett: beinet når bakken, overkroppen når nakken, neven havner der våpenet sitter, og hode, hofte og våpen blir omtrent like høye som de tegnede delene. Heltenes hofte skaleres så beltet blir 0.5 bredt. Hårmanken er 1.25 høy for heltene og 1.3 ellers. For ridedyr når beinet bakken, og hode, kropp og hale blir like høye som de tegnede delene.
-- `anchor` (valgfri) er leddpunktet i det beskårne bildet, `[x, y]` fra 0 til 1 der `y` måles fra toppen. Høyden på leddet er fast (hode 0.95, hårmanke 0.22, overkropp 0.96, hofte 0.12, arm 0.06, bein 0.04, våpen 0.82), og sideplasseringen finner spillet selv fra kanten der leddet er (midten av halsstumpen, midjen, beltet, skulderen, hofta og skaftenden). Hårmanken bruker `[0.62, 0.22]`. Ridedyr: hode `[0.15, 0.55]`, kropp `[0.5, 0.5]`, hale `[0.92, 0.55]`, bein `[0.5, 0.06]`.
+- `anchor` (valgfri) er leddpunktet i det beskårne bildet, `[x, y]` fra 0 til 1 der `y` måles fra toppen. Høyden på leddet er fast (hode 0.95, hårmanke 0.22, overkropp 0.96, hofte 0.12, arm 0.06, bein 0.04), og sideplasseringen finner spillet selv fra kanten der leddet er (midten av halsstumpen, midjen, beltet, skulderen og hofta). For våpen er ankeret grepet, som spillet finner på skaftet (se over). Hårmanken bruker `[0.62, 0.22]`. Ridedyr: hode `[0.15, 0.55]`, kropp `[0.5, 0.5]`, hale `[0.92, 0.55]`, bein `[0.5, 0.06]`.
+- `hand` (valgfri, bare armer) er neven i det beskårne bildet, `[x, y]` som `anchor`. Uten den finner spillet neven nederst i armen. Armen snus og skaleres så dette punktet havner der våpenet sitter. Eksempel: Vorthax strekker armen fram, så han har `"hand": [0.84, 0.51]`.
 - `textures` knytter navnene fra teksturlista til filer. Navn spillet ikke kjenner, blir ignorert.
 - `tools/tests/textures.mjs` sjekker at teksturer fra manifestet blir brukt (den later som om tre bilder finnes).
 
@@ -343,7 +380,7 @@ Disse kan lages nå, så er de klare når koden støtter dem.
 
 | Pakke | Filer | Merknad |
 |---|---|---|
-| Heltebygger | `hero_face_<m/f>.png`, `hero_hair_<stil>.png`, `hero_helmet_<type>.png`, `hero_beard_<type>.png`, `hero_torso_<type>_<m/f>.png`, `hero_pelvis_<type>.png`, `hero_legs_<type>.png`, `hero_weapon_<type>.png` | Lag på HEAD-, TORSO-, PELVIS-, LEG- og WEAPON-templatet. Hår, hjelm og skjegg lages som egne lag på samme lerret (1024x1024) så de kan legges oppå et ansikt. Farger: lag hår og tøy i nøytral grå så spillet kan farge dem. |
+| Heltebygger | `hero_face_<m/f>.png`, `hero_hair_<stil>.png`, `hero_helmet_<type>.png`, `hero_beard_<type>.png`, `hero_torso_<type>_<m/f>.png`, `hero_pelvis_<type>.png`, `hero_legs_<type>.png` | Se "Heltesmia (HERO FORGE)" over: våpnene virker allerede (`warhammer_weapon.png` osv.), og flere ferdige helter er anbefalt før lagene. Lag på HEAD-, TORSO-, PELVIS- og LEG-templatet. Hår, hjelm og skjegg lages som egne lag på samme lerret (1024x1024) så de kan legges oppå et ansikt. Farger: lag hår og tøy i nøytral grå så spillet kan farge dem. |
 | Pickups og ikoner | `icon_potion.png`, `icon_chicken.png`, `icon_ham.png`, `icon_coin.png`, `proj_dagger.png`, `proj_fireball.png`, `proj_snowball.png`, `proj_poison.png` | 512x512, transparent. |
 | Tittel og kort | `title.png` (logo-illustrasjon), `boss_<id>.png` (VS-kort 1536x1024 per sjef) | Til tittelskjerm og sjef-intro. |
 | Gore | `gib_meat_1..3.png`, `gib_bone.png`, `gib_eye.png`, `splat_1..3.png` | Nesten ekte, vått og blankt, over the top. 256x256. Blod og gibs er i dag 3D-partikler, så dette er bare aktuelt som ekstra detalj. |

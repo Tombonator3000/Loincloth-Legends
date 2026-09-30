@@ -1,6 +1,7 @@
 // Heltebyggeren: setter sammen en figur fra valgte deler (kropp, ansikt, hår, skjegg, hjelm, rustning, våpen).
 import { Pen, INK, shade, blobPath, polyPath } from '../draw';
 import { HERO_BIG_J, HERO_HIP_Y, HEAD_SCALE, TORSO_Y, skinD, type CharDef, type PartDef } from './types';
+import { getOverride } from '../assets';
 import { maleChest, femChest, maleTorsoPath, muscleArm, muscleLeg, tinyLoins, scalePart, stretchY, type TopKind, type Shoulder, type Footwear, type Loins } from './muscle';
 
 export interface HeroConfig {
@@ -471,12 +472,24 @@ export function heroKey(cfg: HeroConfig) {
   return [cfg.body, cfg.skin, cfg.face, cfg.hair, cfg.hairColor, cfg.beard, cfg.helmet, cfg.torso, cfg.pelvis, cfg.boots, cfg.weapon, cfg.cloth].join('.');
 }
 
+/** Utseendet uten våpen, tøyfarge og magi: det en helt må ha likt med et preset for å bruke de malte delene. */
+function lookKey(cfg: HeroConfig) {
+  return [cfg.body, cfg.skin, cfg.face, cfg.hair, cfg.hairColor, cfg.beard, cfg.helmet, cfg.torso, cfg.pelvis, cfg.boots].join('.');
+}
+/**
+ * Malte våpen per våpenvalg: et eget bilde (sword_weapon, axe_weapon, warhammer_weapon, club_weapon i manifestet) går
+ * foran våpenet til en figur med samme slags våpen. Uten bilde tegnes våpenet.
+ */
+const WEAPON_ART: readonly (readonly string[])[] = [['sword', 'thrugg'], ['axe', 'valkyra'], ['warhammer'], ['club', 'hogman']];
+
 export function buildHeroDef(cfg: HeroConfig, slot: number): CharDef {
   const fem = cfg.body === 1;
-  // Uendrede presets bruker PNG-grafikk for 'thrugg' / 'valkyra' hvis den finnes (se docs/ART_PROMPTS.md).
-  const key = heroKey(cfg);
-  const preset = Object.keys(PRESETS).find((k) => heroKey(PRESETS[k]) === key);
-  const inherit = preset ? { leg: preset, arm: preset, pelvis: preset, torso: preset, head: preset, weapon: preset } : undefined;
+  // Et preset ('thrugg' / 'valkyra') bruker de malte delene (PNG, se docs/ART_PROMPTS.md) så lenge utseendet er likt.
+  // Våpen, tøyfarge og magi kan byttes: våpenet hentes fra WEAPON_ART, og tøyfargen gjelder bare HUD-en.
+  const look = lookKey(cfg);
+  const preset = Object.keys(PRESETS).find((k) => lookKey(PRESETS[k]) === look);
+  const weaponArt = preset ? WEAPON_ART[cfg.weapon]?.find((id) => getOverride(id, 'weapon')) : undefined;
+  const inherit = preset ? { leg: preset, arm: preset, pelvis: preset, torso: preset, head: preset, ...(weaponArt ? { weapon: weaponArt } : {}) } : undefined;
   return {
     inherit,
     id: `hero${slot}:${heroKey(cfg)}`,
