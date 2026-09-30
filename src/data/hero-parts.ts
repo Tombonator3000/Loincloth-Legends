@@ -26,6 +26,8 @@ export const HERO_PARTS: Record<HeroPartSlot, HeroPartOption[]> = {
     { id: 'forge_eyepatch_head', label: 'ONE-EYED VETERAN', source: 'forge_eyepatch', slot: 'head' },
     { id: 'forge_crownbraid_head', label: 'BRAIDED WARRIOR', source: 'forge_crownbraid', slot: 'head' },
     { id: 'forge_silvercut_head', label: 'SILVER-HAIRED RAIDER', source: 'forge_silvercut', slot: 'head' },
+    { id: 'forge_orc_head', label: 'ORC RAIDER', source: 'forge_orc', slot: 'head' },
+    { id: 'forge_frost_head', label: 'FROST WARRIOR', source: 'forge_frost', slot: 'head', unlock: 'skin:6' },
   ],
   torso: [
     { id: 'thrugg_torso', label: 'THRUGG FUR', source: 'thrugg', slot: 'torso', body: 0 },
@@ -33,6 +35,8 @@ export const HERO_PARTS: Record<HeroPartSlot, HeroPartOption[]> = {
     { id: 'gorthak_torso', label: 'GORTHAK ARMOUR', source: 'gorthak', slot: 'torso', body: 0 },
     { id: 'forge_leather_torso', label: 'LEATHER HARNESS', source: 'forge_leather', slot: 'torso', body: 0 },
     { id: 'forge_plate_torso', label: 'DENTED BREASTPLATE', source: 'forge_plate', slot: 'torso', body: 1 },
+    { id: 'forge_orc_torso', label: 'ORC TORSO', source: 'forge_orc', slot: 'torso', body: 1 },
+    { id: 'forge_frost_torso', label: 'FROST TORSO', source: 'forge_frost', slot: 'torso', body: 0, unlock: 'skin:6' },
   ],
   pelvis: [
     { id: 'thrugg_pelvis', label: 'THRUGG LOINCLOTH', source: 'thrugg', slot: 'pelvis' },
@@ -40,6 +44,8 @@ export const HERO_PARTS: Record<HeroPartSlot, HeroPartOption[]> = {
     { id: 'gorthak_pelvis', label: 'GORTHAK BELT', source: 'gorthak', slot: 'pelvis' },
     { id: 'forge_kilt_pelvis', label: 'CRIMSON WAR KILT', source: 'forge_kilt', slot: 'pelvis' },
     { id: 'forge_tassets_pelvis', label: 'IRON TASSETS', source: 'forge_tassets', slot: 'pelvis' },
+    { id: 'forge_orc_pelvis', label: 'ORC WAR BELT', source: 'forge_orc', slot: 'pelvis' },
+    { id: 'forge_frost_pelvis', label: 'FROST WAR BELT', source: 'forge_frost', slot: 'pelvis' },
   ],
   arm: [
     { id: 'thrugg_arm', label: 'THRUGG', source: 'thrugg', slot: 'arm' },
@@ -47,6 +53,8 @@ export const HERO_PARTS: Record<HeroPartSlot, HeroPartOption[]> = {
     { id: 'gorthak_arm', label: 'GORTHAK', source: 'gorthak', slot: 'arm' },
     { id: 'forge_leather_arm', label: 'LEATHER BRACERS', source: 'forge_leather', slot: 'arm' },
     { id: 'forge_plate_arm', label: 'IRON GAUNTLETS', source: 'forge_plate', slot: 'arm' },
+    { id: 'forge_orc_arm', label: 'ORC ARMS', source: 'forge_orc', slot: 'arm' },
+    { id: 'forge_frost_arm', label: 'FROST ARMS', source: 'forge_frost', slot: 'arm', unlock: 'skin:6' },
   ],
   leg: [
     { id: 'thrugg_leg', label: 'THRUGG BOOTS', source: 'thrugg', slot: 'leg' },
@@ -54,6 +62,8 @@ export const HERO_PARTS: Record<HeroPartSlot, HeroPartOption[]> = {
     { id: 'gorthak_leg', label: 'GORTHAK GREAVES', source: 'gorthak', slot: 'leg' },
     { id: 'forge_sandals_leg', label: 'BATTLE SANDALS', source: 'forge_sandals', slot: 'leg' },
     { id: 'forge_greaves_leg', label: 'IRON GREAVES', source: 'forge_greaves', slot: 'leg' },
+    { id: 'forge_orc_leg', label: 'ORC LEGS', source: 'forge_orc', slot: 'leg' },
+    { id: 'forge_frost_leg', label: 'FROST LEGS', source: 'forge_frost', slot: 'leg', unlock: 'skin:6' },
   ],
   weapon: [
     { id: 'thrugg_weapon', label: 'THRUGG SWORD', source: 'thrugg', slot: 'weapon', weapon: 0 },
@@ -61,6 +71,8 @@ export const HERO_PARTS: Record<HeroPartSlot, HeroPartOption[]> = {
     { id: 'gorthak_weapon', label: 'GORTHAK AXE', source: 'gorthak', slot: 'weapon', weapon: 1 },
     { id: 'hogman_weapon', label: 'HOGMAN CLUB', source: 'hogman', slot: 'weapon', weapon: 3, unlock: 'weapon:3' },
     { id: 'forge_warhammer_weapon', label: 'IRON WARHAMMER', source: 'forge_warhammer', slot: 'weapon', weapon: 2, unlock: 'weapon:2' },
+    { id: 'forge_sabre_weapon', label: 'RAIDER SABRE', source: 'forge_sabre', slot: 'weapon', weapon: 0 },
+    { id: 'forge_boneclub_weapon', label: 'BONE CRUSHER', source: 'forge_boneclub', slot: 'weapon', weapon: 3, unlock: 'weapon:3' },
   ],
 };
 

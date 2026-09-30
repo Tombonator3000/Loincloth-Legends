@@ -76,7 +76,12 @@ try {
     };
     const catalog = Object.values(L.HERO_PARTS).flat();
     const added = ['forge_bald_head', 'forge_eyepatch_head', 'forge_crownbraid_head', 'forge_silvercut_head', 'forge_leather_torso', 'forge_plate_torso', 'forge_kilt_pelvis', 'forge_tassets_pelvis', 'forge_leather_arm', 'forge_plate_arm', 'forge_sandals_leg', 'forge_greaves_leg', 'forge_warhammer_weapon'];
-    checks.push(['poolen har 32 valg, med alle 13 nye bilder', catalog.length === 32 && added.every((id) => catalog.some((p) => p.id === id && L.getOverride(p.source, p.slot)?.canvas.width > 0))]);
+    added.push(...['orc', 'frost'].flatMap((source) => ['head', 'torso', 'pelvis', 'arm', 'leg'].map((slot) => `forge_${source}_${slot}`)), 'forge_sabre_weapon', 'forge_boneclub_weapon');
+    checks.push(['poolen har 44 valg og alle 25 forge-bilder', catalog.length === 44 && catalog.filter((p) => p.id.startsWith('forge_')).length === 25 && added.every((id) => catalog.some((p) => p.id === id && L.getOverride(p.source, p.slot)?.canvas.width > 0))]);
+    const part = (id) => catalog.find((p) => p.id === id);
+    checks.push(['orkens kroppstype er kvinnelig og frostkrigerens mannlig', part('forge_orc_torso')?.body === 1 && part('forge_frost_torso')?.body === 0]);
+    checks.push(['bare frostfigurens hudbærende deler krever skin:6', ['head', 'torso', 'arm', 'leg'].every((slot) => part(`forge_frost_${slot}`)?.unlock === 'skin:6') && !part('forge_frost_pelvis')?.unlock]);
+    checks.push(['sabelen er et fritt sverdvalg og beinklubben følger klubbelåsen', part('forge_sabre_weapon')?.weapon === 0 && !part('forge_sabre_weapon')?.unlock && part('forge_boneclub_weapon')?.weapon === 3 && part('forge_boneclub_weapon')?.unlock === 'weapon:3']);
     const hammer = catalog.find((p) => p.id === 'forge_warhammer_weapon');
     checks.push(['krigshammeren er våpenklasse 2 og følger weapon:2-låsen', hammer?.weapon === 2 && hammer?.unlock === 'weapon:2']);
     checks.push(['alle katalogdeler har lastet bildefil', Object.entries(L.HERO_PARTS).every(([slot, options]) => options.every((p) => !!L.getOverride(p.source, slot)))]);
@@ -92,6 +97,12 @@ try {
     painted(L.withHeroParts(L.PRESETS.valkyra, {
       head: 'forge_crownbraid_head', torso: 'forge_plate_torso', pelvis: 'forge_tassets_pelvis', arm: 'forge_plate_arm', leg: 'forge_greaves_leg', weapon: 'forge_warhammer_weapon',
     }), 47, 'Ny platehelt');
+    painted(L.withHeroParts(L.PRESETS.valkyra, {
+      head: 'forge_orc_head', torso: 'forge_orc_torso', pelvis: 'forge_orc_pelvis', arm: 'forge_orc_arm', leg: 'forge_orc_leg', weapon: 'forge_sabre_weapon',
+    }), 48, 'Ork med sabel');
+    painted(L.withHeroParts(L.PRESETS.thrugg, {
+      head: 'forge_frost_head', torso: 'forge_frost_torso', pelvis: 'forge_frost_pelvis', arm: 'forge_frost_arm', leg: 'forge_frost_leg', weapon: 'forge_boneclub_weapon',
+    }), 49, 'Frostkriger med beinklubbe');
     const changed = L.withHeroParts(mixed, { ...mixed.parts, head: 'thrugg_head' });
     checks.push(['endret del gir ny teksturnøkkel', L.buildHeroDef(mixed, 43).id !== L.buildHeroDef(changed, 43).id]);
     const original = JSON.stringify(L.PRESETS);
@@ -155,6 +166,21 @@ try {
     L.writeSave(s);
     const unlockedHammer = L.loadSave().heroes[0];
     checks.push(['opplåst hammer overlever lagring med riktig våpenklasse', unlockedHammer.parts.weapon === 'forge_warhammer_weapon' && unlockedHammer.weapon === 2]);
+    s.unlocked = [];
+    s.heroes[0] = L.withHeroParts(L.PRESETS.thrugg, {
+      head: 'forge_frost_head', torso: 'forge_frost_torso', pelvis: 'forge_frost_pelvis', arm: 'forge_frost_arm', leg: 'forge_frost_leg', weapon: 'forge_boneclub_weapon',
+    });
+    L.writeSave(s);
+    const lockedFrost = L.loadSave().heroes[0];
+    checks.push(['lagret frostsett uten opplåsing bytter bare låste deler', ['head', 'torso', 'arm', 'leg'].every((slot) => lockedFrost.parts[slot] === `thrugg_${slot}`) && lockedFrost.parts.pelvis === 'forge_frost_pelvis' && lockedFrost.parts.weapon === 'thrugg_weapon']);
+    s.unlocked.push('skin:6');
+    L.writeSave(s);
+    const frostOnly = L.loadSave().heroes[0];
+    checks.push(['skin:6 beholder hele frostsettet uten å låse opp beinklubben', ['head', 'torso', 'pelvis', 'arm', 'leg'].every((slot) => frostOnly.parts[slot] === `forge_frost_${slot}`) && frostOnly.body === 0 && frostOnly.parts.weapon === 'thrugg_weapon']);
+    s.unlocked.push('weapon:3');
+    L.writeSave(s);
+    const frostClub = L.loadSave().heroes[0];
+    checks.push(['opplåst frostkriger med beinklubbe overlever lagring med riktige stats', frostClub.parts.head === 'forge_frost_head' && frostClub.parts.weapon === 'forge_boneclub_weapon' && frostClub.weapon === 3]);
     localStorage.removeItem('loincloth-legends-save-v1');
     return checks;
   });
@@ -189,6 +215,14 @@ try {
     await page.locator(`.cr-part[data-part="${id}"]`).click();
   };
   const config = () => page.evaluate(() => window.__game.scene.cfgs[window.__game.scene.slot]);
+  const previewUses = (parts) => page.evaluate((parts) => {
+    const L = window.__lib, s = window.__game.scene;
+    const groups = { head: ['head'], torso: ['torso'], pelvis: ['pelvis'], arm: ['armF', 'armB'], leg: ['legF', 'legB'], weapon: ['weapon'] };
+    return Object.entries(groups).every(([slot, names]) => {
+      const part = L.HERO_PARTS[slot].find((p) => p.id === parts[slot]);
+      return part && names.every((name) => s.preview.rig.g[name].children[0].material.map.image === L.getOverride(part.source, part.slot)?.canvas);
+    }) && s.preview.weapon === L.WEAPONS[s.cfgs[s.slot].weapon];
+  }, parts);
   const initial = await page.evaluate(() => JSON.stringify(window.__game.save.heroes));
   const presetInitial = await page.evaluate(() => JSON.stringify(window.__lib.PRESETS));
   check('malte bygger har seks delrader og synlige bildekort', await page.locator('.cr-painted').count() === 1 && await page.locator('.cr-part canvas').count() >= 3);
@@ -205,11 +239,25 @@ try {
   // Programmatisk klikk tester også at handleren avviser et låst valg.
   await lock.evaluate((el) => el.click());
   check('låst hode beholdes ikke som utstyr', (await config()).parts.head === 'valkyra_head' && (await page.locator('.cr-info').innerText()).includes('LOCKED'));
+  const frostLocks = [];
+  for (const slot of ['head', 'torso', 'arm', 'leg']) {
+    await row(slot).locator('.k').click();
+    const before = (await config()).parts[slot];
+    const card = page.locator(`.cr-part[data-part="forge_frost_${slot}"]`);
+    const locked = await card.getAttribute('aria-disabled') === 'true';
+    await card.evaluate((el) => el.click());
+    frostLocks.push(locked && (await config()).parts[slot] === before);
+  }
+  check('alle fire låste frostkort avviser utstyring i UI', frostLocks.every(Boolean), frostLocks);
   await row('weapon').locator('.k').click();
   const hammerLock = page.locator('.cr-part[data-part="forge_warhammer_weapon"]');
   check('låst krigshammer vises i poolen', await hammerLock.getAttribute('aria-disabled') === 'true');
   await hammerLock.evaluate((el) => el.click());
   check('låst krigshammer kan ikke utstyres i UI', (await config()).parts.weapon === 'thrugg_weapon' && (await page.locator('.cr-info').innerText()).includes('LOCKED'));
+  const boneclubLock = page.locator('.cr-part[data-part="forge_boneclub_weapon"]');
+  const boneclubDisabled = await boneclubLock.getAttribute('aria-disabled') === 'true';
+  await boneclubLock.evaluate((el) => el.click());
+  check('beinklubben kan ikke utstyres før weapon:3 er låst opp', boneclubDisabled && (await config()).parts.weapon === 'thrugg_weapon');
   await selectPart('torso', 'valkyra_torso');
   await selectPart('weapon', 'valkyra_weapon');
   check('valgt øks gir samme kampstatistikk i UI og figur', await page.evaluate(() => {
@@ -251,7 +299,7 @@ try {
   await page.locator('.cr-cancel').click();
   await page.evaluate(() => {
     const g = window.__game;
-    g.save.unlocked.push('weapon:2');
+    g.save.unlocked.push('weapon:2', 'weapon:3', 'skin:6');
     g.openCreator([0, 1], () => g.goTitle());
   });
   await selectPart('weapon', 'forge_warhammer_weapon');
@@ -261,12 +309,14 @@ try {
   }));
 
   // Lag to forskjellige helter gjennom de samme kontrollene spilleren bruker.
-  const p1 = { head: 'forge_eyepatch_head', torso: 'forge_leather_torso', arm: 'forge_plate_arm', pelvis: 'forge_tassets_pelvis', leg: 'forge_greaves_leg', weapon: 'forge_warhammer_weapon' };
+  const p1 = { head: 'forge_orc_head', torso: 'forge_orc_torso', arm: 'forge_orc_arm', pelvis: 'forge_orc_pelvis', leg: 'forge_orc_leg', weapon: 'forge_sabre_weapon' };
   for (const [slot, id] of Object.entries(p1)) await selectPart(slot, id);
+  check('UI bruker hele orkens faktiske bildesett og sabel med riktige kampverdier', await previewUses(p1));
   await page.locator('#hero-name').fill('MIXED ONE');
   await page.locator('.cr-tabs [data-slot="1"]').click();
-  const p2 = { head: 'forge_silvercut_head', torso: 'forge_plate_torso', arm: 'forge_leather_arm', pelvis: 'forge_kilt_pelvis', leg: 'forge_sandals_leg', weapon: 'thrugg_weapon' };
+  const p2 = { head: 'forge_frost_head', torso: 'forge_frost_torso', arm: 'forge_frost_arm', pelvis: 'forge_frost_pelvis', leg: 'forge_frost_leg', weapon: 'forge_boneclub_weapon' };
   for (const [slot, id] of Object.entries(p2)) await selectPart(slot, id);
+  check('UI bruker hele det opplåste frostsettet og beinklubben med riktige kampverdier', await previewUses(p2));
   await page.locator('#hero-name').fill('MIXED TWO');
   check('spillerne har uavhengige deler', await page.evaluate(({ p1, p2 }) => {
     const cfgs = window.__game.scene.cfgs;
@@ -278,9 +328,9 @@ try {
   await page.setViewportSize({ width: 915, height: 412 });
   await shot(page, 'mobile-landscape');
   await page.setViewportSize({ width: 412, height: 915 });
-  await selectPart('head', 'forge_silvercut_head');
+  await selectPart('head', 'forge_frost_head');
   check('siste hodekort forblir synlig etter valg i mobilpoolen', await page.evaluate(() => {
-    const card = document.querySelector('.cr-part[data-part="forge_silvercut_head"]').getBoundingClientRect();
+    const card = document.querySelector('.cr-part[data-part="forge_frost_head"]').getBoundingClientRect();
     const pool = document.querySelector('.cr-part-grid').getBoundingClientRect();
     return card.left >= pool.left - 1 && card.right <= pool.right + 1;
   }));
@@ -300,7 +350,7 @@ try {
   check('begge spillernes seks deler og navn overlever full sidelasting', await page.evaluate(() => JSON.stringify(window.__game.save.heroes)) === saved);
   check('lagring bevarer valgt kroppstype og våpen', await page.evaluate(() => {
     const [a, b] = window.__game.save.heroes;
-    return a.body === 0 && a.weapon === 2 && a.name === 'MIXED ONE' && b.body === 1 && b.weapon === 0 && b.name === 'MIXED TWO';
+    return a.body === 1 && a.weapon === 0 && a.name === 'MIXED ONE' && b.body === 0 && b.weapon === 3 && b.name === 'MIXED TWO';
   }));
 
   // Manglende fil: bare den delen bruker reservetegningen. De andre fem er fortsatt malt.

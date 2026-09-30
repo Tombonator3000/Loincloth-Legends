@@ -7,7 +7,7 @@ npm run build && npx vite preview --port 4173 &
 npm i -D playwright
 node tools/tests/story.mjs http://localhost:4173/ ./shots                 # tittel, Hero Forge, intro, kart, brett, sjef, belønning, kart
 node tools/tests/scenarios.mjs http://localhost:4173/ ./shots creator     # heltebygger: presets, tilfeldig, låste deler
-node tools/tests/hero-forge.mjs http://localhost:4173/ ./shots/forge      # 32 delvalg, 13 nye bilder, miksing, lagring, hammerlås, mobil og manglende bilde
+node tools/tests/hero-forge.mjs http://localhost:4173/ ./shots/forge      # 44 delvalg, 25 Forge-bilder, miksing, lagring, hammer-/frost-/klubbelås, mobil og manglende bilde
 node tools/tests/scenarios.mjs http://localhost:4173/ ./shots map         # verdenskart og fremgang
 node tools/tests/scenarios.mjs http://localhost:4173/ ./shots levels      # alle fem brett til finalen (eller: levels road,frost)
 node tools/tests/scenarios.mjs http://localhost:4173/ ./shots arena       # arena-dueller

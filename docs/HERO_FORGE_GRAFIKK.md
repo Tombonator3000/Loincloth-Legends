@@ -1,6 +1,6 @@
 # Hero Forge: felles pool av malte deler
 
-Oppdatert 30. september 2026. Hero Forge har nå 32 malte delvalg: 19 fra grunnpakken og 13 nye bilder. Alle velges uavhengig i PAINTED PARTS. Manifestet inneholder de 143 opprinnelige bildene pluss de 13 Forge-bildene, totalt 156 filer.
+Oppdatert 30. september 2026. Hero Forge har nå 44 malte delvalg: 19 fra grunnpakken og 25 Forge-bilder. Alle velges uavhengig i PAINTED PARTS. Kunstpakken består av de 143 opprinnelige bildene pluss Forge-tilleggene, totalt 168 filer.
 
 ## Hva som faktisk manglet
 
@@ -27,7 +27,7 @@ Dette gir **19 delvalg fra 19 eksisterende filer**. `valkyra_hairback.webp` føl
 
 De fire opprinnelige våpenbildene dekker sverd, to økseutseender og piggklubbe. Den nye `forge_warhammer_weapon.webp` dekker WARHAMMER og følger opplåsingen `weapon:2` fra første brett.
 
-## Produsert tillegg: 13 nye deler
+## Første tillegg: 13 deler
 
 Bildene er laget enkeltvis med imagegen med repoets eksisterende Thrugg- og Valkyra-deler som referanser for materialer og rendering. Ferdige WebP-filer ligger i `public/assets/`, er registrert i manifestet og har stabile valg i `src/data/hero-parts.ts`. Originale PNG-er behandles av `tools/process_art.py`; de originale arbeidsfilene sjekkes ikke inn i det offentlige repoet.
 
@@ -49,13 +49,34 @@ Bildene er laget enkeltvis med imagegen med repoets eksisterende Thrugg- og Valk
 
 Hvert bilde inneholder én del med ekte alfa. Innleseren beskjærer den transparente margen og beholder opptil 1024 piksler på lengste side. Nye deler følger samme helterigg som Thrugg og Valkyra.
 
-Den samlede poolen har sju hoder og fem valg i hver av de andre fem kategoriene: overkropp, belte, arm, bein og våpen. Alle 32 valg bruker bildefiler. Valkyras bakhår kommer i tillegg og følger hodet automatisk. Skinntone og materialer ligger i hvert bilde; spilleren kan også velge bevisste blandinger.
+## Andre tillegg: orc, frostkriger og to våpen
+
+Tolv nye bilder gir to ekstra valg i hver kategori. Orc-delene bruker en kvinnelig kropp, frostkrigeren en mannlig kropp. Begge følger samme helterigg og kan blandes med de andre delene. Hudfargen er malt inn i bildene.
+
+| Ferdig fil i `public/assets/` | Innhold | Opplåsing |
+|---|---|---|
+| `forge_orc_head.webp` | Hode til en voksen, grønn orc-kvinne. | Tilgjengelig fra start |
+| `forge_orc_torso.webp` | Kvinnelig orc-overkropp; setter `body: 1`. | Tilgjengelig fra start |
+| `forge_orc_pelvis.webp` | Orcens belte og lendeklede. | Tilgjengelig fra start |
+| `forge_orc_arm.webp` | Grønn orc-arm, brukt foran og bak. | Tilgjengelig fra start |
+| `forge_orc_leg.webp` | Grønt orc-bein, brukt på begge sider. | Tilgjengelig fra start |
+| `forge_frost_head.webp` | Hode til en voksen frostkriger med blå hud. | `skin:6`: slå Frostjarl Kaldor |
+| `forge_frost_torso.webp` | Mannlig frost-overkropp; setter `body: 0`. | `skin:6`: slå Frostjarl Kaldor |
+| `forge_frost_pelvis.webp` | Frostkrigerens belte og lendeklede, uten hud. | Tilgjengelig fra start |
+| `forge_frost_arm.webp` | Blå frost-arm, brukt foran og bak. | `skin:6`: slå Frostjarl Kaldor |
+| `forge_frost_leg.webp` | Blått frost-bein, brukt på begge sider. | `skin:6`: slå Frostjarl Kaldor |
+| `forge_sabre_weapon.webp` | RAIDER SABRE; bruker SWORD-egenskaper (`weapon: 0`). | Tilgjengelig fra start |
+| `forge_boneclub_weapon.webp` | BONE CRUSHER; bruker SPIKED CLUB-egenskaper (`weapon: 3`). | `weapon:3`: vinn Bone Coliseum |
+
+Frostkrigerens fire deler med hud deler den eksisterende opplåsingen for FROST BLUE. Beltet er fritt, siden det ikke inneholder hud. Låsen gjelder hvert delvalg, også i tilfeldig helt og ved innlesing av lagring. Sabel og beinklubbe er nye utseender for eksisterende våpenklasser; de får ikke egne kampregler.
+
+Den samlede poolen har ni hoder og sju valg i hver av de andre fem kategoriene: overkropp, belte, arm, bein og våpen. Alle 44 valg er koblet til bildefiler. Valkyras bakhår kommer i tillegg og følger hodet automatisk, så poolen bruker 45 bilder. Skinntone og materialer ligger i hvert bilde; spilleren kan også velge bevisste blandinger.
 
 Claudes justering av armer og våpen er bevart: lasteren finner skulder, neve og grep, og riggen roterer og skalerer armen rundt skulderen slik at neven møter våpenet. `hand`, `anchor` og `height` i manifestet brukes når en del krever målte verdier. Både hovedarm og bakarm bruker samme bilde.
 
 ## Kalibrering og kontroll
 
-Nye hoder uten stor hjelm eller hårmanke har egne høyder, slik at selve ansiktet ikke blir like stort som hele Thrugg-hjelmen. Beltenes buede overkant og torsoenes avrundede nedkant krever et uttrykkelig festepunkt. Verdiene er brøker av det beskårne bildet, med y fra toppen.
+De nye hodene har egne høyder, slik at selve ansiktet ikke blir like stort som hele Thrugg-hjelmen. Beltenes buede overkant og torsoenes avrundede nedkant krever et uttrykkelig festepunkt. Tabellen viser verdier kontrollert på sammensatte figurer i fire poser. Ankerverdiene er brøker av det beskårne bildet, med y fra toppen.
 
 | Kilde | Felt i manifestet | Verdi |
 |---|---|---|
@@ -66,8 +87,15 @@ Nye hoder uten stor hjelm eller hårmanke har egne høyder, slik at selve ansikt
 | `forge_leather` og `forge_plate` overkropp | `anchor` | [0.55, 0.96] |
 | `forge_kilt` belte | `anchor` | [0.53, 0.19] |
 | `forge_tassets` belte | `anchor` | [0.52, 0.22] |
+| `forge_orc` hode | `height` | 0.88 |
+| `forge_frost` hode | `height` | 0.82 |
+| `forge_orc` og `forge_frost` overkropp | `anchor` | [0.55, 0.96] |
+| `forge_orc` belte | `anchor` | [0.52, 0.19] |
+| `forge_frost` belte | `anchor` | [0.53, 0.19] |
 
-Armer, bein og hammer bruker automatisk måling. Våpengrep testes på de 13 opprinnelige bevæpnede figurene og fire nye blandinger i tre poser. Galleriet viser de fire blandingene i fire poser med leddmarkører. Det er nødvendig å se på bildene i tillegg til å måle grepet: første kontroll fant en skulderglippe med utstrakt arm selv om neven traff våpenleddet. Torsoankrene over er justert for dette. Alfakontakttesten krever at overkroppen faktisk møter den øvre delen av armen i utstrakt pose; en negativ kontroll med gammelt torsoanker avvises.
+Armer, bein og hammer i det første tillegget bruker automatisk måling. Dette tillegget ble kontrollert med våpengrep på de 13 opprinnelige bevæpnede figurene og fire blandinger i tre poser. Galleriet viste de fire blandingene i fire poser med leddmarkører. Det er nødvendig å se på bildene i tillegg til å måle grepet: første kontroll fant en skulderglippe med utstrakt arm selv om neven traff våpenleddet. Torsoankrene over er justert for dette. Alfakontakttesten krever at overkroppen faktisk møter den øvre delen av armen i utstrakt pose; en negativ kontroll med gammelt torsoanker avvises.
+
+Andre tillegg er kontrollert både som hele orc-/frostsett og med lemmer og belter fra første tillegg. Alle åtte blandinger har kontakt mellom arm og overkropp. De fire nye blandingene viser 57 til 75 prosent av bakarmen, og neven er maksimalt 0.006 enheter fra våpenleddet. Nye armer, bein, sabel og beinklubbe bruker automatisk måling. Nettlesertesten dekker også frost- og klubbelås, begge spilleres lagring og ny lasting, faktiske bilder i forhåndsvisningen og det siste hodekortet på mobil.
 
 ## Hva fri finjustering fortsatt trenger
 

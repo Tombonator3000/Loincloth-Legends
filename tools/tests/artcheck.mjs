@@ -31,7 +31,7 @@ await page.evaluate(() => {
   g.screens.hide();
 });
 
-// Begge nye armer på begge nye overkropper, med alle de nye hodene og hammeren.
+// De fire første settene bevarer første puljes kontroll. Ork og frost testes som hele sett og med eldre lemmer.
 const forgeCases = await page.evaluate(() => {
   const L = window.__lib;
   return [
@@ -39,12 +39,16 @@ const forgeCases = await page.evaluate(() => {
     ['forge-plate', 'crownbraid', 'plate', 'plate', 'tassets', 'greaves'],
     ['forge-cross-male', 'eyepatch', 'leather', 'plate', 'tassets', 'greaves'],
     ['forge-cross-female', 'silvercut', 'plate', 'leather', 'kilt', 'sandals'],
-  ].map(([label, head, torso, arm, pelvis, leg], i) => {
+    ['forge-orc', 'orc', 'orc', 'orc', 'orc', 'orc', 'sabre'],
+    ['forge-frost', 'frost', 'frost', 'frost', 'frost', 'frost', 'boneclub'],
+    ['forge-orc-cross', 'orc', 'orc', 'plate', 'tassets', 'greaves', 'sabre'],
+    ['forge-frost-cross', 'frost', 'frost', 'leather', 'kilt', 'sandals', 'boneclub'],
+  ].map(([label, head, torso, arm, pelvis, leg, weapon = 'warhammer'], i) => {
     const cfg = L.withHeroParts(L.PRESETS.thrugg, {
       head: `forge_${head}_head`, torso: `forge_${torso}_torso`, arm: `forge_${arm}_arm`,
-      pelvis: `forge_${pelvis}_pelvis`, leg: `forge_${leg}_leg`, weapon: 'forge_warhammer_weapon',
+      pelvis: `forge_${pelvis}_pelvis`, leg: `forge_${leg}_leg`, weapon: `forge_${weapon}_weapon`,
     });
-    return { label, id: L.registerChar(L.buildHeroDef(cfg, 61 + i)) };
+    return { label, id: L.registerChar(L.buildHeroDef(cfg, 61 + i)), negativeControl: i < 4 };
   });
 });
 const labels = Object.fromEntries(forgeCases.map(({ id, label }) => [id, label]));
@@ -205,9 +209,11 @@ const shoulders = await page.evaluate((forgeCases) => {
   }
   const result = {};
   try {
-    for (const { id, label } of forgeCases) {
+    for (const { id, label, negativeControl } of forgeCases) {
       const def = L.getChar(id), ov = L.getOverride(def.inherit.torso, 'torso');
       const current = contact(def, ':shoulder-current');
+      result[label] = { current };
+      if (!negativeControl) continue;
       const old = { ax: ov.ax, ox: ov.ox };
       try {
         ov.ax = 0.66; ov.ox = ov.w * ov.ax;
@@ -222,8 +228,9 @@ const shoulders = await page.evaluate((forgeCases) => {
   return result;
 }, forgeCases);
 const shoulderMeets = ({ upperPixels, touchPixels }) => upperPixels > 0 && touchPixels >= 8;
-check('alle fire nye torso/arm-mikser har faktisk alfakontakt ved utstrakt skulder', Object.values(shoulders).every(({ current }) => shoulderMeets(current)), shoulders);
-check('skulderregresjonen avviser den gamle torsoankringen i negativ kontroll', Object.values(shoulders).some(({ previous }) => !shoulderMeets(previous)));
+check('alle åtte torso/arm-mikser har faktisk alfakontakt ved utstrakt skulder', Object.values(shoulders).every(({ current }) => shoulderMeets(current)), shoulders);
+const oldShoulders = Object.values(shoulders).filter(({ previous }) => previous);
+check('skulderregresjonen beholder de fire gamle negative kontrollene og avviser gammel ankring', oldShoulders.length === 4 && oldShoulders.some(({ previous }) => !shoulderMeets(previous)));
 
 // 3) Heltesmia: eksplisitte delvalg er fasiten for bilde og våpenstatistikk.
 const forge = await page.evaluate(() => {

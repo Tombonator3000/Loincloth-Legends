@@ -666,6 +666,84 @@
       "char": "forge_warhammer",
       "part": "weapon",
       "file": "forge_warhammer_weapon.webp"
+    },
+    {
+      "char": "forge_boneclub",
+      "part": "weapon",
+      "file": "forge_boneclub_weapon.webp"
+    },
+    {
+      "char": "forge_frost",
+      "part": "arm",
+      "file": "forge_frost_arm.webp"
+    },
+    {
+      "char": "forge_frost",
+      "part": "head",
+      "file": "forge_frost_head.webp",
+      "height": 0.82
+    },
+    {
+      "char": "forge_frost",
+      "part": "leg",
+      "file": "forge_frost_leg.webp"
+    },
+    {
+      "char": "forge_frost",
+      "part": "pelvis",
+      "file": "forge_frost_pelvis.webp",
+      "anchor": [
+        0.53,
+        0.19
+      ]
+    },
+    {
+      "char": "forge_frost",
+      "part": "torso",
+      "file": "forge_frost_torso.webp",
+      "anchor": [
+        0.55,
+        0.96
+      ]
+    },
+    {
+      "char": "forge_orc",
+      "part": "arm",
+      "file": "forge_orc_arm.webp"
+    },
+    {
+      "char": "forge_orc",
+      "part": "head",
+      "file": "forge_orc_head.webp",
+      "height": 0.88
+    },
+    {
+      "char": "forge_orc",
+      "part": "leg",
+      "file": "forge_orc_leg.webp"
+    },
+    {
+      "char": "forge_orc",
+      "part": "pelvis",
+      "file": "forge_orc_pelvis.webp",
+      "anchor": [
+        0.52,
+        0.19
+      ]
+    },
+    {
+      "char": "forge_orc",
+      "part": "torso",
+      "file": "forge_orc_torso.webp",
+      "anchor": [
+        0.55,
+        0.96
+      ]
+    },
+    {
+      "char": "forge_sabre",
+      "part": "weapon",
+      "file": "forge_sabre_weapon.webp"
     }
   ],
   "textures": {
