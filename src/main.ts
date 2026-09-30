@@ -7,7 +7,9 @@ import { installDebug } from './app/debug';
 async function boot() {
   const boot = document.getElementById('boot');
   try {
-    await Promise.race([loadAssets(), new Promise((r) => setTimeout(r, 4000))]);
+    // Vent til hele kunstpakken er klar. Med mange figurdeler ville firesekunders-
+    // grensen gi en blanding av PNG og reservegrafikk på tregere forbindelser.
+    await loadAssets();
   } catch {
     /* ingen assets, bruk prosedyregrafikk */
   }
