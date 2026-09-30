@@ -7,7 +7,7 @@ npm run build && npx vite preview --port 4173 &
 npm i -D playwright
 node tools/tests/story.mjs http://localhost:4173/ ./shots                 # tittel, Hero Forge, intro, kart, brett, sjef, belønning, kart
 node tools/tests/scenarios.mjs http://localhost:4173/ ./shots creator     # heltebygger: presets, tilfeldig, låste deler
-node tools/tests/hero-forge.mjs http://localhost:4173/ ./shots/forge      # 44 delvalg, 25 Forge-bilder, miksing, lagring, hammer-/frost-/klubbelås, mobil og manglende bilde
+node tools/tests/hero-forge.mjs http://localhost:4173/ ./shots/forge      # 58 delvalg, 39 Forge-bilder, miksing, lagring, hjelm-/hammer-/frost-/klubbelås, mobil og manglende bilde
 node tools/tests/scenarios.mjs http://localhost:4173/ ./shots map         # verdenskart og fremgang
 node tools/tests/scenarios.mjs http://localhost:4173/ ./shots levels      # alle fem brett til finalen (eller: levels road,frost)
 node tools/tests/scenarios.mjs http://localhost:4173/ ./shots arena       # arena-dueller
@@ -51,6 +51,8 @@ node tools/tests/frostplay.mjs http://localhost:4173/ [./shots]           # spil
 ```
 
 Skriptene skriver ut tilstand og eventuelle konsollfeil (`LOGS:`). Tom logg betyr ingen feil.
+
+`hero-forge.mjs` følger også Ash Raider og Iron Warden gjennom de faktiske bølgekøene i Scorchlands og Tower, angrep mot helten, dødsbelønning og neste bølge. `artcheck.mjs` kontrollerer de nye Forge-overkroppene i hele og blandede figurer med den samme skulder- og halsriggen som resten av spillet.
 
 I headless Chromium trengs WebGL via SwiftShader (`--use-angle=swiftshader`), det er satt opp i skriptene. Skjermbilder tar flere sekunder i SwiftShader, så tester som trenger sanntid (oppstartslogoen) fryser animasjonene før bildet tas.
 

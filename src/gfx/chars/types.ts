@@ -1,6 +1,7 @@
 // Felles typer og hjelpere for figurtegning.
 import { Pen, shade } from '../draw';
 import type { Voice } from '../../core/audio';
+import type { HeroAppearance } from '../../data/hero-appearance';
 
 export type PartName = 'legB' | 'legF' | 'pelvis' | 'torso' | 'armB' | 'head' | 'armF' | 'weapon';
 /** Figur-id. Registeret er åpent, så nye figurer (også heltebyggeren) kan legges til i kjøretid. */
@@ -41,6 +42,8 @@ export interface CharDef {
   skin?: string[];
   /** Deler som deles med en annen figur (PNG-erstatninger hentes da fra den figuren). */
   inherit?: Partial<Record<'leg' | 'arm' | 'pelvis' | 'torso' | 'head' | 'weapon', CharId>>;
+  /** Separate malte lag på modulære hoder og hudfarge på deler med uttrykkelige masker. */
+  appearance?: HeroAppearance;
 }
 
 export const HERO_J: Joints = { hipF: [0.07, 0], hipB: [-0.08, 0], neck: [0.03, 0.78], shF: [-0.15, 0.68], shB: [0.15, 0.66], hand: [0, -0.6] };

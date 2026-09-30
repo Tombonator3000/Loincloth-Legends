@@ -8,6 +8,7 @@ og ingen fast oppløsning per spillenhet, fordi spillet regner ut størrelsen fr
 Filnavnet bestemmer hva bildet er (små bokstaver, .png, .webp eller .jpg):
   <figur>_<del>.png      figurdel: head, hairback, torso, pelvis, arm, leg, weapon, eller body, tail for ridedyr
                          (valkyra_head.png, skeleton_arm.png, warhog_body.png)
+  appearance_<gruppe>_<navn>.png  eget hårlag, skjegg, hodeplagg eller iris; plassering ligger i hero-appearance-layout.ts
   pet_<id>.png           kjæledyr (pet_rat.png)
   figur_<figur>.png      helt ark laget på docs/maler/mal_figur.png, 3 x 2 ruter:
                          head, torso, pelvis på øverste rad og arm, leg, weapon på nederste
@@ -169,6 +170,7 @@ def teksturnavn():
 def tolk(nøkkel):
     """Hva et filnavn er: ('del', figur, del), ('pet', id), ('tex', navn), ('sky', biom) eller ('map',)."""
     if nøkkel == 'map': return ('map',)
+    if re.fullmatch(r'appearance_(hair|beard|headgear|eye)_[a-z0-9_]+', nøkkel): return ('appearance', nøkkel)
     if nøkkel.startswith('tex_'): return ('tex', nøkkel[4:])
     if nøkkel.startswith('sky_'): return ('sky', nøkkel[4:])
     if nøkkel.startswith('pet_'): return ('pet', nøkkel)
@@ -206,6 +208,15 @@ def behandle(nøkkel, im, man, tekstur_ok):
     t = tolk(nøkkel)
     if not t:
         raise ValueError('ukjent filnavn (se filnavnene øverst i tools/process_art.py)')
+    if t[0] == 'appearance':
+        im = beskjær(fjern_bakgrunn(im.convert('RGBA')))
+        if im is None: raise ValueError('bildet er helt gjennomsiktig')
+        im = skaler(im, 512 if nøkkel.startswith('appearance_eye_') else MAKS_HELT)
+        fil = lagre(im, nøkkel, True)
+        gammel = next((p for p in man.setdefault('appearance', []) if p['id'] == nøkkel), None)
+        if gammel: gammel['file'] = fil
+        else: man['appearance'].append({'id': nøkkel, 'file': fil})
+        return f'{fil} ({im.size[0]}x{im.size[1]}, selvstendig utseendelag)'
     if t[0] in ('del', 'pet'):
         im = beskjær(fjern_bakgrunn(im.convert('RGBA')))
         if im is None: raise ValueError('bildet er helt gjennomsiktig')

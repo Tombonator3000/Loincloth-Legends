@@ -59,6 +59,8 @@ const giantGrab: AttackDef = {
   heavy: false, wind: { armB: -0.6, armF: -0.3, torso: 0.35, head: 0.1 }, strike: { armB: 1.6, armF: 0.4, torso: -0.2, head: -0.05 }, word: [], swoosh: 'side',
 };
 const emberSlash: AttackDef = { ...ENEMY_ATK.skel, id: 'emberslash', dmg: 8, startup: 0.36 };
+const ashSlash: AttackDef = { ...ENEMY_ATK.skel, id: 'ashslash', dmg: 9, reach: 1.85, startup: 0.32, recovery: 0.46 };
+const wardenSmash: AttackDef = { ...ENEMY_ATK.hog, id: 'wardensmash', dmg: 16, reach: 2.1, startup: 0.85, recovery: 0.8 };
 
 export const FOES: Record<string, FoeDef> = {
   skeleton: {
@@ -107,6 +109,10 @@ export const FOES: Record<string, FoeDef> = {
     id: 'emberskel', char: 'skeleton', name: 'EMBER SKELETON', hp: 28, speed: 2.7, gold: 3, behavior: 'melee', attack: emberSlash, range: 1.45,
     tint: [1.4, 0.72, 0.5], barks: ['SMELLS LIKE BURNT BARBARIAN!', 'I\'M TOASTY!', 'EXTRA CRISPY!'],
   },
+  ashraider: {
+    id: 'ashraider', char: 'ashraider', name: 'ASH RAIDER', hp: 42, speed: 3.05, gold: 4, behavior: 'melee', attack: ashSlash, range: 1.35,
+    barks: ['THE HEAT IS INCLUDED!', 'TWO BLADES. NO REFUNDS.', 'I WORKED THROUGH MY LUNCH RAID!'],
+  },
   darkcultist: {
     id: 'darkcultist', char: 'cultist', name: 'DARK CULTIST', hp: 36, speed: 2.4, gold: 4, behavior: 'ranged', attack: ENEMY_ATK.stab, range: 6, proj: 'bolt', projCd: [2, 3],
     tint: [0.55, 0.45, 0.75], barks: ['THE MASTER SEES ALL!', 'I GOT PROMOTED!', 'SENIOR CULTIST, THANK YOU.'],
@@ -114,6 +120,10 @@ export const FOES: Record<string, FoeDef> = {
   hogguard: {
     id: 'hogguard', char: 'hogman', name: 'HOG GUARD', hp: 85, speed: 1.8, gold: 8, behavior: 'brute', attack: { ...ENEMY_ATK.hog, id: 'hogguard', dmg: 15 }, range: 1.7,
     tint: [0.78, 0.72, 1.05], barks: ['HALT! PAPERS, PLEASE!', 'NO BARBARIANS AFTER 9PM!', 'OINK OF DUTY!'],
+  },
+  ironwarden: {
+    id: 'ironwarden', char: 'ironwarden', name: 'IRON WARDEN', hp: 92, speed: 1.5, gold: 9, behavior: 'brute', attack: wardenSmash, range: 1.6, poise: 0.18,
+    barks: ['YOUR VISIT HAS BEEN DENIED.', 'DENTING THIS ARMOUR COSTS EXTRA.', 'THE HAMMER IS COMPANY PROPERTY.'],
   },
 };
 

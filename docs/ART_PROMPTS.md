@@ -177,7 +177,7 @@ Lim inn beskrivelsen, så templatet for delen du vil lage. Kolonnen "Deler" vise
 | `magmor` | `Character: MAGMOR THE MOLTEN, a lava golem boss made of black and dark grey rock chunks with glowing orange lava cracks, small blocky head with glowing yellow eyes and a lava mouth, flames on top of the head, huge rock fists. No weapon.` | head, torso, pelvis, arm, leg |
 | `vorthax` | `Character: VORTHAX THE MODERATELY EVIL, an old sorcerer villain. Purple robes with gold trim and dots, tall purple pointy hat with a small skull, long white beard, glowing red eyes, pale wrinkled skin, wide sleeves. Weapon: a crooked wooden staff with a glowing cyan orb.` | head, torso, pelvis, arm, leg, weapon |
 
-Hero Forge har en felles pool med 44 malte delvalg fra grunnpakken og 25 Forge-bilder. Den samlede kunstpakken har 168 bildefiler. Se `docs/HERO_FORGE_GRAFIKK.md` for filkart og videre utvidelser. Frie hårfrisyrer, hjelmer, skjegg og farger finnes foreløpig i CLASSIC BUILDER; egne bildelag er fortsatt planlagt.
+Hero Forge har en felles pool med 60 malte delvalg fra grunnpakken og 41 Forge-bilder, inkludert to redigerbare grunnhoder. I tillegg finnes 16 separate hår-, skjegg-, hodeplagg- og irislag. Kunstpakken har 200 bildefiler: 143 grunnfiler + 41 Forge-deler + 16 utseendelag. Filkart og kalibrering står i `docs/HERO_FORGE_GRAFIKK.md`.
 
 ### Valkyra og referansebildet
 
@@ -191,12 +191,14 @@ Spillet regner ut høyden på hver del fra figurens skjelett (se over), så de s
 
 ## Heltesmia (HERO FORGE)
 
-PAINTED PARTS lar spilleren kombinere ni hoder og sju overkropper, belter, armer, bein og våpen. Thrugg og Valkyra er startoppsett; ett bytte av del beholder resten av den malte helten. `docs/HERO_FORGE_GRAFIKK.md` beskriver begge tilleggene: de første 13 bildene og tolv deler til orc, frostkriger, sabel og beinklubbe.
+PAINTED PARTS lar spilleren kombinere 13 hoder, elleve våpen og ni overkropper, belter, armer og bein. Thrugg og Valkyra er startoppsett; ett bytte av del beholder resten av den malte helten. De tre første tilleggene har 13, 12 og 14 bilder. Det fjerde gir to redigerbare grunnhoder og 16 utseendelag.
 
 - Stridshammeren heter `forge_warhammer_weapon.webp` og følger WARHAMMER-egenskapene og opplåsingen `weapon:2`. Den eldre bestillingen `warhammer_weapon.png` er erstattet av dette navnet.
 - Orc-delene er tilgjengelige fra start. Frosthode, -overkropp, -arm og -bein følger `skin:6` fra Frostjarl Kaldor; frostbeltet er fritt. Orc-overkroppen setter kvinnelig kroppstype, frost-overkroppen mannlig.
 - `forge_sabre_weapon.webp` bruker SWORD-egenskaper og er fritt. `forge_boneclub_weapon.webp` bruker SPIKED CLUB-egenskaper og følger `weapon:3` fra Bone Coliseum.
-- Hår, skjegg og hud er del av de malte bildene. CLASSIC BUILDER beholder de frie prosedyretegnede detaljvalgene. Magi kan byttes i begge byggere.
+- Ash-delene og fire Warden-kroppsdeler er frie. Warden-hjelmen følger `helmet:5`. Cleaver og doubleaxe er frie sverd-/øksevalg; maul følger `weapon:2`, flangedmace `weapon:3`. Fiendene `ashraider` og `ironwarden` bruker delene direkte i Scorchlands og Tower; de krever ingen egen bildekopi.
+- Nye versjoner av `hogmother_torso`, `imp_arm` og `gorthak_arm` erstatter de gamle filene. De teller ikke som ekstra Forge-bilder, og nye målte punkter må følge de nye bildene.
+- `forge_custom_m_head` og `forge_custom_f_head` er voksne, skallede og skjeggløse grunnhoder. På HEAD DETAILS kan hår, skjegg, hodeplagg, hudfarge, øyenfarge, hår-/skjeggfarge og øyestil velges separat. Eldre hoder beholder detaljene som er malt inn; spilleren må selv velge et CUSTOM-hode for å bytte disse. Hudmaskene gjelder alle registrerte hode- og kroppsdeler, også blandinger med gamle hoder. CLASSIC BUILDER beholder de opprinnelige prosedyretegnede valgene. Magi kan byttes i begge byggere.
 - Valgene lagres separat for begge spillere og brukes i forhåndsvisning, brett, dueller og portretter.
 - Neve, skulder og våpengrep må passe. Claudes automatiske hånd- og grepberegning brukes også på de nye delene; et målt `hand` eller `anchor` i manifestet går foran.
 - Overkroppene i smia har målte `shoulders` og `neck` som de andre overkroppene: våpenarmen henger fra den nære skulderen (venstre i bildet) og ligger foran, hodet ligger bak kragen. Reglene for nye deler står i `docs/CHATGPT_PROMPT.md` (del 3, 8.2, 8.4, 8.6 og 13), og beskjeden til GPT i `docs/GPT_BESKJED.md`.
@@ -214,9 +216,13 @@ Forslagene nedenfor er idéer til senere ferdige oppsett, ikke manglende filer i
 | `zugga` | FEMALE, ORC GREEN, UNHINGED, MOHAWK, BLOOD RED, BEAST SKULL, LEATHER, BATTLE SKIRT, FUR BOOTS, SPIKED CLUB | `Character: ZUGGA THE UNREASONABLE, a wild orc warrior woman with green skin, small tusks, a blood-red mohawk under a beast skull helmet, studded leather armour, a battle skirt of leather strips and fur boots; clearly an adult, never nude.` |
 | `gromm` | MALE, FROST BLUE, EYEPATCH, PONYTAIL, WHITE, FULL BEARD, CROWN, LEATHER, KILT, RED BOOTS, AXE | `Character: GROMM THE FROSTBITTEN, an old frost-blue barbarian king with an eyepatch, a white ponytail and a full white beard, a dented iron crown, a leather jerkin, a woollen kilt and bright red boots.` |
 
-### Hele smia malt (større jobb, må avtales)
+### Separate utseendelag
 
-At hvert enkelt valg i smia skal være malt, krever lag som legges oppå hverandre: ett ansikt per ansiktsvalg og kropp, hår, skjegg og hodeplagg som egne lag i nøyaktig samme utsnitt, hår og tøy i nøytral grå så spillet kan farge dem, og en overkropp, hofte og bein per rustning, lendeklede og fottøy. Det er rundt 60 bilder der alle lagene må passe nøyaktig oppå hverandre, pluss kode for lagene og fargingen. ChatGPT treffer sjelden nøyaktig samme utsnitt fra bilde til bilde, så dette bør prøves med ett ansikt og to frisyrer først.
+Den leverte pakken har sju hårbilder (seks frisyrer, LONG har eget bakstykke), tre skjegg, fire hodeplagg og to irisvarianter. Navnene er `appearance_hair_<stil>.png`, `appearance_beard_<stil>.png`, `appearance_headgear_<type>.png` og `appearance_eye_<type>.png`. NONE er fravær av laget og trenger ingen fil. Full filoversikt står i `docs/HERO_FORGE_GRAFIKK.md`.
+
+Tegn én isolert del per transparent bilde, i samme nesten ekte karikaturstil og trekvart profil mot høyre som grunnhodene. Hår-, skjegg- og irisbildene skal ikke inneholde hud eller biter av hode eller kropp. Bruk rolige mellomtoner med bevarte skygger og høylys til hår/skjegg; spillet omfarger selve laget. Irisbildet skal bare inneholde iris og pupill, ikke øyelokk eller hvitt øye. Hodeplagg beholder malte metall-, bein- og lærfarger. Bruk de to faktiske grunnhodene som referanser før produksjon.
+
+Bildene beskjæres i innleseren. Plassering, skala og rotasjon må derfor måles på de ferdig behandlede bildene og registreres per hode i `src/data/hero-appearance-layout.ts`. Langt hår legges bak kroppen, skjegg foran kragen. Hornhjelm og hodeskallehjelm dekker fronthåret uten å slette spillerens hårvalg. Hudfargene bruker håndmålte polygoner i `hero-skin-regions.ts`; lag aldri en generell fargeflate over hele figuren. Tøyfarge og flere ansiktsuttrykk er fortsatt videre arbeid.
 
 ---
 
@@ -310,6 +316,9 @@ Eksempel (`public/assets/manifest.json`):
     { "char": "valkyra", "part": "leg", "file": "valkyra_leg.png" },
     { "char": "valkyra", "part": "weapon", "file": "valkyra_weapon.png" }
   ],
+  "appearance": [
+    { "id": "appearance_hair_crop", "file": "appearance_hair_crop.webp" }
+  ],
   "textures": {
     "ground_grass": "tex_ground_grass.png",
     "road_grass": "tex_road_grass.png",
@@ -326,6 +335,7 @@ Eksempel (`public/assets/manifest.json`):
 - `shoulders` (overkropper) er skulderleddene i det beskårne bildet, `[[x, y], [x, y]]`: først den nære skulderen (venstre i bildet, der våpenarmen henger), så den fjerne. Sett det nære punktet i øvre del av skulderplaten, for armen henger ned fra punktet og hetta øverst på armen skal dekke platen. Uten feltet bruker spillet `[[0.09, 0.32], [0.92, 0.32]]`.
 - `neck` (overkropper) er halsroten der hodet festes, `[x, y]` (y er vanligvis 0.12, og overkroppen skaleres etter den). En tredje verdi, `[x, y, r]`, toner ut en halsstump over halsroten innenfor en halv bredde `r` (brøk av bredden), så hodets egen hals tar over uten søm. Uten feltet står hodet over midten av midjen, som ofte er feil i trekvart profil.
 - `front` (hoder) er `true` når hodet skal ligge foran overkroppen: bare hoder med langt skjegg over brystet (gnomen og Vorthax).
+- `appearance` registrerer separate utseendelag med `id` og `file`. Filer behandles med `appearance_<hair|beard|headgear|eye>_<navn>.png`; iris beholdes opptil 512 px og øvrige lag opptil 1024 px. Mål per grunnhode ligger i `hero-appearance-layout.ts`, ikke i kroppsdelens leddfelt. Skjegg på redigerbare hoder har et eget frontlag, slik at halsen fortsatt ligger bak kragen.
 - Skifter en overkropp eller arm bilde, stryker `process_art.py` de målte punktene (`shoulders`, `neck`, `hand`), for de hører til det gamle bildet. Mål dem på nytt med MEASURE.
 - `textures` knytter navnene fra teksturlista til filer. Navn spillet ikke kjenner, blir ignorert.
 - `tools/tests/textures.mjs` sjekker at teksturer fra manifestet blir brukt (den later som om tre bilder finnes).
@@ -381,11 +391,11 @@ Logoen til **Tom's Happy Happy Funtimes Emporium** er levert av Tom og ligger i 
 
 ## Planlagt (ikke koblet inn i koden ennå)
 
-Dette er senere utvidelser. Avtal først filnavn, lagplassering og innlesing: flere av navnene nedenfor avvises av dagens innleser. Prioriter de separate delene i `docs/HERO_FORGE_GRAFIKK.md` før egne hår-, hjelm- og fargelag.
+Dette er senere utvidelser. De to redigerbare grunnhodene og separate hår-, skjegg-, hodeplagg- og irislag er allerede koblet inn, se Heltesmia over. Avtal filnavn og innlesing for de øvrige pakkene nedenfor; flere av navnene støttes ikke ennå.
 
 | Pakke | Filer | Merknad |
 |---|---|---|
-| Heltebygger | `hero_face_<m/f>.png`, `hero_hair_<stil>.png`, `hero_helmet_<type>.png`, `hero_beard_<type>.png`, `hero_torso_<type>_<m/f>.png`, `hero_pelvis_<type>.png`, `hero_legs_<type>.png` | Se "Heltesmia (HERO FORGE)" over: hele delpoolen og stridshammeren virker nå. Egne lag er en senere utvidelse. Lag på HEAD-, TORSO-, PELVIS- og LEG-templatet. Hår, hjelm og skjegg lages som egne lag på samme lerret (1024x1024) så de kan legges oppå et ansikt. Farger: lag hår og tøy i nøytral grå så spillet kan farge dem. |
+| Heltebygger, videre utvidelser | Nye `forge_<variant>_head.png`, flere `appearance_*`-lag og tøymasker | Flere ansiktsuttrykk og kroppstyper samt fri tøyfarge. De tidligere foreslåtte `hero_face_*`-/`hero_hair_*`-navnene er erstattet av de registrerte Forge-/appearance-kategoriene. Nye bilder trenger mål og materialområder, ikke bare et filnavn. |
 | Pickups og ikoner | `icon_potion.png`, `icon_chicken.png`, `icon_ham.png`, `icon_coin.png`, `proj_dagger.png`, `proj_fireball.png`, `proj_snowball.png`, `proj_poison.png` | 512x512, transparent. |
 | Tittel og kort | `title.png` (logo-illustrasjon), `boss_<id>.png` (VS-kort 1536x1024 per sjef) | Til tittelskjerm og sjef-intro. |
 | Gore | `gib_meat_1..3.png`, `gib_bone.png`, `gib_eye.png`, `splat_1..3.png` | Nesten ekte, vått og blankt, over the top. 256x256. Blod og gibs er i dag 3D-partikler, så dette er bare aktuelt som ekstra detalj. |

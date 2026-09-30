@@ -1,6 +1,7 @@
 // Lagring av fremgang i localStorage. Alt er pakket i try/catch, så spillet virker også uten lagring.
 import { PRESETS, HERO_OPTIONS, cloneHero, withHeroParts, type HeroConfig } from '../gfx/chars/hero';
 import { HERO_PARTS, HERO_PART_SLOTS, defaultHeroParts, findHeroPart, sanitizeHeroParts } from '../data/hero-parts';
+import { sanitizeHeroAppearance } from '../data/hero-appearance';
 import { PART_LOCKS } from '../data/unlocks';
 import { defaultProgress, STAT_KEYS, STAT_MAX, LEVEL_MAX, type HeroProgress } from '../data/progress';
 import { PETS } from '../data/pets';
@@ -56,6 +57,7 @@ function validHero(h: unknown, fallback: HeroConfig, unlocked: string[], migrate
   const out = cloneHero(fallback);
   // Ikke gi gamle, egendefinerte helter preset-deler bare fordi fallback har dem.
   delete out.parts;
+  delete out.appearance;
   if (typeof o.name === 'string') out.name = o.name.slice(0, 24).toUpperCase();
   for (const k of Object.keys(HERO_OPTIONS) as (keyof typeof HERO_OPTIONS)[]) {
     const v = o[k];
@@ -68,6 +70,7 @@ function validHero(h: unknown, fallback: HeroConfig, unlocked: string[], migrate
       const unlock = findHeroPart(slot, parts[slot])?.unlock;
       if (unlock && PART_LOCKS[unlock] && !unlocked.includes(unlock)) parts[slot] = defaults[slot];
     }
+    if (o.appearance !== undefined) out.appearance = sanitizeHeroAppearance(o.appearance, (key) => !PART_LOCKS[key] || unlocked.includes(key));
     return withHeroParts(out, parts);
   }
   // Bevar både malte preset-kropper og eget våpen fra den gamle byggeren.

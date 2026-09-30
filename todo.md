@@ -14,15 +14,23 @@
 
 ## Hero Forge: felles pool av malte deler (2026-09-30)
 - [x] Finn årsaken til at malte deler forsvant ved endring av preset; kontroller alle 143 grunnfiler
-- [x] 44 uavhengige delvalg i katalogen, med miniatyrer, bakhår fra valgt hode og samme figur i forhåndsvisning og kamp
+- [x] 60 uavhengige delvalg i katalogen, med miniatyrer, bakhår fra valgt hode og samme figur i forhåndsvisning og kamp
 - [x] Lagre blandinger for begge spillere, bevare gamle helter og klassisk modus, beholde opplåsinger og riktige våpenegenskaper
 - [x] Innlesing og kontroll av ekstra `forge_*`-deler uten å svekke kontrollen av de 143 grunnfilene
 - [x] Lag de 13 nye delene i `docs/HERO_FORGE_GRAFIKK.md`, inkludert krigshammeren; registrer hvert bilde i manifest og delkatalog
-- [ ] Egne ansikts-, hår-, skjegg- og hjelmlag samt masker for hud/hår/tøy
+- [x] To redigerbare grunnhoder og 16 separate hår-, skjegg-, hodeplagg- og irisbilder, med sju lagrede utseendevalg
+- [x] Registrerte hudområder for alle 49 hode-/kroppsdeler; omfarging av egne hår-/skjegglag og iris uten å endre originalbildene
+- [x] HERO PARTS / HEAD DETAILS, uttrykkelig CUSTOM-hodevalg, fargeprøver, separate spillerutkast, gamle hoder og klassisk bygger beholdt
+- [x] Samlet sluttkontroll av 200 bilder, de nye hodelagene og hudmaskene, lagring, opplåsinger, manglende ressurser og mobil
+- [ ] Tøymasker for fri farge på lendeklede og annet malt tøy; flere redigerbare ansiktsuttrykk
 - [x] Visuell finjustering av de 13 nye delene i fire blandede helter og fire poser: hodehøyde, torsoanker, beltefeste, bakarm og våpengrep
 - [x] Andre tillegg i delkatalogen: ti orc-/frostdeler, sabel og beinklubbe, med kroppstype, våpenklasse og eksisterende opplåsinger
 - [x] Fullfør bildeinnlesing og visuell kalibrering av de tolv orc-/frost-/våpendelene; kontroller skulder, nakke, hofte og våpengrep i blandede poser
 - [x] Kontroller hele pakken med 168 bilder, 44 delvalg, frostlåsen og beinklubbelåsen i nettleseren
+- [x] Tredje tillegg i delkatalogen: ti Ash-/Warden-deler og fire våpen med kroppstype, våpenklasse og eksisterende opplåsinger
+- [x] Ash Raider i Scorchlands bølge 2/4 og Iron Warden i Tower bølge 1/4, med eksisterende rigg og kamp-AI og uendret antall fiender
+- [x] Behandle og mål de 14 nye bildene; godkjenn Ash-/Warden-blandinger, hals, skuldre, hofter og våpengrep i poser etter den nye riggen
+- [x] Kontroller hele pakken med 182 bilder og 58 delvalg, låser, lagring og mobil, samt fiendenes bølgespawn, angrep og dødsbelønning
 
 ## Menyene (fra 2026-09-30 07:38)
 - [x] Tittelen fra åtte til fire knapper (STORY og DUEL med venstre/høyre, HERO FORGE, OPTIONS)
@@ -83,9 +91,11 @@
 - [x] Fiende-ryttere holder seg innen rekkevidde og kan tas, og de angriper nå (2026-09-30, tools/tests/riders.mjs)
 - [ ] Balansetest av fiende-ryttere i ekte spill: de angriper nå for første gang, så sjekk at bølgene med ryttere ikke er blitt for harde
 - [x] Armene i trekvart profil: våpenarmen på den nære skulderen foran, hodet bak overkroppen, skulderledd og halsrot fra bildene, stillingene rettet så slagene når fram (2026-09-30)
-- [x] Heltesmia bruker en felles delpool: 44 valg, inkludert 25 Forge-bilder. Kalibrering og kontroll av siste tillegg står over; egne hår-, hjelm- og fargelag er fortsatt senere utvidelser
+- [x] Heltesmia bruker en felles delpool: 60 valg, inkludert 41 Forge-bilder, samt 16 separate utseendelag og hudmasker; sluttkontroll av hodelagene føres øverst
 - [x] Malt stridshammer: `forge_warhammer_weapon.webp`, med WARHAMMER-egenskaper og eksisterende opplåsingskrav
-- [ ] Nye bilder fra GPT: hogmother_torso (kuttet i høyre kant), imp_arm (tynnere enn skulderkula), gorthak_arm (smalere hette enn platen), og på sikt overkropper uten halsstump (docs/GPT_BESKJED.md)
+- [ ] Rydd små løse bildefragmenter i eksisterende imp_weapon og imp_head; funnet ved visuell kontroll, den nye imp-armen er ren
+- [x] Behandle og godkjenn erstatningsbilder for hogmother_torso (kuttet i høyre kant), imp_arm (tynnere enn skulderkula) og gorthak_arm (smalere hette enn platen), med nye målte punkter og visuell kontroll
+- [ ] På sikt: erstatt øvrige gamle overkropper med versjoner uten halsstump (docs/GPT_BESKJED.md)
 - [x] docs/maler/mal_figur.png har merker for halsroten (uten hals) og den nære og den fjerne skulderen på overkroppen
 - [ ] Enhåndsøks som eget våpen (Valkyras øks har ett blad, spillets AXE har to)
 - [ ] Hårmanken svaier i vinden (hairback og den tegnede manken)
@@ -139,7 +149,7 @@
 - [ ] Endeløs arena med lokal toppliste
 - [ ] Hemmeligheter: gnomekonge, The Ham Dimension, bard som synger om drapene
 - [ ] Co-op-gjenoppliving
-- [ ] Koble inn heltebygger-lag som PNG (hår, hjelm, skjegg osv., se ART_PROMPTS.md "Planlagt")
+- [x] Koble inn heltebygger-lag som bilder (hår, hjelm, skjegg og iris; se ART_PROMPTS.md "Separate utseendelag")
 - [x] PNG-deler for alle tre ridedyr og alle fem kjæledyr
 - [ ] PNG for farer (prompter ligger i ART_PROMPTS.md)
 - [ ] Rekvisitter og ikoner som PNG

@@ -6,7 +6,7 @@ Et spill fra **Tom's Happy Happy Funtimes Emporium**.
 
 2.5D fantasy-brawler i nettleseren. Castle Crashers og Golden Axe møter Barbarian: sidescroller-brett med horder av fiender, ridedyr og farer, og mellom brettene en brutal 1v1 duell der ett riktig hugg tar hodet av motstanderen. 80-talls klisjeer, humor og altfor mye blod.
 
-Laget med Three.js og TypeScript. All grafikk lages i kode, og lyden er syntetisert med CC0-opptak lagt oppå der de finnes, så spillet virker uten andre filer enn studiologoen. PNG-grafikk fra ChatGPT kan byttes inn del for del (figurer i nesten ekte karikaturstil og teksturer til 3D-verdenen, se `docs/ART_PROMPTS.md`).
+Laget med Three.js og TypeScript. Kunstpakken har 200 bilder: malte figurdeler i nesten ekte karikaturstil, separate utseendelag og teksturer til 3D-verdenen. Kodegrafikk er reserve når bilder mangler. Lyden er syntetisert med CC0-opptak lagt oppå der de finnes. Se `docs/ART_PROMPTS.md` for produksjon og filnavn.
 
 Repo: https://github.com/Tombonator3000/Loincloth-Legends
 
@@ -41,7 +41,7 @@ npm run typecheck
 ## Hva er med
 
 - **Oppstartslogo** for Tom's Happy Happy Funtimes Emporium: trommevirvel, sirkusfanfare, solstråler og konfetti.
-- **Hero Forge**: lag din egen helt (mann eller dame) fra deler. Heroiske 80-talls kropper med altfor store muskler, ringbrynjebikini, røde støvler og bittesmå lendeklær.
+- **Hero Forge**: 60 malte delvalg for hode, kropp, armer, bein, lendeklede og våpen. To redigerbare grunnhoder har separate hår-, skjegg-, hodeplagg- og øyelag, med egne hud-, hår-/skjegg- og øyefarger. De gamle hodene beholder sine innmalte detaljer; velg CUSTOM HEAD for å redigere lagene. Klassisk bygger og begge spilleres lagringer beholdes. Heroiske 80-talls kropper med altfor store muskler, ringbrynjebikini, røde støvler og bittesmå lendeklær.
 - **Grafikk**: HDR-bilde med bloom, SSAO, dybdeskarphet og fargegradering per brett, fysisk himmel med miljølys, eksponentiell tåke, støyteksturer med normalkart, 3D-steiner og hodeskaller, myke skygger, 3D-trær og gress i vinden, GPU-partikler, lyn og eksplosjoner, blod som lander og tørker inn, 3D-gibs, figurer som tar lys fra fakler og lyn, og mørke silhuetter i forgrunnen. Fem grafikknivåer (AUTO til ULTRA).
 - **Heavy metal**: 80-talls metal syntetisert i nettleseren (vrengte gitarer, dobbel stortromme, tvillinggitarer og solo), én låt per brett. En dirigent bytter låt på taktstreken og trapper bandet opp når fiendene kommer. De gamle 8-bit-låtene kan velges i innstillingene.
 - **Musikk**: 80-talls heavy metal spilt av ekte trommer, gitar og bass (opptak, CC0) gjennom forsterkere i WebAudio, med synth som reserve.
@@ -80,6 +80,7 @@ Tre knapper. Gå inn i en fiende for å gripe ham, og inn i et ledig ridedyr for
 - `docs/GDD.md` design, kart, biomer, sjefer, dueller, heltebygger, ridedyr, kjæledyr, butikk og forslag
 - `docs/ARCHITECTURE.md` hvordan koden henger sammen, og oppskrifter for nytt innhold
 - `docs/ART_PROMPTS.md` grafikkliste med ferdige prompter til ChatGPT
+- `docs/HERO_FORGE_GRAFIKK.md` filkart, egne utseendelag, hudmasker og kalibrering for heltesmia
 - `docs/CHATGPT_PROMPT.md` startprompt som lar ChatGPT styre hele grafikkjobben (sjekkliste, filnavn, kommandoer)
 - `docs/PLAN_BRETT_GORR_AI.md` plan for brettverkstedet (STAGE FORGE), gørr, bedre AI og teksturer på brettene, med bestilling til GPT
 - `tools/tests/README.md` Playwright-tester
@@ -92,6 +93,7 @@ Loincloth Legends bygger på kode og ideer fra Toms egne spill og fra åpne kild
 
 **Toms egne prosjekter**
 - Morbidium (Tombonator3000/morbidium): bildeverktøyene for ChatGPT-grafikk (maler, klipping, bakgrunn, sømmer og innboks i `tools/process_art.py` og `tools/make_templates.py`) og variasjonen i fiendene (`src/game/foes.ts`).
+- De nye utseendelagene i Hero Forge bruker Morbidium som konseptuelt forbilde: egne lerreter per fargevariant og normaliserte valg i [14_pasient.js](https://github.com/Tombonator3000/Morbidium/blob/main/src/14_pasient.js), lagplassering i [28_oppskrift.js](https://github.com/Tombonator3000/Morbidium/blob/main/src/28_oppskrift.js) og lag som følger hodet i [11_doll.js](https://github.com/Tombonator3000/Morbidium/blob/main/src/11_doll.js). Ingen kode eller kunst fra disse filene er kopiert til denne utvidelsen. Implementasjonen bruker Loincloth Legends sin eksisterende cutout-rigg og egne håndmålte hudmasker, slik at brunt lær og metall beskyttes under hudomfarging.
 - Musikksystemet (bytte på taktstreken med bro, intensitetslag, dukking og innslag i takt, `src/core/conductor.ts`), lydbanken (`src/core/soundbank.ts`), stemningen (`src/core/ambience.ts`) og fanfarene (`src/core/layers.ts`) er tilpasset fra Morbidium. Lagspilleren for syntlyd og zap-lyden bygger på Geometry 3044, og den brune støyen på The Deep Ones.
 - Skjermdråpene (`src/gfx/screenwet.ts`), sjokkbølgene, varmeflimmeret, årene ved lav helse og den brennende kanten (`src/gfx/screenfx.ts`), lyspoolen og den automatiske grafikkvaliteten (`src/app/perf.ts`) er tilpasset fra Morbidium. Målingen av bildetid bygger på The Deep Ones.
 

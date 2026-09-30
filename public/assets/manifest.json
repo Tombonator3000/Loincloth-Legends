@@ -559,17 +559,16 @@
       "shoulders": [
         [
           0.05,
-          0.21
+          0.19
         ],
         [
-          0.9,
+          0.97,
           0.22
         ]
       ],
       "neck": [
-        0.555,
-        0.12,
-        0.1
+        0.52,
+        0.12
       ]
     },
     {
@@ -1041,6 +1040,134 @@
       "char": "forge_sabre",
       "part": "weapon",
       "file": "forge_sabre_weapon.webp"
+    },
+    {
+      "char": "forge_ash",
+      "part": "arm",
+      "file": "forge_ash_arm.webp"
+    },
+    {
+      "char": "forge_ash",
+      "part": "head",
+      "file": "forge_ash_head.webp",
+      "height": 0.84
+    },
+    {
+      "char": "forge_ash",
+      "part": "leg",
+      "file": "forge_ash_leg.webp"
+    },
+    {
+      "char": "forge_ash",
+      "part": "torso",
+      "file": "forge_ash_torso.webp",
+      "anchor": [
+        0.55,
+        0.96
+      ],
+      "shoulders": [
+        [
+          0.1,
+          0.17
+        ],
+        [
+          0.94,
+          0.23
+        ]
+      ],
+      "neck": [
+        0.55,
+        0.18
+      ]
+    },
+    {
+      "char": "forge_cleaver",
+      "part": "weapon",
+      "file": "forge_cleaver_weapon.webp"
+    },
+    {
+      "char": "forge_doubleaxe",
+      "part": "weapon",
+      "file": "forge_doubleaxe_weapon.webp"
+    },
+    {
+      "char": "forge_flangedmace",
+      "part": "weapon",
+      "file": "forge_flangedmace_weapon.webp"
+    },
+    {
+      "char": "forge_maul",
+      "part": "weapon",
+      "file": "forge_maul_weapon.webp"
+    },
+    {
+      "char": "forge_warden",
+      "part": "arm",
+      "file": "forge_warden_arm.webp"
+    },
+    {
+      "char": "forge_warden",
+      "part": "head",
+      "file": "forge_warden_head.webp",
+      "height": 0.86
+    },
+    {
+      "char": "forge_warden",
+      "part": "leg",
+      "file": "forge_warden_leg.webp"
+    },
+    {
+      "char": "forge_warden",
+      "part": "torso",
+      "file": "forge_warden_torso.webp",
+      "anchor": [
+        0.55,
+        0.96
+      ],
+      "shoulders": [
+        [
+          0.1,
+          0.19
+        ],
+        [
+          0.94,
+          0.19
+        ]
+      ],
+      "neck": [
+        0.52,
+        0.12
+      ]
+    },
+    {
+      "char": "forge_ash",
+      "part": "pelvis",
+      "file": "forge_ash_pelvis.webp",
+      "anchor": [
+        0.52,
+        0.2
+      ]
+    },
+    {
+      "char": "forge_warden",
+      "part": "pelvis",
+      "file": "forge_warden_pelvis.webp",
+      "anchor": [
+        0.52,
+        0.2
+      ]
+    },
+    {
+      "char": "forge_custom_f",
+      "part": "head",
+      "file": "forge_custom_f_head.webp",
+      "height": 0.82
+    },
+    {
+      "char": "forge_custom_m",
+      "part": "head",
+      "file": "forge_custom_m_head.webp",
+      "height": 0.82
     }
   ],
   "textures": {
@@ -1083,5 +1210,71 @@
     "night": "sky_night.webp",
     "scorch": "sky_scorch.webp",
     "swamp": "sky_swamp.webp"
-  }
+  },
+  "appearance": [
+    {
+      "id": "appearance_headgear_crown",
+      "file": "appearance_headgear_crown.webp"
+    },
+    {
+      "id": "appearance_headgear_headband",
+      "file": "appearance_headgear_headband.webp"
+    },
+    {
+      "id": "appearance_headgear_horned",
+      "file": "appearance_headgear_horned.webp"
+    },
+    {
+      "id": "appearance_headgear_skull",
+      "file": "appearance_headgear_skull.webp"
+    },
+    {
+      "id": "appearance_beard_braided",
+      "file": "appearance_beard_braided.webp"
+    },
+    {
+      "id": "appearance_beard_full",
+      "file": "appearance_beard_full.webp"
+    },
+    {
+      "id": "appearance_beard_mustache",
+      "file": "appearance_beard_mustache.webp"
+    },
+    {
+      "id": "appearance_eye_natural",
+      "file": "appearance_eye_natural.webp"
+    },
+    {
+      "id": "appearance_eye_slit",
+      "file": "appearance_eye_slit.webp"
+    },
+    {
+      "id": "appearance_hair_braids",
+      "file": "appearance_hair_braids.webp"
+    },
+    {
+      "id": "appearance_hair_crop",
+      "file": "appearance_hair_crop.webp"
+    },
+    {
+      "id": "appearance_hair_long",
+      "file": "appearance_hair_long.webp"
+    },
+    {
+      "id": "appearance_hair_long_back",
+      "file": "appearance_hair_long_back.webp"
+    },
+    {
+      "id": "appearance_hair_mohawk",
+      "file": "appearance_hair_mohawk.webp"
+    },
+    {
+      "id": "appearance_hair_topknot",
+      "file": "appearance_hair_topknot.webp"
+    },
+    {
+      "id": "appearance_hair_wild",
+      "file": "appearance_hair_wild.webp"
+    }
+  ]
 }

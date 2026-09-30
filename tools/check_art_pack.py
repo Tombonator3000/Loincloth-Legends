@@ -2,7 +2,7 @@
 
 Bruk: python3 tools/check_art_pack.py (krever Pillow).
 """
-import json
+import json, re
 from pathlib import Path
 from PIL import Image
 
@@ -51,8 +51,12 @@ assert manifest['map'] == 'map.webp'
 
 names = [p['file'] for p in parts] + list(manifest['textures'].values())
 names += list(manifest['sky'].values()) + [manifest['map']]
-assert len(names) == len(set(names)) == 143 + len(forge_parts) + len(extra_textures), 'Feil antall eller doble filnavn'
-part_files = {p['file'] for p in parts}
+appearance = manifest.get('appearance', [])
+assert len(appearance) == len({a['id'] for a in appearance}), 'Doble utseendelag i manifestet'
+assert all(re.fullmatch(r'appearance_(hair|beard|headgear|eye)_[a-z0-9_]+', a['id']) for a in appearance), 'Ukjent utseendelag'
+names += [a['file'] for a in appearance]
+assert len(names) == len(set(names)) == 143 + len(forge_parts) + len(appearance) + len(extra_textures), 'Feil antall eller doble filnavn'
+part_files = {p['file'] for p in parts} | {a['file'] for a in appearance}
 for name in names:
     path = ASSETS / name
     assert path.is_file() and path.stat().st_size > 0, f'Mangler/er tom: {name}'
@@ -72,6 +76,8 @@ for name in names:
 print('OK: 89 figurdeler, 12 ridedyrdeler, 5 kjaeledyr, 28 teksturer, 8 himler og kart (143 filer).')
 total = f'{len(names)} filer totalt'
 if forge_parts:
-    print(f'OK: {len(forge_parts)} ekstra Hero Forge-deler' + ('.' if extra_textures else f' ({total}).'))
+    print(f'OK: {len(forge_parts)} ekstra Hero Forge-deler ({total}).')
+if appearance:
+    print(f'OK: {len(appearance)} separate hår-, skjegg-, hodeplagg- og øyelag.')
 if extra_textures:
-    print(f'OK: {len(extra_textures)} nye teksturer fra planen ({", ".join(sorted(extra_textures))}), {total}.')
+    print(f'OK: {len(extra_textures)} nye teksturer fra planen ({", ".join(sorted(extra_textures))}).')
