@@ -209,26 +209,40 @@ const swell = await page.evaluate(async () => {
     }
     const stop = band.swell(T, 0);
     if (!stop) return { skipped: true };
-    const buf = await ctx.startRendering();
-    const d = buf.getChannelData(0);
     // Lydstyrken i vinduer på 20 ms: når svulmen når fram (første vindu innenfor 1,5 dB av det sterkeste), og at den
-    // faller etter første slag
+    // faller etter første slag. Den syntetiske svulmen er tilfeldig støy, så energien er snittet av fire
+    // renderinger (én måling alene spriker fra -24 til -49 ms).
     const w = Math.floor(sr * 0.02);
-    const en = [];
-    for (let i = 0; i + w < d.length; i += Math.floor(w / 4)) {
-      let s = 0;
-      for (let j = i; j < i + w; j++) s += d[j] * d[j];
-      en.push([(i + w / 2) / sr, s]);
+    let en = null;
+    for (let k = 0; k < (sample ? 1 : 4); k++) {
+      let d;
+      if (k === 0) d = (await ctx.startRendering()).getChannelData(0);
+      else {
+        const c2 = new OfflineAudioContext(1, sr * 3, sr);
+        const b2 = new L.MetalBand(c2, c2.destination);
+        b2.swell(T, 0);
+        d = (await c2.startRendering()).getChannelData(0);
+      }
+      const e = [];
+      for (let i = 0; i + w < d.length; i += Math.floor(w / 4)) {
+        let s = 0;
+        for (let j = i; j < i + w; j++) s += d[j] * d[j];
+        e.push([(i + w / 2) / sr, s]);
+      }
+      en = en ? en.map((x, i) => [x[0], x[1] + e[i][1]]) : e;
     }
     const top = Math.max(...en.map((x) => x[1]));
     const arrive = en.find((x) => x[1] >= top * 0.708)[0];
+    const peakT = en.find((x) => x[1] === top)[0];
     const at = (t) => en.reduce((a, x) => (Math.abs(x[0] - t) < Math.abs(a[0] - t) ? x : a))[1];
-    return { dt: +((arrive - T) * 1000).toFixed(1), fallDb: +(10 * Math.log10(at(T + 0.25) / top)).toFixed(1) };
+    return { dt: +((arrive - T) * 1000).toFixed(1), peakDt: +((peakT - T) * 1000).toFixed(1), fallDb: +(10 * Math.log10(at(T + 0.25) / top)).toFixed(1) };
   };
   return { synth: await one(false), sample: await one(true) };
 });
-// Innenfor 1,5 dB av toppen i vinduer på 20 ms: en eksponentiell stigning når dit 30 til 40 ms før selve toppen
-check('swell (synth reverse crash) peaks on beat 1', !!swell.synth && Math.abs(swell.synth.dt) <= 45 && swell.synth.fallDb < -6, JSON.stringify(swell.synth));
+// Den syntetiske svulmen: selve toppen i snittet av fire renderinger skal ligge på første slag. (Første vindu innenfor
+// 1,5 dB av toppen, som opptaket under måles med, ligger 35 til 45 ms før på en eksponentiell stigning.)
+check('swell (synth reverse crash) peaks on beat 1', !!swell.synth && Math.abs(swell.synth.peakDt) <= 25 && swell.synth.fallDb < -6, JSON.stringify(swell.synth));
+// Innenfor 1,5 dB av toppen i vinduer på 20 ms: opptaket vokser og ligger nesten flatt etter toppen
 if (swell.sample) check('swell (VCSL cymbal) peaks on beat 1', Math.abs(swell.sample.dt) <= 45 && swell.sample.fallDb < -3, JSON.stringify(swell.sample));
 
 // ---------------------------------------------------------------- del 2: i spillet, med den ekte lydklokka
@@ -353,8 +367,9 @@ await page.evaluate(() => {
   g.goDuel({ a: g.heroSide(0, false), b: { cid: 'gorthak', name: 'GORTHAK', human: false, hp: 60, speed: 2.6, dmg: 1, skill: 0, aggression: 0 }, roundsToWin: 2, arena: 'pit' }, () => {});
 });
 await run(0.1);
-const fade = await page.evaluate(() => window.__lib.audio.fadeG.gain.value);
 const sw4 = await waitEvent('switch', 'title>duel', 4500);
+// Nivået leses etter byttet: rett etter game over står det fortsatt og stiger på lydklokka (sanntid)
+const fade = await page.evaluate(() => window.__lib.audio.fadeG.gain.value);
 check('game: duel music bridges in from the menu on a bar line', !!sw4 && sw4.step % 16 === 0 && fade > 0.5, JSON.stringify({ sw4, fade }));
 for (let i = 0; i < 40; i++) {
   await run(0.1);

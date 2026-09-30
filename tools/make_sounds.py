@@ -7,6 +7,8 @@ Kilder:
   freesound  forhåndsvisningen (hq, 128 kbps) av lyder merket Creative Commons 0 på freesound.org.
              Lisensen sjekkes på lydens egen side hver gang fila hentes; mangler CC0-lenken, stopper verktøyet.
   vcsl       Versilian Community Sample Library (CC0, github.com/sgossner/VCSL), rå WAV-filer.
+  karoryfer  Karoryfer Lecolds sine bibliotek på github.com/sfzinstruments (CC0): Black And Green Guitars (gitaren),
+             Growlybass (bassen) og Big Rusty Drums (trommene). Instrumentene i metal-musikken (src/core/metal.ts).
 
 Hver lyd får et navn, det samme som lydbanken bruker (src/core/soundbank.ts). Flere lyder med samme navn blir
 varianter (navn, navn_2, navn_3), og spillet velger tilfeldig. Instrumentprøvene heter ins_<instrument>_<n> og får
@@ -34,6 +36,7 @@ META = UT / 'sound.json'
 CACHE = ROT / '.soundcache'
 INN = ROT / 'voice' / 'inbox'
 VCSL = 'https://raw.githubusercontent.com/sgossner/VCSL/master/'
+KARORYFER_URL = 'https://raw.githubusercontent.com/sfzinstruments/'
 
 def ffmpeg():
     try:
@@ -131,6 +134,54 @@ INSTRUMENTER = {
   'gong': ('Idiophones/Struck Idiophones/Gong 1/', ['gong_f.wav'], dict(lengde=4.0, ut=1.6, tone=None, maal=-2)),
 }
 
+# ---------- instrumentprøver fra Karoryfer (CC0) ----------
+# Gitaren (en Gretsch fra Black And Green Guitars) og bassen (en Squier Jazz Bass, Growlybass) er tatt opp rent og
+# direkte, og går gjennom forsterkerne i bandet (src/core/metal.ts). Karoryfer kaller den dype E-en e3 på gitaren og
+# e2 på bassen, en oktav over vanlig notasjon, så MIDI-tonen er 12 x oktav + tone. Trommene (Big Rusty Drums) er
+# nærmikrofonen og overheadene blandet til ett opptak per slag, i et hardt lag med flere varianter (round robin), så
+# dobbel stortromme ikke høres ut som en maskin.
+def kn(navn):
+    t = {'c': 0, 'db': 1, 'd': 2, 'eb': 3, 'e': 4, 'f': 5, 'gb': 6, 'g': 7, 'ab': 8, 'a': 9, 'bb': 10, 'b': 11}
+    m = re.match(r'([a-g]b?)(\d)$', navn)
+    return 12 * int(m.group(2)) + t[m.group(1)]
+
+GITAR = 'Samples/green/'
+BRD = 'Samples/'
+def trommer(sti, mik, fil, vekter):
+    return [(f'{BRD}{sti}/{m}/{fil}', v) for m, v in zip(mik, vekter)]
+
+# instrument: (repo, [(blanding, rot), ...], valg). Blanding er [(sti, vekt), ...]. rot None = uten tone,
+# 'fft' = målt i spekteret (tammene).
+KARORYFER = {
+  'gitar': ('karoryfer.black-and-green-guitars',
+            [([(f'{GITAR}ord/twang_{n}_f_rr{r}.wav', 1)], kn(n)) for n, r in
+             [('e3', 1), ('e3', 2), ('ab3', 1), ('ab3', 2), ('c4', 1), ('c4', 2), ('e4', 1), ('e4', 2), ('ab4', 1), ('c5', 1), ('e5', 1), ('ab5', 1), ('c6', 1), ('e6', 1), ('ab6', 1), ('c7', 1)]],
+            # Lange nok til at sluttakkorden (2,6 s) ringer ut
+            dict(lengde=2.8, ut=.8, sr=32000, br='56k')),
+  'gitarkort': ('karoryfer.black-and-green-guitars',
+                [([(f'{GITAR}stac/staccato_{n}_rr{r}.wav', 1)], kn(n) + .08) for n, r in [('e3', 1), ('e3', 2), ('ab3', 1), ('c4', 1), ('e4', 1)]],
+                # For korte til å måle sikkert: samme stemming som de lange tonene på samme gitar (+8 cent)
+                dict(lengde=.45, ut=.08, sr=32000, br='56k', stem=False)),
+  'bass': ('karoryfer.growlybass',
+           [([(f'sustain/{n}_f_rr1.wav', 1)], kn(n)) for n in ['e2', 'gb2', 'a2', 'c3', 'eb3', 'gb3', 'a3']],
+           dict(lengde=1.8, ut=.4, sr=24000, br='48k')),
+  'stortromme': ('karoryfer.big-rusty-drums',
+                 [(trommer('kick_24/kick', ['kick', 'oh'], f'k_vl13_rr{r}.flac', [1, .45]), None) for r in (1, 2, 3)],
+                 dict(lengde=.55, ut=.12, sr=32000, br='64k')),
+  'skarp': ('karoryfer.big-rusty-drums',
+            [(trommer('snare_14/center', ['top', 'btm', 'oh'], f'sn_center_vl9_rr{r}.flac', [1, .3, .55]), None) for r in (1, 2, 3)],
+            dict(lengde=.7, ut=.25, sr=32000, br='64k')),
+  'tam': ('karoryfer.big-rusty-drums',
+          [(trommer(f'tom_{d}/center', ['cl', 'oh'], f't{d}_vl{v}_rr1.flac', [1, .5]), 'fft') for d, v in [('14', 5), ('15', 6)]],
+          dict(lengde=.9, ut=.3, sr=32000, br='64k')),
+  'hihat': ('karoryfer.big-rusty-drums',
+            [(trommer('hihat_14/tc', ['cl', 'oh'], f'ht_tc_vl7_rr{r}.flac', [1, .5]), None) for r in (1, 2, 3)],
+            dict(lengde=.3, ut=.12, sr=32000, br='64k')),
+  'crash': ('karoryfer.big-rusty-drums',
+            [(trommer('crash_17/cr', ['cl', 'oh'], f'cr_vl5_rr{r}.flac', [.7, 1]), None) for r in (1, 2)],
+            dict(lengde=2.6, ut=1.0, sr=32000, br='64k', maal=-3)),
+}
+
 # ---------- nett ----------
 def hent(url, sti, forsok=4):
     if sti.exists() and sti.stat().st_size > 256: return sti
@@ -192,6 +243,17 @@ def spekter(x, sr, fmin=40, fmax=300):
     S = np.abs(np.fft.rfft(w, n=n)); f = np.fft.rfftfreq(n, 1 / sr); m = (f >= fmin) & (f <= fmax)
     return float(69 + 12 * np.log2(f[m][int(np.argmax(S[m]))] / 440))
 
+def stem(x, sr, nom):
+    """Den faktiske tonehøyden rundt den oppgitte tonen (MIDI med desimaler): toppen i spekteret innenfor en
+    halv tone, med parabel mellom bøttene. Opptakene er ikke alltid rent stemt (bassen ligger rundt 30 cent høyt)."""
+    a = int(sr * .08); w = x[a:a + int(sr * 1.0)]; w = (w - w.mean()) * np.hanning(len(w)); n = 1 << 17
+    S = np.abs(np.fft.rfft(w, n=n)); f = np.fft.rfftfreq(n, 1 / sr)
+    f0 = 440 * 2 ** ((nom - 69) / 12); lo, hi = f0 * 2 ** (-.6 / 12), f0 * 2 ** (.6 / 12)
+    i0, i1 = int(np.searchsorted(f, lo)), int(np.searchsorted(f, hi)); k = i0 + int(np.argmax(S[i0:i1]))
+    y0, y1, y2 = np.log(S[k - 1] + 1e-12), np.log(S[k] + 1e-12), np.log(S[k + 1] + 1e-12)
+    d = .5 * (y0 - y2) / (y0 - 2 * y1 + y2) if (y0 - 2 * y1 + y2) != 0 else 0
+    return float(69 + 12 * np.log2((f[k] + d * (f[1] - f[0])) / 440))
+
 # ---------- hovedløkka ----------
 def lag(bare=None):
     UT.mkdir(parents=True, exist_ok=True); CACHE.mkdir(exist_ok=True)
@@ -228,6 +290,22 @@ def lag(bare=None):
             meta[fil] = {'gruppe': 'ins_' + ins, 'type': 'ins', 'sek': round(len(x) / sr, 3), 'rot': round(rot, 2) if rot is not None else None, 'sloyfe': None,
                          'kilde': 'VCSL', 'fil': mappe + f, 'side': 'https://github.com/sgossner/VCSL', 'lisens': 'CC0 1.0'}
             nye.append(fil)
+    for ins, (repo, prover, o) in KARORYFER.items():
+        for n, (blanding, rot) in enumerate(prover):
+            fil = f'ins_{ins}_{n + 1}'
+            if bare and ins not in bare and f'ins_{ins}' not in bare and fil not in bare and behold(fil):
+                meta[fil] = gammelt[fil]; continue
+            sr = o.get('sr', 32000)
+            deler = [les(hent(KARORYFER_URL + repo + '/master/' + urllib.parse.quote(sti), CACHE / 'karoryfer' / repo / sti.replace('/', '__')), sr) * v for sti, v in blanding]
+            x = np.zeros(max(len(d) for d in deler))
+            for d in deler: x[:len(d)] += d
+            x = klipp(x, sr, o.get('fra', 0), o.get('lengde'), o.get('ut'))
+            r = spekter(x, sr, 60, 400) if rot == 'fft' else (stem(x, sr, rot) if o.get('stem', True) else rot) if rot is not None else None
+            x = normaliser(x, o.get('maal', -1.0)); skriv(x, sr, o.get('br', '56k'), UT / f'{fil}.mp3')
+            meta[fil] = {'gruppe': 'ins_' + ins, 'type': 'ins', 'sek': round(len(x) / sr, 3), 'rot': round(r, 2) if r is not None else None, 'sloyfe': None,
+                         'kilde': 'Karoryfer', 'fil': ' + '.join(sti for sti, _ in blanding), 'side': f'https://github.com/sfzinstruments/{repo}', 'lisens': 'CC0 1.0'}
+            nye.append(fil)
+            print(f'  {fil:18} {len(x) / sr:5.2f} s  rot {meta[fil]["rot"]}  {blanding[0][0].split("/")[-1]}')
     META.write_text(json.dumps(meta, ensure_ascii=False, indent=1, sort_keys=True), encoding='utf-8')
     for f in UT.glob('*.mp3'):
         if f.stem not in meta: f.unlink()  # lyder som er tatt ut av lista
@@ -266,6 +344,11 @@ def kilder(meta):
     ut += ['', '## Instrumentprøver (Versilian Community Sample Library, VCSL)', '', 'Versilian Studios, CC0 1.0, https://github.com/sgossner/VCSL', '', '| Fil | Prøve |', '|---|---|']
     for k, m in sorted(meta.items()):
         if m['kilde'] == 'VCSL': ut.append(f"| `{k}.mp3` | {m['fil']} |")
+    ut += ['', '## Instrumenter i musikken (Karoryfer Lecolds, github.com/sfzinstruments)', '',
+           'Black And Green Guitars (gitaren, en Gretsch Anniversary), Growlybass (bassen, en Squier Jazz Bass) og Big Rusty Drums (trommene). CC0 1.0. Trommene er nærmikrofonen og overheadene blandet.', '',
+           '| Fil | Prøve | Bibliotek |', '|---|---|---|']
+    for k, m in sorted(meta.items()):
+        if m['kilde'] == 'Karoryfer': ut.append(f"| `{k}.mp3` | {m['fil']} | {m['side']} |")
     stemmer = sorted(k for k, m in meta.items() if m.get('type') == 'voice')
     if stemmer:
         ut += ['', '## Replikker (laget for spillet i VoiceStudio med stemmedesign, ingen kloning av ekte stemmer)', '',

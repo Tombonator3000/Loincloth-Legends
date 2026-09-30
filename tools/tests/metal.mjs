@@ -1,9 +1,10 @@
 // Offline-rendring av metal-låtene (src/core/metal.ts) i nettleseren: WAV-fil, spektrogram og målinger
 // (toppnivå, RMS, klipping, NaN og frekvensbalanse), så lyden kan sjekkes uten høyttalere.
-// Bruk: node tools/tests/metal.mjs http://localhost:4173/ ./shots [title,stage,...|all] [sekunder] [shred]
+// Bruk: node tools/tests/metal.mjs http://localhost:4173/ ./shots [title,stage,...|all] [sekunder] [shred] [real|both]
+// real: med instrumentopptakene fra lydbanken (Karoryfer), both: både synth og opptak.
 import { chromium } from 'playwright';
 import fs from 'fs';
-const [url, out, only = 'all', secsArg = '14', shredArg = ''] = process.argv.slice(2);
+const [url, out, only = 'all', secsArg = '14', shredArg = '', realArg = ''] = process.argv.slice(2);
 const secs = Number(secsArg);
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--autoplay-policy=no-user-gesture-required'] });
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
@@ -13,9 +14,19 @@ page.on('pageerror', (e) => logs.push('pageerror: ' + e.message));
 await page.goto(url + (url.includes('?') ? '&' : '?') + 'nosplash');
 await page.waitForTimeout(1500);
 const names = only === 'all' ? await page.evaluate(() => Object.keys(window.__lib.METAL_TRACKS)) : only.split(',');
+if (realArg) {
+  // Lydbanken må være pakket ut før opptakene kan brukes
+  await page.evaluate(() => window.__lib.audio.init());
+  for (let i = 0; i < 120; i++) {
+    const d = await page.evaluate(() => window.__lib.audio.bank.done);
+    if (d) break;
+    await page.waitForTimeout(500);
+  }
+  console.log('bank', JSON.stringify(await page.evaluate(() => { const b = window.__lib.audio.bank; return { ready: b.ready, total: b.total, failed: b.failed }; })));
+}
 for (const name of names) {
-  for (const shred of shredArg ? [false, true] : [false]) {
-    const r = await page.evaluate(async ({ name, secs, shred }) => {
+  for (const [shred, real] of (shredArg ? [false, true] : [false]).flatMap((sh) => (realArg === 'both' ? [false, true] : [realArg === 'real']).map((re) => [sh, re]))) {
+    const r = await page.evaluate(async ({ name, secs, shred, real }) => {
       const L = window.__lib;
       const sr = 44100;
       const ctx = new OfflineAudioContext(2, Math.floor(sr * secs), sr);
@@ -30,6 +41,7 @@ for (const name of names) {
       bus.connect(master).connect(comp).connect(ctx.destination);
       const band = new L.MetalBand(ctx, bus);
       band.shred = shred;
+      if (real) band.samples = { pick: (g, m) => L.audio.bank.pick(g, m), full: (g) => L.audio.bank.full(g) };
       const tr = L.METAL_TRACKS[name];
       const sd = 60 / tr.bpm / 4;
       for (let s = 0, t = 0.05; t < secs - 0.4; s++, t += sd) band.playStep(tr, s % tr.steps, t, sd);
@@ -129,8 +141,8 @@ for (const name of names) {
         peak: peak.toFixed(3), rmsDb: (20 * Math.log10(rms + 1e-12)).toFixed(1), clipPct: ((clip / Lc.length) * 100).toFixed(2),
         nan, dc: (dc / n).toFixed(4), width: (Math.sqrt(side / Lc.length) / (rms + 1e-12)).toFixed(2), pct,
       };
-    }, { name, secs, shred });
-    const tag = name + (shred ? '-shred' : '');
+    }, { name, secs, shred, real });
+    const tag = name + (shred ? '-shred' : '') + (real ? '-real' : '');
     fs.writeFileSync(`${out}/metal-${tag}.wav`, Buffer.from(r.wav, 'base64'));
     fs.writeFileSync(`${out}/metal-${tag}.png`, Buffer.from(r.png, 'base64'));
     console.log(tag, 'render', r.ms, 'ms', 'peak', r.peak, 'rms', r.rmsDb, 'dBFS', 'clip%', r.clipPct, 'nan', r.nan, 'dc', r.dc, 'stereo', r.width, JSON.stringify(r.pct));

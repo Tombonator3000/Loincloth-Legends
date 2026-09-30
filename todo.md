@@ -9,6 +9,12 @@
 - [ ] Tom: spill og si om grepet kommer for lett eller for tungt (i dag 0,12 s inntil fienden, AUTO_GRAB i game/grab.ts)
 - [ ] HUD-en: større og tydeligere tall og navn (livene, gullet og METAL-måleren er små)
 
+## Ekte instrumenter i musikken (fra 2026-09-30 08:10)
+- [x] Trommer, gitar og bass fra Karoryfer (CC0) spilt av bandet, synth som reserve (tools/tests/instruments.mjs)
+- [ ] Tom: lytt (MP3-ene med og uten, eller i spillet) og si hva som skal justeres: nivå på trommer, gitar og bass, mer eller mindre forvrengning, mer bunn
+- [ ] Leadgitaren: egne opptak med mer sustain (i dag er lange soloer over 2,4 s synth)
+- [ ] Når freesound.org er åpnet igjen: vurdere en ekte el-gitar med humbuckere til rytmegitaren (Gretschen er en hul gitar)
+
 ## Frostpasset som konseptbilde 4 (fra 2026-09-29 22:23)
 - [x] Kameraet nærmere og lavere (gfx/stagecam.ts), og det trekker seg bakover når en kjempe er i bildet
 - [x] Avalanche Troll: kjempe med rustning til han vakler, bakkeslag som rister, midtveis i frostpasset (tools/tests/giant.mjs)

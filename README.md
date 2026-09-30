@@ -44,6 +44,7 @@ npm run typecheck
 - **Hero Forge**: lag din egen helt (mann eller dame) fra deler. Heroiske 80-talls kropper med altfor store muskler, ringbrynjebikini, røde støvler og bittesmå lendeklær.
 - **Grafikk**: HDR-bilde med bloom, SSAO, dybdeskarphet og fargegradering per brett, fysisk himmel med miljølys, eksponentiell tåke, støyteksturer med normalkart, 3D-steiner og hodeskaller, myke skygger, 3D-trær og gress i vinden, GPU-partikler, lyn og eksplosjoner, blod som lander og tørker inn, 3D-gibs, figurer som tar lys fra fakler og lyn, og mørke silhuetter i forgrunnen. Fem grafikknivåer (AUTO til ULTRA).
 - **Heavy metal**: 80-talls metal syntetisert i nettleseren (vrengte gitarer, dobbel stortromme, tvillinggitarer og solo), én låt per brett. En dirigent bytter låt på taktstreken og trapper bandet opp når fiendene kommer. De gamle 8-bit-låtene kan velges i innstillingene.
+- **Musikk**: 80-talls heavy metal spilt av ekte trommer, gitar og bass (opptak, CC0) gjennom forsterkere i WebAudio, med synth som reserve.
 - **Lyd**: ekte opptak av slag, knas, sprut, torden, sverdklang, publikum, krigshorn, trollbrøl, ulv og fossesus (CC0) oppå synthen, fottrinn etter underlaget, stemning per brett og fanfarer for drapsrekker. Replikkene kan leses inn med stemmer laget i VoiceStudio (manus i docs/STEMMER.md).
 - **Skjerm**: blod og vann som treffer glasset og renner, sjokkbølger, kameradykk, årer ved lav helse, varmeflimmer og automatisk grafikkvalitet.
 - **METAL MODE**: drap og lemlestelse fyller en måler. Full måler gir gitarsolo, brennende våpen, hardere slag og lyn som slår ned i fiendene.
@@ -101,6 +102,7 @@ Loincloth Legends bygger på kode og ideer fra Toms egne spill og fra åpne kild
 - Musikksystemet er inspirert av iMUSE (LucasArts, Michael Land og Peter McConnell). Ingen kode eller musikk er hentet derfra. Tidsstyringen følger Chris Wilsons «A Tale of Two Clocks».
 - Lydopptak fra Freesound, alle CC0 1.0. Tittel, innspiller og lenke for hver fil står i `public/assets/sound/KILDER.md`.
 - Slagverk fra Versilian Community Sample Library (VCSL) av Versilian Studios, CC0 1.0.
+- Instrumentene i metal-musikken fra Karoryfer Lecolds (github.com/sfzinstruments), CC0 1.0: Big Rusty Drums (trommene), Black And Green Guitars (gitaren, en Gretsch) og Growlybass (bassen, en Squier Jazz Bass). Hver fil står i `public/assets/sound/KILDER.md`.
 - Skrifttyper fra Google Fonts: Metal Mania, Press Start 2P og VT323 (SIL Open Font License 1.1).
 
 Lisenstekstene ligger i `public/LICENSES/` og i `THIRD_PARTY_LICENSES.md` i bygget. Hele gjennomgangen av opphav og lisenser står i `docs/GJENBRUK.md`.

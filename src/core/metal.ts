@@ -307,6 +307,29 @@ export interface Sample { buf: AudioBuffer; lead: number }
 /** Stemt slagverk fra lydbanken (paukene): gruppe, MIDI-tone, tid, nivå og buss. Gir false når opptaket mangler. */
 export type Sampler = (group: string, midi: number, t: number, vol: number, out: AudioNode) => boolean;
 
+/** Et opptak i riktig tonehøyde: bufferet, avspillingsfarten og stillheten foran i sekunder. */
+export interface Pitched { buf: AudioBuffer; rate: number; lead: number }
+/**
+ * Instrumentopptakene fra lydbanken (Karoryfer, CC0): trommene, gitaren (rent, direkte, så den går gjennom
+ * forsterkerne under) og bassen. `full` sier om hele gruppen er lastet, så et instrument ikke bytter fra synth
+ * midt i en frase. Bandet lager kildene selv i sin egen kontekst, så det virker også ved offline-rendring.
+ */
+export interface SampleSource {
+  pick(group: string, midi: number): Pitched | null;
+  full(group: string): boolean;
+}
+
+/**
+ * Nivået på opptakene inn i bandet, satt så de ligger omtrent der synthen lå (målt med tools/tests/metal.mjs).
+ * Gitaren og bassen går inn i forvrengningen, så der er det mest hvor hardt forsterkeren kjøres.
+ */
+const REAL = { kick: 0.8, snare: 0.74, hat: 0.16, crash: 0.74, tom: 0.72, chord: 2.5, mute: 3.4, lead: 1.55, bass: 11 };
+const DRUMS = ['ins_stortromme', 'ins_skarp', 'ins_hihat', 'ins_crash', 'ins_tam'];
+const GUITARS = ['ins_gitar', 'ins_gitarkort'];
+/** Palm mute bruker de korte gitartonene opp til denne tonen, lysere toner de lange (med kort konvolutt). */
+const MUTE_TOP = 55;
+const hzToMidi = (f: number) => 69 + 12 * Math.log2(f / 440);
+
 /** Flytt en tone med hele oktaver til den ligger fra lo og opp til (men ikke med) lo + 12. */
 export function fold(m: number, lo: number) {
   return lo + ((((m - lo) % 12) + 12) % 12);
@@ -368,6 +391,8 @@ export class MetalBand {
   level: Level = 1;
   /** Pauker fra lydbanken (settes av AudioEngine). Uten den spiller bandet syntpauker. */
   sampler: Sampler | null = null;
+  /** Trommer, gitar og bass fra lydbanken (settes av AudioEngine). Uten dem spiller bandet synth, som før. */
+  samples: SampleSource | null = null;
   /** Bekkensvulmen fra lydbanken (VCSL ins_bekken_1). Uten den blir svulmen en baklengs crash i synth. */
   swellSample: (() => Sample | null) | null = null;
   private noise: AudioBuffer;
@@ -572,10 +597,36 @@ export class MetalBand {
     return g;
   }
 
+  // ---------------------------------------------------------------- opptak
+  /** Er alle gruppene lastet (og opptakene slått på)? */
+  private real(groups: string[]) {
+    const s = this.samples;
+    return !!s && groups.every((g) => s.full(g));
+  }
+
+  /** Start et opptak ved t med nivå og buss. Med d stopper det etter d sekunder med en kort uttoning. */
+  private voice(p: Pitched, t: number, vol: number, out: AudioNode, d = 0, rel = 0.06) {
+    const c = this.ctx;
+    const src = c.createBufferSource();
+    src.buffer = p.buf;
+    src.playbackRate.value = p.rate;
+    const g = c.createGain();
+    g.gain.value = vol;
+    src.connect(g).connect(out);
+    src.start(t, Math.min(p.lead, Math.max(0, p.buf.duration - 0.01)));
+    if (d > 0) {
+      g.gain.setValueAtTime(vol, t + d);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d + rel);
+      src.stop(t + d + rel + 0.02);
+    }
+    return { src, g };
+  }
+
   // ---------------------------------------------------------------- gitarer
   /** Kraftakkord (grunntone, kvint og oktav) på begge gitarene. Palm mute er mørk og kort. Bassen følger med. */
   powerChord(t: number, root: number, dur: number, open: boolean, vel = 1, withBass = true) {
     const c = this.ctx;
+    const real = this.real(GUITARS);
     this.rhythm.forEach((_amp, side) => {
       const input = this.sec.r[side];
       const t0 = t + side * 0.007;
@@ -597,6 +648,17 @@ export class MetalBand {
       f.connect(g).connect(input);
       const notes = open ? [0, 7, 12] : [0, 7];
       const cents = side ? [-4, 5, 3] : [2, -2, -3];
+      // Ekte gitar: én ren tone per streng inn i forvrengningen, som på en ekte forsterker (plekteret er i opptaket)
+      if (real) {
+        notes.forEach((iv, k) => {
+          const m = root + iv;
+          const p = this.samples!.pick(open || m > MUTE_TOP ? 'ins_gitar' : 'ins_gitarkort', m);
+          if (!p) return;
+          const v = this.voice(p, t0, open ? REAL.chord : REAL.mute, f, len + 0.08, 0.04);
+          v.src.detune.value = cents[k];
+        });
+        return;
+      }
       notes.forEach((iv, k) => {
         const o = c.createOscillator();
         o.type = 'sawtooth';
@@ -625,6 +687,14 @@ export class MetalBand {
     f.frequency.setValueAtTime(1400, t);
     f.frequency.exponentialRampToValueAtTime(380, t + dur + 0.05);
     f.connect(g).connect(this.sec.bass);
+    // Ekte bass (en Jazz Bass tatt opp direkte) inn i den samme knurren og lavpasset
+    if (this.real(['ins_bass'])) {
+      const p = this.samples!.pick('ins_bass', m);
+      if (p) {
+        this.voice(p, t, REAL.bass, f, dur + 0.06, 0.04);
+        return;
+      }
+    }
     for (const type of ['sawtooth', 'sine'] as const) {
       const o = c.createOscillator();
       o.type = type;
@@ -661,6 +731,21 @@ export class MetalBand {
       vg.gain.linearRampToValueAtTime(bend ? 22 : 30, t + 0.3);
     }
     vib.connect(vg);
+    // Ekte gitar: vibrato og bend på detune (cent). Lange toner (over 2,4 s) spilles av synthen.
+    if (dur < 2.4 && this.real(['ins_gitar'])) {
+      const p = this.samples!.pick('ins_gitar', m);
+      if (p) {
+        const v = this.voice(p, t, REAL.lead, g, dur + 0.08, 0.05);
+        if (bend) {
+          v.src.detune.setValueAtTime(0, t);
+          v.src.detune.linearRampToValueAtTime(bend * 100, t + Math.min(0.18, dur * 0.4));
+        }
+        vg.connect(v.src.detune);
+        vib.start(t);
+        vib.stop(t + dur + 0.1);
+        return;
+      }
+    }
     for (const [type, det] of [['sawtooth', 0], ['square', 7]] as const) {
       const o = c.createOscillator();
       o.type = type;
@@ -680,6 +765,13 @@ export class MetalBand {
 
   // ---------------------------------------------------------------- trommer
   kick(t: number, vel = 1, dest: AudioNode = this.drums) {
+    if (this.real(DRUMS)) {
+      const p = this.samples!.pick('ins_stortromme', 36);
+      if (p) {
+        this.voice(p, t, REAL.kick * vel, dest);
+        return;
+      }
+    }
     const c = this.ctx;
     const o = c.createOscillator();
     o.frequency.setValueAtTime(170, t);
@@ -696,6 +788,17 @@ export class MetalBand {
   }
 
   snare(t: number, vel = 1) {
+    if (this.real(DRUMS)) {
+      const p = this.samples!.pick('ins_skarp', 60);
+      if (p) {
+        // Litt av den korte romklangen også på den ekte skarptromma: det er lyden fra 1986
+        const v = this.voice(p, t, REAL.snare * vel, this.drums);
+        const send = this.ctx.createGain();
+        send.gain.value = 0.55;
+        v.g.connect(send).connect(this.gate);
+        return;
+      }
+    }
     const c = this.ctx;
     const n = this.noiseAt(t, 0.25, this.drums, 'highpass', 1100, 0.55 * vel, 0.2);
     n.connect(this.gate);
@@ -714,16 +817,40 @@ export class MetalBand {
   }
 
   hat(t: number, vel = 1) {
+    if (this.real(DRUMS)) {
+      const p = this.samples!.pick('ins_hihat', 60);
+      if (p) {
+        this.voice(p, t, REAL.hat * vel, this.drums);
+        return;
+      }
+    }
     this.noiseAt(t, 0.05, this.drums, 'highpass', 7500, 0.22 * vel, 0.04);
   }
 
   crash(t: number, vel = 1, dest: AudioNode = this.drums) {
+    if (this.real(DRUMS)) {
+      const p = this.samples!.pick('ins_crash', 60);
+      if (p) {
+        const v = this.voice(p, t, REAL.crash * vel, dest);
+        v.g.connect(this.hall);
+        return;
+      }
+    }
     const g = this.noiseAt(t, 1.7, dest, 'highpass', 3800, 0.4 * vel, 1.6);
     g.connect(this.hall);
     this.noiseAt(t, 0.6, dest, 'bandpass', 6200, 0.25 * vel, 0.5, 3);
   }
 
   tom(t: number, pitch: number, vel = 1) {
+    if (this.real(DRUMS)) {
+      // To tammer i opptak (14 og 15 tommer): den nærmeste stemmes til tonen
+      const p = this.samples!.pick('ins_tam', hzToMidi(pitch));
+      if (p) {
+        const v = this.voice(p, t, REAL.tom * vel, this.drums);
+        v.g.connect(this.gate);
+        return;
+      }
+    }
     const c = this.ctx;
     const o = c.createOscillator();
     o.frequency.setValueAtTime(pitch, t);

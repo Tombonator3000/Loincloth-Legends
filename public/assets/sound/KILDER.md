@@ -82,3 +82,51 @@ Versilian Studios, CC0 1.0, https://github.com/sgossner/VCSL
 | `ins_pauke_2.mp3` | Membranophones/Struck Membranophones/Timpani 1/Hit/Timpani3_Hit_v3_rr1_Sum.wav |
 | `ins_pauke_3.mp3` | Membranophones/Struck Membranophones/Timpani 1/Hit/Timpani5_Hit_v3_rr1_Sum.wav |
 | `ins_paukevirvel_1.mp3` | Membranophones/Struck Membranophones/Timpani 1/Roll/Timpani3_Roll_v3_rr1_Sum.wav |
+
+## Instrumenter i musikken (Karoryfer Lecolds, github.com/sfzinstruments)
+
+Black And Green Guitars (gitaren, en Gretsch Anniversary), Growlybass (bassen, en Squier Jazz Bass) og Big Rusty Drums (trommene). CC0 1.0. Trommene er nærmikrofonen og overheadene blandet.
+
+| Fil | Prøve | Bibliotek |
+|---|---|---|
+| `ins_bass_1.mp3` | sustain/e2_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.growlybass |
+| `ins_bass_2.mp3` | sustain/gb2_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.growlybass |
+| `ins_bass_3.mp3` | sustain/a2_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.growlybass |
+| `ins_bass_4.mp3` | sustain/c3_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.growlybass |
+| `ins_bass_5.mp3` | sustain/eb3_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.growlybass |
+| `ins_bass_6.mp3` | sustain/gb3_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.growlybass |
+| `ins_bass_7.mp3` | sustain/a3_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.growlybass |
+| `ins_crash_1.mp3` | Samples/crash_17/cr/cl/cr_vl5_rr1.flac + Samples/crash_17/cr/oh/cr_vl5_rr1.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_crash_2.mp3` | Samples/crash_17/cr/cl/cr_vl5_rr2.flac + Samples/crash_17/cr/oh/cr_vl5_rr2.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_gitar_1.mp3` | Samples/green/ord/twang_e3_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitar_10.mp3` | Samples/green/ord/twang_c5_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitar_11.mp3` | Samples/green/ord/twang_e5_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitar_12.mp3` | Samples/green/ord/twang_ab5_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitar_13.mp3` | Samples/green/ord/twang_c6_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitar_14.mp3` | Samples/green/ord/twang_e6_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitar_15.mp3` | Samples/green/ord/twang_ab6_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitar_16.mp3` | Samples/green/ord/twang_c7_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitar_2.mp3` | Samples/green/ord/twang_e3_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitar_3.mp3` | Samples/green/ord/twang_ab3_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitar_4.mp3` | Samples/green/ord/twang_ab3_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitar_5.mp3` | Samples/green/ord/twang_c4_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitar_6.mp3` | Samples/green/ord/twang_c4_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitar_7.mp3` | Samples/green/ord/twang_e4_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitar_8.mp3` | Samples/green/ord/twang_e4_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitar_9.mp3` | Samples/green/ord/twang_ab4_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitarkort_1.mp3` | Samples/green/stac/staccato_e3_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitarkort_2.mp3` | Samples/green/stac/staccato_e3_rr2.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitarkort_3.mp3` | Samples/green/stac/staccato_ab3_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitarkort_4.mp3` | Samples/green/stac/staccato_c4_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_gitarkort_5.mp3` | Samples/green/stac/staccato_e4_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_hihat_1.mp3` | Samples/hihat_14/tc/cl/ht_tc_vl7_rr1.flac + Samples/hihat_14/tc/oh/ht_tc_vl7_rr1.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_hihat_2.mp3` | Samples/hihat_14/tc/cl/ht_tc_vl7_rr2.flac + Samples/hihat_14/tc/oh/ht_tc_vl7_rr2.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_hihat_3.mp3` | Samples/hihat_14/tc/cl/ht_tc_vl7_rr3.flac + Samples/hihat_14/tc/oh/ht_tc_vl7_rr3.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_skarp_1.mp3` | Samples/snare_14/center/top/sn_center_vl9_rr1.flac + Samples/snare_14/center/btm/sn_center_vl9_rr1.flac + Samples/snare_14/center/oh/sn_center_vl9_rr1.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_skarp_2.mp3` | Samples/snare_14/center/top/sn_center_vl9_rr2.flac + Samples/snare_14/center/btm/sn_center_vl9_rr2.flac + Samples/snare_14/center/oh/sn_center_vl9_rr2.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_skarp_3.mp3` | Samples/snare_14/center/top/sn_center_vl9_rr3.flac + Samples/snare_14/center/btm/sn_center_vl9_rr3.flac + Samples/snare_14/center/oh/sn_center_vl9_rr3.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_stortromme_1.mp3` | Samples/kick_24/kick/kick/k_vl13_rr1.flac + Samples/kick_24/kick/oh/k_vl13_rr1.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_stortromme_2.mp3` | Samples/kick_24/kick/kick/k_vl13_rr2.flac + Samples/kick_24/kick/oh/k_vl13_rr2.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_stortromme_3.mp3` | Samples/kick_24/kick/kick/k_vl13_rr3.flac + Samples/kick_24/kick/oh/k_vl13_rr3.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_tam_1.mp3` | Samples/tom_14/center/cl/t14_vl5_rr1.flac + Samples/tom_14/center/oh/t14_vl5_rr1.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
+| `ins_tam_2.mp3` | Samples/tom_15/center/cl/t15_vl6_rr1.flac + Samples/tom_15/center/oh/t15_vl6_rr1.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |

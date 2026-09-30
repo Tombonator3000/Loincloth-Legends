@@ -277,6 +277,10 @@ Lag stemmen i VoiceStudio etter `docs/STEMMER.md`, legg WAV-fila i `voice/inbox/
 
 Ny 8-bit-låt: legg `scale` (tonehøydeklassene) i `TRACKS` i `audio.ts`. Grunntonene regnes ut fra bassen.
 
+### Ekte instrumenter i bandet
+
+`MetalBand.samples` (en `SampleSource`, satt av `AudioEngine`) gir opptak fra lydbanken: `pick(gruppe, midi)` velger opptaket nærmest tonen og regner ut avspillingsfarten (varianter med samme tone velges tilfeldig), og `full(gruppe)` sier om hele gruppen er lastet. Bandet lager kildene selv i sin egen kontekst, så det virker også i OfflineAudioContext (testene). Gruppene er `ins_stortromme`, `ins_skarp`, `ins_hihat`, `ins_crash`, `ins_tam` (trommene bytter først når hele settet er lastet), `ins_gitar` og `ins_gitarkort` (gitaren, ren og direkte, én tone per streng inn i forvrengningen, så kraftakkorder og palm mute blir ekte), og `ins_bass`. Leadgitaren får vibrato og bend på `detune`. Nivåene i `REAL` (metal.ts) er målt så hvert instrument ligger omtrent der synthen lå. Uten opptak (RECORDED SOUNDS av, enkeltfil-bygget, før lasting) spiller bandet synth som før. Opptakene lages av `tools/make_sounds.py` (KARORYFER), som måler tonehøyden i hvert opptak, og `tools/tests/instruments.mjs` sjekker lasting, tonehøyde, nivå og reserve. `tools/tests/metal.mjs ... both` rendrer låtene med og uten.
+
 ## Oppstartslogo
 
 `ui/splash.ts` viser først "PRESS ANY KEY" (nettleseren gir ikke lyd før brukeren har trykket), så faller logoen ned med trommevirvel, solstråler, konfetti og fanfare (`audio.fanfare()`). Den hoppes over i automatiske tester (`navigator.webdriver`) og med `?nosplash`. `?splash` tvinger den frem. Originalbildet ligger i `art/studio/`, og en komprimert versjon i `src/assets/studio-logo.webp` bygges inn i spillet.

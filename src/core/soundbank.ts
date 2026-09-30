@@ -193,6 +193,38 @@ export class SoundBank {
     return !!L && L.some((k) => this.buf.has(k));
   }
 
+  /** Er alle filene i gruppen klare? Instrumentene i bandet bytter fra synth først når hele gruppen er lastet. */
+  full(group: string) {
+    if (!this.on || !this.ctx) return false;
+    const L = this.groups[group];
+    return !!L && L.length > 0 && L.every((k) => this.buf.has(k));
+  }
+
+  /**
+   * Opptaket nærmest en tone i gruppen, med avspillingsfarten som gir tonen (opptak uten tone spilles som de er).
+   * Varianter med samme tone (round robin) velges tilfeldig, aldri den samme to ganger på rad.
+   */
+  pick(group: string, midi: number): { buf: AudioBuffer; rate: number; lead: number } | null {
+    if (!this.on) return null;
+    const L = (this.groups[group] ?? []).filter((k) => this.buf.has(k));
+    if (!L.length) return null;
+    let bd = Infinity;
+    let best: string[] = [];
+    for (const k of L) {
+      const r = this.meta[k].rot;
+      const d = r == null ? 0 : Math.abs(r - midi);
+      if (d < bd - 0.25) {
+        bd = d;
+        best = [k];
+      } else if (d <= bd + 0.25) best.push(k);
+    }
+    let k = best[Math.floor(Math.random() * best.length)];
+    if (best.length > 1 && k === this.last[group]) k = best[(best.indexOf(k) + 1) % best.length];
+    this.last[group] = k;
+    const root = this.meta[k].rot ?? midi;
+    return { buf: this.buf.get(k)!, rate: Math.pow(2, (midi - root) / 12), lead: this.lead.get(k) ?? 0 };
+  }
+
   /** Er akkurat denne filen klar? */
   hasFile(name: string) {
     return this.on && !!this.ctx && this.buf.has(name);

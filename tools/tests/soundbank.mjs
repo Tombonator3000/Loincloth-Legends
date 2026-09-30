@@ -132,7 +132,9 @@ const realErrors = (logs) => logs.filter((l) => (l.startsWith('pageerror') || l.
   await run(0.6);
   played = await page.evaluate(() => window.__lib.audio.bank.played);
   check('lightning projectile (METAL MODE, boss) is thunder and zap', played.torden > 0 && played.zap > 0, JSON.stringify(played));
-  // Tordenmagi
+  // Tordenmagi. Først litt ekte tid: torden har en sperre på lydklokka (ok('thunder', 0.08)), og spilltiden over
+  // spoles fortere enn den, så ellers kan lynet fra sjekken over sperre det første nedslaget.
+  await page.waitForTimeout(300);
   await page.evaluate(() => {
     const st = window.__game.scene.stage, h = st.heroes[0];
     h.magic = 'thunder';
