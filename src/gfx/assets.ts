@@ -29,6 +29,8 @@ export interface PartOverride {
   neck?: [number, number] | [number, number, number];
   /** Hoder: tegnes foran overkroppen (langt skjegg som henger over brystet). Ellers ligger hodet bak halsen på overkroppen. */
   front?: boolean;
+  /** Bildet før halsstumpen ble tonet ut (canvas er den uttonede versjonen). Relieffet regnes fra dette. */
+  full?: HTMLCanvasElement;
 }
 
 /** Samme bilde i en annen høyde. Leddpunktet følger med. Riggene bruker den til høyder regnet ut fra leddene. */
@@ -96,8 +98,9 @@ const DEFAULT_H: Record<PartKey, number> = {
   body: 0.6,
   tail: 0.6,
 };
-/** Heltene (lange bein, store armer, stort hår) har egne standardhøyder. */
+/** Heltene og nye forge_-deler følger samme rigg og beltebredde. */
 const HERO_IDS = new Set(['thrugg', 'valkyra']);
+const isHeroArt = (id: string) => HERO_IDS.has(id) || id.startsWith('forge_');
 /** Kropp, arm og bein følger proporsjonene i chars/types.ts, så PNG-deler og tegnede deler passer sammen. */
 const HERO_H: Partial<Record<PartKey, number>> = {
   // PNG-hoder i karikaturstil har stort hår, så hele bildet blir høyere enn det tegnede hodet
@@ -250,6 +253,37 @@ function gripPoint(cv: HTMLCanvasElement): [number, number] {
   return [(mid[Math.round(gy)] + 0.5) / W, gy / H];
 }
 
+/**
+ * Ton ut halsstumpen på en malt overkropp over halsroten (u, v, halv bredde r, brøk av bildet). ChatGPT har tegnet hals
+ * både på hodet og på overkroppen. Hodet ligger bak overkroppen, så uten dette synes toppen av stumpen (en flat kant
+ * eller en kule) foran hodets hals. Stumpen er helt borte et stykke over halsroten og kommer gradvis inn ned mot den.
+ */
+function fadeNeck(src: HTMLCanvasElement, u: number, v: number, r: number) {
+  const W = src.width, H = src.height;
+  const cv = document.createElement('canvas');
+  cv.width = W;
+  cv.height = H;
+  const c = cv.getContext('2d', { willReadFrequently: true })!;
+  c.drawImage(src, 0, 0);
+  const y1 = Math.min(H, Math.round(v * H)), y0 = Math.max(0, Math.round((v - 0.07) * H));
+  const x0 = Math.max(0, Math.floor((u - r) * W)), x1 = Math.min(W, Math.ceil((u + r) * W));
+  if (y1 < 1 || x1 <= x0) return cv;
+  const img = c.getImageData(x0, 0, x1 - x0, y1);
+  const d = img.data, bw = x1 - x0;
+  const ease = (t: number) => t * t * (3 - 2 * t);
+  for (let y = 0; y < y1; y++) {
+    const down = ease(Math.min(1, Math.max(0, (y - y0) / Math.max(1, y1 - y0))));
+    for (let x = x0; x < x1; x++) {
+      // Myk kant til sidene også: full virkning i midten, ingen ytterst i vinduet
+      const e = Math.abs(x + 0.5 - u * W) / (r * W);
+      const side = ease(Math.min(1, Math.max(0, (e - 0.7) / 0.3)));
+      d[(y * bw + x - x0) * 4 + 3] *= Math.max(down, side);
+    }
+  }
+  c.putImageData(img, x0, 0);
+  return cv;
+}
+
 /** Bredden på beltet øverst i en hoftedel, i piksler: bredeste rad blant de øverste 8 prosentene. */
 function beltWidth(cv: HTMLCanvasElement) {
   const rows = Math.max(1, Math.round(cv.height * 0.08));
@@ -302,9 +336,9 @@ export async function loadAssets(base = './assets/') {
         .then((img) => {
           const cv = trim(img);
           const beast = BEAST_IDS.has(p.char);
-          let h = p.height ?? (beast ? BEAST_H[p.part] : HERO_IDS.has(p.char) ? HERO_H[p.part] : undefined) ?? DEFAULT_H[p.part] ?? 1;
+          let h = p.height ?? (beast ? BEAST_H[p.part] : isHeroArt(p.char) ? HERO_H[p.part] : undefined) ?? DEFAULT_H[p.part] ?? 1;
           let fixedH = p.height !== undefined;
-          if (!fixedH && p.part === 'pelvis' && HERO_IDS.has(p.char)) {
+          if (!fixedH && p.part === 'pelvis' && isHeroArt(p.char)) {
             const bw = beltWidth(cv);
             if (bw > 0) {
               h = Math.min(1.2, Math.max(0.25, (HERO_BELT_W * cv.height) / bw));
@@ -319,7 +353,11 @@ export async function loadAssets(base = './assets/') {
           const shoulders = p.part === 'torso' && !beast ? (p.shoulders ?? SHOULDERS) : undefined;
           const w = (cv.width / cv.height) * h;
           const neck = p.part === 'torso' && !beast ? p.neck : undefined;
-          parts.set(p.char + ':' + p.part, { canvas: cv, w, h, ox: ax * w, oy: (1 - ay) * h, ax, ay, fixedH, hand, shoulders, neck, front: p.front });
+          // Halsstumpen tones ut her, så riggen, smia og testene bruker samme bilde. Originalen beholdes til relieffet.
+          const faded = neck?.[2] ? fadeNeck(cv, neck[0], neck[1], neck[2]) : undefined;
+          parts.set(p.char + ':' + p.part, {
+            canvas: faded ?? cv, full: faded ? cv : undefined, w, h, ox: ax * w, oy: (1 - ay) * h, ax, ay, fixedH, hand, shoulders, neck, front: p.front,
+          });
           n++;
         })
         .catch((e) => console.warn(e)),

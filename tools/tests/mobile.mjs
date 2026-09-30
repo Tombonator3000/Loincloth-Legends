@@ -34,7 +34,7 @@ await run(0.4);
 console.log('after story', JSON.stringify(await st()));
 await shot('mob2-forge');
 // DONE-raden i Hero Forge
-await tapSel('.creator .cr-row:last-child');
+await tapSel('.creator .cr-row[data-key="done"]');
 await run(0.5);
 console.log('after done', JSON.stringify(await st()));
 await tapAt(420, 200); // hopp over intro

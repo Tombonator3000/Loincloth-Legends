@@ -67,37 +67,6 @@ function armTurn(ch: CharDef, ov: PartOverride) {
   return Math.atan2(hy, hx) - Math.atan2(-dy, dx);
 }
 
-/**
- * Ton ut halsstumpen på en malt overkropp over halsroten (u, v, halv bredde r, brøk av bildet). ChatGPT har tegnet hals
- * både på hodet og på overkroppen. Hodet ligger bak overkroppen, så uten dette synes toppen av stumpen (en flat kant
- * eller en kule) foran hodets hals. Stumpen er helt borte et stykke over halsroten og kommer gradvis inn ned mot den.
- */
-function fadeNeck(src: HTMLCanvasElement, u: number, v: number, r: number) {
-  const W = src.width, H = src.height;
-  const cv = document.createElement('canvas');
-  cv.width = W;
-  cv.height = H;
-  const c = cv.getContext('2d', { willReadFrequently: true })!;
-  c.drawImage(src, 0, 0);
-  const y1 = Math.min(H, Math.round(v * H)), y0 = Math.max(0, Math.round((v - 0.07) * H));
-  const x0 = Math.max(0, Math.floor((u - r) * W)), x1 = Math.min(W, Math.ceil((u + r) * W));
-  if (y1 < 1 || x1 <= x0) return cv;
-  const img = c.getImageData(x0, 0, x1 - x0, y1);
-  const d = img.data, bw = x1 - x0;
-  const ease = (t: number) => t * t * (3 - 2 * t);
-  for (let y = 0; y < y1; y++) {
-    const down = ease(Math.min(1, Math.max(0, (y - y0) / Math.max(1, y1 - y0))));
-    for (let x = x0; x < x1; x++) {
-      // Myk kant til sidene også: full virkning i midten, ingen ytterst i vinduet
-      const e = Math.abs(x + 0.5 - u * W) / (r * W);
-      const side = ease(Math.min(1, Math.max(0, (e - 0.7) / 0.3)));
-      d[(y * bw + x - x0) * 4 + 3] *= Math.max(down, side);
-    }
-  }
-  c.putImageData(img, x0, 0);
-  return cv;
-}
-
 export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
   const k = ch.id + ':' + key;
   let a = cache.get(k);
@@ -108,7 +77,6 @@ export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
     let turn = 0;
     let shoulders: [V2, V2] | undefined;
     let neck: V2 | undefined;
-    let canvas = ov?.canvas;
     if (ov) {
       const h = rigHeight(ch, key, def, ov);
       if (h) ov = resized(ov, h);
@@ -116,10 +84,7 @@ export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
       const o = ov;
       const at = ([u, v]: readonly number[]): V2 => [(u - o.ax) * o.w, (o.ay - v) * o.h];
       if (key === 'torso' && ov.shoulders) shoulders = [at(ov.shoulders[0]), at(ov.shoulders[1])];
-      if (key === 'torso' && ov.neck) {
-        neck = at(ov.neck);
-        if (ov.neck[2]) canvas = fadeNeck(ov.canvas, ov.neck[0], ov.neck[1], ov.neck[2]);
-      }
+      if (key === 'torso' && ov.neck) neck = at(ov.neck);
       def = { w: ov.w, h: ov.h, ox: ov.ox, oy: ov.oy, draw: () => {} };
     }
     // Store figurer (sjefer, kjempetrollet) tegnes med flere piksler per enhet, så de ikke blir uskarpe, og med
@@ -127,10 +92,11 @@ export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
     const big = Math.max(1, ch.scale / 1.2);
     const ppu = Math.round(PPU * big);
     // Tynnere strek enn standard: figurene skal se malte ut, ikke tegnet (docs/STYLE_TARGET.md)
-    const cv = canvas ?? unitCanvas(def.w, def.h, def.ox, def.oy, ppu, def.draw, INK_W / big);
+    const cv = ov ? ov.canvas : unitCanvas(def.w, def.h, def.ox, def.oy, ppu, def.draw, INK_W / big);
     // Normal- og glanskart ut fra tegningen (volum, muskelfurer, olje på huden), se gfx/charlight.ts.
-    // Lages før strekene farges, fordi relieffet bruker blekkstrekene som furer.
-    const relief = reliefTexture(cv, ov ? cv.width / def.w : ppu, ch.skin, !!ov);
+    // Lages før strekene farges, fordi relieffet bruker blekkstrekene som furer. En malt overkropp med uttonet
+    // halsstump får relieffet fra det opprinnelige bildet (full): ellers blir kanten på uttoningen en ny ytterkant med kantlys.
+    const relief = reliefTexture(ov?.full ?? cv, ov ? cv.width / def.w : ppu, ch.skin, !!ov);
     if (!ov) paintInk(cv);
     const tex = new THREE.CanvasTexture(cv);
     // sRGB: sampleren dekoder til lineært lys, så figurene passer inn i HDR-pipelinen (gfx/post.ts)

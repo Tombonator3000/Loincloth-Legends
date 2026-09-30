@@ -1,23 +1,19 @@
 # Beskjed til GPT om figurene (30. september 2026)
 
-Riggen er endret, så delene til heltesmia (listen i `docs/HERO_FORGE_GRAFIKK.md` i PR #2) må tegnes etter nye regler. Kort fortalt:
+Riggen er endret, så nye deler til heltesmia (og nye figurer) må tegnes etter nye regler. Kort fortalt:
 
 - Våpenarmen henger nå fra den nære skulderen, som er til venstre i overkroppsbildet, og tegnes foran brystet. Den andre armen henger fra den fjerne skulderen til høyre og ligger bak overkroppen.
 - Hodet ligger bak overkroppen, så halsen går inn under kragen. Hoder med langt skjegg ligger foran (`"front": true`).
 - Halsen hører til hodet. En ny overkropp skal ikke ha halsstump.
 - Hver overkropp får målte skulderledd og halsrot i manifestet (`shoulders` og `neck`). Riggen fester armene og hodet akkurat der.
-- PR #2 er laget før dette og før våpnene i neven (commit 8001aee). GPT må ta inn main i grenen sin før den bygger videre.
+- PR #2 og #3 (delepoolen og ork- og frostdelene) er slått sammen med dette i main. De fire overkroppene fra smia har fått målte `shoulders` og `neck`, og alle blandingene i artcheck og hero-forge-testen er grønne.
 
-Kopier alt i kodeblokken under og send det til GPT (Codex) i samtalen der den jobber med PR #2. Reglene står også i `docs/CHATGPT_PROMPT.md` (del 3, 8.2, 8.4, 8.6 og 13), så en ny ChatGPT-samtale med startprompten får dem automatisk.
+Kopier alt i kodeblokken under og send det til GPT (Codex) før den lager flere deler. Reglene står også i `docs/CHATGPT_PROMPT.md` (del 3, 8.2, 8.4, 8.6 og 13), så en ny ChatGPT-samtale med startprompten får dem automatisk.
 
 ````text
 UPDATE FROM THE GAME CODE (30 September): how the figures are assembled now. Follow it for every new part, including the Hero Forge parts in docs/HERO_FORGE_GRAFIKK.md.
 
-0. Branch first. Merge main into codex/hero-forge-part-pool before you change anything else. Main changed the rig (arms, head, neck, manifest fields), the attack poses and the art rules in docs/CHATGPT_PROMPT.md (sections 3, 8.2, 8.4, 8.6 and 13). Expected conflicts:
-   - src/gfx/chars/hero.ts: keep your part pool (parts, withHeroParts). Drop lookKey and WEAPON_ART from main; the pool replaces them. Keep forge_warhammer as the WARHAMMER art.
-   - src/app/debug.ts: keep both sets of exports.
-   - log.md, memory.md, todo.md and the docs: keep both sides, oldest entry first.
-   Then change only the Hero Forge checks at the end of tools/tests/artcheck.mjs to fit the part pool. Every other check in artcheck must stay green.
+0. Start from main. Your part pool (PR #2 and #3) is merged there together with a new rig: arms, head, neck, manifest fields, attack poses and the art rules in docs/CHATGPT_PROMPT.md (sections 3, 8.2, 8.4, 8.6 and 13). Pull main before you make or register new parts. The four forge torsos already have measured "shoulders" and "neck".
 
 1. View. Every character stands in 3/4 view facing right. The near shoulder (the character's right shoulder) is on the LEFT side of the torso image. The weapon arm hangs from there and is drawn in front of the chest. The far arm hangs from the RIGHT shoulder and is drawn behind the torso.
 
@@ -39,11 +35,12 @@ UPDATE FROM THE GAME CODE (30 September): how the figures are assembled now. Fol
    Heads with a long beard: "front": true. Arms whose fist is not the lowest point: "hand": [x, y].
    process_art.py deletes shoulders, neck and hand when a part gets a new image, because they belong to the old one. Measure again.
 
-7. Check before you commit: npm run typecheck, npm run build, python3 tools/check_art_pack.py, and node tools/tests/artcheck.mjs http://localhost:4173/ ./shots. Look at the gallery in ./shots: the blue dot is the weapon shoulder, red the fist, green the neck. The weapon arm must cover the socket, the head must sit on its neck, and the weapon must sit in the fist.
+7. Check before you commit: npm run typecheck, npm run build, python3 tools/check_art_pack.py, node tools/tests/hero-forge.mjs http://localhost:4173/ and node tools/tests/artcheck.mjs http://localhost:4173/ ./shots. Add every new forge torso to the mixes in artcheck. Look at the gallery in ./shots: the blue dot is the weapon shoulder, red the fist, green the neck. The weapon arm must cover the socket, the head must sit on its neck, and the weapon must sit in the fist.
 
 8. Existing art to redo when there is time:
    - hogmother_torso: cut off along the right edge of the image (499 of 591 rows reach the edge).
    - imp_arm: the arm is thinner than the shoulder knob on imp_torso, so part of the knob shows.
    - gorthak_arm: the shoulder cap is narrower than the socket under the pauldron on gorthak_torso.
-   - All the old torsos have neck columns. They work now (the game fades them out), but new versions should follow rule 2.
+   - All the old torsos, and the four forge torsos, have neck columns. They work now (the game fades them out), but new versions should follow rule 2.
+   - forge_leather_torso and forge_frost_torso have a cut cylinder socket on the near shoulder. The arms cover it at rest, but a rounded shoulder (rule 2) is safer when the arm swings.
 ````

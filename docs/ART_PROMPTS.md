@@ -177,7 +177,7 @@ Lim inn beskrivelsen, så templatet for delen du vil lage. Kolonnen "Deler" vise
 | `magmor` | `Character: MAGMOR THE MOLTEN, a lava golem boss made of black and dark grey rock chunks with glowing orange lava cracks, small blocky head with glowing yellow eyes and a lava mouth, flames on top of the head, huge rock fists. No weapon.` | head, torso, pelvis, arm, leg |
 | `vorthax` | `Character: VORTHAX THE MODERATELY EVIL, an old sorcerer villain. Purple robes with gold trim and dots, tall purple pointy hat with a small skull, long white beard, glowing red eyes, pale wrinkled skin, wide sleeves. Weapon: a crooked wooden staff with a glowing cyan orb.` | head, torso, pelvis, arm, leg, weapon |
 
-Heltebyggerens deler (hode med hårfrisyrer, hjelmer, skjegg og så videre) tegnes fortsatt i kode. Se "Planlagt" nederst.
+Hero Forge har en felles pool med 44 malte delvalg fra grunnpakken og 25 Forge-bilder. Den samlede kunstpakken har 168 bildefiler. Se `docs/HERO_FORGE_GRAFIKK.md` for filkart og videre utvidelser. Frie hårfrisyrer, hjelmer, skjegg og farger finnes foreløpig i CLASSIC BUILDER; egne bildelag er fortsatt planlagt.
 
 ### Valkyra og referansebildet
 
@@ -191,25 +191,21 @@ Spillet regner ut høyden på hver del fra figurens skjelett (se over), så de s
 
 ## Heltesmia (HERO FORGE)
 
-Heltesmia har tolv valg og flere tusen kombinasjoner. De malte delene finnes i dag for to helter, Thrugg og Valkyra. Slik virker det på main nå:
+PAINTED PARTS lar spilleren kombinere ni hoder og sju overkropper, belter, armer, bein og våpen. Thrugg og Valkyra er startoppsett; ett bytte av del beholder resten av den malte helten. `docs/HERO_FORGE_GRAFIKK.md` beskriver begge tilleggene: de første 13 bildene og tolv deler til orc, frostkriger, sabel og beinklubbe.
 
-- Velger du THRUGG eller VALKYRA under LEGENDARY PRESET, er helten malt. Våpen, tøyfarge og magi kan byttes uten å miste de malte delene: SWORD bruker Thrugg sitt sverd, AXE Valkyra sin øks og SPIKED CLUB Hogman sin kølle. Tøyfargen gjelder da bare fargen i HUD-en.
-- WARHAMMER har ikke noe bilde ennå og tegnes i koden (se under).
-- Endrer du kropp, hud, ansikt, hår, hårfarge, skjegg, hodeplagg, rustning, lendeklede eller bein, blir helten tegnet i koden, i den gamle stilen.
+- Stridshammeren heter `forge_warhammer_weapon.webp` og følger WARHAMMER-egenskapene og opplåsingen `weapon:2`. Den eldre bestillingen `warhammer_weapon.png` er erstattet av dette navnet.
+- Orc-delene er tilgjengelige fra start. Frosthode, -overkropp, -arm og -bein følger `skin:6` fra Frostjarl Kaldor; frostbeltet er fritt. Orc-overkroppen setter kvinnelig kroppstype, frost-overkroppen mannlig.
+- `forge_sabre_weapon.webp` bruker SWORD-egenskaper og er fritt. `forge_boneclub_weapon.webp` bruker SPIKED CLUB-egenskaper og følger `weapon:3` fra Bone Coliseum.
+- Hår, skjegg og hud er del av de malte bildene. CLASSIC BUILDER beholder de frie prosedyretegnede detaljvalgene. Magi kan byttes i begge byggere.
+- Valgene lagres separat for begge spillere og brukes i forhåndsvisning, brett, dueller og portretter.
+- Neve, skulder og våpengrep må passe. Claudes automatiske hånd- og grepberegning brukes også på de nye delene; et målt `hand` eller `anchor` i manifestet går foran.
+- Overkroppene i smia har målte `shoulders` og `neck` som de andre overkroppene: våpenarmen henger fra den nære skulderen (venstre i bildet) og ligger foran, hodet ligger bak kragen. Reglene for nye deler står i `docs/CHATGPT_PROMPT.md` (del 3, 8.2, 8.4, 8.6 og 13), og beskjeden til GPT i `docs/GPT_BESKJED.md`.
 
-GPT har laget en plan med en felles pool av malte deler (PR #2, `docs/HERO_FORGE_GRAFIKK.md` på grenen `codex/hero-forge-part-pool`): enkeltdeler med navn som `forge_<navn>_<del>.png` som kan blandes fritt. Den planen gjelder. Reglene for hvordan delene må tegnes for riggen (nær skulder til venstre, ingen hals på overkroppen, målte `shoulders` og `neck`) står i `docs/CHATGPT_PROMPT.md` og i `docs/GPT_BESKJED.md`, som er beskjeden til GPT.
+Nye deler legges i `art/inbox/` med navnet `forge_<variant>_<del>.png` og behandles med `python3 tools/process_art.py`. Registrer deretter valget i `src/data/hero-parts.ts`. Bare å legge inn et våpenbilde med et nytt navn gjør det ikke til et valg i smia.
 
-### Bestill nå (virker med en gang)
+### Senere mulige helteoppsett
 
-| Fil | Template | Beskrivelse |
-|---|---|---|
-| `forge_warhammer_weapon.png` | WEAPON | `Weapon: a huge two-handed warhammer, a rusty iron hammer head with a heavy spike on the back and rivets, a long leather-wrapped wooden haft, an iron ring at the bottom. Nicked, dented and a bit bloody.` |
-
-Legg filen i `art/inbox/` og kjør `python3 tools/process_art.py` som vanlig. Spillet finner grepet selv, og WARHAMMER i smia bruker bildet (også det eldre navnet `warhammer_weapon.png` virker).
-
-### Flere ferdige helter (alternativ til delepoolen)
-
-Den enkleste veien til flere malte valg er flere ferdige helter som Thrugg og Valkyra: seks eller sju bilder hver (head, eventuelt hairback, torso, pelvis, arm, leg, og weapon hvis den har et nytt våpen). Når bildene er på plass, legges helten inn som et preset i koden (`PRESETS` i `src/gfx/chars/hero.ts`), og da kan den velges under LEGENDARY PRESET, med våpen, tøyfarge og magi fritt. Forslag som dekker andre valg i smia (Tom bestemmer):
+Forslagene nedenfor er idéer til senere ferdige oppsett, ikke manglende filer i den leverte Forge-pakken. En ny helt kan bruke eller bidra med deler i den felles poolen. Ingen av disse fire figurene er bestilt eller produsert her.
 
 | id | Valg i smia | Beskrivelse til ChatGPT |
 |---|---|---|
@@ -383,11 +379,11 @@ Logoen til **Tom's Happy Happy Funtimes Emporium** er levert av Tom og ligger i 
 
 ## Planlagt (ikke koblet inn i koden ennå)
 
-Disse kan lages nå, så er de klare når koden støtter dem.
+Dette er senere utvidelser. Avtal først filnavn, lagplassering og innlesing: flere av navnene nedenfor avvises av dagens innleser. Prioriter de separate delene i `docs/HERO_FORGE_GRAFIKK.md` før egne hår-, hjelm- og fargelag.
 
 | Pakke | Filer | Merknad |
 |---|---|---|
-| Heltebygger | `hero_face_<m/f>.png`, `hero_hair_<stil>.png`, `hero_helmet_<type>.png`, `hero_beard_<type>.png`, `hero_torso_<type>_<m/f>.png`, `hero_pelvis_<type>.png`, `hero_legs_<type>.png` | Se "Heltesmia (HERO FORGE)" over og delepoolen i PR #2 (`forge_<navn>_<del>.png`). Våpnene virker allerede (`forge_warhammer_weapon.png`). Lag på HEAD-, TORSO-, PELVIS- og LEG-templatet. Hår, hjelm og skjegg lages som egne lag på samme lerret (1024x1024) så de kan legges oppå et ansikt. Farger: lag hår og tøy i nøytral grå så spillet kan farge dem. |
+| Heltebygger | `hero_face_<m/f>.png`, `hero_hair_<stil>.png`, `hero_helmet_<type>.png`, `hero_beard_<type>.png`, `hero_torso_<type>_<m/f>.png`, `hero_pelvis_<type>.png`, `hero_legs_<type>.png` | Se "Heltesmia (HERO FORGE)" over: hele delpoolen og stridshammeren virker nå. Egne lag er en senere utvidelse. Lag på HEAD-, TORSO-, PELVIS- og LEG-templatet. Hår, hjelm og skjegg lages som egne lag på samme lerret (1024x1024) så de kan legges oppå et ansikt. Farger: lag hår og tøy i nøytral grå så spillet kan farge dem. |
 | Pickups og ikoner | `icon_potion.png`, `icon_chicken.png`, `icon_ham.png`, `icon_coin.png`, `proj_dagger.png`, `proj_fireball.png`, `proj_snowball.png`, `proj_poison.png` | 512x512, transparent. |
 | Tittel og kort | `title.png` (logo-illustrasjon), `boss_<id>.png` (VS-kort 1536x1024 per sjef) | Til tittelskjerm og sjef-intro. |
 | Gore | `gib_meat_1..3.png`, `gib_bone.png`, `gib_eye.png`, `splat_1..3.png` | Nesten ekte, vått og blankt, over the top. 256x256. Blod og gibs er i dag 3D-partikler, så dette er bare aktuelt som ekstra detalj. |

@@ -21,7 +21,8 @@ await shot('50-title');
 await run(0.1, [], ['Enter']); await run(0.5);           // STORY 1P -> Hero Forge
 console.log(await st());
 await shot('51-forge');
-for (let i = 0; i < 16; i++) await run(0.05, [], ['KeyS']); // ned til DONE
+// Ned til DONE (antallet rader varierer med byggeren i smia, så sjekk den valgte raden)
+for (let i = 0; i < 30 && !(await page.evaluate(() => /DONE/.test(document.querySelector('.cr-row.sel')?.textContent ?? ''))); i++) await run(0.05, [], ['KeyS']);
 await run(0.1, [], ['KeyF']); await run(0.5);
 console.log('after forge', await st());
 await run(0.1, [], ['Enter']); await run(0.5);          // hopp over intro

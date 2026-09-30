@@ -1,13 +1,19 @@
 // Kunstpakken satt sammen på riggen (de ekte bildene i public/assets, ikke testbilder):
 // - neven i armbildet havner i våpenleddet på alle figurer med malt arm, både i hvilestilling og med armen løftet
 //   (armer fra ChatGPT henger ikke alltid rett ned, så riggen snur og skalerer dem etter neven)
-// - våpenarmen sitter på den nære skulderen og dekker skulderplaten, hodet ligger bak overkroppen, og hoggene når fram
-// - heltesmia beholder de malte heltene når bare våpen, tøyfarge eller magi byttes, og våpenet hentes fra bildene
+// - trekvart profil: våpenarmen sitter på den nære skulderen og dekker skulderplaten, hodet ligger bak overkroppen
+//   (foran ved langt skjegg), den fjerne armen synes på Thrugg, og hoggene når fram
+// - alle malte overkropper har målte skulderledd og halsrot (shoulders og neck i manifestet)
+// - skuldersømmen: armen møter overkroppen når den strekkes ut, også i blandingene fra heltesmia
+// - heltesmia bruker valgte delbilder, inkludert den nye hammeren, og klassisk modus forblir tegnet
 // Med OUTDIR lagres et galleri per figur: fire poser med leddmarkører (blå skulder, rød neve, grønn nakke, gul hofte).
 // Bruk: node tools/tests/artcheck.mjs http://localhost:4173/ [OUTDIR] [id,id,...]
+// ART_GALLERY_FILTER=id,id,... begrenser bare galleriet; alle figurene testes fortsatt.
 import { chromium } from 'playwright';
+import fs from 'node:fs';
 const [url, out, only] = process.argv.slice(2);
-const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+if (out) fs.mkdirSync(out, { recursive: true });
+const browser = await chromium.launch({ ...(process.env.CHROMIUM_EXECUTABLE_PATH ? { executablePath: process.env.CHROMIUM_EXECUTABLE_PATH } : {}), args: ['--no-sandbox', '--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 1400, height: 560 } });
 page.setDefaultTimeout(300000);
 const logs = [];
@@ -17,8 +23,10 @@ const check = (name, ok, info = '') => {
   console.log((ok ? 'OK   ' : 'FAIL ') + name + (info ? ' ' + JSON.stringify(info) : ''));
   if (!ok) fails.push(name);
 };
+await page.addInitScript(() => localStorage.setItem('loincloth-legends-settings-v1', JSON.stringify({ quality: 'low', music: 0, sfx: 0, recorded: false })));
+await page.route('https://fonts.googleapis.com/**', (r) => r.fulfill({ contentType: 'text/css', body: '' }));
 await page.goto(url + (url.includes('?') ? '&' : '?') + 'nosplash');
-await page.waitForTimeout(2500);
+await page.waitForFunction(() => window.__game && window.__lib);
 await page.evaluate(() => {
   window.requestAnimationFrame = () => 0;
   const g = window.__game;
@@ -26,16 +34,42 @@ await page.evaluate(() => {
   g.screens.hide();
 });
 
-// Figurene med malt arm (fra manifestet) og de to heltene
-const ids = only ? only.split(',') : await page.evaluate(async () => {
+// De fire første settene bevarer første puljes kontroll. Ork og frost testes som hele sett og med eldre lemmer.
+const forgeCases = await page.evaluate(() => {
+  const L = window.__lib;
+  return [
+    ['forge-leather', 'bald', 'leather', 'leather', 'kilt', 'sandals'],
+    ['forge-plate', 'crownbraid', 'plate', 'plate', 'tassets', 'greaves'],
+    ['forge-cross-male', 'eyepatch', 'leather', 'plate', 'tassets', 'greaves'],
+    ['forge-cross-female', 'silvercut', 'plate', 'leather', 'kilt', 'sandals'],
+    ['forge-orc', 'orc', 'orc', 'orc', 'orc', 'orc', 'sabre'],
+    ['forge-frost', 'frost', 'frost', 'frost', 'frost', 'frost', 'boneclub'],
+    ['forge-orc-cross', 'orc', 'orc', 'plate', 'tassets', 'greaves', 'sabre'],
+    ['forge-frost-cross', 'frost', 'frost', 'leather', 'kilt', 'sandals', 'boneclub'],
+  ].map(([label, head, torso, arm, pelvis, leg, weapon = 'warhammer'], i) => {
+    const cfg = L.withHeroParts(L.PRESETS.thrugg, {
+      head: `forge_${head}_head`, torso: `forge_${torso}_torso`, arm: `forge_${arm}_arm`,
+      pelvis: `forge_${pelvis}_pelvis`, leg: `forge_${leg}_leg`, weapon: `forge_${weapon}_weapon`,
+    });
+    return { label, id: L.registerChar(L.buildHeroDef(cfg, 61 + i)), negativeControl: i < 4 };
+  });
+});
+const labels = Object.fromEntries(forgeCases.map(({ id, label }) => [id, label]));
+
+// De opprinnelige figurene med malt arm, også sjefer som arver en arm.
+const originalIds = await page.evaluate(async () => {
   const man = await (await fetch('./assets/manifest.json')).json();
   const withArm = new Set(man.parts.filter((p) => p.part === 'arm').map((p) => p.char));
   const all = ['thrugg', 'valkyra', 'skeleton', 'hogman', 'cultist', 'gnome', 'gorthak', 'imp', 'zombie', 'frogman', 'troll', 'fireimp', 'bigtroll', 'hogmother', 'croakus', 'magmor', 'vorthax'];
   return all.filter((id) => { const d = window.__lib.getChar(id); return withArm.has(id) || Object.values(d.inherit ?? {}).some((c) => withArm.has(c)); });
 });
 
+const ids = only ? only.split(',').map((id) => forgeCases.find((c) => c.label === id)?.id ?? id) : [...originalIds, ...forgeCases.map(({ id }) => id)];
+const requiredGrip = await page.evaluate((ids) => ids.filter((id) => !!window.__lib.getChar(id).weapon), ids);
+if (!only) check('alle 13 opprinnelige bevæpnede figurer er med', ['thrugg', 'valkyra', 'skeleton', 'hogman', 'cultist', 'gorthak', 'imp', 'frogman', 'troll', 'bigtroll', 'hogmother', 'croakus', 'vorthax'].every((id) => requiredGrip.includes(id)));
+
 // 1) Neven i våpenleddet: punktet i armbildet (hand, brøk av bildet) regnet om til verden via geometrien til armen
-const fist = await page.evaluate(({ ids }) => {
+const fist = await page.evaluate(({ ids, labels }) => {
   const L = window.__lib, T = L.THREE, res = {};
   for (const id of ids) {
     const def = L.getChar(id);
@@ -58,20 +92,20 @@ const fist = await page.evaluate(({ ids }) => {
       const w = new T.Vector3();
       f.rig.g.weapon.getWorldPosition(w);
       worst.push(p.distanceTo(w) / f.rig.scale);
-      f.rig.root.removeFromParent();
+      f.remove();
     }
-    res[id] = +Math.max(...worst).toFixed(3);
+    res[labels[id] ?? id] = +Math.max(...worst).toFixed(3);
   }
   return res;
-}, { ids });
-check('neven i armbildet havner i våpenleddet (under 0,03 enheter, tre poser)', Object.keys(fist).length >= 10 && Object.values(fist).every((d) => d < 0.03), fist);
+}, { ids, labels });
+check('neven i armbildet havner i våpenleddet (under 0,03 enheter, tre poser)', requiredGrip.every((id) => Number.isFinite(fist[labels[id] ?? id]) && fist[labels[id] ?? id] < 0.03), fist);
 
 // 2) Armene og hodet i trekvart profil (Tom: våpenarmen skal sitte ytterst, hodet og halsen bak overkroppen):
 // - våpenarmen dekker skulderplaten på den nære skulderen (venstre i bildet): midten og fire punkter rundt den er dekket
 //   av armen i hvilestilling. Før hang den bakre armen der, og platen (som et hull i skulderen) synes.
 // - hodet ligger bak overkroppen, unntatt hoder med langt skjegg (front i manifestet)
 // - den fjerne armen (på forsiden av kroppen) synes på Thrugg i hvilestilling
-const layer = await page.evaluate(({ ids }) => {
+const layer = await page.evaluate(({ ids, labels }) => {
   const g = window.__game, L = window.__lib, T = L.THREE, res = { cover: {}, headZ: {}, far: 0 };
   const S = new T.Scene();
   S.background = new T.Color(0x000000);
@@ -99,15 +133,16 @@ const layer = await page.evaluate(({ ids }) => {
   for (const id of ids) {
     const f = new L.Fighter(id, 'foe', { hp: 100, speed: 3 });
     f.addTo(S);
+    f.shadow.visible = false;
     f.rig.root.visible = true;
     f.rig.snap({ ...L.NEUTRAL });
     f.rig.sync();
-    const sc = f.rig.scale;
+    const sc = f.rig.scale, key = labels[id] ?? id;
     cam.position.set(0, 1.2 * sc, 5.2 * sc);
     cam.lookAt(0, 1.15 * sc, 0);
     cam.updateMatrixWorld();
     f.rig.root.updateMatrixWorld(true);
-    res.headZ[id] = +f.rig.g.head.position.z.toFixed(3);
+    res.headZ[key] = +f.rig.g.head.position.z.toFixed(3);
     const arm = f.rig.g.armF.children.filter((c) => c.isMesh);
     const px = only(f, arm);
     const [sx, sy] = f.rig.joints.shF;
@@ -121,7 +156,7 @@ const layer = await page.evaluate(({ ids }) => {
       const x = Math.round((p.x * 0.5 + 0.5) * (N - 1)), y = Math.round((p.y * 0.5 + 0.5) * (N - 1));
       if (x >= 0 && y >= 0 && x < N && y < N && lit(px, (y * N + x) * 4)) hit++;
     }
-    res.cover[id] = hit / pts.length;
+    res.cover[key] = hit / pts.length;
     if (id === 'thrugg') {
       // Den fjerne armen: andelen av armen som synes i hele figuren (armen alene mot figuren med og uten armen)
       const all = shot();
@@ -136,17 +171,18 @@ const layer = await page.evaluate(({ ids }) => {
       }
       res.far = Math.round((100 * diff) / Math.max(1, n));
     }
-    f.rig.root.removeFromParent();
+    f.remove();
   }
   rt.dispose();
   return res;
-}, { ids });
+}, { ids, labels });
 // Impen har en tynn arm og en stor skulderkule i bildet, så noe av kula synes uansett (står på lista til ChatGPT)
-check('våpenarmen dekker skulderplaten på den nære skulderen (hvilestilling, alle fem punktene på heltene, minst tre på alle)',
-  Object.keys(layer.cover).length >= 10 && Object.values(layer.cover).every((c) => c >= 0.6) && ['thrugg', 'valkyra', 'gorthak'].every((id) => layer.cover[id] === 1), layer.cover);
+const fullCover = ['thrugg', 'valkyra', 'gorthak', ...forgeCases.map(({ label }) => label)].filter((k) => k in layer.cover);
+check('våpenarmen dekker skulderplaten på den nære skulderen (hvilestilling, alle fem punktene på heltene og i smia, minst tre på alle)',
+  Object.keys(layer.cover).length >= 10 && Object.values(layer.cover).every((c) => c >= 0.6) && fullCover.every((k) => layer.cover[k] === 1), layer.cover);
 const bearded = ['gnome', 'vorthax'];
 check('hodet ligger bak overkroppen, hoder med langt skjegg foran', Object.entries(layer.headZ).every(([id, z]) => (bearded.includes(id) ? z > 0 : z < 0)), layer.headZ);
-check('den fjerne armen synes på Thrugg i hvilestilling (minst 25 prosent av armen)', layer.far >= 25, { thrugg: layer.far });
+if (!only || only.split(',').includes('thrugg')) check('den fjerne armen synes på Thrugg i hvilestilling (minst 25 prosent av armen)', layer.far >= 25, { thrugg: layer.far });
 
 // 3) Hoggene når fram: våpentuppen i slaget (steg inn og armen strukket fram) mot det den gamle riggen nådde.
 // Våpenarmen sitter bak på kroppen etter byttet, så uten steget og armen fram ville sverdet stoppet ved hofta.
@@ -158,7 +194,7 @@ const reach = await page.evaluate(() => {
       f.rig.snap({ ...L.NEUTRAL, ...a.strike });
       f.rig.sync();
       res[id + ' ' + a.id] = +(f.rig.weaponTip(new T.Vector3()).x - f.pos.x).toFixed(2);
-      f.rig.root.removeFromParent();
+      f.remove();
     }
   }
   return res;
@@ -174,29 +210,125 @@ const unmeasured = await page.evaluate(async () => {
 });
 check('alle malte overkropper har shoulders og neck i manifestet', unmeasured.length === 0, unmeasured);
 
-// 4) Heltesmia: våpen, tøyfarge og magi kan byttes uten å miste de malte delene
+// Skuldersømmen: faktisk alfa i torsoen må møte øvre del av frontarmen når armen strekkes ut.
+// Negativ kontroll: de fire første blandingene med armen flyttet 0,35 ut fra skulderen, der sjekken må slå ut.
+// (Den gamle kontrollen med midjeankeret 0.66 gir ingen glipe lenger, for skulderleddene følger nå bildet.)
+const shoulders = await page.evaluate((forgeCases) => {
+  const g = window.__game, L = window.__lib, T = L.THREE, size = 512;
+  const S = new T.Scene();
+  const rt = new T.WebGLRenderTarget(size, size);
+  const cam = new T.PerspectiveCamera(35, 1, 0.1, 50);
+  cam.position.set(0, 1.25, 5.2);
+  cam.lookAt(0, 1.2, 0);
+  cam.updateMatrixWorld(true);
+  const oldClear = g.renderer.getClearColor(new T.Color()).clone(), oldAlpha = g.renderer.getClearAlpha();
+  const oldTarget = g.renderer.getRenderTarget();
+  const project = (v) => { v.project(cam); return { x: (v.x + 1) * size / 2, y: (v.y + 1) * size / 2 }; };
+  function contact(def, suffix, shift = 0) {
+    const id = L.registerChar({ ...def, id: def.id + suffix });
+    const f = new L.Fighter(id, 'hero', { hp: 100, speed: 3 });
+    f.addTo(S);
+    f.shadow.visible = false;
+    f.rig.snap({ ...f.rig.pose, armF: Math.PI / 2, weapon: -Math.PI / 2 });
+    f.rig.sync();
+    f.rig.g.armF.position.x -= shift;
+    f.rig.root.updateMatrixWorld(true);
+    const torso = f.rig.g.torso.children.find((o) => o.isMesh), arm = f.rig.g.armF.children.find((o) => o.isMesh);
+    const originals = [torso.material, arm.material];
+    const materials = originals.map((m) => new T.MeshBasicMaterial({ map: m.map, transparent: true, alphaTest: 0.1, depthWrite: false, side: T.DoubleSide }));
+    torso.material = materials[0]; arm.material = materials[1];
+    f.rig.root.traverse((o) => { if (o.isMesh) o.visible = false; });
+    const mask = (mesh) => {
+      mesh.visible = true;
+      g.renderer.setRenderTarget(rt);
+      g.renderer.setClearColor(0x000000, 0);
+      g.renderer.render(S, cam);
+      const pixels = new Uint8Array(size * size * 4);
+      g.renderer.readRenderTargetPixels(rt, 0, 0, size, size, pixels);
+      mesh.visible = false;
+      return pixels;
+    };
+    try {
+      const a = mask(torso), b = mask(arm);
+      const shoulder = project(f.rig.g.armF.getWorldPosition(new T.Vector3()));
+      const hand = project(f.rig.g.weapon.getWorldPosition(new T.Vector3()));
+      const dx = hand.x - shoulder.x, dy = hand.y - shoulder.y, len2 = dx * dx + dy * dy;
+      let upperPixels = 0, touchPixels = 0, overlapPixels = 0;
+      for (let y = 1; y < size - 1; y++) for (let x = 1; x < size - 1; x++) {
+        const i = (y * size + x) * 4 + 3;
+        if (b[i] <= 32) continue;
+        const along = ((x - shoulder.x) * dx + (y - shoulder.y) * dy) / len2;
+        if (along < -0.2 || along > 0.35) continue;
+        upperPixels++;
+        if (a[i] > 32) overlapPixels++;
+        // Ett nabopiksel tillater ekte kantkontakt med kantutjevning, ikke synlige luftglipper.
+        let touches = false;
+        for (let oy = -1; oy <= 1 && !touches; oy++) for (let ox = -1; ox <= 1; ox++) {
+          if (a[((y + oy) * size + x + ox) * 4 + 3] > 32) { touches = true; break; }
+        }
+        if (touches) touchPixels++;
+      }
+      return { upperPixels, touchPixels, overlapPixels };
+    } finally {
+      f.remove();
+      torso.material = originals[0]; arm.material = originals[1];
+      materials.forEach((m) => m.dispose());
+    }
+  }
+  const result = {};
+  try {
+    for (const { id, label, negativeControl } of forgeCases) {
+      const def = L.getChar(id);
+      const current = contact(def, ':shoulder-current');
+      result[label] = negativeControl ? { current, previous: contact(def, ':shoulder-off', 0.35) } : { current };
+    }
+  } finally {
+    g.renderer.setRenderTarget(oldTarget);
+    g.renderer.setClearColor(oldClear, oldAlpha);
+    rt.dispose();
+  }
+  return result;
+}, forgeCases);
+const shoulderMeets = ({ upperPixels, touchPixels }) => upperPixels > 0 && touchPixels >= 8;
+check('alle åtte torso/arm-mikser har faktisk alfakontakt ved utstrakt skulder', Object.values(shoulders).every(({ current }) => shoulderMeets(current)), shoulders);
+const oldShoulders = Object.values(shoulders).filter(({ previous }) => previous);
+check('skuldersjekken slår ut når armen flyttes 0,35 ut fra skulderen (fire negative kontroller)', oldShoulders.length === 4 && oldShoulders.every(({ previous }) => !shoulderMeets(previous)));
+
+// 4) Heltesmia: eksplisitte delvalg er fasiten for bilde og våpenstatistikk.
 const forge = await page.evaluate(() => {
   const L = window.__lib, P = L.PRESETS;
-  const inh = (cfg) => L.buildHeroDef(cfg, 7).inherit ?? null;
+  const cfg = (base, weapon) => L.withHeroParts(base, { ...base.parts, weapon });
+  const axe = cfg(P.thrugg, 'valkyra_weapon');
+  const club = cfg({ ...P.thrugg, cloth: 4, magic: 2 }, 'hogman_weapon');
+  const sword = cfg(P.valkyra, 'thrugg_weapon');
+  const hammer = cfg(P.thrugg, 'forge_warhammer_weapon');
+  const inh = (c) => L.buildHeroDef(c, 7).inherit ?? null;
+  const classic = { ...P.thrugg, hair: 3 };
+  delete classic.parts;
+  const f = new L.Fighter(L.registerChar(L.buildHeroDef(hammer, 68)), 'hero', { hp: 100, speed: 3, weapon: L.WEAPONS[hammer.weapon] });
+  const hammerImage = f.rig.g.weapon.children[0].material.map.image;
+  const actualHammer = hammerImage === L.getOverride('forge_warhammer', 'weapon')?.canvas;
+  f.remove();
   return {
-    thruggAxe: inh({ ...P.thrugg, weapon: 1 }),
-    thruggClubPurple: inh({ ...P.thrugg, weapon: 3, cloth: 4, magic: 2 }),
-    valkyraSword: inh({ ...P.valkyra, weapon: 0 }),
-    thruggHammer: inh({ ...P.thrugg, weapon: 2 }),
-    otherHair: inh({ ...P.thrugg, hair: 3 }),
+    axe: inh(axe), club: inh(club), sword: inh(sword), hammer: inh(hammer),
+    weaponStats: hammer.weapon, actualHammer, classic: inh(classic),
+    changedHair: inh({ ...P.thrugg, hair: 3 }),
   };
 });
-check('heltesmia: Thrugg med øks og med piggkølle i lilla er fortsatt malt, med malte våpen',
-  forge.thruggAxe?.head === 'thrugg' && forge.thruggAxe?.weapon === 'valkyra' && forge.thruggClubPurple?.torso === 'thrugg' && forge.thruggClubPurple?.weapon === 'hogman', forge);
-check('heltesmia: Valkyra med sverd er malt, stridshammeren tegnes til den har et bilde', forge.valkyraSword?.head === 'valkyra' && forge.valkyraSword?.weapon === 'thrugg' && forge.thruggHammer?.head === 'thrugg' && !forge.thruggHammer?.weapon, forge);
-check('heltesmia: annet hår gir den tegnede helten (det finnes ikke malte hårvalg ennå)', forge.otherHair === null, forge);
+check('heltesmia beholder malte kroppsdeler ved valgt øks, klubbe, tøyfarge og magi',
+  forge.axe?.head === 'thrugg' && forge.axe?.weapon === 'valkyra' && forge.club?.torso === 'thrugg' && forge.club?.weapon === 'hogman', forge);
+check('Valkyra kan bruke sverd, og hammeren bruker eget malt bilde med hammerstatistikk',
+  forge.sword?.head === 'valkyra' && forge.sword?.weapon === 'thrugg' && forge.hammer?.weapon === 'forge_warhammer' && forge.actualHammer && forge.weaponStats === 2);
+check('eksplisitt klassisk modus er tegnet; skjulte klassiske hårvalg overstyrer ikke valgt hode', forge.classic === null && forge.changedHair?.head === 'thrugg');
 
 // Galleri (valgfritt)
 if (out) {
-  for (const id of ids) {
+  const filter = process.env.ART_GALLERY_FILTER?.split(',');
+  const galleryIds = filter ? ids.filter((id) => filter.includes(labels[id] ?? id)) : ids;
+  for (const id of galleryIds) {
     await page.evaluate(({ id }) => {
       const g = window.__game, L = window.__lib, T = L.THREE;
-      for (const f of window.__gal ?? []) f.rig.root.removeFromParent();
+      for (const f of window.__gal ?? []) f.remove();
       window.__gal = [];
       const S = L.W.scene;
       S.background = new T.Color(0x5a6470);
@@ -229,7 +361,7 @@ if (out) {
         window.__gal.push(f);
       });
       const h = 2.4 * sc;
-      g.camera.position.set(0, h * 0.55, 5.2 * sc);
+      g.camera.position.set(0, h * 0.55, 5.8 * sc);
       g.camera.lookAt(0, h * 0.5, 0);
       g.camera.fov = 45;
       g.camera.aspect = 1400 / 560;
@@ -238,9 +370,9 @@ if (out) {
       g.renderer.setSize(1400, 560);
       g.renderer.render(S, g.camera);
     }, { id });
-    await page.screenshot({ path: `${out}/art-${id}.png` });
+    await page.screenshot({ path: `${out}/art-${labels[id] ?? id}.png` });
   }
-  console.log(`galleri: ${ids.length} figurer i ${out}`);
+  console.log(`galleri: ${galleryIds.length} figurer i ${out}`);
 }
 
 if (logs.length) console.log('LOGS:\n' + logs.join('\n'));

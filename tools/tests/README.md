@@ -7,6 +7,7 @@ npm run build && npx vite preview --port 4173 &
 npm i -D playwright
 node tools/tests/story.mjs http://localhost:4173/ ./shots                 # tittel, Hero Forge, intro, kart, brett, sjef, belønning, kart
 node tools/tests/scenarios.mjs http://localhost:4173/ ./shots creator     # heltebygger: presets, tilfeldig, låste deler
+node tools/tests/hero-forge.mjs http://localhost:4173/ ./shots/forge      # 44 delvalg, 25 Forge-bilder, miksing, lagring, hammer-/frost-/klubbelås, mobil og manglende bilde
 node tools/tests/scenarios.mjs http://localhost:4173/ ./shots map         # verdenskart og fremgang
 node tools/tests/scenarios.mjs http://localhost:4173/ ./shots levels      # alle fem brett til finalen (eller: levels road,frost)
 node tools/tests/scenarios.mjs http://localhost:4173/ ./shots arena       # arena-dueller
@@ -39,7 +40,7 @@ node tools/tests/nightcamp.mjs http://localhost:4173/ ./shots             # natt
 node tools/tests/ab.mjs http://localhost:4173/ ./shots road ao           # samme bilde med og uten en effekt (ao, bloom, dof, grade), pluss bare AO-bufferet
 node tools/tests/textures.mjs http://localhost:4173/ ./shots              # teksturer fra manifestet brukes i stedet for de prosedyrelagde (later som tre bilder finnes)
 node tools/tests/pngparts.mjs http://localhost:4173/                      # PNG-deler sitter riktig på helt og fiender: fot på bakken, våpen i neven, nakke og skaft
-node tools/tests/artcheck.mjs http://localhost:4173/ [./shots]           # kunstpakken på riggen: neven i våpenleddet, våpenarmen dekker skulderplaten, hodet bak overkroppen (foran ved langt skjegg), hoggene når fram, målte skulder- og halspunkter, heltesmia med malte våpen (./shots gir galleri med leddmarkører)
+node tools/tests/artcheck.mjs http://localhost:4173/ [./shots]           # kunstpakken på riggen: neven i våpenleddet, våpenarmen dekker skulderplaten, hodet bak overkroppen (foran ved langt skjegg), hoggene når fram, målte skulder- og halspunkter, skulderkontakt i blandingene fra heltesmia, heltesmia med malte våpen (./shots gir galleri med leddmarkører)
 node tools/tests/screenfx.mjs http://localhost:4173/ ./shots              # skjermeffekter: dråper på glasset, sjokk, årer, brennende kant, varmeflimmer, FLASHES og DISTORTION, lyspool, drypp, SSAO, WebGL tapt, AUTO og ?perf
 node tools/tests/giant.mjs http://localhost:4173/ [./shots]               # kjempetrollet: størrelse, rustning til han vakler, bakkeslag, kameraet trekker seg bakover og inn igjen
 node tools/tests/frostsound.mjs http://localhost:4173/                    # lydene fra frostpasset: snøtrinn, horn og brøl, kjempetrinn, fossesus, ulv, vindkast, isknak, klang, publikum og innleste replikker

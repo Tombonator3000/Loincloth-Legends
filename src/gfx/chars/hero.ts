@@ -1,8 +1,8 @@
 // Heltebyggeren: setter sammen en figur fra valgte deler (kropp, ansikt, hår, skjegg, hjelm, rustning, våpen).
 import { Pen, INK, shade, blobPath, polyPath } from '../draw';
 import { HERO_BIG_J, HERO_HIP_Y, HEAD_SCALE, TORSO_Y, skinD, type CharDef, type PartDef } from './types';
-import { getOverride } from '../assets';
 import { maleChest, femChest, maleTorsoPath, muscleArm, muscleLeg, tinyLoins, scalePart, stretchY, type TopKind, type Shoulder, type Footwear, type Loins } from './muscle';
+import { HERO_PART_SLOTS, defaultHeroParts, findHeroPart, sanitizeHeroParts, type HeroParts } from '../../data/hero-parts';
 
 export interface HeroConfig {
   name: string;
@@ -20,6 +20,8 @@ export interface HeroConfig {
   cloth: number;
   /** 0 = Meteor of Excessive Force, 1 = Scream of the Ancestors. Påvirker ikke grafikken. */
   magic: number;
+  /** Malte deler fra den felles katalogen. Uten feltet brukes den gamle tegnebyggeren. */
+  parts?: HeroParts;
 }
 
 export const SKINS = ['#f2c59c', '#e2a26b', '#c98a5a', '#9c6440', '#6e4428', '#8fb46a', '#9fb4c8'];
@@ -27,7 +29,7 @@ export const HAIRS = ['#2a1a12', '#6b3e1f', '#e8c65a', '#e0661f', '#e8e4dc', '#b
 export const CLOTHS = ['#7a4b28', '#8e1b1b', '#3a6fc0', '#3f6b2a', '#5b2a86', '#2a2a30', '#c8962a'];
 
 /** Navn på alle valg, i samme rekkefølge som indeksene. Brukes av skaper-UI. */
-export const HERO_OPTIONS: Record<Exclude<keyof HeroConfig, 'name'>, string[]> = {
+export const HERO_OPTIONS: Record<Exclude<keyof HeroConfig, 'name' | 'parts'>, string[]> = {
   body: ['MALE', 'FEMALE'],
   skin: ['PEACH', 'TAN', 'BRONZE', 'UMBER', 'DEEP', 'ORC GREEN', 'FROST BLUE'],
   face: ['GRIM', 'BATTLE CRY', 'UNHINGED', 'EYEPATCH', 'SMUG'],
@@ -44,10 +46,26 @@ export const HERO_OPTIONS: Record<Exclude<keyof HeroConfig, 'name'>, string[]> =
 };
 
 export const PRESETS: Record<string, HeroConfig> = {
-  thrugg: { name: 'THRUGG', body: 0, skin: 1, face: 0, hair: 1, hairColor: 0, beard: 1, helmet: 1, torso: 1, pelvis: 0, boots: 0, weapon: 0, cloth: 0, magic: 0 },
+  thrugg: { name: 'THRUGG', body: 0, skin: 1, face: 0, hair: 1, hairColor: 0, beard: 1, helmet: 1, torso: 1, pelvis: 0, boots: 0, weapon: 0, cloth: 0, magic: 0, parts: defaultHeroParts(0) },
   // Etter Toms referansebilde: vilt kobberrødt krøllhår, selvgodt blikk, rusten ringbrynjebikini, pelsstøvler og stor øks
-  valkyra: { name: 'VALKYRA', body: 1, skin: 0, face: 4, hair: 7, hairColor: 3, beard: 0, helmet: 0, torso: 3, pelvis: 4, boots: 0, weapon: 1, cloth: 0, magic: 1 },
+  valkyra: { name: 'VALKYRA', body: 1, skin: 0, face: 4, hair: 7, hairColor: 3, beard: 0, helmet: 0, torso: 3, pelvis: 4, boots: 0, weapon: 1, cloth: 0, magic: 1, parts: defaultHeroParts(1) },
 };
+
+/** Kopier konfigurasjonen uten å dele valgene med et preset eller en annen spiller. */
+export function cloneHero(cfg: HeroConfig): HeroConfig {
+  return cfg.parts === undefined ? { ...cfg } : withHeroParts(cfg, cfg.parts);
+}
+
+/** Bytt deler og hold kroppstype og våpenets kampegenskaper i takt med bildene. */
+export function withHeroParts(cfg: HeroConfig, parts: HeroParts): HeroConfig {
+  const clean = sanitizeHeroParts(parts, cfg.body);
+  return {
+    ...cfg,
+    parts: clean,
+    body: findHeroPart('torso', clean.torso)?.body ?? cfg.body,
+    weapon: findHeroPart('weapon', clean.weapon)?.weapon ?? cfg.weapon,
+  };
+}
 
 const M = {
   leather: '#5a3519', leatherL: '#7a4a26', fur: '#7a4b28', furL: '#a8723f', steel: '#a9b3bd', silver: '#c8d0da',
@@ -468,28 +486,25 @@ function weaponPart(w: number): PartDef {
 }
 
 // ---------------------------------------------------------------- bygging
-export function heroKey(cfg: HeroConfig) {
+function legacyHeroKey(cfg: HeroConfig) {
   return [cfg.body, cfg.skin, cfg.face, cfg.hair, cfg.hairColor, cfg.beard, cfg.helmet, cfg.torso, cfg.pelvis, cfg.boots, cfg.weapon, cfg.cloth].join('.');
 }
 
-/** Utseendet uten våpen, tøyfarge og magi: det en helt må ha likt med et preset for å bruke de malte delene. */
-function lookKey(cfg: HeroConfig) {
-  return [cfg.body, cfg.skin, cfg.face, cfg.hair, cfg.hairColor, cfg.beard, cfg.helmet, cfg.torso, cfg.pelvis, cfg.boots].join('.');
+export function heroKey(cfg: HeroConfig) {
+  const c = cloneHero(cfg);
+  const parts = c.parts;
+  return legacyHeroKey(c) + (parts ? ':' + HERO_PART_SLOTS.map((slot) => parts[slot]).join('.') : '');
 }
-/**
- * Malte våpen per våpenvalg: et eget bilde (sword_weapon, axe_weapon, warhammer_weapon, club_weapon i manifestet) går
- * foran våpenet til en figur med samme slags våpen. Uten bilde tegnes våpenet.
- */
-const WEAPON_ART: readonly (readonly string[])[] = [['sword', 'thrugg'], ['axe', 'valkyra'], ['forge_warhammer', 'warhammer'], ['club', 'hogman']];
 
 export function buildHeroDef(cfg: HeroConfig, slot: number): CharDef {
+  cfg = cloneHero(cfg);
   const fem = cfg.body === 1;
-  // Et preset ('thrugg' / 'valkyra') bruker de malte delene (PNG, se docs/ART_PROMPTS.md) så lenge utseendet er likt.
-  // Våpen, tøyfarge og magi kan byttes: våpenet hentes fra WEAPON_ART, og tøyfargen gjelder bare HUD-en.
-  const look = lookKey(cfg);
-  const preset = Object.keys(PRESETS).find((k) => lookKey(PRESETS[k]) === look);
-  const weaponArt = preset ? WEAPON_ART[cfg.weapon]?.find((id) => getOverride(id, 'weapon')) : undefined;
-  const inherit = preset ? { leg: preset, arm: preset, pelvis: preset, torso: preset, head: preset, ...(weaponArt ? { weapon: weaponArt } : {}) } : undefined;
+  // Lagringsleseren migrerer gamle presets. Uten parts er CLASSIC et uttrykkelig valg.
+  const parts = cfg.parts;
+  const inherit: CharDef['inherit'] = parts ? {} : undefined;
+  if (parts && inherit) {
+    for (const part of HERO_PART_SLOTS) inherit[part] = findHeroPart(part, parts[part])!.source;
+  }
   return {
     inherit,
     id: `hero${slot}:${heroKey(cfg)}`,

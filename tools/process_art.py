@@ -41,7 +41,7 @@ FIGURDELER = {'head', 'hairback', 'torso', 'pelvis', 'arm', 'leg', 'weapon'}
 DYREDELER = {'body', 'head', 'tail', 'leg'}
 RIDEDYR = {'warhog', 'cluckatrice', 'magmanewt'}
 HELTER = {'thrugg', 'valkyra'}
-# Største side etter nedskalering. Heltene vises på nært hold, fiendene sjelden store på skjermen.
+# Største side etter nedskalering. Heltene og forge_-delene vises på nært hold.
 MAKS_HELT, MAKS_ANDRE, MAKS_TEKSTUR, MAKS_HIMMEL = 1024, 768, 1024, 1536
 FIGURARK = [['head', 'torso', 'pelvis'], ['arm', 'leg', 'weapon']]
 BAND = .12  # hvor langt inn fra kanten en søm blandes ut (andel av bredden eller høyden)
@@ -209,7 +209,8 @@ def behandle(nøkkel, im, man, tekstur_ok):
     if t[0] in ('del', 'pet'):
         im = beskjær(fjern_bakgrunn(im.convert('RGBA')))
         if im is None: raise ValueError('bildet er helt gjennomsiktig')
-        im = skaler(im, MAKS_HELT if t[0] == 'del' and t[1] in HELTER else MAKS_ANDRE)
+        helt = t[0] == 'del' and (t[1] in HELTER or t[1].startswith('forge_'))
+        im = skaler(im, MAKS_HELT if helt else MAKS_ANDRE)
         fil = lagre(im, nøkkel, True)
         char, part = (t[1], t[2]) if t[0] == 'del' else (nøkkel, 'body')
         # Et nytt bilde av en del som finnes, beholder høyde og festepunkt som er justert i manifestet. Punktene som

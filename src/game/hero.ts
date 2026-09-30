@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { Fighter } from './fighter';
 import { HERO_ATK } from './attacks';
 import { W } from './world';
-import { buildHeroDef, type HeroConfig } from '../gfx/chars/hero';
+import { buildHeroDef, cloneHero, type HeroConfig } from '../gfx/chars/hero';
 import { registerChar } from '../gfx/chars';
 import { WEAPONS, scaleAttack, type WeaponStats } from '../data/weapons';
 import type { PlayerInput } from '../core/input';
@@ -44,6 +44,7 @@ export class Hero {
   fx: ReturnType<typeof statEffects>;
 
   constructor(public idx: number, public cfg: HeroConfig, public input: PlayerInput, public prog: HeroProgress = defaultProgress()) {
+    cfg = this.cfg = cloneHero(cfg);
     this.cid = registerChar(buildHeroDef(cfg, idx));
     this.name = cfg.name || 'NAMELESS';
     this.fx = statEffects(prog);

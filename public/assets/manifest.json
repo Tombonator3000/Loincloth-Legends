@@ -818,6 +818,229 @@
       "char": "pet_skull",
       "part": "body",
       "file": "pet_skull.webp"
+    },
+    {
+      "char": "forge_bald",
+      "part": "head",
+      "file": "forge_bald_head.webp",
+      "height": 0.74
+    },
+    {
+      "char": "forge_crownbraid",
+      "part": "head",
+      "file": "forge_crownbraid_head.webp",
+      "height": 0.84
+    },
+    {
+      "char": "forge_eyepatch",
+      "part": "head",
+      "file": "forge_eyepatch_head.webp",
+      "height": 0.8
+    },
+    {
+      "char": "forge_greaves",
+      "part": "leg",
+      "file": "forge_greaves_leg.webp"
+    },
+    {
+      "char": "forge_kilt",
+      "part": "pelvis",
+      "file": "forge_kilt_pelvis.webp",
+      "anchor": [
+        0.53,
+        0.19
+      ]
+    },
+    {
+      "char": "forge_leather",
+      "part": "arm",
+      "file": "forge_leather_arm.webp"
+    },
+    {
+      "char": "forge_leather",
+      "part": "torso",
+      "file": "forge_leather_torso.webp",
+      "anchor": [
+        0.55,
+        0.96
+      ],
+      "shoulders": [
+        [
+          0.08,
+          0.31
+        ],
+        [
+          0.93,
+          0.33
+        ]
+      ],
+      "neck": [
+        0.51,
+        0.12,
+        0.1
+      ]
+    },
+    {
+      "char": "forge_plate",
+      "part": "arm",
+      "file": "forge_plate_arm.webp"
+    },
+    {
+      "char": "forge_plate",
+      "part": "torso",
+      "file": "forge_plate_torso.webp",
+      "anchor": [
+        0.55,
+        0.96
+      ],
+      "shoulders": [
+        [
+          0.09,
+          0.26
+        ],
+        [
+          0.88,
+          0.26
+        ]
+      ],
+      "neck": [
+        0.37,
+        0.12,
+        0.07
+      ]
+    },
+    {
+      "char": "forge_sandals",
+      "part": "leg",
+      "file": "forge_sandals_leg.webp"
+    },
+    {
+      "char": "forge_silvercut",
+      "part": "head",
+      "file": "forge_silvercut_head.webp",
+      "height": 0.82
+    },
+    {
+      "char": "forge_tassets",
+      "part": "pelvis",
+      "file": "forge_tassets_pelvis.webp",
+      "anchor": [
+        0.52,
+        0.22
+      ]
+    },
+    {
+      "char": "forge_warhammer",
+      "part": "weapon",
+      "file": "forge_warhammer_weapon.webp"
+    },
+    {
+      "char": "forge_boneclub",
+      "part": "weapon",
+      "file": "forge_boneclub_weapon.webp"
+    },
+    {
+      "char": "forge_frost",
+      "part": "arm",
+      "file": "forge_frost_arm.webp"
+    },
+    {
+      "char": "forge_frost",
+      "part": "head",
+      "file": "forge_frost_head.webp",
+      "height": 0.82
+    },
+    {
+      "char": "forge_frost",
+      "part": "leg",
+      "file": "forge_frost_leg.webp"
+    },
+    {
+      "char": "forge_frost",
+      "part": "pelvis",
+      "file": "forge_frost_pelvis.webp",
+      "anchor": [
+        0.53,
+        0.19
+      ]
+    },
+    {
+      "char": "forge_frost",
+      "part": "torso",
+      "file": "forge_frost_torso.webp",
+      "anchor": [
+        0.55,
+        0.96
+      ],
+      "shoulders": [
+        [
+          0.06,
+          0.31
+        ],
+        [
+          0.92,
+          0.33
+        ]
+      ],
+      "neck": [
+        0.505,
+        0.12,
+        0.1
+      ]
+    },
+    {
+      "char": "forge_orc",
+      "part": "arm",
+      "file": "forge_orc_arm.webp"
+    },
+    {
+      "char": "forge_orc",
+      "part": "head",
+      "file": "forge_orc_head.webp",
+      "height": 0.88
+    },
+    {
+      "char": "forge_orc",
+      "part": "leg",
+      "file": "forge_orc_leg.webp"
+    },
+    {
+      "char": "forge_orc",
+      "part": "pelvis",
+      "file": "forge_orc_pelvis.webp",
+      "anchor": [
+        0.52,
+        0.19
+      ]
+    },
+    {
+      "char": "forge_orc",
+      "part": "torso",
+      "file": "forge_orc_torso.webp",
+      "anchor": [
+        0.55,
+        0.96
+      ],
+      "shoulders": [
+        [
+          0.08,
+          0.26
+        ],
+        [
+          0.91,
+          0.27
+        ]
+      ],
+      "neck": [
+        0.5,
+        0.12,
+        0.1
+      ]
+    },
+    {
+      "char": "forge_sabre",
+      "part": "weapon",
+      "file": "forge_sabre_weapon.webp"
     }
   ],
   "textures": {

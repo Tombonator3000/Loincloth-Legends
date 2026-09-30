@@ -1,5 +1,7 @@
 # Startprompt til ChatGPT
 
+Oppdatert 30. september 2026: de 143 filene nedenfor er grunnpakken og finnes i repoet. Hero Forge har i tillegg 25 delbilder og en felles pool med 44 valg, totalt 168 bildefiler i kunstpakken. Tilleggene dekker blant annet krigshammer, kvinnelige orc-deler, mannlige frostdeler, sabel og beinklubbe. Filkart, opplåsinger og senere hår-, hjelm- og fargelag står i `docs/HERO_FORGE_GRAFIKK.md`. Ikke bestill grunnpakken eller de oppførte Forge-delene på nytt.
+
 Dette er hele arbeidsbeskrivelsen for ChatGPT: hva spillet er, hvordan det bruker bildene, stilen (nesten ekte karikatur), arbeidsflyten, kommandoene du kan skrive, alle figurene, teksturene og himmelbildene, og en sjekkliste over alle 143 filene. Den er på engelsk fordi den er til ChatGPT. ChatGPT svarer deg på norsk.
 
 ## Slik bruker du den
@@ -401,7 +403,7 @@ Notes:
 - The wide sleeve ends above the bony fist; the fist is still the lowest thing.
 - The orb glows inside the orb only.
 
-The duels need no extra files: the ice champion is gorthak tinted ice-blue, the hog champion is hogman, the bone champion is skeleton, and the shadow duel uses the player's own hero, tinted. Thrugg's and Valkyra's images are also used when a player picks those presets unchanged in the hero creator.
+The duels need no extra files: the ice champion is gorthak tinted ice-blue, the hog champion is hogman, the bone champion is skeleton, and the shadow duel uses the player's own hero, tinted. Hero Forge now mixes individual painted parts from the shared catalogue in src/data/hero-parts.ts. Thrugg and Valkyra are starting recipes, not a restriction on mixing. The separate expansion list in docs/HERO_FORGE_GRAFIKK.md lists the delivered Forge variants and future separate layers; those files are outside this original 143-file checklist.
 
 # 10. Mounts
 
@@ -660,7 +662,7 @@ Mounts (before scale 1.05 / 1.0 / 1.05): warhog body 1.56, head 1.10, tail 0.64,
   - floor_arena, sand_arena, wall_arena, pillar_arena for each of -pit, -ice, -bone
 - Skies (8): grass, swamp, frost, scorch, night, arena-pit, arena-ice, arena-bone.
 - Map (1).
-- Optional, not counted: hogmother_arm.png, hogmother_leg.png, hogmother_pelvis.png and croakus_arm.png (own versions that replace the inherited ones), a hairback for any character whose approved reference shows long hair down the back, and warhammer_weapon.png: the Hero Forge's WARHAMMER, a huge two-handed warhammer (WEAPON template: a rusty iron hammer head with a spike on the back, a long leather-wrapped wooden haft, an iron ring at the bottom). The forge's SWORD, AXE and SPIKED CLUB borrow thrugg's, valkyra's and hogman's weapons; sword_weapon.png, axe_weapon.png and club_weapon.png would replace those for the heroes.
+- Optional, not counted: hogmother_arm.png, hogmother_leg.png, hogmother_pelvis.png and croakus_arm.png (own versions that replace the inherited ones), a hairback for any character whose approved reference shows long hair down the back. Hero Forge already has forge_warhammer_weapon.webp, separate from this original checklist. New weapon variants need an explicit entry in src/data/hero-parts.ts as well as the manifest.
 - References (not counted, not in the game): one per character and mount, except Valkyra's, which Tom has.
 
 SHOW CHECKLIST prints every file with its mark, grouped like this, with totals at the top.

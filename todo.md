@@ -1,5 +1,17 @@
 # todo.md
 
+## Hero Forge: felles pool av malte deler (2026-09-30)
+- [x] Finn årsaken til at malte deler forsvant ved endring av preset; kontroller alle 143 grunnfiler
+- [x] 44 uavhengige delvalg i katalogen, med miniatyrer, bakhår fra valgt hode og samme figur i forhåndsvisning og kamp
+- [x] Lagre blandinger for begge spillere, bevare gamle helter og klassisk modus, beholde opplåsinger og riktige våpenegenskaper
+- [x] Innlesing og kontroll av ekstra `forge_*`-deler uten å svekke kontrollen av de 143 grunnfilene
+- [x] Lag de 13 nye delene i `docs/HERO_FORGE_GRAFIKK.md`, inkludert krigshammeren; registrer hvert bilde i manifest og delkatalog
+- [ ] Egne ansikts-, hår-, skjegg- og hjelmlag samt masker for hud/hår/tøy
+- [x] Visuell finjustering av de 13 nye delene i fire blandede helter og fire poser: hodehøyde, torsoanker, beltefeste, bakarm og våpengrep
+- [x] Andre tillegg i delkatalogen: ti orc-/frostdeler, sabel og beinklubbe, med kroppstype, våpenklasse og eksisterende opplåsinger
+- [x] Fullfør bildeinnlesing og visuell kalibrering av de tolv orc-/frost-/våpendelene; kontroller skulder, nakke, hofte og våpengrep i blandede poser
+- [x] Kontroller hele pakken med 168 bilder, 44 delvalg, frostlåsen og beinklubbelåsen i nettleseren
+
 ## Menyene (fra 2026-09-30 07:38)
 - [x] Tittelen fra åtte til fire knapper (STORY og DUEL med venstre/høyre, HERO FORGE, OPTIONS)
 - [x] Innstillingene i grupper (gore, SOUND, SCREEN, CONTROLS), ERASE SAVE bare fra tittelen
@@ -56,9 +68,9 @@
 - [x] Visuell kontroll av alle sammensatte figurer med kunstpakken lastet: våpnene satt ved siden av neven og Thrugg manglet den bakre armen. Armene rettes nå etter neven, grepet finnes på skaftet (tools/tests/artcheck.mjs)
 - [ ] Ridedyr og kjæledyr med kunstpakken: se på dem i nettleseren (artcheck dekker bare figurer med armer)
 - [x] Armene i trekvart profil: våpenarmen på den nære skulderen foran, hodet bak overkroppen, skulderledd og halsrot fra bildene, stillingene rettet så slagene når fram (2026-09-30)
-- [ ] Heltesmia: GPT lager delepoolen i PR #2 (docs/HERO_FORGE_GRAFIKK.md) etter docs/GPT_BESKJED.md. PR #2 må ta inn main først
-- [ ] forge_warhammer_weapon.png fra GPT (stridshammeren i smia tegnes til den finnes)
-- [ ] Nye bilder fra GPT: hogmother_torso (kuttet i høyre kant), imp_arm (tynnere enn skulderkula), gorthak_arm (smalere hette enn platen), og på sikt overkropper uten halsstump
+- [x] Heltesmia bruker en felles delpool: 44 valg, inkludert 25 Forge-bilder. Kalibrering og kontroll av siste tillegg står over; egne hår-, hjelm- og fargelag er fortsatt senere utvidelser
+- [x] Malt stridshammer: `forge_warhammer_weapon.webp`, med WARHAMMER-egenskaper og eksisterende opplåsingskrav
+- [ ] Nye bilder fra GPT: hogmother_torso (kuttet i høyre kant), imp_arm (tynnere enn skulderkula), gorthak_arm (smalere hette enn platen), og på sikt overkropper uten halsstump (docs/GPT_BESKJED.md)
 - [x] docs/maler/mal_figur.png har merker for halsroten (uten hals) og den nære og den fjerne skulderen på overkroppen
 - [ ] Enhåndsøks som eget våpen (Valkyras øks har ett blad, spillets AXE har to)
 - [ ] Hårmanken svaier i vinden (hairback og den tegnede manken)
