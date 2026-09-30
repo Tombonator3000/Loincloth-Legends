@@ -393,13 +393,13 @@ export class Game {
     const progress = s.completed.length > 0;
     this.screens.title([
       { label: progress ? 'CONTINUE: 1 PLAYER' : 'STORY: 1 PLAYER', hint: 'WORLD MAP, BOSSES AND DUELS', action: () => this.startStory(false) },
-      { label: progress ? 'CONTINUE: 2 PLAYERS' : 'STORY: 2 PLAYERS', hint: 'CO-OP PÅ SAMME TASTATUR ELLER GAMEPADS', action: () => this.startStory(true) },
-      { label: 'HERO FORGE', hint: 'LAG DIN EGEN HELT', action: () => this.openCreator([0, 1], () => this.goTitle()) },
-      { label: 'DUEL VS CPU', hint: 'VELG MOTSTANDER', action: () => this.duelMenu() },
+      { label: progress ? 'CONTINUE: 2 PLAYERS' : 'STORY: 2 PLAYERS', hint: 'CO-OP ON ONE KEYBOARD OR GAMEPADS', action: () => this.startStory(true) },
+      { label: 'HERO FORGE', hint: 'FORGE YOUR OWN HERO', action: () => this.openCreator([0, 1], () => this.goTitle()) },
+      { label: 'DUEL VS CPU', hint: 'CHOOSE YOUR VICTIM', action: () => this.duelMenu() },
       { label: 'DUEL P1 VS P2', hint: s.heroes[0].name + ' VS ' + s.heroes[1].name, action: () => this.pvpDuel() },
-      { label: 'SETTINGS', hint: 'GORE, LYD, RUMBLE, BERØRING', action: () => this.showSettings(() => this.showTitleMenu()) },
+      { label: 'SETTINGS', hint: 'GORE, SOUND, RUMBLE, TOUCH', action: () => this.showSettings(() => this.showTitleMenu()) },
       { label: 'CONTROLS', action: () => this.screens.controls(() => this.showTitleMenu()) },
-      { label: 'NEW GAME', hint: 'SLETT FREMGANG', action: () => this.confirmReset() },
+      { label: 'NEW GAME', hint: 'ERASE ALL PROGRESS', action: () => this.confirmReset() },
     ], audio.muted);
   }
 
@@ -455,7 +455,7 @@ export class Game {
       return { label: 'SCREEN DISTORTION: ' + (settings.distortion ? 'ON' : 'OFF'), hint: settings.distortion ? 'SHOCKWAVES, ZOOM AND HEAT SHIMMER' : 'A STEADY PICTURE. THE BLOOD STILL RUNS.', action: flip, adjust: flip };
     });
     row((again) => ({ label: 'GAMEPAD RUMBLE: ' + (settings.rumble ? 'ON' : 'OFF'), action: () => { setSettings({ rumble: !settings.rumble }); this.input.rumble(-1, 0.6, 0.6, 200); again(); }, adjust: () => { setSettings({ rumble: !settings.rumble }); again(); } }));
-    row((again) => ({ label: 'TOUCH CONTROLS: ' + settings.touch.toUpperCase(), hint: 'AUTO = PÅ TELEFON OG NETTBRETT', action: () => { setSettings({ touch: TOUCH[(TOUCH.indexOf(settings.touch) + 1) % 3] }); again(); }, adjust: (d) => { setSettings({ touch: TOUCH[(TOUCH.indexOf(settings.touch) + d + 3) % 3] }); again(); } }));
+    row((again) => ({ label: 'TOUCH CONTROLS: ' + settings.touch.toUpperCase(), hint: 'AUTO = ON FOR PHONES AND TABLETS', action: () => { setSettings({ touch: TOUCH[(TOUCH.indexOf(settings.touch) + 1) % 3] }); again(); }, adjust: (d) => { setSettings({ touch: TOUCH[(TOUCH.indexOf(settings.touch) + d + 3) % 3] }); again(); } }));
     row((again) => ({ label: 'FULLSCREEN: ' + (fs ? 'ON' : 'OFF'), action: () => { this.toggleFullscreen(); setTimeout(again, 250); } }));
     row((again) => {
       const cycle = (d: number) => {
@@ -467,7 +467,7 @@ export class Game {
       return { label: 'GRAPHICS: ' + settings.quality.toUpperCase() + (settings.quality === 'auto' ? ' (' + this.post.quality.toUpperCase() + ')' : ''), hint: QUALITY_HINTS[settings.quality], action: () => cycle(1), adjust: cycle };
     });
     items.push({ label: 'BACK', action: onBack });
-    this.screens.custom(`<div class="panel settings"><h2>SETTINGS</h2><ul class="menu"></ul><p class="line small">GAMEPAD: A HOPP &middot; X ANGREP &middot; B SPESIAL &middot; Y GRIP &middot; START PAUSE</p></div>`, items, sel, onBack);
+    this.screens.custom(`<div class="panel settings"><h2>SETTINGS</h2><ul class="menu"></ul><p class="line small">GAMEPAD: A JUMP &middot; X ATTACK &middot; B SPECIAL &middot; Y GRAB &middot; START PAUSE</p></div>`, items, sel, onBack);
   }
 
   toggleFullscreen() {

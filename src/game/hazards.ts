@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import type { Fighter } from './fighter';
 import { W } from './world';
 import { screenFX } from '../gfx/screenfx';
-import { HAZARDS, type HazardDef } from '../data/hazards';
+import { HAZARDS, CHASM_STOP, type HazardDef } from '../data/hazards';
 import type { HazardVisual } from '../gfx/env/hazards';
 import { audio } from '../core/audio';
 import { rand, pick } from '../core/math';
@@ -28,6 +28,18 @@ export class Hazard {
     if (d.kind === 'chasm') return Math.abs(x - d.x) < hx && z < d.z + hz;
     const u = (x - d.x) / hx, v = (z - d.z) / hz;
     return u * u + v * v <= 1;
+  }
+
+  /** Juvet: hvor de som går, stopper (foran taugjerdet). */
+  get stopZ() {
+    return this.def.z + this.def.d / 2 + CHASM_STOP;
+  }
+
+  /** Må en som går her, stoppes? Ved juvet gjelder det også stripen mellom gjerdet og kanten. */
+  stops(x: number, z: number) {
+    const d = this.def;
+    if (d.kind === 'chasm') return Math.abs(x - d.x) < d.w / 2 && z < this.stopZ;
+    return this.contains(x, z);
   }
 
   /** Farlig akkurat nå? Piggfellen bare når piggene er oppe. */
@@ -59,9 +71,9 @@ export class Hazard {
   /** Skyv en gående figur ut til kanten (fiender går rundt farene). */
   pushOut(f: Fighter, zLimit = 2.5) {
     const d = this.def;
-    // Juvet: bare forkanten fører ut (bak er dypet)
+    // Juvet: bare forkanten fører ut (bak er dypet), og man stopper foran gjerdet
     if (d.kind === 'chasm') {
-      f.pos.z = d.z + d.d / 2 + 0.06;
+      f.pos.z = this.stopZ;
       return;
     }
     let ux = f.pos.x - d.x, uz = f.pos.z - d.z;

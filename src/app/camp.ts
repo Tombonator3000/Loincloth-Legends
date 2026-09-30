@@ -136,7 +136,7 @@ export function showTraining(g: Game, slotIdx: number, onBack: () => void, sel =
   const items: Item[] = [];
   if (slots.length > 1) {
     const sw = () => showTraining(g, (slotIdx + 1) % slots.length, onBack, 0);
-    items.push({ label: 'HERO: ' + hero.name, hint: 'BYTT HELT', action: sw, adjust: sw });
+    items.push({ label: 'HERO: ' + hero.name, hint: 'SWITCH HERO', action: sw, adjust: sw });
   }
   for (const k of STAT_KEYS) {
     const i = items.length;

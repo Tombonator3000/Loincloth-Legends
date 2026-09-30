@@ -1,6 +1,7 @@
 // Spillet i frostpasset etter konseptbilde 4: fiender som rygger unna tas igjen og holdes i bildet, panikk,
 // kast bakover over taugjerdet og ned i juvet (heltene stopper ved kanten), istapper som faller, fyrfat som
-// veltes med glør som setter fyr på fiender, og kjempetrollet som griper og kaster en helt.
+// veltes med glør som setter fyr på fiender, kjempetrollet som griper og kaster en helt, og ridedyret som
+// stopper ved juvet.
 // Bruk: node tools/tests/frostplay.mjs http://localhost:4173/ [./shots]
 import { chromium } from 'playwright';
 const [url, out] = process.argv.slice(2);
@@ -111,10 +112,10 @@ const gorge = await page.evaluate(() => {
   const edge = hz.def.z + hz.def.d / 2;
   for (let i = 0; i < 90; i++) { g.input.keys.add('KeyW'); g.tick(1 / 60, false); }
   g.input.keys.delete('KeyW');
-  return { grabbed, fell, heroZ: +h.pos.z.toFixed(2), edge: +edge.toFixed(2), heroAlive: h.alive };
+  return { grabbed, fell, heroZ: +h.pos.z.toFixed(2), edge: +edge.toFixed(2), stop: +hz.stopZ.toFixed(2), heroAlive: h.alive };
 });
 check('kast opp: fienden faller i juvet', gorge.grabbed && !gorge.fell.alive && gorge.fell.env === 'THE GORGE' && gorge.fell.y < -0.5, JSON.stringify(gorge));
-check('helten stopper ved juvet', gorge.heroZ >= gorge.edge - 0.01 && gorge.heroAlive, JSON.stringify(gorge));
+check('helten stopper foran gjerdet ved juvet', gorge.heroZ >= gorge.stop - 0.01 && gorge.stop > gorge.edge && gorge.heroAlive, JSON.stringify(gorge));
 await shot('gorge');
 
 // 4) Istappen faller og treffer den som står under
@@ -187,6 +188,27 @@ const toss = await page.evaluate(() => {
 check('kjempen griper og løfter helten', toss.held && toss.heldY > 1.5, JSON.stringify(toss));
 check('kjempen kaster helten langt', toss.thrown && toss.maxVx > 8 && toss.hp < toss.hp0, JSON.stringify(toss));
 await shot('toss');
+
+// 7) Ridedyret stopper også ved juvet, med helten i salen
+const ride = await page.evaluate(() => {
+  const g = window.__game, s = g.scene.stage, h = s.heroes[0].f;
+  const hz = s.hazards.find((x) => x.def.kind === 'chasm');
+  window.__reset(hz.def.x);
+  s.spawnRider('frostskel', 'warhog');
+  const m = s.mounts[s.mounts.length - 1];
+  window.__reset(hz.def.x);
+  for (let i = 0; i < 10; i++) g.tick(1 / 60, false);
+  m.pos.set(hz.def.x + 0.8, 0, 0); m.vel.set(0, 0, 0); m.state = 'wild'; m.t = 2;
+  h.face(1);
+  const mounted = s.tryGrab(s.heroes[0]);
+  const edge = hz.def.z + hz.def.d / 2;
+  let minZ = 99;
+  for (let i = 0; i < 150; i++) { g.input.keys.add('KeyW'); g.tick(1 / 60, false); minZ = Math.min(minZ, m.pos.z); }
+  g.input.keys.delete('KeyW');
+  return { mounted, riding: h.mount === m, minZ: +minZ.toFixed(2), edge: +edge.toFixed(2), stop: +hz.stopZ.toFixed(2), y: +m.pos.y.toFixed(2), heroAlive: h.alive };
+});
+check('ridedyret stopper foran gjerdet ved juvet', ride.mounted && ride.riding && ride.minZ >= ride.stop - 0.02 && ride.y > -0.1 && ride.heroAlive, JSON.stringify(ride));
+await shot('ride');
 
 if (logs.length) console.log('LOGS:\n' + logs.join('\n'));
 console.log(fails.length ? `FEIL: ${fails.length} (${fails.join(', ')})` : 'OK: alt det nye i frostpasset virker');

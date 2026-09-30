@@ -43,6 +43,9 @@ export const HAZARDS: Record<HazardKind, HazardInfo> = {
  * Miljøet lager hullet i bakken og veien, og faren tegner veggene ned i dypet (gfx/env/hazards.ts).
  */
 export const CHASM_BACK = -5.2;
+/** Taugjerdet står så langt foran forkanten, og de som går, stopper så langt foran, altså foran gjerdet. */
+export const CHASM_FENCE = 0.14;
+export const CHASM_STOP = 0.45;
 export interface Hole { x0: number; x1: number; z0: number; z1: number }
 export const chasmHole = (d: HazardDef): Hole => ({ x0: d.x - d.w / 2, x1: d.x + d.w / 2, z0: CHASM_BACK, z1: d.z + d.d / 2 });
 

@@ -6,7 +6,7 @@ import { icicles, ropeFence } from './props';
 import { valueNoise3, fbm3 } from '../noise';
 import { rand } from '../../core/math';
 import type { Gore } from '../gore';
-import { chasmHole, type HazardDef } from '../../data/hazards';
+import { chasmHole, CHASM_FENCE, type HazardDef } from '../../data/hazards';
 import { screenFX } from '../screenfx';
 
 export interface HazardVisual {
@@ -155,7 +155,7 @@ function chasm(grp: THREE.Group, h: HazardDef) {
   // Istapper langs bakveggen og taugjerde langs forkanten, slått sammen for seg
   const props = new THREE.Group();
   icicles(props, x0 + 0.3, x1 - 0.3, -0.02, z0 + 0.2, 2, 0.9);
-  ropeFence(props, x0 + 0.2, x1 - 0.2, z1 + 0.22, 1.0);
+  ropeFence(props, x0 + 0.2, x1 - 0.2, z1 + CHASM_FENCE, 1.0, 0.06);
   mergeStatic(props);
   applyShadows(props);
   grp.add(props);

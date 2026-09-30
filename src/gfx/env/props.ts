@@ -727,12 +727,12 @@ export function ruins(g: THREE.Group, x: number, y: number, z: number, s = 1) {
 }
 
 /** Taugjerde langs en kant: skjeve stolper med to tau som henger mellom dem (ved juvet i konseptbilde 4). */
-export function ropeFence(g: THREE.Group, x0: number, x1: number, z: number, h = 1.1) {
+export function ropeFence(g: THREE.Group, x0: number, x1: number, z: number, h = 1.1, jz = 0.15) {
   const sg = staticGroup(g);
   const wood = woodMat(), rope = ropeMat();
   const tops: THREE.Vector3[] = [];
   for (let x = x0; x <= x1; x += rand(2.2, 3.0)) {
-    const lean = rand(-0.12, 0.12), pz = z + rand(-0.15, 0.15);
+    const lean = rand(-0.12, 0.12), pz = z + rand(-jz, jz);
     const post = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.085, h + 0.3, 6), wood);
     post.position.set(x, (h + 0.3) / 2 - 0.15, pz);
     post.rotation.z = lean;

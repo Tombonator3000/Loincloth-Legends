@@ -354,16 +354,18 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
       for (const fo of this.foes) {
         const f = fo.f;
         if (!f.alive || f.state === 'held' || f.pos.y > 0.35) continue;
-        if (!hz.contains(f.pos.x, f.pos.z)) continue;
+        // Ved juvet stoppes de som går, foran gjerdet, men bare de som havner i selve hullet, faller
+        const inside = hz.contains(f.pos.x, f.pos.z);
+        if (!inside && !hz.stops(f.pos.x, f.pos.z)) continue;
         const helpless = f.state === 'down' || f.state === 'hurt' || f.state === 'stunned' || !!f.thrownBy;
-        if (hz.armed && (helpless || hz.def.kind === 'spiketrap')) hz.kill(f, f.lastHitBy);
-        else if (hz.info.foesAvoid && f.onGround) hz.pushOut(f);
+        if (inside && hz.armed && (helpless || hz.def.kind === 'spiketrap')) hz.kill(f, f.lastHitBy);
+        else if (hz.info.foesAvoid && f.onGround && (inside || !helpless)) hz.pushOut(f);
       }
       for (const h of this.heroes) {
         const f = h.f;
-        // Juvet: heltene går ikke utfor, de stopper ved gjerdet
+        // Juvet: heltene går ikke utfor, de stopper foran gjerdet
         if (hz.info.blocks) {
-          if (f.alive && f.state !== 'held' && !f.mount && hz.contains(f.pos.x, f.pos.z)) hz.pushOut(f);
+          if (f.alive && f.state !== 'held' && !f.mount && hz.stops(f.pos.x, f.pos.z)) hz.pushOut(f);
           continue;
         }
         if (!f.alive || f.pos.y > 0.25 || f.invuln > 0 || f.state === 'held' || f.mount) continue;
@@ -374,7 +376,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
         }
       }
       // Ridedyrene går heller ikke utfor juvet
-      if (hz.info.blocks) for (const m of this.mounts) if (hz.contains(m.pos.x, m.pos.z)) m.pos.z = hz.def.z + hz.def.d / 2 + 0.06;
+      if (hz.info.blocks) for (const m of this.mounts) if (hz.stops(m.pos.x, m.pos.z)) m.pos.z = hz.stopZ;
     }
     for (const [k, v] of this.hazardCd) this.hazardCd.set(k, v - dt);
   }

@@ -9,6 +9,7 @@
 - [ ] Krigsbanneret som eget bilde fra ChatGPT (trenger en ny kategori i process_art.py, ikke flisbar tekstur)
 - [x] Gameplay fra bildet: kast fiender i juvet (opp + kast), istapper som faller, fyrfat som kan veltes med glør og brann, kjempen griper og kaster helter, panikk (tools/tests/frostplay.mjs)
 - [x] Fiender som rygget ut av bildet og var for raske: rygger på halv fart og blir i bildet (Tom meldte fra)
+- [x] Heltene og ridedyrene stopper foran taugjerdet ved juvet, ikke mellom gjerdet og stupet
 - [ ] Tom: spill frostpasset og si fra om balansen (hvor ofte istapper faller, hvor lenge glørne brenner, hvor ofte kjempen griper, hvor ofte panikk)
 - [ ] Juv og fallende stein i andre biomer, og at en kastet helt velter fiender han treffer
 - [x] Flere lyder: snøtrinn og fottrinn per underlag, isknak, vindkast, fossesus, trollbrøl, krigshorn, ulv, sverdklang og publikum (21 nye CC0-opptak, tools/make_sounds.py)
@@ -99,8 +100,8 @@
 - [ ] Tastebinding og CRT-filter i innstillingene
 - [ ] Del opp JS-bunten (Three.js i egen chunk) hvis lastetiden blir et problem
 - [x] GitHub Actions: typecheck og bygg på hver push, og publisering til GitHub Pages når Pages er slått på
-- [ ] Tom: slå på GitHub Pages (Settings > Pages > Source > GitHub Actions), så kan spillet spilles på https://tombonator3000.github.io/Loincloth-Legends/
-- [ ] Oversett den norske teksten i menyene og kontrollskjermen til engelsk (foreslått som egen oppgave)
+- [x] Tom: slå på GitHub Pages (Settings > Pages > Source > GitHub Actions), så kan spillet spilles på https://tombonator3000.github.io/Loincloth-Legends/ (er på, hver push til main publiserer)
+- [x] Oversett den norske teksten i menyene og kontrollskjermen til engelsk (2026-09-30: tittel, kontroller, hopp over og fortsett, menyhint, innstillinger, heltesmia, kartet og leiren)
 - [ ] CI: sjekk Pages med API (bare 404 betyr av), flytt actions til Node 24-versjonene (checkout@v5, setup-node@v5, upload-pages-artifact@v5, configure-pages@v6, deploy-pages@v5)
 - [ ] Hofteankeret: finn beltet automatisk også i høyden (i dag må lange flik måles med MEASURE i ChatGPT)
 

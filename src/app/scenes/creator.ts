@@ -67,7 +67,7 @@ export class CreatorScene implements Scene {
       <div class="cr-head"><h2>HERO FORGE</h2><div class="cr-tabs"></div></div>
       <div class="cr-rows"></div>
       <div class="cr-info"></div>
-      <div class="cr-help">W/S: VELG &nbsp; A/D: ENDRE &nbsp; F/ENTER: OK</div>`;
+      <div class="cr-help">W/S: PICK &nbsp; A/D: CHANGE &nbsp; F/ENTER: OK</div>`;
     game.app.appendChild(this.el);
     const tabs = this.el.querySelector('.cr-tabs')!;
     for (const sl of slots) {
@@ -83,11 +83,11 @@ export class CreatorScene implements Scene {
       row.className = 'cr-row' + (['preset', 'random', 'done'].includes(r.k) ? ' action' : '');
       row.dataset.i = String(i);
       if (r.k === 'name') {
-        row.innerHTML = `<span class="k">${r.label}</span><input id="hero-name" type="text" maxlength="24" autocomplete="off" spellcheck="false"><button class="dice" type="button" title="Tilfeldig navn">?</button>`;
+        row.innerHTML = `<span class="k">${r.label}</span><input id="hero-name" type="text" maxlength="24" autocomplete="off" spellcheck="false"><button class="dice" type="button" title="Random name">?</button>`;
       } else if (r.k === 'random' || r.k === 'done') {
         row.innerHTML = `<span class="k wide">${r.label}</span>`;
       } else {
-        row.innerHTML = `<span class="k">${r.label}</span><button class="arr l" type="button" aria-label="Forrige"></button><span class="v"></span><button class="arr r" type="button" aria-label="Neste"></button>`;
+        row.innerHTML = `<span class="k">${r.label}</span><button class="arr l" type="button" aria-label="Previous"></button><span class="v"></span><button class="arr r" type="button" aria-label="Next"></button>`;
         row.querySelector('.l')!.addEventListener('click', () => this.change(i, -1));
         row.querySelector('.r')!.addEventListener('click', () => this.change(i, 1));
       }

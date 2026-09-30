@@ -107,9 +107,9 @@ export class Screens {
         <div class="logo"><div class="l1">LOINCLOTH</div><div class="l2">LEGENDS</div></div>
         <div class="tag">BLOOD, BICEPS &amp; BAD DECISIONS</div>
         <ul class="menu"></ul>
-        <div class="press">W/S + F &nbsp;|&nbsp; PILTASTER + ENTER &nbsp;|&nbsp; GAMEPAD &nbsp;|&nbsp; TRYKK</div>
+        <div class="press">W/S + F &nbsp;|&nbsp; ARROWS + ENTER &nbsp;|&nbsp; GAMEPAD &nbsp;|&nbsp; TAP</div>
         <div class="foot">&copy; 1986 TOM'S HAPPY HAPPY FUNTIMES EMPORIUM &nbsp;&middot;&nbsp; NO GNOMES WERE HARMED. MOST GNOMES WERE HARMED.
-        <br>M: LYD ${muted ? 'AV' : 'PÅ'} &nbsp;&middot;&nbsp; P/ESC: PAUSE</div>
+        <br>M: SOUND ${muted ? 'OFF' : 'ON'} &nbsp;&middot;&nbsp; P/ESC: PAUSE</div>
       </div>`, 'title');
     this.menu(items, this.root.querySelector('.menu')!);
   }
@@ -119,38 +119,38 @@ export class Screens {
       <div class="panel controls">
         <h2>CONTROLS</h2>
         <table>
-          <tr><th></th><th>SPILLER 1</th><th>SPILLER 2</th><th>GAMEPAD</th></tr>
-          <tr><td>BEVEG</td><td>W A S D</td><td>PILTASTER</td><td>STIKKE / D-PAD</td></tr>
-          <tr><td>ANGREP</td><td>F (eller J)</td><td>, &nbsp;(eller NUMPAD 1)</td><td>X / RT</td></tr>
-          <tr><td>HOPP</td><td>G (eller K)</td><td>. &nbsp;(eller NUMPAD 2)</td><td>A</td></tr>
-          <tr><td>SPESIAL / BLOKK</td><td>H (eller L)</td><td>- &nbsp;(eller NUMPAD 3)</td><td>B / LB / LT</td></tr>
-          <tr><td>GRIP / KAST / RI</td><td>R (eller U)</td><td>H.SHIFT (eller NUMPAD 0)</td><td>Y / RB</td></tr>
+          <tr><th></th><th>PLAYER 1</th><th>PLAYER 2</th><th>GAMEPAD</th></tr>
+          <tr><td>MOVE</td><td>W A S D</td><td>ARROW KEYS</td><td>STICK / D-PAD</td></tr>
+          <tr><td>ATTACK</td><td>F (or J)</td><td>, &nbsp;(or NUMPAD 1)</td><td>X / RT</td></tr>
+          <tr><td>JUMP</td><td>G (or K)</td><td>. &nbsp;(or NUMPAD 2)</td><td>A</td></tr>
+          <tr><td>SPECIAL / BLOCK</td><td>H (or L)</td><td>- &nbsp;(or NUMPAD 3)</td><td>B / LB / LT</td></tr>
+          <tr><td>GRAB / THROW / RIDE</td><td>R (or U)</td><td>R.SHIFT (or NUMPAD 0)</td><td>Y / RB</td></tr>
           <tr><td>PAUSE</td><td colspan="2">P / ESC</td><td>START</td></tr>
         </table>
         <div class="cols">
           <div>
-            <h3>BRETT (BEAT 'EM UP)</h3>
-            <p><b>ANGREP x3</b> combo, tredje slag slår ned</p>
-            <p><b>HOPP + ANGREP</b> hoppangrep</p>
-            <p><b>DOBBELTTRYKK</b> løp, <b>LØP + ANGREP</b> skulderdytt</p>
-            <p><b>SPESIAL</b> magi (bruker alle blå potions)</p>
-            <p><b>SPESIAL uten potions</b> berserk-spinn (koster litt HP)</p>
-            <p><b>GRIP</b> ta tak i en fiende: <b>ANGREP</b> kne, <b>RETNING + ANGREP</b> eller <b>HOPP</b> kast</p>
-            <p>Kast fiender i pigger, myr, råk og lava. Kast dem i andre fiender for bowling.</p>
-            <p><b>GRIP</b> ved et ledig ridedyr: sitt opp. <b>ANGREP</b> dyrets angrep, <b>GRIP</b> hopp av</p>
-            <p>Slå den lille gnomen for å få potions. Tønner har mat.</p>
+            <h3>STAGES (BEAT 'EM UP)</h3>
+            <p><b>ATTACK x3</b> combo, the third hit floors them</p>
+            <p><b>JUMP + ATTACK</b> jump attack</p>
+            <p><b>DOUBLE-TAP</b> run, <b>RUN + ATTACK</b> shoulder charge</p>
+            <p><b>SPECIAL</b> magic (burns all your blue potions)</p>
+            <p><b>SPECIAL with no potions</b> berserk spin (costs a little HP)</p>
+            <p><b>GRAB</b> seize a foe: <b>ATTACK</b> knee, <b>DIRECTION + ATTACK</b> or <b>JUMP</b> throw</p>
+            <p>Throw foes into spikes, bogs, ice holes, lava and gorges. Or bowl them into their friends.</p>
+            <p><b>GRAB</b> by a free mount: saddle up. <b>ATTACK</b> the beast's attack, <b>GRAB</b> hop off</p>
+            <p>Smack the little gnome for potions. Barrels hold food.</p>
           </div>
           <div>
-            <h3>DUELL (BARBARIAN-STIL)</h3>
-            <p><b>ANGREP</b> slash (midt)</p>
-            <p><b>OPP + ANGREP</b> overhead chop (høy, tung)</p>
-            <p><b>NED + ANGREP</b> leg sweep (lav, slår ned)</p>
-            <p><b>MOT + ANGREP</b> kick (bryter blokk)</p>
-            <p><b>BORT + ANGREP</b> whirlwind (3 treff)</p>
-            <p><b>HOPP, så ANGREP</b> flying neck chop: <em>halshugger</em> hvis den treffer ublokkert</p>
-            <p><b>HOLD SPESIAL</b> blokk høy, <b>+ NED</b> blokk lav. <b>NED</b> alene = duck</p>
-            <p><b>NED + HOPP</b> eller <b>GRIP</b> rulle</p>
-            <p><b>BERØRING</b> stikke til venstre, knapper til høyre</p>
+            <h3>DUELS (BARBARIAN STYLE)</h3>
+            <p><b>ATTACK</b> slash (mid)</p>
+            <p><b>UP + ATTACK</b> overhead chop (high, heavy)</p>
+            <p><b>DOWN + ATTACK</b> leg sweep (low, knocks down)</p>
+            <p><b>TOWARD + ATTACK</b> kick (breaks blocks)</p>
+            <p><b>AWAY + ATTACK</b> whirlwind (3 hits)</p>
+            <p><b>JUMP, then ATTACK</b> flying neck chop: <em>beheads</em> if it lands unblocked</p>
+            <p><b>HOLD SPECIAL</b> block high, <b>+ DOWN</b> block low. <b>DOWN</b> alone = duck</p>
+            <p><b>DOWN + JUMP</b> or <b>GRAB</b> roll</p>
+            <p><b>TOUCH</b> stick on the left, buttons on the right</p>
           </div>
         </div>
         <ul class="menu"></ul>
@@ -160,7 +160,7 @@ export class Screens {
   }
 
   intro(lines: string[], onDone: () => void) {
-    this.set(`<div class="intro"><div class="intro-text"></div><div class="skip">F / ENTER / TRYKK: HOPP OVER</div></div>`, 'black');
+    this.set(`<div class="intro"><div class="intro-text"></div><div class="skip">F / ENTER / TAP: SKIP</div></div>`, 'black');
     const el = this.root.querySelector('.intro-text') as HTMLElement;
     this.typer = { lines, li: 0, ci: 0, t: 0, el, done: onDone, hold: 0 };
     this.onConfirm = () => {
@@ -172,7 +172,7 @@ export class Screens {
   cutscene(title: string, lines: [string, string][], onDone: () => void) {
     // Replikkene leses inn etter hverandre der det finnes innspilte stemmer (docs/STEMMER.md)
     audio.voice(lines.map(([, t]) => t));
-    this.set(`<div class="cut"><h2>${title}</h2>${lines.map(([w, t]) => `<p><b>${w}:</b> ${t}</p>`).join('')}<div class="skip">F / ENTER / TRYKK: FORTSETT</div></div>`, 'dim');
+    this.set(`<div class="cut"><h2>${title}</h2>${lines.map(([w, t]) => `<p><b>${w}:</b> ${t}</p>`).join('')}<div class="skip">F / ENTER / TAP: CONTINUE</div></div>`, 'dim');
     this.onConfirm = onDone;
   }
 

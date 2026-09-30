@@ -36,7 +36,7 @@ node tools/tests/pngparts.mjs http://localhost:4173/                      # PNG-
 node tools/tests/screenfx.mjs http://localhost:4173/ ./shots              # skjermeffekter: dråper på glasset, sjokk, årer, brennende kant, varmeflimmer, FLASHES og DISTORTION, lyspool, drypp, SSAO, WebGL tapt, AUTO og ?perf
 node tools/tests/giant.mjs http://localhost:4173/ [./shots]               # kjempetrollet: størrelse, rustning til han vakler, bakkeslag, kameraet trekker seg bakover og inn igjen
 node tools/tests/frostsound.mjs http://localhost:4173/                    # lydene fra frostpasset: snøtrinn, horn og brøl, kjempetrinn, fossesus, ulv, vindkast, isknak, klang, publikum og innleste replikker
-node tools/tests/frostplay.mjs http://localhost:4173/ [./shots]           # spillet i frostpasset: fiender som rygger tas igjen, panikk, kast i juvet, istapper, fyrfat og glør, kjempen som kaster helten
+node tools/tests/frostplay.mjs http://localhost:4173/ [./shots]           # spillet i frostpasset: fiender som rygger tas igjen, panikk, kast i juvet, istapper, fyrfat og glør, kjempen som kaster helten, ridedyr stopper ved juvet
 ```
 
 Skriptene skriver ut tilstand og eventuelle konsollfeil (`LOGS:`). Tom logg betyr ingen feil.
