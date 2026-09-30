@@ -385,6 +385,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     applyHit(by, f, SLAM);
     W.gore.dust(f.pos, 12);
     W.fx.shake(0.35);
+    this.scenery.poke(f.pos.x, f.pos.z, 2.5);
   }
 
   private updateHazards(dt: number) {
@@ -484,7 +485,9 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
 
   // ---------------------------------------------------------------- FoeWorld
   /** Et bakkeslag (kjempen): istapper løsner, og fyrfat i nærheten velter. */
-  onQuake(x: number, _z: number, r: number) {
+  onQuake(x: number, z: number, r: number) {
+    // Kulisser som svarer på slag (react on 'hit'), rister og flykter også av bakkeslaget
+    this.scenery.poke(x, z, r + 3);
     if (this.level.biome === 'frost') {
       const n = 2 + Math.floor(Math.random() * 2);
       for (let i = 0; i < n; i++) this.icicles.drop(x + rand(-3.5, 3.5), rand(-2.3, 2.3), ICICLE_WARN * rand(0.7, 1.1) + i * 0.2);
@@ -969,6 +972,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
 
   private onFoeHit(h: Hero, t: Fighter, killed: boolean) {
     this.metal.add(METAL.hit);
+    this.scenery.poke(t.pos.x, t.pos.z, killed ? 2.5 : 1.5);
     if (!t.onGround) {
       const n = (this.juggle.get(t) ?? 0) + 1;
       this.juggle.set(t, n);

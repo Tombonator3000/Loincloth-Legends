@@ -63,7 +63,7 @@ Brettverkstedet STAGE FORGE: `npm run dev` og http://localhost:5173/?editor=road
 - **Kjæledyr**: Eyeball of Greed, Rabid Rat, Sarcastic Skull, Battle Chicken og Tiny Dragon.
 - **Arena-dueller** i Barbarian-stil: retning + angrep, blokk høy/lav, halshugging, tag team med to spillere.
 - **Gore-innstilling**: FAMILY (konfetti og gummiender), NORMAL, EXCESSIVE, PLEASE SEEK HELP.
-- **STAGE FORGE**: visuell brettredigerer i spillet. Malte kulisser i fire lag, fra fjellene langt bak til trestammer rett foran kameraet som tones ut når noen står bak. Vind, svingende skilt, flakkende lys, bildeserier og bevegelse i spor. Rader, generert pynt som kan slås av, bølger, tønner og farer på en tidslinje, angre, og PLAY FROM HERE. Lagrer brettfilene rett i repoet under `npm run dev`.
+- **STAGE FORGE**: visuell brettredigerer i spillet. Malte kulisser i fire lag, fra fjellene langt bak til trestammer rett foran kameraet som tones ut når noen står bak. Vind, svingende skilt, flakkende lys, bildeserier, bevegelse i spor, flagg som blafrer, ting som puster og glør, skyer som driver, og kulisser som reagerer (kråker som flyr når helten kommer, skilt som rister når noen slåss). Kulisser i flere deler med hver sin animasjon, sett og varianter. Rader, generert pynt som kan slås av, bølger, tønner og farer på en tidslinje, angre, og PLAY FROM HERE. Lagrer brettfilene rett i repoet under `npm run dev`.
 - **2 spillere lokalt**, tastatur, gamepad (med rumble) og **berøringskontroller** på mobil og nettbrett.
 
 ## Kontroller

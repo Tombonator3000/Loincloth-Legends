@@ -1,6 +1,6 @@
 ---
 name: stage-forge
-description: Lag, endre og sjekk brett i Loincloth Legends med brettverkstedet STAGE FORGE eller brettfilene i src/data/layouts. Bruk når Tom vil legge til, flytte eller fjerne kulisser (stolper, telt, palisade, trær rett foran kameraet), lage rader, slå av generert pynt, flytte bølger, tønner og farer, eller animere kulisser (sway, swing, bob, spin, flicker, sheet, track). Level editor, layout JSON, props, layers, parallax.
+description: Lag, endre og sjekk brett i Loincloth Legends med brettverkstedet STAGE FORGE eller brettfilene i src/data/layouts. Bruk når Tom vil legge til, flytte eller fjerne kulisser (stolper, telt, palisade, trær rett foran kameraet), sette sammen kulisser av flere deler, lage rader og varianter, slå av generert pynt, flytte bølger, tønner og farer, eller animere kulisser (sway, swing, bob, spin, flicker, sheet, track, wave, pulse, drift, react). Level editor, layout JSON, props, parts, layers, parallax.
 ---
 
 # STAGE FORGE: brett og kulisser
@@ -46,7 +46,9 @@ z er dybden. Kamplinja er z = 0, og figurene går mellom z = -2,6 og 2,6.
 }
 ```
 - `prop` er en id fra katalogen (`src/gfx/props/catalog.ts`) eller fra `props` i `public/assets/manifest.json`. `id` må være unik i fila.
-- Valgfritt per kulisse: `y`, `scale`, `flip`, `rot` (helning), `yaw` (vridning), `tint`, `anim`, `fade`, `dark`, `shadow`, `locked`.
+- Valgfritt per kulisse: `parent`, `y`, `scale`, `flip`, `rot` (helning), `yaw` (vridning), `tint`, `anim`, `fade`, `dark`, `shadow`, `locked`.
+- `parent` gjør kulissen til en del av en annen (id i samme fil): den henger på leddet og følger animasjonen. x, y og z er likevel plassen i verden. Flytter du forelderen for hånd i fila, flytt delene like mye (editoren gjør det selv). Legg delen 0,02 lenger fram i z, så den tegnes over.
+- Varianter: navn som bare skiller seg på `_a`, `_b`, `_2` til slutt. En rad blander dem med `"variants": ["palisade_b"]`.
 - En rad (`runs`) legger ut samme kulisse fra `x0` til `x1` med `step`, og kan ha `jitter`, `zJitter`, `scaleJitter`, `flipRandom`, `gaps` og eget `seed`. Den blir lik hver gang.
 - `seed` styrer den genererte pynten. Et nytt frø flytter trær, steiner og gress. Ikke endre det uten at Tom ber om det.
 - `waves`, `barrels`, `hazards`, `riders` og `length` kommer inn i brettfila først når de endres i editoren. Bølger skrives som i levels.ts: `{"at":14,"maxAlive":3,"spawns":"skeleton:R:0.2 hogman:L:1.0"}`.
@@ -72,12 +74,16 @@ En liste i `anim`, på kulissen i brettfila eller i katalogen og manifestet:
 - `flicker` (lys): `amount`, `speed`, og med `light` en punktlampe med `intensity`, `range` og `at` [u, v]
 - `sheet` (bildeserie): `n`, `grid` [kolonner, rader], `fps`, `mode` (`loop`, `pingpong` eller `once`)
 - `track` (nøkler over tid, etter POSER i Morbidium): `dur`, `loop`, og `keys` per kanal (x, y, rot, sx, sy, alpha) som `[[t, verdi], ...]` med t fra 0 til 1 og myk overgang imellom
+- `wave` (tøy fra en fast kant): `amount` i meter, `speed`, `length` (bølgelengde i andeler av bildet), `from` (`left`, `right` eller `top`)
+- `pulse`: `amount` (andel av størrelsen), `speed`, `glow`
+- `drift` (glir sidelengs og kommer igjen): `speed` i meter per sekund, `range` i meter
+- `react`: `on` (`near`, `hit` eller `any`), `radius`, `effect` (`shake`, `hop`, `spin` eller `flee`), `amount`, `dur`, `back` (sekunder før en `flee` kommer tilbake)
 
 Alt går på spilltid (dt), så pause og slowmo virker. u og v regnes fra øvre venstre hjørne av bildet.
 
 ## Sjekk før du sier deg ferdig
 1. `npm run typecheck` og `npm run build`.
-2. `node tools/tests/editor.mjs http://localhost:4173/ ./shots` (se skillen `game-tests` for oppsettet).
+2. `node tools/tests/editor.mjs http://localhost:4173/ ./shots` og `node tools/tests/prop-anim.mjs http://localhost:4173/` (se skillen `game-tests` for oppsettet).
 3. Et skjermbilde av brettet du faktisk ser på: `node tools/tests/looks.mjs http://localhost:4173/ ./shots road`.
 4. Har du endret en miljøbygger: samme frø skal gi samme bilde to ganger på rad.
 5. Logg i `log.md`.

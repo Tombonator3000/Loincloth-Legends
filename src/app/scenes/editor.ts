@@ -20,8 +20,9 @@ import { MOUNTS } from '../../data/mounts';
 import { chasmHole, type HazardKind } from '../../data/hazards';
 import { layoutFor, setUnsavedLayout } from '../../data/layouts';
 import {
-  LAYERS, LAYER_IDS, LANE_Z, ANIM_TYPES, TRACK_CHANNELS, emptyLayout, levelWithLayout, validateLayout, waveToLayout, layerDefaults,
-  type LevelLayout, type LayerId, type PropAnim, type PropPlacement, type PropRun, type PropAnimType, type TrackChannel,
+  LAYERS, LAYER_IDS, LANE_Z, ANIM_TYPES, TRACK_CHANNELS, WAVE_FROM, REACT_ON, REACT_EFFECTS, emptyLayout, levelWithLayout, validateLayout,
+  waveToLayout, layerDefaults,
+  type LevelLayout, type LayerId, type PresetPart, type PropAnim, type PropPlacement, type PropRun, type PropAnimType, type TrackChannel,
 } from '../../data/layout';
 import { withSeed, hashSeed, clamp } from '../../core/math';
 import { isTyping } from '../../core/input';
@@ -64,6 +65,16 @@ const clone = <T>(o: T): T => JSON.parse(JSON.stringify(o)) as T;
 const r3 = (v: number) => Math.round(v * 1000) / 1000;
 const HAZARD_KINDS: HazardKind[] = ['spikes', 'bog', 'icehole', 'lava', 'spiketrap', 'chasm'];
 const BARREL_KINDS = ['chicken', 'ham', 'potion', 'gold', 'egg', 'coin'];
+
+/** Grunnavnet til en variant: palisade_a, palisade_b og palisade_2 er varianter av palisade. */
+export function variantBase(id: string) {
+  return id.replace(/_(?:v?\d{1,2}|[a-z])$/, '');
+}
+/** De andre variantene av en rekvisitt (samme grunnavn), i bibliotekets rekkefølge. */
+export function variantsOf(id: string) {
+  const b = variantBase(id);
+  return allProps().filter((k) => k.id !== id && variantBase(k.id) === b).map((k) => k.id);
+}
 
 function newState(level: string): ForgeState {
   const saved = layoutFor(level);
@@ -202,12 +213,96 @@ export class EditorScene implements Scene {
   }
 
   private commitProp(p: PropPlacement) {
-    const i = this.st.layout.props.findIndex((q) => q.id === p.id);
-    if (i >= 0) this.st.layout.props[i] = p;
-    else this.st.layout.props.push(p);
+    const props = this.st.layout.props;
+    const i = props.findIndex((q) => q.id === p.id);
+    const old = i >= 0 ? props[i] : null;
+    if (i >= 0) props[i] = p;
+    else props.push(p);
     this.scenery.move(p);
+    if (old) this.carryParts(old, p);
     this.applyLayerVisibility();
     setUnsavedLayout(this.st.level, this.st.layout);
+  }
+
+  // ---------------------------------------------------------------- deler
+  /** Alle delene under en rekvisitt (også delenes deler). */
+  private descendants(id: string): PropPlacement[] {
+    const out: PropPlacement[] = [];
+    const walk = (pid: string) => {
+      for (const q of this.st.layout.props) {
+        if (q.parent !== pid || out.includes(q)) continue;
+        out.push(q);
+        walk(q.id);
+      }
+    };
+    walk(id);
+    return out;
+  }
+
+  /**
+   * Delene følger rekvisitten de henger på: flyttes den, flyttes de like mye. Skaleres, speilvendes eller vris den,
+   * gjør delene det samme rundt leddet dens, som om de satt fast.
+   */
+  private carryParts(old: PropPlacement, p: PropPlacement) {
+    const parts = this.descendants(p.id);
+    if (!parts.length) return;
+    const same = old.x === p.x && (old.y ?? 0) === (p.y ?? 0) && old.z === p.z && (old.scale ?? 1) === (p.scale ?? 1) && !!old.flip === !!p.flip && (old.rot ?? 0) === (p.rot ?? 0);
+    if (same) return;
+    const k = (p.scale ?? 1) / (old.scale ?? 1);
+    const flipped = !!old.flip !== !!p.flip;
+    const f1 = p.flip ? -1 : 1;
+    const da = THREE.MathUtils.degToRad(((p.rot ?? 0) - (old.rot ?? 0)) * f1);
+    const cos = Math.cos(da), sin = Math.sin(da);
+    const props = this.st.layout.props;
+    for (const c of parts) {
+      // Avstanden fra forelderens fotpunkt, skalert, speilvendt og vridd som forelderen, og lagt til den nye plassen
+      let ox = (c.x - old.x) * k, oy = ((c.y ?? 0) - (old.y ?? 0)) * k;
+      if (flipped) ox = -ox;
+      [ox, oy] = [ox * cos - oy * sin, ox * sin + oy * cos];
+      const n: PropPlacement = { ...c, x: r3(p.x + ox), z: r3(p.z + (c.z - old.z)) };
+      const ny = r3((p.y ?? 0) + oy);
+      if (ny) n.y = ny;
+      else delete n.y;
+      if (k !== 1) n.scale = r3((c.scale ?? 1) * k);
+      if (flipped) {
+        n.flip = !c.flip || undefined;
+        if (c.rot) n.rot = r3(-c.rot);
+      }
+      if (da) n.rot = r3((n.rot ?? c.rot ?? 0) + ((p.rot ?? 0) - (old.rot ?? 0))) || undefined;
+      props[props.findIndex((q) => q.id === c.id)] = n;
+      this.scenery.move(n);
+    }
+  }
+
+  /** Legg ut en del som henger på rekvisitten (litt foran, så den tegnes over). */
+  private addPart(parent: PropPlacement, kind: PropKind) {
+    this.change();
+    const it = this.scenery.items.get(parent.id);
+    const h = it ? it.size[1] * (parent.scale ?? 1) : 1;
+    const p: PropPlacement = { id: this.newId(), prop: kind.id, parent: parent.id, layer: parent.layer, x: parent.x, y: r3((parent.y ?? 0) + h * 0.5), z: r3(parent.z + 0.02) };
+    this.commitProp(p);
+    this.select({ type: 'prop', id: p.id });
+    this.toast('ADDED PART ' + kind.label);
+  }
+
+  /** Lagre delene som et sett på bildet (manifestet), så neste gang legges hele settet ut med ett klikk. */
+  private saveAsSet(p: PropPlacement) {
+    const meta = editableMeta(p.prop);
+    if (!meta) return;
+    const s = p.scale ?? 1, f = p.flip ? -1 : 1;
+    const preset: PresetPart[] = this.st.layout.props.filter((c) => c.parent === p.id).map((c) => {
+      const part: PresetPart = { prop: c.prop, dx: r3(((c.x - p.x) / s) * f), dy: r3(((c.y ?? 0) - (p.y ?? 0)) / s), dz: r3(c.z - p.z) };
+      if ((c.scale ?? 1) !== s) part.scale = r3((c.scale ?? 1) / s);
+      if (!!c.flip !== !!p.flip) part.flip = true;
+      if (c.rot) part.rot = r3(c.rot * f);
+      if (c.anim) part.anim = clone(c.anim);
+      return part;
+    });
+    setMeta(p.prop, { ...meta, preset });
+    this.st.dirty = true;
+    this.renderLibrary();
+    this.renderTop();
+    this.toast(`SET SAVED ON ${p.prop.toUpperCase()}: ${preset.length} PART(S). SAVE WRITES IT TO THE MANIFEST`, 4);
   }
 
   private commitRun(r: PropRun) {
@@ -239,10 +334,17 @@ export class EditorScene implements Scene {
     const p: PropPlacement = { id: this.newId(), prop: kind.id, layer: L, x, z };
     if (at?.y) p.y = r3(at.y);
     this.commitProp(p);
-    for (const extra of kind.preset ?? []) {
-      const k2 = propKind(extra.prop);
+    // Et sett: delene henges på rekvisitten og følger den
+    for (const part of kind.preset ?? []) {
+      const k2 = propKind(part.prop);
       if (!k2) continue;
-      this.commitProp({ id: this.newId(), prop: k2.id, layer: L, x: r3(x + extra.dx), y: r3((p.y ?? 0) + extra.dy), z: r3(z + (extra.dz ?? 0)) });
+      const q: PropPlacement = { id: this.newId(), prop: k2.id, parent: p.id, layer: L, x: r3(x + part.dx), y: r3((p.y ?? 0) + part.dy), z: r3(z + (part.dz ?? 0)) };
+      if (part.scale) q.scale = part.scale;
+      if (part.flip) q.flip = true;
+      if (part.rot) q.rot = part.rot;
+      if (part.anim) q.anim = clone(part.anim);
+      if (!q.y) delete q.y;
+      this.commitProp(q);
     }
     this.select({ type: 'prop', id: p.id });
     this.toast('ADDED ' + kind.label);
@@ -291,6 +393,12 @@ export class EditorScene implements Scene {
     if (s.type === 'prop') {
       lay.props = lay.props.filter((p) => p.id !== s.id);
       this.scenery.remove(s.id);
+      // Delene blir liggende der de er, løse
+      for (const c of lay.props.filter((q) => q.parent === s.id)) {
+        const n = { ...c };
+        delete n.parent;
+        this.commitProp(n);
+      }
     } else if (s.type === 'run') {
       lay.runs = (lay.runs ?? []).filter((r) => r.id !== s.id);
       this.scenery.remove(s.id);
@@ -318,8 +426,16 @@ export class EditorScene implements Scene {
     if (!cur || !s) return;
     this.change();
     if (s.type === 'prop') {
-      const p = { ...clone(cur as PropPlacement), id: this.newId(), x: r3((cur as PropPlacement).x + 1.5) };
+      const src = cur as PropPlacement;
+      const p = { ...clone(src), id: this.newId(), x: r3(src.x + 1.5) };
       this.commitProp(p);
+      // Delene blir med, hengt på kopien
+      const ids = new Map<string, string>([[src.id, p.id]]);
+      for (const c of this.descendants(src.id)) {
+        const n = { ...clone(c), id: this.newId(), x: r3(c.x + 1.5), parent: ids.get(c.parent!) ?? p.id };
+        ids.set(c.id, n.id);
+        this.commitProp(n);
+      }
       this.select({ type: 'prop', id: p.id });
     } else if (s.type === 'run') {
       const r = clone(cur as PropRun);
@@ -705,6 +821,11 @@ export class EditorScene implements Scene {
     else if (k === 'ArrowUp') edit((o) => (e.altKey ? (o.y = r3((o.y ?? 0) + big)) : (o.z = r3(o.z - big))));
     else if (k === 'ArrowDown') edit((o) => (e.altKey ? (o.y = r3((o.y ?? 0) - big)) : (o.z = r3(o.z + big))));
     else if (k === 'KeyF' && s.type === 'prop') edit((o) => (o.flip = !o.flip));
+    else if (k === 'KeyV') {
+      // Neste variant (palisade_a, palisade_b ...)
+      const all = [cur.prop, ...variantsOf(cur.prop)].sort();
+      if (all.length > 1) edit((o) => (o.prop = all[(all.indexOf(cur.prop) + 1) % all.length]));
+    }
     else if (k === 'BracketLeft') edit((o) => (o.scale = r3(clamp((o.scale ?? 1) / 1.08, 0.05, 20))));
     else if (k === 'BracketRight') edit((o) => (o.scale = r3(clamp((o.scale ?? 1) * 1.08, 0.05, 20))));
     else if (k === 'Comma' && s.type === 'prop') edit((o) => (o.rot = r3((o.rot ?? 0) + 2)));
@@ -789,6 +910,8 @@ export class EditorScene implements Scene {
           ['Drop PNG files', 'Adds them as props at once (prop_name.png, or anim_name_4x2.png for a sheet)'],
           ['Arrows', 'Nudge the selection (Shift = 1 m). Up and down: depth, with Alt: height'],
           ['[ ] , . F', 'Scale, rotate, flip'],
+          ['V', 'Next variant of the prop (palisade_a, palisade_b ...)'],
+          ['Parts', 'PART OF hangs a prop on another one. Parts follow its animation, and move, scale and flip with it'],
           ['Del, Ctrl+D', 'Delete, duplicate'],
           ['Ctrl+Z, Ctrl+Y', 'Undo, redo'],
           ['Ctrl+S', 'Save (into the repo with npm run dev, otherwise a download)'],
@@ -909,9 +1032,12 @@ export class EditorScene implements Scene {
           c.drawImage(img, 0, 0, sw, sh, (80 - sw * s) / 2, (80 - sh * s) / 2, sw * s, sh * s);
           item.append(th);
         } else item.append(el('div', { class: 'fg-3d', text: '3D' }));
-        item.append(el('div', { class: 'fg-name' }, k.label, el('br'), el('span', { class: 'fg-src', text: (k.source === 'painted' ? 'PLACEHOLDER' : k.source === 'image' ? 'IMAGE' : '3D') + ' · ' + LAYERS[k.layer].label })));
-        item.append(btn('ROW', () => this.addRun(k), 'A row of this along the level'));
-        item.addEventListener('click', () => this.addProp(k));
+        const nv = variantsOf(k.id).length, np = k.preset?.length ?? 0;
+        const extra = (nv ? ` · ${nv + 1} VARIANTS` : '') + (np ? ` · SET OF ${np + 1}` : '');
+        item.append(el('div', { class: 'fg-name' }, k.label, el('br'), el('span', { class: 'fg-src', text: (k.source === 'painted' ? 'PLACEHOLDER' : k.source === 'image' ? 'IMAGE' : '3D') + ' · ' + LAYERS[k.layer].label + extra })));
+        // Den nyeste utgaven (et sett kan ha kommet til etter at biblioteket ble tegnet)
+        item.append(btn('ROW', () => this.addRun(propKind(k.id) ?? k), 'A row of this along the level'));
+        item.addEventListener('click', () => this.addProp(propKind(k.id) ?? k));
         item.addEventListener('dragstart', (e) => e.dataTransfer?.setData('text/x-forge-prop', k.id));
         u.list.append(item);
       }
@@ -977,6 +1103,22 @@ export class EditorScene implements Scene {
     }
     kindSel.addEventListener('change', () => edit((o) => (o.prop = kindSel.value), true));
     P.append(el('div', { class: 'fg-row' }, kindSel), el('div', { class: 'fg-small fg-dim', text: kind ? `${kind.source === 'painted' ? 'PLACEHOLDER (a PNG called prop_' + kind.id + '.png replaces it)' : kind.source === 'image' ? 'IMAGE' : '3D FROM CODE'}` : 'UNKNOWN PROP' }));
+    // Varianter av samme ting (V bytter)
+    const vars = variantsOf(cur.prop);
+    if (vars.length) {
+      const vSel = el('select') as HTMLSelectElement;
+      for (const id of [cur.prop, ...vars].sort()) {
+        const o = el('option', { value: id, text: id.toUpperCase() });
+        if (id === cur.prop) o.selected = true;
+        vSel.append(o);
+      }
+      vSel.addEventListener('change', () => edit((o) => (o.prop = vSel.value), true));
+      P.append(el('div', { class: 'fg-row' }, el('label', { text: 'VARIANT' }), vSel));
+      if (isRun) {
+        const r = cur as PropRun;
+        P.append(check('MIX VARIANTS', !!r.variants?.length, (o, v) => (o.variants = v ? vars : undefined), 'Mix all the variants into the row'));
+      }
+    }
     const layerSel = el('select') as HTMLSelectElement;
     for (const l of LAYER_IDS) {
       const o = el('option', { value: l, text: LAYERS[l].label + '  (z ' + LAYERS[l].z[0] + ' to ' + LAYERS[l].z[1] + ')' });
@@ -1015,6 +1157,7 @@ export class EditorScene implements Scene {
         check('FLIP', !!p.flip, (o, v) => (o.flip = v || undefined)),
         check('LOCKED', !!p.locked, (o, v) => (o.locked = v || undefined), 'Locked props cannot be clicked in the view'),
       );
+      this.renderParts(P, p, edit);
     }
     // Utseende
     const d = layerDefaults(cur.layer);
@@ -1035,6 +1178,69 @@ export class EditorScene implements Scene {
     const meta = kind && !kind.build ? editableMeta(kind.id) : null;
     if (meta && kind) this.renderMeta(P, kind.id, meta);
     P.append(el('div', { class: 'fg-row', style: 'margin-top:10px' }, btn('DUPLICATE', () => this.duplicateSelected(), 'Ctrl+D'), btn('DELETE', () => this.deleteSelected(), 'Del')));
+  }
+
+  /** Deler: hva den henger på, delene den har, legg til en del og lagre som sett. */
+  private renderParts(P: HTMLElement, p: PropPlacement, edit: (fn: (o: PropPlacement & PropRun) => void, rebuild?: boolean) => void) {
+    P.append(el('h3', { text: 'PARTS' }));
+    const below = new Set(this.descendants(p.id).map((q) => q.id));
+    const cands = this.st.layout.props
+      .filter((q) => q.id !== p.id && !below.has(q.id))
+      .map((q) => ({ q, d: Math.abs(q.x - p.x) + Math.abs(q.z - p.z) * 0.3 }))
+      .filter((c) => c.d < 12 || c.q.id === p.parent)
+      .sort((a, b) => a.d - b.d)
+      .slice(0, 14);
+    const parentSel = el('select') as HTMLSelectElement;
+    parentSel.append(el('option', { value: '', text: 'NONE (STANDS ON ITS OWN)' }));
+    for (const { q, d } of cands) {
+      const o = el('option', { value: q.id, text: `${q.id} ${(propKind(q.prop)?.label ?? q.prop)} (${d.toFixed(1)} m)` });
+      if (q.id === p.parent) o.selected = true;
+      parentSel.append(o);
+    }
+    parentSel.addEventListener('change', () => edit((o) => (o.parent = parentSel.value || undefined), true));
+    P.append(el('div', { class: 'fg-row' }, el('label', { text: 'PART OF' }), parentSel));
+    const kids = this.st.layout.props.filter((q) => q.parent === p.id);
+    for (const c of kids) {
+      P.append(el('div', { class: 'fg-row fg-small' }, `${c.id} ${propKind(c.prop)?.label ?? c.prop}`, btn('SELECT', () => this.select({ type: 'prop', id: c.id }))));
+    }
+    const addSel = el('select') as HTMLSelectElement;
+    addSel.append(el('option', { value: '', text: '+ ADD PART' }));
+    for (const k of allProps()) if (!k.build) addSel.append(el('option', { value: k.id, text: k.label }));
+    addSel.addEventListener('change', () => {
+      const k = propKind(addSel.value);
+      if (k) this.addPart(p, k);
+    });
+    const row = el('div', { class: 'fg-row' }, addSel);
+    if (kids.length && editableMeta(p.prop)) row.append(btn('SAVE AS SET', () => this.saveAsSet(p), 'Next time this image is placed, the parts come with it'));
+    P.append(row, el('div', { class: 'fg-small fg-dim', text: 'Parts hang on this prop and follow its animation, and move, scale and flip with it.' }));
+  }
+
+  /** Et lite bilde av rekvisitten der et klikk velger et punkt (ledd eller lys), u og v fra øvre venstre hjørne. */
+  private pointPicker(kind: PropKind | undefined, value: [number, number], pick: (uv: [number, number]) => void) {
+    const img = kind?.image?.();
+    if (!img) return null;
+    const sheet = kind?.anim?.find((a) => a.type === 'sheet') as Extract<PropAnim, { type: 'sheet' }> | undefined;
+    const fw = sheet ? img.width / sheet.grid[0] : img.width, fh = sheet ? img.height / sheet.grid[1] : img.height;
+    const cv = el('canvas', { class: 'fg-preview fg-pick', title: 'Click to set the point' }) as HTMLCanvasElement;
+    const sc = Math.min(1, 240 / Math.max(fw, fh));
+    cv.width = Math.max(1, Math.round(fw * sc));
+    cv.height = Math.max(1, Math.round(fh * sc));
+    const c = cv.getContext('2d')!;
+    c.drawImage(img, 0, 0, fw, fh, 0, 0, cv.width, cv.height);
+    c.fillStyle = '#ff3a3a';
+    c.strokeStyle = '#fff';
+    c.lineWidth = 2;
+    c.beginPath();
+    c.arc(value[0] * cv.width, value[1] * cv.height, 5, 0, Math.PI * 2);
+    c.fill();
+    c.stroke();
+    cv.addEventListener('click', (e) => {
+      const r = cv.getBoundingClientRect();
+      const s = Math.min(r.width / cv.width, r.height / cv.height);
+      const ox = (r.width - cv.width * s) / 2, oy = (r.height - cv.height * s) / 2;
+      pick([r3(clamp((e.clientX - r.left - ox) / (cv.width * s), 0, 1)), r3(clamp((e.clientY - r.top - oy) / (cv.height * s), 0, 1))]);
+    });
+    return cv;
   }
 
   private renderAnims(P: HTMLElement, cur: PropPlacement | PropRun, kind: PropKind | undefined, edit: (fn: (o: PropPlacement & PropRun) => void, rebuild?: boolean) => void) {
@@ -1069,11 +1275,50 @@ export class EditorScene implements Scene {
         i2.addEventListener('change', upd);
         return el('div', { class: 'fg-row' }, el('label', { text: label }), i1, i2);
       };
+      const choice = (label: string, key: string, opts: readonly string[], def: string) => {
+        const rec = a as unknown as Record<string, unknown>;
+        const sel = el('select') as HTMLSelectElement;
+        for (const v of opts) {
+          const o = el('option', { value: v, text: v.toUpperCase() });
+          if ((rec[key] ?? def) === v) o.selected = true;
+          sel.append(o);
+        }
+        sel.addEventListener('change', () => {
+          rec[key] = sel.value;
+          setAll(anims);
+        });
+        return el('div', { class: 'fg-row' }, el('label', { text: label }), sel);
+      };
+      // Ledd og lyspunkt kan velges med et klikk i bildet
+      const picker = (key: 'pivot' | 'at', def: [number, number]) => {
+        const rec = a as unknown as Record<string, [number, number] | undefined>;
+        return this.pointPicker(kind, rec[key] ?? def, (uv) => {
+          rec[key] = uv;
+          setAll(anims);
+        }) ?? '';
+      };
       switch (a.type) {
         case 'sway': box.append(field('AMOUNT', 'amount'), field('SPEED', 'speed')); break;
-        case 'swing': box.append(field('DEGREES', 'amount', 1), field('SPEED', 'speed'), pair('PIVOT U V', 'pivot', [0.5, 0])); break;
+        case 'swing': box.append(field('DEGREES', 'amount', 1), field('SPEED', 'speed'), pair('PIVOT U V', 'pivot', [0.5, 0]), picker('pivot', [0.5, 0])); break;
         case 'bob': box.append(field('METRES', 'amount', 0.01), field('SPEED', 'speed')); break;
-        case 'spin': box.append(field('TURNS/S', 'speed'), pair('PIVOT U V', 'pivot', [0.5, 0.5])); break;
+        case 'spin': box.append(field('TURNS/S', 'speed'), pair('PIVOT U V', 'pivot', [0.5, 0.5]), picker('pivot', [0.5, 0.5])); break;
+        case 'wave':
+          box.append(field('METRES', 'amount', 0.01), field('SPEED', 'speed'), field('WAVE LENGTH', 'length'), choice('FIXED EDGE', 'from', WAVE_FROM, 'left'),
+            el('div', { class: 'fg-small fg-dim', text: 'Cloth waves out from the fixed edge (the pole). TOP: hangs from a bar.' }));
+          break;
+        case 'pulse': box.append(field('SIZE', 'amount', 0.01), field('SPEED', 'speed'), field('GLOW', 'glow')); break;
+        case 'drift':
+          box.append(field('M PER SEC', 'speed'), field('RANGE M', 'range', 1),
+            el('div', { class: 'fg-small fg-dim', text: 'Glides sideways over RANGE metres and comes back in from the other side.' }));
+          break;
+        case 'react': {
+          const keys = this.st.sel?.type === 'run' ? [...this.scenery.items.keys()].filter((k) => k.startsWith(cur.id + '#')) : [cur.id];
+          box.append(choice('WHEN', 'on', REACT_ON, 'near'), field('RADIUS M', 'radius', 0.1), choice('EFFECT', 'effect', REACT_EFFECTS, 'shake'),
+            field('AMOUNT', 'amount', 0.1), field('SECONDS', 'dur', 0.1), field('BACK AFTER S', 'back', 1),
+            el('div', { class: 'fg-row' }, btn('TEST', () => keys.forEach((k) => this.scenery.trigger(k)), 'Play the reaction now')),
+            el('div', { class: 'fg-small fg-dim', text: 'NEAR: a fighter close by. HIT: blows, throws and quakes close by. FLEE flies off and comes back after BACK AFTER.' }));
+          break;
+        }
         case 'flicker': {
           const col = el('input', { type: 'color', value: a.light ?? '#ffb45a' }) as HTMLInputElement;
           const lightOn = el('input', { type: 'checkbox' }) as HTMLInputElement;
@@ -1084,7 +1329,7 @@ export class EditorScene implements Scene {
           };
           col.addEventListener('change', upd);
           lightOn.addEventListener('change', upd);
-          box.append(field('AMOUNT', 'amount'), field('SPEED', 'speed'), el('div', { class: 'fg-row' }, el('label', { text: 'LIGHT' }), lightOn, col), field('BRIGHTNESS', 'intensity', 1), field('RANGE', 'range', 1), pair('LIGHT AT U V', 'at', [0.5, 0.3]));
+          box.append(field('AMOUNT', 'amount'), field('SPEED', 'speed'), el('div', { class: 'fg-row' }, el('label', { text: 'LIGHT' }), lightOn, col), field('BRIGHTNESS', 'intensity', 1), field('RANGE', 'range', 1), pair('LIGHT AT U V', 'at', [0.5, 0.3]), picker('at', [0.5, 0.3]));
           break;
         }
         case 'sheet': {
@@ -1141,6 +1386,10 @@ export class EditorScene implements Scene {
         flicker: { type: 'flicker', amount: 0.25, speed: 8, light: '#ffb45a', intensity: 7, range: 7, at: [0.5, 0.3] },
         sheet: { type: 'sheet', n: 4, grid: [4, 1], fps: 10, mode: 'loop' },
         track: { type: 'track', dur: 4, loop: true, keys: { x: [[0, 0], [0.5, 1], [1, 0]] } },
+        wave: { type: 'wave', amount: 0.12, speed: 0.9, length: 0.7, from: 'left' },
+        pulse: { type: 'pulse', amount: 0.04, speed: 0.6, glow: 0.3 },
+        drift: { type: 'drift', speed: 0.4, range: 30 },
+        react: { type: 'react', on: 'near', radius: 2.5, effect: 'shake', amount: 8 },
       };
       setAll([...anims, fresh[t]]);
     });

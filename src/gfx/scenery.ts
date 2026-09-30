@@ -12,7 +12,7 @@ import { applyShadows, type Env, type Tippable } from './env/common';
 import { propKind, type PropKind } from './props/catalog';
 import { seeded, hashSeed } from '../core/math';
 import {
-  LAYERS, layerDefaults, type LevelLayout, type PropAnim, type PropPlacement, type PropRun, type TrackChannel,
+  LAYERS, WAVE_FROM, layerDefaults, type LevelLayout, type PropAnim, type PropPlacement, type PropRun, type TrackChannel,
 } from '../data/layout';
 
 type Updates = ((dt: number, t: number, camX: number) => void)[];
@@ -33,6 +33,14 @@ uniform float uSwaySpeed;
 uniform float uPropH;
 uniform float uBase;
 uniform float uPhase;
+uniform float uWave;
+uniform float uWaveSpeed;
+uniform float uWaveLen;
+uniform float uWaveFrom;
+uniform float uLeft;
+uniform float uPropW;
+uniform float uT;
+varying float vShade;
 ${WIND_GLSL}
 #include <fog_pars_vertex>`],
   ['  vUv = uv;\n  vec4 mv = modelViewMatrix * vec4(position, 1.0);', `  vUv = uv * uUvRep + uUvOff;
@@ -46,6 +54,20 @@ ${WIND_GLSL}
     p.x += h01 * h01 * uPropH * (0.05 * s + 0.07 * s * sw);
     p.y -= h01 * h01 * uPropH * 0.01 * s;
   }
+  vShade = 1.0;
+  if (uWave > 0.0) {
+    // Duken bølger ut fra den faste kanten (stanga): ingenting ved kanten, mest ytterst. Foldene får litt skygge.
+    float u01 = clamp((position.x - uLeft) / max(uPropW, 0.01), 0.0, 1.0);
+    float v01 = clamp((position.y - uBase) / max(uPropH, 0.01), 0.0, 1.0);
+    float d = uWaveFrom < 0.5 ? u01 : (uWaveFrom < 1.5 ? 1.0 - u01 : 1.0 - v01);
+    float along = uWaveFrom < 1.5 ? d : d + u01 * 0.35;
+    float ph = along / max(uWaveLen, 0.05) * 6.2831853 - uT * uWaveSpeed * 6.2831853 + uPhase;
+    float a = uWave * d;
+    if (uWaveFrom < 1.5) p.y += a * sin(ph);
+    else p.x += a * sin(ph);
+    p.z += a * 0.7 * cos(ph);
+    vShade = 1.0 - 0.28 * min(1.0, d * 1.6) * (0.5 - 0.5 * cos(ph));
+  }
   vec4 mv = modelViewMatrix * vec4(p, 1.0);`],
   ['  gl_Position = projectionMatrix * mv;\n}', `  gl_Position = projectionMatrix * mv;
   vec4 mvPosition = mv;
@@ -58,6 +80,7 @@ const FRAG = [
 uniform float uFade;
 uniform float uDark;
 uniform float uGlow;
+varying float vShade;
 #include <fog_pars_fragment>`],
   ['  if (c.a < 0.06) discard;', `  if (c.a < 0.06) discard;
   // Toning av forgrunnen: dithering, så dybden og kantutjevningen virker som før
@@ -65,7 +88,7 @@ uniform float uGlow;
     float dth = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
     if (dth > uFade) discard;
   }`],
-  ['  col = mix(col, flashColor, flash);', `  col *= uGlow * (1.0 - uDark);
+  ['  col = mix(col, flashColor, flash);', `  col *= uGlow * (1.0 - uDark) * vShade;
   col = mix(col, flashColor, flash);`],
   ['  #include <colorspace_fragment>\n}', `  #include <colorspace_fragment>
   #include <fog_fragment>
@@ -94,6 +117,13 @@ function propMaterial(tex: THREE.Texture, relief: THREE.Texture | null) {
     uFade: { value: 1 },
     uDark: { value: 0 },
     uGlow: { value: 1 },
+    uWave: { value: 0 },
+    uWaveSpeed: { value: 1 },
+    uWaveLen: { value: 0.7 },
+    uWaveFrom: { value: 0 },
+    uLeft: { value: 0 },
+    uPropW: { value: 1 },
+    uT: { value: 0 },
   };
   const m = new THREE.ShaderMaterial({
     uniforms,
@@ -210,6 +240,23 @@ export interface SceneryItem {
   fireAt: THREE.Vector3[];
   tippables: Tippable[];
   fireAcc: number;
+  /** Leddet i ro (meter fra fotpunktet), før animasjonene. */
+  rest: [number, number];
+  /** Forelderen når dette er en del av en annen rekvisitt (nøkkelen), ellers undefined. */
+  parentKey?: string;
+  /** Tilstanden til react-animasjonene (samme plass i lista som i anims). */
+  reacts: ReactState[];
+}
+
+interface ReactState {
+  /** Sekunder siden den startet (-1 = i ro). */
+  rt: number;
+  /** Nedkjøling før den kan starte igjen. */
+  cd: number;
+  /** Retningen bort fra det som skremte den. */
+  dir: number;
+  /** flee: sekunder igjen før den kommer tilbake. */
+  gone: number;
 }
 
 export interface FighterBox {
@@ -222,6 +269,23 @@ export interface FighterBox {
 }
 
 const tmpV = new THREE.Vector3();
+const tmpP = new THREE.Vector3();
+const tmpS = new THREE.Vector3();
+const tmpQ = new THREE.Quaternion();
+const tmpE = new THREE.Euler();
+const tmpM = new THREE.Matrix4();
+const rad = THREE.MathUtils.degToRad;
+
+/** Plasseringen i verden som matrise (posisjon, vridning rundt loddlinja, skala og speilvending), fra dataene. */
+function worldOf(p: PropPlacement, out: THREE.Matrix4) {
+  const s = p.scale ?? 1;
+  return out.compose(tmpP.set(p.x, p.y ?? 0, p.z), tmpQ.setFromEuler(tmpE.set(0, rad(p.yaw ?? 0), 0)), tmpS.set(p.flip ? -s : s, s, s));
+}
+
+/** Standardlengden på en react-animasjon i sekunder. */
+function reactDur(a: Extract<PropAnim, { type: 'react' }>) {
+  return a.dur ?? (a.effect === 'flee' ? 1.6 : a.effect === 'spin' ? 0.8 : a.effect === 'hop' ? 0.4 : 0.9);
+}
 
 export class Scenery {
   readonly group = new THREE.Group();
@@ -231,6 +295,8 @@ export class Scenery {
   /** Brettverkstedet: vis alt uten toning, og bygg om ved endringer. */
   editor = false;
   private camera: THREE.Camera | null = null;
+  /** Treff, kast og bakkeslag siden forrige bilde (react med on: 'hit'). */
+  private pokes: { x: number; z: number; r: number }[] = [];
 
   constructor(private gore: Gore, private env: Env | null, camera?: THREE.Camera) {
     this.group.name = 'scenery';
@@ -241,10 +307,14 @@ export class Scenery {
     this.camera = c;
   }
 
-  /** Bygg alle rekvisittene og radene i brettfila (det som fantes fra før, fjernes). */
+  /** Bygg alle rekvisittene og radene i brettfila (det som fantes fra før, fjernes). Delene henges på til slutt. */
   load(layout: LevelLayout) {
     this.clear();
-    for (const p of layout.props) this.set(p);
+    for (const p of layout.props) {
+      const it = this.build(p.id, p);
+      if (it) this.items.set(p.id, it);
+    }
+    for (const it of [...this.items.values()]) if (it.place.parent) this.attach(it);
     for (const r of layout.runs ?? []) this.setRun(r);
   }
 
@@ -252,12 +322,56 @@ export class Scenery {
     for (const k of [...this.items.keys()]) this.removeKey(k);
   }
 
-  /** Legg til eller bygg om én rekvisitt. */
+  /** Legg til eller bygg om én rekvisitt. Den henges på forelderen, og delene dens henges på den igjen. */
   set(p: PropPlacement) {
     this.removeKey(p.id);
     const it = this.build(p.id, p);
-    if (it) this.items.set(p.id, it);
+    if (!it) return it;
+    this.items.set(p.id, it);
+    if (p.parent) this.attach(it);
+    for (const c of [...this.items.values()]) if (c !== it && c.place.parent === p.id) this.attach(c);
     return it;
+  }
+
+  /** Heng en del på leddet til forelderen (eller løs den hvis forelderen mangler). Plassen i verden beholdes. */
+  private attach(child: SceneryItem) {
+    const par = child.place.parent ? this.items.get(child.place.parent) : undefined;
+    let ring = false;
+    for (let q = par; q; q = q.parentKey ? this.items.get(q.parentKey) : undefined) if (q === child) ring = true;
+    if (!par || ring) {
+      child.parentKey = undefined;
+      if (child.root.parent !== this.group) this.group.add(child.root);
+    } else {
+      child.parentKey = par.key;
+      par.pivot.add(child.root);
+    }
+    this.place(child);
+  }
+
+  /** Delene som henger på en rekvisitt (nøklene). */
+  partsOf(key: string) {
+    return [...this.items.values()].filter((c) => c.parentKey === key).map((c) => c.key);
+  }
+
+  /** Et treff, et kast eller et bakkeslag ved (x, z): kulisser med react on 'hit' i nærheten svarer. */
+  poke(x: number, z: number, r = 2) {
+    if (this.pokes.length < 32) this.pokes.push({ x, z, r });
+  }
+
+  /** Start react-animasjonen på en rekvisitt med en gang (TEST-knappen i editoren). */
+  trigger(key: string) {
+    const it = this.items.get(key);
+    if (!it) return false;
+    let any = false;
+    it.anims.forEach((a, i) => {
+      if (a.type !== 'react') return;
+      const st = (it.reacts[i] ??= { rt: -1, cd: 0, dir: 1, gone: 0 });
+      st.rt = 0;
+      st.gone = 0;
+      st.dir = 1;
+      any = true;
+    });
+    return any;
   }
 
   remove(id: string) {
@@ -278,6 +392,12 @@ export class Scenery {
   private removeKey(key: string) {
     const it = this.items.get(key);
     if (!it) return;
+    // Delene løsnes først (de beholder plassen sin), så de ikke forsvinner og ryddes med forelderen
+    for (const c of this.items.values()) {
+      if (c.parentKey !== key) continue;
+      this.group.attach(c.root);
+      c.parentKey = undefined;
+    }
     this.items.delete(key);
     it.root.removeFromParent();
     it.root.traverse((o) => {
@@ -309,7 +429,7 @@ export class Scenery {
     const it: SceneryItem = {
       key, place: p, runId, kind, root, pivot, mesh: null, mat: null, anims, size: [1, 1], anchor: [0.5, 1],
       phase: seeded(hashSeed(key))() * 100, t: 0, fade: 1, fades: false,
-      lights: [], heats: [], updates: [], fires: [], fireAt: [], tippables: [], fireAcc: 0,
+      lights: [], heats: [], updates: [], fires: [], fireAt: [], tippables: [], fireAcc: 0, rest: [0, 0], reacts: [],
     };
     if (kind.build) this.buildModel(it, p);
     else if (!this.buildImage(it, p)) return null;
@@ -333,18 +453,29 @@ export class Scenery {
     // Ledd i kulissens rom (meter fra fotpunktet)
     const lx = (px - ax) * w, ly = (ay - py) * h;
     it.pivot.position.set(lx, ly, 0);
-    const geo = new THREE.PlaneGeometry(w, h);
+    it.rest = [lx, ly];
+    // Bølgende duk og vind trenger et oppdelt plan, ellers holder to trekanter
+    const wave = it.anims.find((a): a is Extract<PropAnim, { type: 'wave' }> => a.type === 'wave');
+    const sway = it.anims.find((a): a is Extract<PropAnim, { type: 'sway' }> => a.type === 'sway');
+    const geo = wave ? new THREE.PlaneGeometry(w, h, 18, 14) : sway ? new THREE.PlaneGeometry(w, h, 1, 6) : new THREE.PlaneGeometry(w, h);
     geo.translate((0.5 - ax) * w - lx, (ay - 0.5) * h - ly, 0);
     const mat = propMaterial(art.tex, art.relief);
     const u = mat.uniforms;
     const sheet = sheetOf(it.anims);
     if (sheet) (u.uUvRep.value as THREE.Vector2).set(1 / sheet.grid[0], 1 / sheet.grid[1]);
-    const sway = it.anims.find((a): a is Extract<PropAnim, { type: 'sway' }> => a.type === 'sway');
     if (sway) {
       u.uSway.value = sway.amount ?? 0.5;
       u.uSwaySpeed.value = sway.speed ?? 1;
     }
+    if (wave) {
+      u.uWave.value = wave.amount ?? 0.12;
+      u.uWaveSpeed.value = wave.speed ?? 0.9;
+      u.uWaveLen.value = wave.length ?? 0.7;
+      u.uWaveFrom.value = Math.max(0, WAVE_FROM.indexOf(wave.from ?? 'left'));
+    }
     u.uPropH.value = h;
+    u.uPropW.value = w;
+    u.uLeft.value = -ax * w - lx;
     u.uBase.value = (ay - 1) * h - ly;
     u.uPhase.value = it.phase;
     const defaults = layerDefaults(p.layer);
@@ -414,15 +545,30 @@ export class Scenery {
     }
   }
 
-  /** Sett plassering, skala, speilvending og vridning på roten. */
+  /** Leddet til en rekvisitt i ro, i verden: plassen fra dataene og leddet uten animasjon. */
+  private restPivot(it: SceneryItem, out: THREE.Matrix4) {
+    worldOf(it.place, out);
+    return out.multiply(tmpM.compose(tmpP.set(it.rest[0], it.rest[1], 0), tmpQ.setFromEuler(tmpE.set(0, 0, rad(it.place.rot ?? 0))), tmpS.set(1, 1, 1)));
+  }
+
+  /**
+   * Sett plassering, skala, speilvending og vridning på roten. En del regnes om til rommet til forelderens ledd i ro,
+   * så den står der dataene sier og følger forelderen når den animeres.
+   */
   private place(it: SceneryItem) {
     const p = it.place;
-    const s = p.scale ?? 1;
-    it.root.position.set(p.x, p.y ?? 0, p.z);
-    it.root.scale.set(p.flip ? -s : s, s, s);
-    it.root.rotation.set(0, THREE.MathUtils.degToRad(p.yaw ?? 0), 0);
-    it.pivot.rotation.z = THREE.MathUtils.degToRad(p.rot ?? 0);
-    it.root.updateMatrixWorld(true);
+    const par = it.parentKey ? this.items.get(it.parentKey) : undefined;
+    if (par) {
+      const w = worldOf(p, new THREE.Matrix4());
+      this.restPivot(par, new THREE.Matrix4()).invert().multiply(w).decompose(it.root.position, it.root.quaternion, it.root.scale);
+    } else {
+      const s = p.scale ?? 1;
+      it.root.position.set(p.x, p.y ?? 0, p.z);
+      it.root.scale.set(p.flip ? -s : s, s, s);
+      it.root.rotation.set(0, rad(p.yaw ?? 0), 0);
+    }
+    it.pivot.rotation.z = rad(p.rot ?? 0);
+    it.root.updateWorldMatrix(true, true);
     // Lys som hører til et punkt i bildet, flyttes med
     if (it.mesh) for (const l of it.lights) l.src.pos.copy(tmpV.copy(l.at)).applyMatrix4(it.pivot.matrixWorld);
   }
@@ -430,7 +576,7 @@ export class Scenery {
   /** Flytt eller endre en rekvisitt uten å bygge den på nytt (bare bilder; 3D bygges om). */
   move(p: PropPlacement) {
     const it = this.items.get(p.id);
-    if (!it || it.kind.build || p.prop !== it.place.prop || JSON.stringify(p.anim) !== JSON.stringify(it.place.anim) || p.layer !== it.place.layer) return this.set(p);
+    if (!it || it.kind.build || p.prop !== it.place.prop || JSON.stringify(p.anim) !== JSON.stringify(it.place.anim) || p.layer !== it.place.layer || p.parent !== it.place.parent) return this.set(p);
     it.place = p;
     const u = it.mat!.uniforms;
     const d = layerDefaults(p.layer);
@@ -445,6 +591,7 @@ export class Scenery {
   /** Animasjonene, lysene, flammene og toningen. Kalles hver frame (via Env.update). */
   tick(dt: number) {
     const fighters = !this.editor && this.fighters && this.camera ? this.fighterPoints() : null;
+    let near: FighterBox[] | null = null;
     for (const it of this.items.values()) {
       it.t += dt;
       for (const u of it.updates) u(dt, it.t, 0);
@@ -452,7 +599,9 @@ export class Scenery {
       const u = it.mat!.uniforms;
       const p = it.place;
       let ox = 0, oy = 0, rot = p.rot ?? 0, sx = 1, sy = 1, alpha = 1, glow = 1;
-      for (const a of it.anims) {
+      u.uT.value = it.t;
+      for (let ai = 0; ai < it.anims.length; ai++) {
+        const a = it.anims[ai];
         switch (a.type) {
           case 'swing':
             rot += (a.amount ?? 6) * Math.sin(it.t * (a.speed ?? 0.6) * Math.PI * 2 + it.phase);
@@ -495,16 +644,75 @@ export class Scenery {
             }
             break;
           }
+          case 'pulse': {
+            const k = Math.sin(it.t * (a.speed ?? 0.6) * Math.PI * 2 + it.phase);
+            const am = a.amount ?? 0.04;
+            sx *= 1 + am * k;
+            sy *= 1 + am * k;
+            glow *= 1 + (a.glow ?? 0) * (0.5 + 0.5 * k);
+            break;
+          }
+          case 'drift': {
+            const range = Math.max(1, a.range ?? 30), sp = a.speed ?? 0.4;
+            const f = (((it.t * sp + it.phase * 3) % range) + range) % range;
+            ox += f - range / 2;
+            const e = f / range;
+            alpha *= smooth(Math.min(1, e / 0.12)) * smooth(Math.min(1, (1 - e) / 0.12));
+            break;
+          }
+          case 'react': {
+            const st = (it.reacts[ai] ??= { rt: -1, cd: 0, dir: 1, gone: 0 });
+            st.cd -= dt;
+            if (st.rt < 0 && st.gone <= 0 && st.cd <= 0) {
+              // Hva som setter den i gang: en figur innenfor radius, eller et treff, kast eller bakkeslag i nærheten
+              const on = a.on ?? 'near', r = a.radius ?? 2.5;
+              it.root.getWorldPosition(tmpV);
+              let src: number | null = null;
+              if (on !== 'hit' && !this.editor && this.fighters) {
+                near ??= this.fighters();
+                for (const f of near) if (Math.abs(f.x - tmpV.x) < r && Math.abs(f.z - tmpV.z) < r + 1.5) src = f.x;
+              }
+              if (src === null && on !== 'near') for (const pk of this.pokes) if (Math.hypot(pk.x - tmpV.x, pk.z - tmpV.z) < r + pk.r) src = pk.x;
+              if (src !== null) {
+                st.rt = 0;
+                st.dir = tmpV.x >= src ? 1 : -1;
+              }
+            }
+            const effect = a.effect ?? 'shake';
+            if (st.rt >= 0) {
+              st.rt += dt;
+              const k = Math.min(1, st.rt / Math.max(0.05, reactDur(a)));
+              if (effect === 'shake') rot += (a.amount ?? 8) * Math.sin(st.rt * 34) * (1 - k) * (1 - k);
+              else if (effect === 'hop') oy += (a.amount ?? 0.25) * Math.sin(Math.PI * k);
+              else if (effect === 'spin') rot -= 360 * (a.amount ?? 1) * smooth(k);
+              else {
+                // Flyr vekk fra det som skremte den, opp og ut av bildet
+                ox += st.dir * 7 * k * k;
+                oy += 3.5 * k;
+                alpha *= 1 - smooth(k);
+              }
+              if (k >= 1) {
+                st.rt = -1;
+                st.cd = 0.4;
+                if (effect === 'flee') st.gone = Math.max(0.8, a.back ?? 8);
+              }
+            } else if (st.gone > 0) {
+              // Borte en stund, så tones den inn igjen der den hørte hjemme
+              st.gone -= dt;
+              alpha *= st.gone > 0.8 ? 0 : smooth(1 - Math.max(0, st.gone) / 0.8);
+            }
+            break;
+          }
         }
       }
-      it.pivot.position.set((it.pivot.userData.lx ??= it.pivot.position.x) + ox, (it.pivot.userData.ly ??= it.pivot.position.y) + oy, 0);
+      it.pivot.position.set(it.rest[0] + ox, it.rest[1] + oy, 0);
       it.pivot.rotation.z = THREE.MathUtils.degToRad(rot);
       it.pivot.scale.set(sx, sy, 1);
       u.uGlow.value = glow;
       u.opacity.value = alpha;
-      // Lysene følger punktet sitt og blafrer med
+      // Lysene følger punktet sitt og blafrer med (også når rekvisitten er en del av en annen)
       if (it.lights.length) {
-        it.pivot.updateMatrixWorld(true);
+        it.pivot.updateWorldMatrix(true, false);
         for (const l of it.lights) {
           l.src.pos.copy(tmpV.copy(l.at)).applyMatrix4(it.pivot.matrixWorld);
           l.src.intensity = l.base * glow;
@@ -512,9 +720,9 @@ export class Scenery {
       }
       if (it.fireAt.length) {
         it.fireAcc += dt;
-        if (it.fireAcc > 0.07) {
+        if (it.fireAcc > 0.07 && alpha > 0.5) {
           it.fireAcc = 0;
-          it.pivot.updateMatrixWorld(true);
+          it.pivot.updateWorldMatrix(true, false);
           for (const f of it.fireAt) this.gore.fire(tmpV.copy(f).applyMatrix4(it.pivot.matrixWorld), 1, 0.06, 1.2);
         }
       }
@@ -525,6 +733,7 @@ export class Scenery {
         u.uFade.value = this.editor ? 1 : it.fade;
       }
     }
+    this.pokes.length = 0;
   }
 
   /** Punkter på figurene (hode, bryst, føtter og sidene) som kan skjules av forgrunnen. */
@@ -621,6 +830,8 @@ function findKey(o: THREE.Object3D | null): string | null {
 export function expandRun(r: PropRun): PropPlacement[] {
   const rnd = seeded(r.seed ?? hashSeed(r.id));
   const out: PropPlacement[] = [];
+  // Varianter trekkes etter de andre tallene, så rader uten varianter står som før
+  const pool = r.variants?.length ? [r.prop, ...r.variants] : null;
   const step = Math.max(0.05, r.step);
   const lo = Math.min(r.x0, r.x1), hi = Math.max(r.x0, r.x1);
   for (let x = lo, i = 0; x <= hi + 1e-6 && i < 2000; x += step, i++) {
@@ -628,10 +839,11 @@ export function expandRun(r: PropRun): PropPlacement[] {
     const jz = (rnd() - 0.5) * 2 * (r.zJitter ?? 0);
     const js = 1 + (rnd() - 0.5) * 2 * (r.scaleJitter ?? 0);
     const flip = r.flipRandom ? rnd() < 0.5 : false;
+    const prop = pool ? pool[Math.floor(rnd() * pool.length)] : r.prop;
     const px = x + jx;
     if ((r.gaps ?? []).some(([a, b]) => px > Math.min(a, b) && px < Math.max(a, b))) continue;
     out.push({
-      id: r.id + '#' + i, prop: r.prop, layer: r.layer, x: px, y: r.y, z: r.z + jz, scale: (r.scale ?? 1) * js, flip,
+      id: r.id + '#' + i, prop, layer: r.layer, x: px, y: r.y, z: r.z + jz, scale: (r.scale ?? 1) * js, flip,
       tint: r.tint, anim: r.anim, dark: r.dark, fade: r.fade, shadow: r.shadow,
     });
   }

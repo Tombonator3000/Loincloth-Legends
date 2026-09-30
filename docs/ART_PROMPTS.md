@@ -294,6 +294,13 @@ Slik gjør du det:
 
 Nye kulisser: velg et nytt navn (bare a-z, 0-9 og _), `prop_<navn>.png` eller `anim_<navn>_<kolonner>x<rader>.png`. De dukker opp i biblioteket i editoren.
 
+**Mange bilder på én gang.** Legg dem i en zip (eller en mappe) og kjør `python3 tools/process_art.py --fra <zip>`. Navnene trenger ikke være riktige: de gjøres om til små bokstaver med _ (æøå til ae, o og a), og et navn verktøyet ikke kjenner, blir `prop_<navn>`, eller `anim_<navn>_<K>x<R>` når det ender på `_<K>x<R>`. `python3 tools/prop_gallery.py` lager et galleri over alle kulissene i manifestet (`art/inbox/behandlet/galleri.png`).
+
+**Navn som hjelper editoren:**
+- Varianter av samme ting: samme navn med `_a`, `_b` eller `_1`, `_2` til slutt (`rock_1`, `rock_2`, `palisade_c`). V bytter mellom dem, og rader kan blande dem.
+- Forgrunn: `front` eller `foreground` i navnet (`fern_front`) legger kulissen i FRONT. `far`, `distant` eller `background` legger den i FAR, og `back` i BACK.
+- Deler til animasjon: ett bilde per del som skal bevege seg for seg, med samme begynnelse (`windmill_body` og `windmill_blades`, `gallows` og `gallows_cage`). Delene settes sammen i editoren med PART OF, får hver sin animasjon (SPIN på vingene, SWING på buret) og lagres som et sett med SAVE AS SET. Be om delene i samme målestokk og lys, og med leddet synlig (navet på vingene, kroken buret henger i).
+
 ### KULISSE-BLOKK (lim inn først)
 ```
 You are making painted set pieces for "Loincloth Legends", a side-scrolling beat 'em up that parodies 1980s sword-and-sorcery films. The characters are near-photorealistic caricatures, and the scenery must match them.
@@ -307,6 +314,11 @@ Rules for ALL images in this conversation:
 - When I ask for an ANIMATION SHEET: all frames in one image, in the grid I give (columns x rows, read left to right, top to bottom). Every frame the same size and scale, the object standing on the same base line in every frame, nothing crossing into the next frame, no lines, borders or numbers between the frames. The last frame must lead smoothly back to the first, and must not repeat it.
 Confirm that you understand. Then wait for my requests.
 ```
+
+### Deler og tøy som beveger seg
+- Tøy (flagg, bannere, kapper, telttøy, klesvask) trenger ingen bildeserie: ett bilde av tøyet alene, uten stang, får WAVE i editoren og bølger av seg selv. Be om stanga som et eget bilde.
+- Ting som snurrer eller svinger (vinger, hjul, skilt, bur, lykter): et eget bilde av den delen, med navet eller festet tydelig, så leddet kan settes der med et klikk.
+- Dyr og småting som skal flykte eller hoppe (kråker, rotter, kyllinger): ett bilde eller en kort bildeserie. REACT med FLEE får dem til å flykte når helten kommer.
 
 ### Regler for bildeserier
 - Høyst 6 x 6 ruter. 4x1 og 4x2 er vanligst.

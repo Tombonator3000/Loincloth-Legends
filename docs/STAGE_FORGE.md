@@ -22,6 +22,7 @@ Den publiserte versjonen åpner også editoren med `?editor=road`, men der laste
 | Høyre eller midtre knapp, hjulet, A og D | Flytt kameraet langs brettet. Shift går fortere. Ctrl og hjulet: oversikt |
 | Piltastene | Dytt det valgte (Shift: en meter). Opp og ned er dybde, med Alt høyde |
 | [ ] , . F | Skala, vri, speilvend |
+| V | Neste variant av rekvisitten (palisade_a, palisade_b ...) |
 | Del, Ctrl+D | Slett, dupliser |
 | Ctrl+Z, Ctrl+Y | Angre, gjør om (60 steg) |
 | Ctrl+S | Lagre |
@@ -47,14 +48,30 @@ Under ANIMATION på en kulisse:
 - **SWAY:** vind, sterkest øverst (trær, busker, gress).
 - **SWING:** svinger rundt et ledd (skilt i kjetting). PIVOT er leddet i bildet.
 - **BOB:** opp og ned (noe som flyter).
-- **SPIN:** snurrer rundt et punkt.
+- **SPIN:** snurrer rundt et punkt (vindmøllevinger, vannhjul).
 - **FLICKER:** flakker, og kan tenne et lys med farge, styrke og rekkevidde (lykter, fakler).
 - **SHEET:** bildeserie (ruter i ett bilde) med antall, rutenett, fart og LOOP, PINGPONG eller ONCE.
 - **TRACK:** nøkler over tid for x, y, vridning, skala og gjennomsiktighet, som i POSER i Morbidium. Kråka flyr med en slik.
+- **WAVE:** tøy som bølger ut fra en fast kant: LEFT eller RIGHT (stanga på siden, som et flagg) eller TOP (henger fra en stang, som et banner). Ett stillbilde er nok, bildet deles opp og bølger i skyggeleggeren, med litt skygge i foldene.
+- **PULSE:** puster (størrelsen) og gløder i takt (sopp, runer, glør).
+- **DRIFT:** glir sakte sidelengs over et visst antall meter og kommer inn igjen fra den andre siden, med toning i endene (skyer, tåkebanker, fugleflokker langt borte).
+- **REACT:** svarer på det som skjer. WHEN er NEAR (en figur i nærheten), HIT (slag, kast og bakkeslag i nærheten) eller ANY. EFFECT er SHAKE (rister), HOP (hopper), SPIN (snurrer) eller FLEE (flyr eller løper vekk og kommer tilbake etter BACK AFTER sekunder). TEST spiller den med en gang. Kråka på brett 1 flyr når helten kommer, og skiltet rister når noen slåss under det.
 
-Uten egne animasjoner bruker kulissen dem den har i biblioteket. USE THE PROP'S går tilbake til dem.
+Uten egne animasjoner bruker kulissen dem den har i biblioteket. USE THE PROP'S går tilbake til dem. Leddet for SWING og SPIN og punktet for lyset i FLICKER velges ved å klikke i det lille bildet under feltene.
+
+## Deler og sett
+En kulisse kan være satt sammen av flere bilder: en vindmølle med vinger som snurrer, et flagg på en stang, et skilt som svinger i kjettingen sin, en stamme med en krone som svaier. Delene er egne bilder med egne animasjoner.
+- **PART OF** under PARTS henger den valgte kulissen på en annen. Delen følger animasjonen til den den henger på (svinger skiltet, svinger alt som henger på skiltet), og flyttes, skaleres og speilvendes sammen med den.
+- **+ ADD PART** legger en ny del rett på kulissen. Dra den på plass, og gi den en animasjon.
+- Slettes kulissen, blir delene liggende løse. Ctrl+D dupliserer med alle delene.
+- **SAVE AS SET** (på bilder) lagrer delene i manifestet. Neste gang bildet legges ut, kommer delene med, allerede hengt på. FLAGPOLE + FLAG er et slikt sett.
+
+## Varianter
+Bilder med samme navn og _a, _b, _2 og så videre til slutt er varianter av samme ting (palisade_a og palisade_b). V bytter til neste variant, og VARIANT-lista viser dem. En rad kan blande inn variantene med MIX VARIANTS. Raden blir lik hver gang, fordi den har sitt eget frø.
 
 ## Bilder
+Mange bilder fra ChatGPT på én gang (en zip eller en mappe): `python3 tools/process_art.py --fra <zip eller mappe>`. Navnene gjøres om selv (små bokstaver og _, æøå til ae, o og a), og ukjente navn blir kulisser. `python3 tools/prop_gallery.py` lager et galleri over alle kulissene, så du ser dem før du legger dem ut.
+
 Dra PNG-filer rett inn i editoren (eller BROWSE):
 - `prop_<navn>.png` blir en kulisse med en gang.
 - `anim_<navn>_<kolonner>x<rader>.png` blir en bildeserie (`anim_crow_4x1.png`).
@@ -82,4 +99,4 @@ Miljøet lager trær, gress, steiner, telt, palisade og mye annet selv. Det skje
 | `tools/vite-stage-forge.ts` | Lagringen under `npm run dev` (bare fra maskinen selv) |
 | `src/core/math.ts`, `src/gfx/env/common.ts` | Faste frø (`withSeed`) og generatorene (`gen`) |
 
-Tester: `tools/tests/editor.mjs` (hele editoren i nettleseren), `forge-save.mjs` (lagring gjennom dev-serveren) og `prop-images.mjs` (bilder som tar over for plassholderne). For agenter finnes skillene `stage-forge`, `prop-art` og `new-level` i `.claude/skills/` (se `docs/SKILLS.md`).
+Tester: `tools/tests/editor.mjs` (hele editoren i nettleseren), `prop-anim.mjs` (deler, sett, varianter og animasjonene), `forge-save.mjs` (lagring gjennom dev-serveren) og `prop-images.mjs` (bilder som tar over for plassholderne). For agenter finnes skillene `stage-forge`, `prop-art` og `new-level` i `.claude/skills/` (se `docs/SKILLS.md`).

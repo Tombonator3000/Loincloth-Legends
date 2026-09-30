@@ -220,7 +220,9 @@ Et brett er tre lag oppå hverandre: miljøbyggeren for biomet (`gfx/env/<biom>.
 - **Faste frø.** `core/math.ts` har én tilfeldighetskilde (`random`, `rand`, `chance`, `pick`). `withSeed(frø, fn)` låser den mens miljøet bygges, så pynten blir lik hver gang. Kampen bruker vanlige tilfeldige tall. Teksturer som mellomlagres, lages med `unseeded`. I miljøbyggerne gir `gen(o, 'nøkkel')` hver pyntblokk sitt eget frø og en bryter (`generators` i brettfila), så en blokk kan slås av uten at resten flytter seg. Byggekode for miljøet skal aldri bruke `Math.random()`.
 - **Kulissene** (`gfx/scenery.ts`) er plan med fotpunktet i origo. De bruker figurenes lysmodell (`CHAR_VERT` og `CHAR_FRAG` fra `charlight.ts`) med relieff laget fra bildet, tåke, vinden fra `wind.ts`, ruter i bildeserier, dithering når de tones ut og mørkning for FRONT. Et klikk treffer bare der bildet ikke er gjennomsiktig. 3D-rekvisittene bygges med `build` i katalogen, og lys og varmeflimmer de lager, fjernes igjen når de slettes (`LightPool.removeSource`, `ScreenFx.removeHeat`).
 - **Toningen foran:** hver frame projiseres noen punkter på heltene, fiendene og sjefen (`Stage.fighterBoxes`) inn i planet til FRONT-kulissene. Treffer et punkt en del av bildet som ikke er gjennomsiktig, tones kulissen ned til 40 prosent på 0,15 sekunder.
-- **Animasjonene** (sway, swing, bob, spin, flicker, sheet, track) er data i `data/layout.ts` og regnes ut i `Scenery.tick` på spilltid. `trackValue` gir verdien i et spor med myk overgang (etter POSER i Morbidium).
+- **Animasjonene** (sway, swing, bob, spin, flicker, sheet, track, wave, pulse, drift, react) er data i `data/layout.ts` og regnes ut i `Scenery.tick` på spilltid. `trackValue` gir verdien i et spor med myk overgang (etter POSER i Morbidium). `wave` og `sway` bøyer et oppdelt plan i skyggeleggeren (`uWave`, `uT`, `vShade` for skygge i foldene). `react` får fighterne fra `Stage.fighterBoxes` og treff, kast og bakkeslag fra `Scenery.poke` (kalt i `Stage.onFoeHit`, `thrownLanded` og `onQuake`), og `trigger(key)` spiller den med en gang.
+- **Deler:** `parent` på en plassering henger den på leddet (`pivot`) til en annen, så den følger animasjonen. Dataene er alltid plassen i verden: `place()` regner om til rommet til forelderens ledd i ro (`restPivot`, fra dataene alene), og `removeKey` løsner delene før forelderen ryddes. Editoren flytter, skalerer, speilvender og vrir delene sammen med forelderen (`carryParts`). Et sett (`preset`, `PresetPart`) i katalogen eller manifestet legges ut som deler.
+- **Varianter:** navn som bare skiller seg på `_a`, `_b`, `_2` til slutt (`variantBase` i editoren). En rad med `variants` trekker blant dem med radens frø, etter de andre tallene, så rader uten varianter står som før.
 - **Bilder som tar over:** `imageKind` i `gfx/props/catalog.ts` lager kulissen av et bilde fra manifestet eller editoren. Samme navn som en plassholder beholder mål, lys, flammer og bevegelse. `grid` og `n` gjør bildet til en bildeserie. `anim` i manifestet er hele lista.
 - **Editoren** er en egen scene (`app/scenes/editor.ts`, navn `editor`) som bygger den samme verdenen som spillet med `scenery.editor = true`, pluss merker (`editor/markers.ts`) og DOM-paneler. Tilstanden (`forgeState`) ligger utenfor scenen, så den overlever ombygging, PLAY FROM HERE og veien tilbake. Angre er hele brettfila som JSON (60 steg). Brukerveiledning: `docs/STAGE_FORGE.md`.
 
@@ -258,8 +260,9 @@ Legg til en `LevelDef` i `data/levels.ts`. Kulissene legges i `data/layouts/<id>
 
 ### Ny animasjonstype for kulisser
 1. Legg typen til i `PropAnim` og `ANIM_TYPES` i `data/layout.ts`, og sjekk feltene i `validateLayout`.
-2. Regn den ut i `Scenery.tick` (`gfx/scenery.ts`), på spilltid.
-3. Felter i editoren: `renderAnims` i `app/scenes/editor.ts`, og en standardverdi i lista `fresh`.
+2. Regn den ut i `Scenery.tick` (`gfx/scenery.ts`), på spilltid. Trenger den formen på bildet (som `wave`), gjøres det i skyggeleggeren med en uniform, og planet deles opp i `buildImage`.
+3. Felter i editoren: `renderAnims` i `app/scenes/editor.ts` (`field`, `choice`, `pair` og `picker` for punkter i bildet), og en standardverdi i lista `fresh`.
+4. En sjekk i `tools/tests/prop-anim.mjs`.
 
 ### Ny fare
 1. Legg typen til i `HazardKind` og `HAZARDS` (`data/hazards.ts`).

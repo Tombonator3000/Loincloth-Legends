@@ -29,11 +29,17 @@ Filnavnet bestemmer hva bildet er (små bokstaver, .png, .webp eller .jpg):
 Originalene flyttes til art/inbox/behandlet/ (ligger ikke i git, repoet er offentlig og skal holdes lite).
 Stopper uten å flytte noe hvis et bilde ikke kunne behandles.
 
+Bilder med andre navn (en zip eller mappe fra ChatGPT): --fra <zip eller mappe> legger dem i innboksen først. Navnene
+gjøres om til små bokstaver med _ (æ blir ae, ø blir o, å blir a), og et navn verktøyet ikke kjenner, blir en kulisse:
+prop_<navn>, eller anim_<navn>_<K>x<R> når det ender på _<K>x<R>. Kulisser med front eller foreground i navnet legges
+i FRONT, far, distant eller background i FAR, og back i BACK (kan endres i editoren).
+
 Krever Pillow:  pip install pillow
 Bruk:           python3 tools/process_art.py          tar imot alt i innboksen
                 python3 tools/process_art.py --sjekk  viser bare hva som ville skjedd
+                python3 tools/process_art.py --fra gpt_kulisser.zip [--sjekk]
 """
-import json, re, shutil, sys
+import json, re, shutil, sys, zipfile
 from pathlib import Path
 from PIL import Image, ImageChops, ImageStat
 
@@ -237,6 +243,14 @@ def alfa_boks(im):
     return im.getchannel('A').point(lambda v: 255 if v > 12 else 0).getbbox()
 
 
+def kant(im, px=2):
+    """Gjennomsiktig kant rundt bildet: alfa blir med i WebP-fila (et bilde uten et eneste gjennomsiktig punkt lagres
+    ellers uten alfa), og teksturen blør ikke inn fra kanten når den filtreres."""
+    ut = Image.new('RGBA', (im.width + 2 * px, im.height + 2 * px), (0, 0, 0, 0))
+    ut.paste(im, (px, px))
+    return ut
+
+
 def ark_ruter(im, kol, rad):
     """Rutene i et ark (fra Morbidium). ChatGPT leverer bare 1024x1024, 1536x1024 eller 1024x1536, så et ark med fire
     ruter på rad blir sjelden fire nøyaktige kvadrater. Først deles arket i like store ruter. Krysser tegningen
@@ -292,16 +306,26 @@ def behandle_ark(im, kol, rad, navn):
     # To piksler luft rundt, så nabobildet ikke blør inn når teksturen filtreres
     x0, y0, x1, y1 = max(0, boks[0] - 2), max(0, boks[1] - 2), min(cw, boks[2] + 2), min(ch, boks[3] + 2)
     bw, bh = x1 - x0, y1 - y0
-    s = min(1, MAKS_RUTE / max(bw, bh), MAKS_ARK / (bw * kol), MAKS_ARK / (bh * rad))
+    s = min(1, MAKS_RUTE / max(bw, bh), (MAKS_ARK - 4 * kol) / (bw * kol), (MAKS_ARK - 4 * rad) / (bh * rad))
     fw, fh = max(1, round(bw * s)), max(1, round(bh * s))
-    ut = Image.new('RGBA', (fw * kol, fh * rad), (0, 0, 0, 0))
+    # Hver rute får en gjennomsiktig kant på to piksler, så nabobildet ikke blør inn
+    ut = Image.new('RGBA', ((fw + 4) * kol, (fh + 4) * rad), (0, 0, 0, 0))
     ruter_ = [c.crop((x0, y0, x1, y1)) for c in celler[:n]]
     for i, r in enumerate(ruter_):
-        ut.alpha_composite(r.resize((fw, fh), Image.LANCZOS) if s < 1 else r, ((i % kol) * fw, (i // kol) * fh))
+        ut.alpha_composite(r.resize((fw, fh), Image.LANCZOS) if s < 1 else r, ((i % kol) * (fw + 4) + 2, (i // kol) * (fh + 4) + 2))
     # Løkka går av seg selv fra det siste bildet til det første. Er de like, står bevegelsen stille et øyeblikk.
     if n > 2 and sum(ImageStat.Stat(ImageChops.difference(ruter_[0], ruter_[-1])).mean) / 4 < 1.5:
         print(f'  obs: det siste bildet i {navn} er likt det første. Ta det bort for en jevn løkke')
-    return ut, n, (fw, fh)
+    return ut, n, (fw + 4, fh + 4)
+
+
+def gjett_lag(navn):
+    """Laget ut fra ordene i navnet (front_bush, distant_mountain ...), eller None for MID."""
+    ord_ = set(navn.split('_'))
+    if ord_ & {'front', 'foreground', 'fg'}: return 'front'
+    if ord_ & {'far', 'distant', 'background', 'bg', 'skyline'}: return 'far'
+    if ord_ & {'back', 'behind'}: return 'back'
+    return None
 
 
 def kulisse_i_manifestet(man, navn, fil, størrelse, ark, kjente):
@@ -317,6 +341,8 @@ def kulisse_i_manifestet(man, navn, fil, størrelse, ark, kjente):
             meta['w'] = 3 if form > 1.6 else 1 if form < .5 else 1.6
             meta['anchor'] = [0.5, 0.99]
             meta['label'] = navn.upper().replace('_', ' ')
+            lag = gjett_lag(navn)
+            if lag: meta['layer'] = lag
     meta['file'] = fil
     if ark:
         meta['grid'], meta['n'] = [ark[0], ark[1]], ark[2]
@@ -340,7 +366,7 @@ def behandle(nøkkel, im, man, tekstur_ok):
         else:
             im = beskjær(fjern_bakgrunn(im.convert('RGBA')))
             if im is None: raise ValueError('bildet er helt gjennomsiktig')
-            im = skaler(im, MAKS_KULISSE); rute = im.size; ark = None
+            im = kant(skaler(im, MAKS_KULISSE - 4)); rute = im.size; ark = None
         fil = lagre(im, f'prop_{navn}', False, 90)
         kulisse_i_manifestet(man, navn, fil, rute, ark, kjente)
         hva = {'painted': f', tar over for plassholderen {navn}', 'model': f', tar over for 3D-rekvisitten {navn}'}.get(kjente.get(navn), '')
@@ -404,7 +430,71 @@ def klipp(sti):
     return [(navn, im)]
 
 
+# ---------------------------------------------------------------- bilder med andre navn (--fra)
+ERSTATT = {'æ': 'ae', 'ø': 'o', 'å': 'a', 'ä': 'a', 'ö': 'o', 'ü': 'u', 'é': 'e', 'è': 'e'}
+
+
+def normaliser(navn):
+    """Et filnavn (uten endelse) til et navn verktøyet kjenner: små bokstaver, _ i stedet for mellomrom og tegn, og
+    prop_ eller anim_ foran det som ellers ville vært ukjent. Opplastede filer kan ha en hash foran (1a2b3c4d-)."""
+    n = re.sub(r'^[0-9a-f]{8}-', '', navn.strip().lower())
+    n = ''.join(ERSTATT.get(c, c) for c in n)
+    if not n.startswith('ark__'):
+        n = re.sub(r'[^a-z0-9_]+', '_', n)
+        n = re.sub(r'_+', '_', n).strip('_')
+    if not n: n = 'prop'
+    try:
+        kjent = tolk(n)
+    except Exception:
+        kjent = None
+    if n.startswith(('figur_', 'ark__')) or (kjent and kjent[0] != 'anim?'):
+        return n
+    m = re.fullmatch(r'(?:anim_)?(.+?)_?(\d+)x(\d+)', n)
+    if m: return f'anim_{m.group(1)[:40]}_{m.group(2)}x{m.group(3)}'
+    return 'prop_' + re.sub(r'^prop_', '', n)[:40].strip('_')
+
+
+def hent_fra(kilde):
+    """Legg bildene fra en zip eller mappe i innboksen med navn verktøyet kjenner. Gir listen [(fra, til)]."""
+    kilde = Path(kilde)
+    bilder = []  # (visningsnavn, filnavn, bytes eller sti)
+    if kilde.is_dir():
+        for f in sorted(kilde.rglob('*')):
+            if f.is_file() and f.suffix.lower() in ('.png', '.webp', '.jpg', '.jpeg') and not f.name.startswith('.'):
+                bilder.append((str(f.relative_to(kilde)), f.name, f))
+    elif zipfile.is_zipfile(kilde):
+        with zipfile.ZipFile(kilde) as z:
+            for info in sorted(z.infolist(), key=lambda i: i.filename):
+                nm = Path(info.filename)
+                if info.is_dir() or '__MACOSX' in nm.parts or nm.name.startswith('.'): continue
+                if nm.suffix.lower() in ('.png', '.webp', '.jpg', '.jpeg'):
+                    bilder.append((info.filename, nm.name, z.read(info)))
+    else:
+        raise SystemExit(f'{kilde} er verken en mappe eller en zip-fil')
+    INN.mkdir(parents=True, exist_ok=True)
+    brukt, par = set(p.stem.lower() for p in INN.iterdir() if p.is_file()), []
+    for vis, fil, data in bilder:
+        stamme = normaliser(Path(fil).stem)
+        ny, i = stamme, 2
+        while ny in brukt:
+            ny = f'{stamme}_{i}'; i += 1
+        brukt.add(ny)
+        mål = INN / (ny + Path(fil).suffix.lower())
+        par.append((vis, mål.name))
+        if not SJEKK:
+            if isinstance(data, Path): shutil.copyfile(data, mål)
+            else: mål.write_bytes(data)
+    return par
+
+
 def main():
+    if '--fra' in sys.argv:
+        i = sys.argv.index('--fra')
+        if i + 1 >= len(sys.argv): raise SystemExit('bruk: --fra <zip eller mappe>')
+        par = hent_fra(sys.argv[i + 1])
+        for fra, til in par: print(f'INN     {fra} -> art/inbox/{til}')
+        print(f'{len(par)} bilde(r) lagt i innboksen.\n' if not SJEKK else f'{len(par)} bilde(r) ville blitt lagt i innboksen (--sjekk).\n')
+        if SJEKK: return
     INN.mkdir(parents=True, exist_ok=True); UT.mkdir(parents=True, exist_ok=True)
     filer = sorted(p for p in INN.iterdir() if p.is_file() and p.suffix.lower() in ('.png', '.webp', '.jpg', '.jpeg'))
     if not filer:

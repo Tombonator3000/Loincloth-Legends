@@ -27,6 +27,14 @@ export const LANE_Z: [number, number] = [-2.6, 2.6];
  * - sheet: bildeserie i ett bilde (n ruter i et rutenett grid [kolonner, rader], fps)
  * - track: nøkkelspor [[t, verdi], ...] med t fra 0 til 1 over dur sekunder og myk overgang (etter POSER i
  *   Morbidium). Kanaler: x og y (meter), rot (grader), sx og sy (skala), alpha (0..1).
+ * - wave: duken bølger ut fra en fast kant (from: left, right eller top), amount i meter, length er bølgelengden i
+ *   andeler av bildet. Til flagg, bannere, kapper og tøy på snor. Bildet deles opp så bølgen blir myk.
+ * - pulse: puster (skala) og gløder i takt: amount er andel av størrelsen, glow andel lysstyrke
+ * - drift: glir sakte sidelengs (speed i meter per sekund) over range meter og kommer inn igjen fra andre siden,
+ *   med toning i endene (skyer, tåkebanker, fugleflokker langt borte)
+ * - react: svarer på det som skjer: on near (en figur innenfor radius), hit (treff, kast og bakkeslag i nærheten)
+ *   eller any. effect shake (rister, amount i grader), hop (hopper, amount i meter), spin (snurrer amount runder)
+ *   eller flee (flyr eller løper vekk og kommer tilbake etter back sekunder, som kråker)
  */
 export type PropAnim =
   | { type: 'sway'; amount?: number; speed?: number }
@@ -35,11 +43,36 @@ export type PropAnim =
   | { type: 'spin'; speed?: number; pivot?: [number, number] }
   | { type: 'flicker'; amount?: number; speed?: number; light?: string; intensity?: number; range?: number; at?: [number, number] }
   | { type: 'sheet'; n: number; grid: [number, number]; fps?: number; mode?: 'loop' | 'pingpong' | 'once' }
-  | { type: 'track'; dur: number; loop?: boolean; keys: Partial<Record<TrackChannel, [number, number][]>> };
+  | { type: 'track'; dur: number; loop?: boolean; keys: Partial<Record<TrackChannel, [number, number][]>> }
+  | { type: 'wave'; amount?: number; speed?: number; length?: number; from?: WaveFrom }
+  | { type: 'pulse'; amount?: number; speed?: number; glow?: number }
+  | { type: 'drift'; speed?: number; range?: number }
+  | { type: 'react'; on?: ReactOn; radius?: number; effect?: ReactEffect; amount?: number; dur?: number; back?: number };
 export type PropAnimType = PropAnim['type'];
-export const ANIM_TYPES: PropAnimType[] = ['sway', 'swing', 'bob', 'spin', 'flicker', 'sheet', 'track'];
+export const ANIM_TYPES: PropAnimType[] = ['sway', 'swing', 'bob', 'spin', 'flicker', 'sheet', 'track', 'wave', 'pulse', 'drift', 'react'];
+export type WaveFrom = 'left' | 'right' | 'top';
+export const WAVE_FROM: WaveFrom[] = ['left', 'right', 'top'];
+export type ReactOn = 'near' | 'hit' | 'any';
+export const REACT_ON: ReactOn[] = ['near', 'hit', 'any'];
+export type ReactEffect = 'shake' | 'hop' | 'spin' | 'flee';
+export const REACT_EFFECTS: ReactEffect[] = ['shake', 'hop', 'spin', 'flee'];
 export type TrackChannel = 'x' | 'y' | 'rot' | 'sx' | 'sy' | 'alpha';
 export const TRACK_CHANNELS: TrackChannel[] = ['x', 'y', 'rot', 'sx', 'sy', 'alpha'];
+
+/**
+ * En del i et sett: legges ut sammen med rekvisitten og henges på den (parent). dx, dy og dz er meter fra
+ * rekvisittens fotpunkt i dens egen retning (før skala og speilvending), scale og flip i forhold til den.
+ */
+export interface PresetPart {
+  prop: string;
+  dx: number;
+  dy: number;
+  dz?: number;
+  scale?: number;
+  flip?: boolean;
+  rot?: number;
+  anim?: PropAnim[];
+}
 
 /** Én rekvisitt på brettet. */
 export interface PropPlacement {
@@ -47,6 +80,11 @@ export interface PropPlacement {
   id: string;
   /** Navnet i rekvisittkatalogen (manifestet, de malte plassholderne eller 3D-rekvisittene). */
   prop: string;
+  /**
+   * Del av en annen rekvisitt (id i samme fil): delen henger på leddet dens og følger animasjonene (et skilt på en
+   * stolpe, bladene på en vindmølle, kronen på et tre). x, y og z er likevel plassen i verden.
+   */
+  parent?: string;
   layer: LayerId;
   x: number;
   /** Høyde over bakken (0 = står på bakken). */
@@ -75,6 +113,8 @@ export interface PropPlacement {
 export interface PropRun {
   id: string;
   prop: string;
+  /** Flere varianter å blande inn (trekkes med radens frø, så raden blir lik hver gang). */
+  variants?: string[];
   layer: LayerId;
   x0: number;
   x1: number;
@@ -194,6 +234,8 @@ export function validateLayout(l: unknown, known?: Set<string>, foes?: Set<strin
       if (!x || !ANIM_TYPES.includes(x.type)) err.push(`${where}: unknown animation ${JSON.stringify(x)}`);
       else if (x.type === 'sheet' && (!(x.n > 0) || !Array.isArray(x.grid) || x.grid[0] * x.grid[1] < x.n)) err.push(`${where}: sheet needs n and a grid with room for n frames`);
       else if (x.type === 'track' && (!(x.dur > 0) || typeof x.keys !== 'object')) err.push(`${where}: track needs dur and keys`);
+      else if (x.type === 'wave' && x.from !== undefined && !WAVE_FROM.includes(x.from)) err.push(`${where}: wave from must be ${WAVE_FROM.join(', ')}`);
+      else if (x.type === 'react' && ((x.on !== undefined && !REACT_ON.includes(x.on)) || (x.effect !== undefined && !REACT_EFFECTS.includes(x.effect)))) err.push(`${where}: react needs on (${REACT_ON.join(', ')}) and effect (${REACT_EFFECTS.join(', ')})`);
     }
   };
   for (const p of (o.props ?? []) as PropPlacement[]) {
@@ -210,12 +252,28 @@ export function validateLayout(l: unknown, known?: Set<string>, foes?: Set<strin
     if (p.tint !== undefined && !/^#[0-9a-fA-F]{6}$/.test(p.tint)) err.push(`${where}: tint must be #rrggbb`);
     checkAnim(where, p.anim);
   }
+  // Deler: forelderen må finnes, og ingen ring (a er del av b som er del av a)
+  const byId = new Map(((o.props ?? []) as PropPlacement[]).filter((p) => p && typeof p.id === 'string').map((p) => [p.id, p]));
+  for (const p of byId.values()) {
+    if (p.parent === undefined) continue;
+    if (!byId.has(p.parent)) err.push(`prop ${p.id}: parent "${p.parent}" is not a prop in this file`);
+    const seen = new Set<string>([p.id]);
+    for (let q = byId.get(p.parent); q; q = q.parent !== undefined ? byId.get(q.parent) : undefined) {
+      if (seen.has(q.id)) {
+        err.push(`prop ${p.id}: parents go in a circle`);
+        break;
+      }
+      seen.add(q.id);
+    }
+  }
   for (const r of (o.runs ?? []) as PropRun[]) {
     const where = `run ${r?.id ?? '?'}`;
     if (!r || typeof r.id !== 'string' || !r.id) { err.push('a run has no id'); continue; }
     if (ids.has(r.id)) err.push(`${where}: duplicate id`);
     ids.add(r.id);
     if (known && !known.has(r.prop)) err.push(`${where}: unknown prop "${r.prop}"`);
+    if (r.variants !== undefined && (!Array.isArray(r.variants) || r.variants.some((v) => typeof v !== 'string'))) err.push(`${where}: variants must be a list of prop names`);
+    else for (const v of r.variants ?? []) if (known && !known.has(v)) err.push(`${where}: unknown variant "${v}"`);
     if (!LAYER_IDS.includes(r.layer)) err.push(`${where}: unknown layer ${r.layer}`);
     if (!num(r.x0) || !num(r.x1) || !num(r.z) || !(num(r.step) && r.step > 0.05)) err.push(`${where}: x0, x1, z and step (above 0.05) must be numbers`);
     checkAnim(where, r.anim);
@@ -233,8 +291,8 @@ export function validateLayout(l: unknown, known?: Set<string>, foes?: Set<strin
 }
 
 /** Rekkefølgen på feltene når fila lagres, så endringer er lette å lese i git. */
-const PROP_KEYS: (keyof PropPlacement)[] = ['id', 'prop', 'layer', 'x', 'y', 'z', 'scale', 'flip', 'rot', 'yaw', 'tint', 'dark', 'fade', 'shadow', 'locked', 'anim'];
-const RUN_KEYS: (keyof PropRun)[] = ['id', 'prop', 'layer', 'x0', 'x1', 'z', 'y', 'step', 'jitter', 'zJitter', 'scale', 'scaleJitter', 'flipRandom', 'gaps', 'tint', 'dark', 'fade', 'shadow', 'seed', 'anim'];
+const PROP_KEYS: (keyof PropPlacement)[] = ['id', 'prop', 'parent', 'layer', 'x', 'y', 'z', 'scale', 'flip', 'rot', 'yaw', 'tint', 'dark', 'fade', 'shadow', 'locked', 'anim'];
+const RUN_KEYS: (keyof PropRun)[] = ['id', 'prop', 'variants', 'layer', 'x0', 'x1', 'z', 'y', 'step', 'jitter', 'zJitter', 'scale', 'scaleJitter', 'flipRandom', 'gaps', 'tint', 'dark', 'fade', 'shadow', 'seed', 'anim'];
 const round = (v: unknown) => (typeof v === 'number' ? Math.round(v * 1000) / 1000 : v);
 function ordered<T extends object>(o: T, keys: (keyof T)[]): T {
   const out = {} as T;

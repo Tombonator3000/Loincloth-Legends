@@ -29,3 +29,6 @@ art/inbox/*
 # Replikker fra VoiceStudio før de er tatt inn (tools/make_sounds.py --stemmer)
 voice/inbox/*
 !voice/inbox/LESMEG.md
+
+# Python-mellomlager (tools/*.py)
+__pycache__/

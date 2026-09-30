@@ -5,6 +5,9 @@
 // Bruk: node tools/tests/editor.mjs http://localhost:4173/ [./shots]
 import { chromium } from 'playwright';
 import zlib from 'node:zlib';
+import fs from 'node:fs';
+// Antall rekvisitter i brettfila til brett 1 (testen regner resten ut fra det)
+const N = JSON.parse(fs.readFileSync(new URL('../../src/data/layouts/road.json', import.meta.url), 'utf8')).props.length;
 const [url, out] = process.argv.slice(2);
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 1400, height: 820 }, acceptDownloads: true });
@@ -46,14 +49,14 @@ check('editoren åpner med ?editor=road: toppen, biblioteket, egenskapene og tid
 check('biblioteket har de malte plassholderne, bildene og 3D-rekvisittene (minst 30)', ui.lib >= 30, ui.lib);
 let s0 = await st();
 const items0 = await page.evaluate(() => window.__game.scene.scenery.items.size);
-check('brettfila for brett 1 er lastet (14 rekvisitter, 1 rad, palisaden fra generatoren er av)', s0.props === 14 && s0.runs === 1 && s0.gens?.stakeWall === false, { ...s0, items0 });
+check(`brettfila for brett 1 er lastet (${N} rekvisitter, 1 rad, palisaden fra generatoren er av)`, s0.props === N && s0.runs === 1 && s0.gens?.stakeWall === false, { ...s0, items0 });
 await shot('1-open');
 
 // Legg ut fra biblioteket
 await page.click('#forge .fg-item:has-text("ROAD POST")');
 await tick(3);
 let s1 = await st();
-check('et klikk i biblioteket legger ut rekvisitten midt i bildet og velger den', s1.props === 15 && s1.sel?.type === 'prop' && s1.undo && s1.dirty, s1);
+check('et klikk i biblioteket legger ut rekvisitten midt i bildet og velger den', s1.props === N + 1 && s1.sel?.type === 'prop' && s1.undo && s1.dirty, s1);
 const id = s1.sel.id;
 
 // Dra den med musa, 2 meter til høyre
@@ -93,11 +96,11 @@ check('] gjør større og F speilvender', keyed.scale > 1.05 && keyed.flip === t
 await page.keyboard.press('Delete');
 await tick(2);
 let s2 = await st();
-check('Delete sletter rekvisitten', s2.props === 14 && !s2.sel, s2);
+check('Delete sletter rekvisitten', s2.props === N && !s2.sel, s2);
 await page.keyboard.press('Control+z');
 await tick(2);
 s2 = await st();
-check('og Ctrl+Z tar den tilbake', s2.props === 15, s2);
+check('og Ctrl+Z tar den tilbake', s2.props === N + 1, s2);
 
 // En rad
 await page.click('#forge .fg-item:has-text("BROKEN CART") button:has-text("ROW")');
@@ -115,7 +118,7 @@ await page.waitForFunction(() => window.__game.scene?.name === 'editor' && windo
 await tick(5);
 const s4 = await st();
 const gensUsed = await page.evaluate(() => window.__lib.W.env.generators);
-check('en generator kan slås av: brettet bygges om og rekvisittene, raden og angre-historikken er med', s4.gens?.silhouettes === false && s4.props === 15 && s4.runs === 2 && s4.undo && gensUsed.includes('silhouettes'), { s4, gensUsed });
+check('en generator kan slås av: brettet bygges om og rekvisittene, raden og angre-historikken er med', s4.gens?.silhouettes === false && s4.props === N + 1 && s4.runs === 2 && s4.undo && gensUsed.includes('silhouettes'), { s4, gensUsed });
 
 // Tidslinja: klikk flytter kameraet, og bølge 1 kan dras
 const tl = await page.evaluate(() => {
@@ -145,7 +148,7 @@ await page.click('#forge .fg-top button:has-text("SAVE")');
 const file = await dl;
 const text = await (await file.createReadStream()).toArray().then((c) => Buffer.concat(c).toString('utf8'));
 const verdict = await page.evaluate((text) => { const l = JSON.parse(text); return { level: l.level, errors: window.__lib.validateLayout(l, window.__lib.propIds()), props: l.props.length }; }, text);
-check('SAVE uten dev-serveren laster ned road.json, og fila er gyldig', file.suggestedFilename() === 'road.json' && verdict.level === 'road' && verdict.errors.length === 0 && verdict.props === 15, { name: file.suggestedFilename(), ...verdict });
+check('SAVE uten dev-serveren laster ned road.json, og fila er gyldig', file.suggestedFilename() === 'road.json' && verdict.level === 'road' && verdict.errors.length === 0 && verdict.props === N + 1, { name: file.suggestedFilename(), ...verdict });
 
 // Et PNG-bilde dratt inn (her gjennom filvelgeren): rekvisitt med én gang
 const png = (() => {
@@ -196,7 +199,7 @@ await page.evaluate(() => {
 await page.waitForFunction(() => window.__game.scene?.name === 'editor');
 await tick(5);
 const back = await st();
-check('tilbake i editoren er alt som før (16 rekvisitter med bildet, 2 rader, ikke lagret, bølgen flyttet)', back.props === 16 && back.runs === 2 && back.dirty && !!back.waves, back);
+check('tilbake i editoren er alt som før (rekvisittene med bildet, 2 rader, ikke lagret, bølgen flyttet)', back.props === N + 2 && back.runs === 2 && back.dirty && !!back.waves, back);
 await shot('4-back');
 
 if (logs.length) console.log('LOGS:\n' + logs.join('\n'));

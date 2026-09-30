@@ -12,6 +12,10 @@ description: Bestill og ta imot malte kulisser og bildeserier (sprite sheets) fr
 4. `python3 tools/check_art_pack.py`.
 5. STAGE FORGE (`npm run dev`, `?editor=road`): velg kulissen og juster bredde (WIDTH), fotpunkt (klikk i bildet under IMAGE SETTINGS) og lag. SAVE skriver det til manifestet.
 
+Mange bilder på én gang (zip eller mappe, også med rare navn): `python3 tools/process_art.py --fra <zip> --sjekk` viser hva navnene blir, uten `--sjekk` legges de i innboksen og behandles. Se over dem med `python3 tools/prop_gallery.py --ut <fil.png>` før du legger dem ut.
+
+Bilder Tom laster opp i chatten havner i `/root/.claude/uploads/<økt>/`. Den mappa har også Toms referansebilder og konseptbilder, som ikke skal inn i repoet. Kopier bare de nye filene (zip-en eller PNG-ene fra denne meldingen) til en egen mappe i scratchpad, og kjør `--fra` på den. En hash foran navnet (`1a2b3c4d-`) fjernes av verktøyet.
+
 Bilder kan også dras rett inn i editoren med de samme filnavnene. Da vises de med en gang og lagres ved SAVE, men uten bakgrunnsfjerning, og bildeserier klippes ikke. Bilder fra ChatGPT går gjennom `process_art.py`.
 
 ## Filnavn
@@ -21,6 +25,12 @@ Bilder kan også dras rett inn i editoren med de samme filnavnene. Da vises de m
 - Et stillbilde i stedet for en bildeserie (`prop_torch.png`) mister bildeserien, men beholder lyset og flammene. En bildeserie får farten plassholderen hadde, ellers 10 bilder i sekundet i løkke.
 - Nye navn får bredde ut fra formen (1, 1,6 eller 3 meter) og fotpunkt nederst på midten. Juster i editoren.
 - I manifestet står rutenettet som `grid` og `n` (hører til bildet). `anim` i manifestet er hele animasjonslista og går foran plassholderens (se `imageKind` i catalog.ts).
+
+## Varianter, forgrunn og deler
+- Varianter: samme navn med `_a`, `_b` eller `_1`, `_2` til slutt. V bytter mellom dem i editoren, og rader kan blande dem.
+- `front` eller `foreground` i navnet gir laget FRONT, `far`, `distant` eller `background` gir FAR, og `back` gir BACK.
+- Deler til animasjon: ett bilde per del med samme begynnelse (`windmill_body`, `windmill_blades`). Sett dem sammen med PART OF i editoren, gi hver del sin animasjon, og lagre med SAVE AS SET (settet havner i manifestet som `preset`).
+- Tøy trenger ingen bildeserie: et stillbilde av tøyet alene får WAVE.
 
 ## Regler for bildeserier
 Fra Morbidium (`tools/behandle_bilder.py`) og dokumentasjonen til Scenario (bare reglene, ikke tjenesten):

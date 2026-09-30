@@ -3,11 +3,11 @@
 // Et bilde i manifestet med samme navn som en plassholder tar over for den (prop_<navn>.png fra ChatGPT).
 import * as THREE from 'three';
 import type { Gore } from '../gore';
-import type { LayerId, PropAnim } from '../../data/layout';
+import type { LayerId, PresetPart, PropAnim } from '../../data/layout';
 import { images, type ManifestProp } from '../assets';
 import {
   paintPalisade, paintTent, paintSignpost, paintSign, paintRoadpost, paintSkullpike, paintFrontOak, paintBush, paintCart,
-  paintBannerSheet, paintCrowSheet, paintTorchSheet,
+  paintBannerSheet, paintCrowSheet, paintTorchSheet, paintFlagpole, paintFlagCloth,
 } from './painted';
 import { brazier, warBanner, runeStone, ruins, ropeFence } from '../env/props';
 import { campfire, rock, skullPike, banner, stakeWall, M } from '../env/common';
@@ -44,8 +44,8 @@ export interface PropKind {
   build?: (ctx: ModelCtx) => void;
   /** Flammer (partikler) ved punkter i bildet (u, v fra toppen). */
   fire?: [number, number][];
-  /** Flere rekvisitter på én gang: den første er denne, resten legges ut forskjøvet (dx, dy, dz). */
-  preset?: { prop: string; dx: number; dy: number; dz?: number }[];
+  /** Et sett: delene legges ut sammen med denne og henges på den (forskjøvet dx, dy, dz, se PresetPart). */
+  preset?: PresetPart[];
   /** Grupper i biblioteket. */
   tags?: string[];
 }
@@ -69,7 +69,7 @@ const PAINTED: PropKind[] = [
   },
   {
     id: 'signpost_sign', label: 'HANGING SIGN', source: 'painted', layer: 'mid', w: 0.9, anchor: [0.5, 0.04], shadow: true, image: lazy('signpost_sign', paintSign),
-    anim: [{ type: 'swing', amount: 7, speed: 0.55, pivot: [0.5, 0.04] }], tags: ['road'],
+    anim: [{ type: 'swing', amount: 7, speed: 0.55, pivot: [0.5, 0.04] }, { type: 'react', on: 'hit', radius: 2, effect: 'shake', amount: 14 }], tags: ['road'],
   },
   {
     id: 'roadpost', label: 'ROAD POST + LANTERN', source: 'painted', layer: 'mid', w: 1.3, anchor: [0.19, 0.995], shadow: true, image: lazy('roadpost', paintRoadpost),
@@ -98,7 +98,17 @@ const PAINTED: PropKind[] = [
     anim: [
       { type: 'sheet', n: 4, grid: [4, 1], fps: 11, mode: 'loop' },
       { type: 'track', dur: 7, loop: true, keys: { x: [[0, -4], [0.5, 4], [1, -4]], y: [[0, 0], [0.25, 0.5], [0.5, 0], [0.75, 0.6], [1, 0]], sx: [[0, 1], [0.49, 1], [0.51, -1], [0.99, -1], [1, 1]] } },
+      // Flyr sin vei når noen kommer nær, og kommer tilbake etter en stund
+      { type: 'react', on: 'any', radius: 3.5, effect: 'flee', back: 10 },
     ], tags: ['anim', 'animal'],
+  },
+  {
+    id: 'flagpole', label: 'FLAGPOLE + FLAG (SET)', source: 'painted', layer: 'back', w: 0.35, anchor: [0.5, 0.995], shadow: true, image: lazy('flagpole', paintFlagpole),
+    preset: [{ prop: 'flag_cloth', dx: 0.04, dy: 2.45, dz: 0.02 }], tags: ['camp', 'set'],
+  },
+  {
+    id: 'flag_cloth', label: 'FLAG CLOTH (WAVES)', source: 'painted', layer: 'back', w: 1.5, anchor: [0.01, 0.04], shadow: false, image: lazy('flag_cloth', () => paintFlagCloth()),
+    anim: [{ type: 'wave', amount: 0.13, speed: 0.85, length: 0.8, from: 'left' }], tags: ['camp', 'anim'],
   },
   {
     id: 'torch', label: 'TORCH (ANIM + LIGHT)', source: 'painted', layer: 'mid', w: 0.42, anchor: [0.5, 0.995], shadow: false, image: lazy('torch', paintTorchSheet),
@@ -199,6 +209,7 @@ export function imageKind(id: string, img: HTMLCanvasElement | HTMLImageElement,
     shadow: m.shadow ?? base?.shadow,
     fade: m.fade ?? base?.fade,
     dark: m.dark ?? base?.dark,
+    preset: m.preset ?? base?.preset,
     image: () => img,
     build: undefined,
   };

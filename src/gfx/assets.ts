@@ -2,7 +2,7 @@
 // Legg filer i public/assets/ og beskriv dem i public/assets/manifest.json (se docs/ART_PROMPTS.md).
 // Finnes ikke manifestet, brukes den prosedyretegnede grafikken som før.
 import { TORSO_Y, ARM_L, LEG_L } from './chars/types';
-import type { LayerId, PropAnim } from '../data/layout';
+import type { LayerId, PresetPart, PropAnim } from '../data/layout';
 
 export interface PartOverride {
   canvas: HTMLCanvasElement;
@@ -75,6 +75,8 @@ export interface ManifestProp {
   n?: number;
   /** Hele animasjonslista (ellers plassholderens, se imageKind i gfx/props/catalog.ts). */
   anim?: PropAnim | PropAnim[];
+  /** Et sett: delene som legges ut og henges på denne (SAVE AS SET i editoren). */
+  preset?: PresetPart[];
   shadow?: boolean;
   fade?: boolean;
   dark?: number;

@@ -11,9 +11,12 @@
 - [x] Runde C: STAGE FORGE som scene i spillet (`?editor=road`): bibliotek, tidslinje, angre (60), rader, generatorer, bølger, tønner og farer, lagring via Vite under npm run dev, bilder dratt inn, PLAY FROM HERE og tilbake. Tester: editor.mjs, forge-save.mjs, prop-images.mjs
 - [x] Skills for agentene i .claude/skills/ (stage-forge, prop-art, new-level, game-tests) og docs/SKILLS.md
 - [ ] Tom: prøv STAGE FORGE på brett 1 og si hva som mangler eller er tungvint
+- [x] 2D-animasjoner for kulissene: wave (tøy), pulse, drift og react (near, hit, any: shake, hop, spin, flee), deler med PART OF, sett (SAVE AS SET), varianter (V og MIX VARIANTS), ledd med klikk i bildet (tools/tests/prop-anim.mjs)
+- [x] Mottak for mange GPT-bilder: process_art.py --fra <zip|mappe> (navn gjøres om, lag gjettes), tools/prop_gallery.py
+- [ ] Tom: last opp de 52 PNG-ene fra GPT (gjerne som zip, så navnene blir med). Så tas de inn med --fra, settes sammen til sett der det er deler, og legges ut på brett 1
 - [ ] Brettfiler med kulisser for swamp, frost, scorch, tower og nattleiren (bare tomme filer nå)
 - [ ] `gore_` i process_art.py (runde A)
-- [ ] Senere i editoren: gjøre en generator om til enkeltkulisser («bake inn»), `solid` og `breakable` på kulisser, kulisser i flere deler, InstancedMesh for lange rader hvis det blir tungt
+- [ ] Senere i editoren: gjøre en generator om til enkeltkulisser («bake inn»), `solid` og `breakable` på kulisser, InstancedMesh for lange rader hvis det blir tungt
 - [ ] Sporformatet (track) på riggens stillinger: angrep i flere faser og dødsanimasjoner som data (runde A eller E)
 - [ ] Runde D: AI del 1 (én plass per side, ytre ring, rettferdighet, felles varsling `tell`/`bark`, to spillere, målinger i ai.mjs)
 - [ ] Runde E: AI del 2 (tempostyring og budsjett, nye fiendetyper, grense for evige komboer, forsvar, sjefer i faser, vanskelighetsgrad, ridedyr)

@@ -38,6 +38,16 @@ function cleanMeta(id: string, m: Record<string, unknown>) {
     if (Number.isInteger(m.n) && (m.n as number) >= 1) out.n = Math.min(m.n as number, (m.grid[0] as number) * (m.grid[1] as number));
   }
   if (m.anim !== undefined) out.anim = m.anim;
+  if (Array.isArray(m.preset)) {
+    const parts = (m.preset as Record<string, unknown>[]).filter((q) => q && typeof q.prop === 'string' && /^[a-z0-9_]{1,40}$/.test(q.prop) && typeof q.dx === 'number' && typeof q.dy === 'number');
+    if (parts.length) out.preset = parts.slice(0, 32).map((q) => {
+      const o: Record<string, unknown> = { prop: q.prop, dx: Math.round((q.dx as number) * 1000) / 1000, dy: Math.round((q.dy as number) * 1000) / 1000 };
+      for (const k of ['dz', 'scale', 'rot']) if (typeof q[k] === 'number') o[k] = Math.round((q[k] as number) * 1000) / 1000;
+      if (q.flip === true) o.flip = true;
+      if (Array.isArray(q.anim)) o.anim = q.anim;
+      return o;
+    });
+  }
   for (const k of ['shadow', 'fade']) if (typeof m[k] === 'boolean') out[k] = m[k];
   if (typeof m.dark === 'number') out.dark = m.dark;
   if (typeof m.label === 'string') out.label = m.label.slice(0, 60);

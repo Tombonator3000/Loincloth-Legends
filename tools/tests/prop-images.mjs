@@ -21,7 +21,7 @@ const types = (k) => (k.anim ?? []).map((a) => a.type);
 const sheet = (k) => (k.anim ?? []).find((a) => a.type === 'sheet');
 
 const crow = await kind('crow', { grid: [4, 1], n: 4 });
-check('kråka som bildeserie fra ChatGPT: rutenettet fra bildet, farten og flukten (track) fra plassholderen', crow.source === 'image' && types(crow).join() === 'sheet,track' && sheet(crow).grid.join() === '4,1' && sheet(crow).n === 4 && crow.w === 0.55, crow);
+check('kråka som bildeserie fra ChatGPT: rutenettet fra bildet, farten, flukten (track) og reaksjonen (react) fra plassholderen', crow.source === 'image' && types(crow).join() === 'sheet,track,react' && sheet(crow).grid.join() === '4,1' && sheet(crow).n === 4 && crow.w === 0.55, crow);
 const torch = await kind('torch', {});
 check('et stillbilde av fakkelen mister bildeserien, men beholder lyset og flammene', !sheet(torch) && types(torch).includes('flicker') && torch.fire?.length > 0, torch);
 const banner = await kind('banner_red', { grid: [3, 2], n: 5 });

@@ -327,6 +327,80 @@ export function paintSignpost() {
   }, 'signpost');
 }
 
+/** Flaggstang uten flagg: flagget er en egen del som bølger (flag_cloth), hengt på stanga som et sett. */
+export function paintFlagpole() {
+  const W = 120, H = 900;
+  return canvas(W, H, (c, r) => {
+    log(c, r, 42, 40, H - 4, 36, '#5e4028', false);
+    // Jernspiss og ring i toppen
+    c.save();
+    const g = c.createLinearGradient(44, 0, 76, 0);
+    g.addColorStop(0, '#2a2a2e');
+    g.addColorStop(0.45, '#8a8a90');
+    g.addColorStop(1, '#1e1e22');
+    c.fillStyle = g;
+    c.beginPath();
+    c.moveTo(60, 0);
+    c.lineTo(72, 44);
+    c.lineTo(48, 44);
+    c.closePath();
+    c.fill();
+    c.fillRect(44, 44, 32, 10);
+    c.restore();
+  }, 'flagpole');
+}
+
+/** Flagget alene: festekanten til venstre, fillete svalehale til høyre (bølger med wave fra venstre). */
+export function paintFlagCloth(cloth = '#8a1a14') {
+  const W = 520, H = 300;
+  return canvas(W, H, (c, r) => {
+    c.save();
+    c.beginPath();
+    c.moveTo(4, 8);
+    c.lineTo(W - 10, 22);
+    // Svalehale med fliker
+    c.lineTo(W - 90, H * 0.5);
+    c.lineTo(W - 14, H - 26);
+    for (let x = W - 60; x > 20; x -= 34) c.lineTo(x, H - 18 - r() * 26);
+    c.lineTo(4, H - 12);
+    c.closePath();
+    c.clip();
+    const g = c.createLinearGradient(0, 0, W, 0);
+    g.addColorStop(0, shade(cloth, -0.35));
+    g.addColorStop(0.25, shade(cloth, 0.15));
+    g.addColorStop(0.55, shade(cloth, -0.1));
+    g.addColorStop(0.8, shade(cloth, 0.12));
+    g.addColorStop(1, shade(cloth, -0.4));
+    c.fillStyle = g;
+    c.fillRect(0, 0, W, H);
+    // Vev og flekker
+    speckle(c, r, 0, 0, W, H, [shade(cloth, -0.5), shade(cloth, 0.3), '#3a2a1e'], 900, 3, 0.35);
+    // Hornet hodeskalle
+    const ex = W * 0.42, ey = H * 0.5;
+    c.fillStyle = '#e8dcc0';
+    c.beginPath();
+    c.ellipse(ex, ey, 44, 50, 0, 0, Math.PI * 2);
+    c.fill();
+    for (const sd of [-1, 1]) {
+      c.beginPath();
+      c.moveTo(ex + sd * 32, ey - 28);
+      c.quadraticCurveTo(ex + sd * 92, ey - 56, ex + sd * 76, ey - 104);
+      c.quadraticCurveTo(ex + sd * 66, ey - 58, ex + sd * 20, ey - 44);
+      c.fill();
+    }
+    c.fillStyle = shade(cloth, -0.6);
+    for (const sd of [-1, 1]) {
+      c.beginPath();
+      c.ellipse(ex + sd * 17, ey + 2, 11, 14, 0, 0, Math.PI * 2);
+      c.fill();
+    }
+    // Sømmen langs festekanten
+    c.fillStyle = shade(cloth, -0.55);
+    c.fillRect(0, 0, 16, H);
+    c.restore();
+  }, 'flag' + cloth);
+}
+
 export function paintSign() {
   const W = 300, H = 300;
   return canvas(W, H, (c, r) => {
