@@ -7,7 +7,8 @@ import { chromium } from 'playwright';
 import zlib from 'node:zlib';
 import fs from 'node:fs';
 // Antall rekvisitter i brettfila til brett 1 (testen regner resten ut fra det)
-const N = JSON.parse(fs.readFileSync(new URL('../../src/data/layouts/road.json', import.meta.url), 'utf8')).props.length;
+const ROAD = JSON.parse(fs.readFileSync(new URL('../../src/data/layouts/road.json', import.meta.url), 'utf8'));
+const N = ROAD.props.length, RUNS = (ROAD.runs ?? []).length;
 const [url, out] = process.argv.slice(2);
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 1400, height: 820 }, acceptDownloads: true });
@@ -49,7 +50,7 @@ check('editoren åpner med ?editor=road: toppen, biblioteket, egenskapene og tid
 check('biblioteket har de malte plassholderne, bildene og 3D-rekvisittene (minst 30)', ui.lib >= 30, ui.lib);
 let s0 = await st();
 const items0 = await page.evaluate(() => window.__game.scene.scenery.items.size);
-check(`brettfila for brett 1 er lastet (${N} rekvisitter, 1 rad, palisaden fra generatoren er av)`, s0.props === N && s0.runs === 1 && s0.gens?.stakeWall === false, { ...s0, items0 });
+check(`brettfila for brett 1 er lastet (${N} rekvisitter, ${RUNS} rad, palisaden fra generatoren er av)`, s0.props === N && s0.runs === RUNS && s0.gens?.stakeWall === false, { ...s0, items0 });
 await shot('1-open');
 
 // Legg ut fra biblioteket

@@ -63,8 +63,9 @@ Uten egne animasjoner bruker kulissen dem den har i biblioteket. USE THE PROP'S 
 En kulisse kan være satt sammen av flere bilder: en vindmølle med vinger som snurrer, et flagg på en stang, et skilt som svinger i kjettingen sin, en stamme med en krone som svaier. Delene er egne bilder med egne animasjoner.
 - **PART OF** under PARTS henger den valgte kulissen på en annen. Delen følger animasjonen til den den henger på (svinger skiltet, svinger alt som henger på skiltet), og flyttes, skaleres og speilvendes sammen med den.
 - **+ ADD PART** legger en ny del rett på kulissen. Dra den på plass, og gi den en animasjon.
+- En del kan henge på en annen del: flammen i lykta henger på lykta, som henger på stolpen, så flammen følger svingen.
 - Slettes kulissen, blir delene liggende løse. Ctrl+D dupliserer med alle delene.
-- **SAVE AS SET** (på bilder) lagrer delene i manifestet. Neste gang bildet legges ut, kommer delene med, allerede hengt på. FLAGPOLE + FLAG er et slikt sett.
+- **SAVE AS SET** (på bilder) lagrer delene i manifestet, også hvilken del hver del henger på. Neste gang bildet legges ut, kommer delene med, allerede hengt på. FLAGPOLE + FLAG er et slikt sett, og miljøpakken har seks: lyktestolpe, fakkel, veggfakkel, bål, banner og eik (se `docs/ENVIRONMENT_PACK.md`).
 
 ## Varianter
 Bilder med samme navn og _a, _b, _2 og så videre til slutt er varianter av samme ting (palisade_a og palisade_b). V bytter til neste variant, og VARIANT-lista viser dem. En rad kan blande inn variantene med MIX VARIANTS. Raden blir lik hver gang, fordi den har sitt eget frø.
@@ -77,7 +78,9 @@ Dra PNG-filer rett inn i editoren (eller BROWSE):
 - `anim_<navn>_<kolonner>x<rader>.png` blir en bildeserie (`anim_crow_4x1.png`).
 - Samme navn som en plassholder tar over for den og beholder lys, flammer og bevegelse.
 
-Under IMAGE SETTINGS klikker du i bildet for å sette fotpunktet og skriver inn bredden i meter. SAVE lagrer bildet som `public/assets/prop_<navn>.webp` og målene i manifestet. Bilder fra ChatGPT bør heller gå gjennom `tools/process_art.py`, som fjerner bakgrunnen og klipper rutene i bildeserier likt (se `docs/ART_PROMPTS.md`, «Kulisser til brettverkstedet»).
+Under IMAGE SETTINGS klikker du i bildet for å sette fotpunktet og skriver inn bredden i meter. SELF-LIT gjør at bildet lyser selv, med sine egne farger uten lys og skygge fra scenen (flammer, glør, lava). SAVE lagrer bildet som `public/assets/prop_<navn>.webp` og målene i manifestet.
+
+Spillet henter bare bildene brettfilene bruker når det starter. Editoren henter resten før den åpnes, så biblioteket har alltid alle bildene. Bilder fra ChatGPT bør heller gå gjennom `tools/process_art.py`, som fjerner bakgrunnen og klipper rutene i bildeserier likt (se `docs/ART_PROMPTS.md`, «Kulisser til brettverkstedet»).
 
 ## Lagre og spille
 - **SAVE** under `npm run dev` skriver `src/data/layouts/<brett>.json` og nye bilder rett i repoet. Siden lastes ikke på nytt. Uten dev-serveren lastes fila ned: legg den i `src/data/layouts/`.
@@ -85,7 +88,7 @@ Under IMAGE SETTINGS klikker du i bildet for å sette fotpunktet og skriver inn 
 - Ta med brettfila (og eventuelle nye bilder og `public/assets/manifest.json`) når du committer.
 
 ## Generert pynt og frø
-Miljøet lager trær, gress, steiner, telt, palisade og mye annet selv. Det skjer med faste frø, så brettet ser likt ut hver gang, og det er delt i blokker som kan slås av under GENERATED DECOR. Brett 1 har slått av den gamle 3D-palisaden og teltene og bruker malte kulisser i stedet. DECOR SEED gir en ny variant av pynten (NEW trekker et nytt frø).
+Miljøet lager trær, gress, steiner, telt, palisade og mye annet selv. Det skjer med faste frø, så brettet ser likt ut hver gang, og det er delt i blokker som kan slås av under GENERATED DECOR. Brett 1 har slått av den gamle 3D-palisaden, teltene, bålene og bannerne og bruker bildene fra miljøpakken i stedet. DECOR SEED gir en ny variant av pynten (NEW trekker et nytt frø).
 
 ## For utviklere
 | Fil | Hva |
@@ -99,4 +102,4 @@ Miljøet lager trær, gress, steiner, telt, palisade og mye annet selv. Det skje
 | `tools/vite-stage-forge.ts` | Lagringen under `npm run dev` (bare fra maskinen selv) |
 | `src/core/math.ts`, `src/gfx/env/common.ts` | Faste frø (`withSeed`) og generatorene (`gen`) |
 
-Tester: `tools/tests/editor.mjs` (hele editoren i nettleseren), `prop-anim.mjs` (deler, sett, varianter og animasjonene), `forge-save.mjs` (lagring gjennom dev-serveren) og `prop-images.mjs` (bilder som tar over for plassholderne). For agenter finnes skillene `stage-forge`, `prop-art` og `new-level` i `.claude/skills/` (se `docs/SKILLS.md`).
+Tester: `tools/tests/editor.mjs` (hele editoren i nettleseren), `prop-anim.mjs` (deler, sett, varianter og animasjonene, på testbrettet `tools/tests/fixtures/road-placeholders.json`), `env-pack.mjs` (miljøpakken: lastingen, settene og brett 1), `forge-save.mjs` (lagring gjennom dev-serveren) og `prop-images.mjs` (bilder som tar over for plassholderne). For agenter finnes skillene `stage-forge`, `prop-art` og `new-level` i `.claude/skills/` (se `docs/SKILLS.md`).

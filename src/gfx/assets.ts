@@ -77,6 +77,10 @@ export interface ManifestProp {
   anim?: PropAnim | PropAnim[];
   /** Et sett: delene som legges ut og henges på denne (SAVE AS SET i editoren). */
   preset?: PresetPart[];
+  /** Flammer (partikler) ved punkter i bildet, [u, v] fra øvre venstre hjørne. */
+  fire?: [number, number][];
+  /** Lyser selv, 0..1 (flammer, glør, lava): bildets egne farger uten lys og skygge fra scenen. */
+  emit?: number;
   shadow?: boolean;
   fade?: boolean;
   dark?: number;
@@ -337,7 +341,44 @@ function beltWidth(cv: HTMLCanvasElement) {
   return best;
 }
 
-export async function loadAssets(base = './assets/') {
+/** Kulissene i manifestet (props), også de som ikke er hentet ennå. */
+const propMeta: Record<string, ManifestProp> = {};
+const propJobs = new Map<string, Promise<void>>();
+const propDone = new Set<string>();
+let propBase = './assets/';
+
+/**
+ * Hent bildene til disse kulissene fra manifestet (alle uten ids). Hvert bilde hentes bare én gang, så et nytt kall
+ * er billig. Ved oppstart hentes bare det brettfilene bruker (main.ts), og editoren henter resten før den åpnes.
+ */
+export function loadPropImages(ids: Iterable<string> = Object.keys(propMeta)): Promise<void> {
+  const jobs: Promise<void>[] = [];
+  for (const id of ids) {
+    const meta = propMeta[id];
+    if (!meta) continue;
+    let job = propJobs.get(id);
+    if (!job) {
+      job = loadImage(propBase + meta.file)
+        .then((img) => void (images.props[id] = { img, meta }))
+        .catch((e) => console.warn(e))
+        .finally(() => void propDone.add(id));
+      propJobs.set(id, job);
+    }
+    jobs.push(job);
+  }
+  return Promise.all(jobs).then(() => undefined);
+}
+
+/** Er alle kulissebildene i manifestet hentet (eller prøvd hentet)? */
+export function propImagesLoaded() {
+  return Object.keys(propMeta).every((id) => propDone.has(id));
+}
+
+/**
+ * Last manifestet og grafikken. wantProp velger hvilke kulissebilder som hentes nå (uten den: alle). Et bilde som
+ * ikke er hentet, står likevel i manifestet og hentes med loadPropImages.
+ */
+export async function loadAssets(base = './assets/', wantProp?: (id: string) => boolean) {
   let man: Manifest;
   // Åpnet som fil (dobbeltklikk på single-file-bygget): fetch virker ikke der, så dropp PNG-ene
   if (location.protocol === 'file:') return 0;
@@ -413,9 +454,10 @@ export async function loadAssets(base = './assets/') {
   for (const [name, file] of Object.entries(man.textures ?? {})) {
     jobs.push(loadImage(base + file).then((img) => void (images.textures[name] = img)).catch((e) => console.warn(e)));
   }
-  for (const [id, meta] of Object.entries(man.props ?? {})) {
-    jobs.push(loadImage(base + meta.file).then((img) => void (images.props[id] = { img, meta })).catch((e) => console.warn(e)));
-  }
+  // Kulissene: alle står i propMeta, men bare de spillet ber om (wantProp) hentes nå. Resten hentes av loadPropImages.
+  propBase = base;
+  Object.assign(propMeta, man.props ?? {});
+  jobs.push(loadPropImages(Object.keys(propMeta).filter((id) => !wantProp || wantProp(id))));
   if (man.map) jobs.push(loadImage(base + man.map).then((img) => void (images.map = img)).catch((e) => console.warn(e)));
   if (man.title) jobs.push(loadImage(base + man.title).then((img) => void (images.title = img)).catch((e) => console.warn(e)));
   await Promise.all(jobs);

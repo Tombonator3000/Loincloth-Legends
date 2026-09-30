@@ -5,7 +5,9 @@
 - [x] Plan med editor, lag, rekvisitter, Morbidium-animasjon, gørr, AI (moderne Golden Axe-kloner), teksturer og andre forbedringer
 - [ ] Tom: bestill teksturene i del 9.1 (kan kjøres gjennom process_art.py nå). Gørrbildene (gore_) venter i art/inbox/venter/ til runde A
 - [x] Levert og importert 52 kulissebilder som WebP med alfa, 43 `env_*` og ni `fg_*`, i manifestets `props` og STAGE FORGE, LIBRARY, IMAGES. Egen filoversikt i docs/ENVIRONMENT_PACK.md; forgrunnsbildene har FRONT som standardlag
-- [ ] Kalibrer miljøpakken visuelt i STAGE FORGE: størrelse, fotpunkt, veggskjøter, forgrunnsdekning og innfesting for bål, lykt, fakkel, banner og eik. Kontroller SWAY, SWING, FLICKER og WAVE der de brukes; bildene har ingen ferdig konfigurert rigg eller animasjon
+- [x] Miljøpakken satt sammen: seks sett med målte festepunkter (lykt i kroken og flamme på veken, fakkel, veggfakkel, bål, banner, eik), deler som henger på en annen del (`on`), bevegelse (WAVE, SWING, SWAY, FLICKER med lys, PULSE, REACT), flammer som lyser selv (`emit`, SELF-LIT i editoren), og ankere flyttet til der tingen står
+- [x] Spillet henter bare kulissebildene brettene bruker (28 av 52 på brett 1), editoren resten (`loadPropImages`)
+- [ ] Kalibrer resten av miljøpakken når bildene tas i bruk: murene (teglmur, steinmur, borgmur) trenger skala og overlapp i rader, porten, alteret, gravene og gravsteinene er ikke prøvd på et brett
 - [ ] Rett alfagjenkjenningen varig i process_art.py: ekte RGBA skal ikke miste mørke detaljer når mindre enn 20 prosent av flaten er gjennomsiktig. Portens importkopi er foreløpig klargjort med 48 piksler gjennomsiktig marg på hver side; original og skript er uendret
 - [ ] Tom: si om rekkefølgen passer (A, B, C, D, E), eller om AI del 1 (D) skal før editoren (C)
 - [ ] Tom: si fra om blodmengden nå som dråpene synes (standard EXCESSIVE)
@@ -16,7 +18,9 @@
 - [ ] Tom: prøv STAGE FORGE på brett 1 og si hva som mangler eller er tungvint
 - [x] 2D-animasjoner for kulissene: wave (tøy), pulse, drift og react (near, hit, any: shake, hop, spin, flee), deler med PART OF, sett (SAVE AS SET), varianter (V og MIX VARIANTS), ledd med klikk i bildet (tools/tests/prop-anim.mjs)
 - [x] Mottak for mange GPT-bilder: process_art.py --fra <zip|mappe> (navn gjøres om, lag gjettes), tools/prop_gallery.py
-- [ ] Sett sammen de leverte og importerte kulissedelene med PART OF og SAVE AS SET, og plasser de ferdig kontrollerte settene og enkeltbildene på brett 1. Selve leveransen og importen av alle 52 bilder er ferdig
+- [x] Brett 1 med miljøpakken: palisaderad med ender og veggfakler ved åpningene, telt, lyktestolpe, skilt med kråke, tre bål, fire bannere, fakler, vogn med tønne og kasse, busker, eiker, dødt tre, og gress, stamme, steiner og røtter foran kameraet (tools/tests/env-pack.mjs)
+- [ ] Tom: se på brett 1 med de nye bildene og si fra om noe skal flyttes, byttes eller fjernes (i STAGE FORGE eller her)
+- [ ] Vurder mykere bunn på bålflammen (ny bestilling, se ART_PROMPTS.md) så den kan stå foran kubbene
 - [ ] Brettfiler med kulisser for swamp, frost, scorch, tower og nattleiren (bare tomme filer nå)
 - [ ] `gore_` i process_art.py (runde A)
 - [ ] Senere i editoren: gjøre en generator om til enkeltkulisser («bake inn»), `solid` og `breakable` på kulisser, InstancedMesh for lange rader hvis det blir tungt
@@ -68,7 +72,7 @@
 - [x] Klippevegger med snø, fossefall med dis, taubro, ruiner, fyrfat med ild, lys og varmeflimmer, fillete krigsbannere med hornet hodeskalle, runesteiner i 3D (noen gløder), istapper, taugjerde, snø på steinene, snøføyke og tettere snøfall
 - [x] Trollets seks ChatGPT-deler (troll_*.webp). Kjempetrollet arver delene og får samme stil
 - [x] Krigsbanner som separate ChatGPT-bilder: `env_banner_pole` og `env_banner_cloth` er levert og importert gjennom `prop_`-kategorien (docs/ENVIRONMENT_PACK.md)
-- [ ] Tilpass, monter og plasser det nye banneret i frostpasset dersom det skal brukes der; innfesting og bevegelse er ikke satt opp
+- [ ] Plasser banneret (settet `env_banner_pole`) i frostpasset dersom det skal brukes der; innfesting og bevegelse er satt opp
 - [x] Gameplay fra bildet: kast fiender i juvet (opp + kast), istapper som faller, fyrfat som kan veltes med glør og brann, kjempen griper og kaster helter, panikk (tools/tests/frostplay.mjs)
 - [x] Fiender som rygget ut av bildet og var for raske: rygger på halv fart og blir i bildet (Tom meldte fra)
 - [x] Heltene og ridedyrene stopper foran taugjerdet ved juvet, ikke mellom gjerdet og stupet

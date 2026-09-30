@@ -319,6 +319,7 @@ Confirm that you understand. Then wait for my requests.
 - Tøy (flagg, bannere, kapper, telttøy, klesvask) trenger ingen bildeserie: ett bilde av tøyet alene, uten stang, får WAVE i editoren og bølger av seg selv. Be om stanga som et eget bilde.
 - Ting som snurrer eller svinger (vinger, hjul, skilt, bur, lykter): et eget bilde av den delen, med navet eller festet tydelig, så leddet kan settes der med et klikk.
 - Dyr og småting som skal flykte eller hoppe (kråker, rotter, kyllinger): ett bilde eller en kort bildeserie. REACT med FLEE får dem til å flykte når helten kommer.
+- Flammer som egne bilder: be om en flamme som smalner av eller tones ut nederst (`the base fades out softly, no straight bottom edge`), så den kan stå foran det den brenner på. Bålflammen i miljøpakken har rett bunn og må derfor stå bak vedkubbene. I spillet får flammene `emit` (lyser selv) og et svakt flakkende lys.
 
 ### Regler for bildeserier
 - Høyst 6 x 6 ruter. 4x1 og 4x2 er vanligst.

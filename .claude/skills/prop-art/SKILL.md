@@ -31,6 +31,10 @@ Bilder kan også dras rett inn i editoren med de samme filnavnene. Da vises de m
 - `front` eller `foreground` i navnet gir laget FRONT, `far`, `distant` eller `background` gir FAR, og `back` gir BACK.
 - Deler til animasjon: ett bilde per del med samme begynnelse (`windmill_body`, `windmill_blades`). Sett dem sammen med PART OF i editoren, gi hver del sin animasjon, og lagre med SAVE AS SET (settet havner i manifestet som `preset`).
 - Tøy trenger ingen bildeserie: et stillbilde av tøyet alene får WAVE.
+- Mål festepunktene på de importerte WebP-bildene i `public/assets/` (kroken, ringen, veken, brennhodet), ikke på PNG-originalene. `process_art.py` beskjærer bildene. Flytt ankeret til der tingen står på bakken hvis bildet har en arm eller en ring til siden (stolpen på lyktestolpen står ved u 0,14).
+- Flammer: `emit: 1` (lyser selv) og FLICKER med et svakt lys. Et flammebilde med rett bunn må stå bak noe som skjuler bunnen (brennhodet, vedkubbene).
+- Miljøpakken fra 2026-09-30 (52 bilder, `env_` og `fg_`) er satt opp med sett og bevegelse, se `docs/ENVIRONMENT_PACK.md`.
+- Spillet henter bare kulissebildene brettfilene bruker. Et nytt bilde dukker opp i spillet først når det står i en brettfil, men editoren har alltid alle.
 
 ## Regler for bildeserier
 Fra Morbidium (`tools/behandle_bilder.py`) og dokumentasjonen til Scenario (bare reglene, ikke tjenesten):

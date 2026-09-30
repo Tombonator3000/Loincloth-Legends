@@ -56,7 +56,8 @@ ${WIND_GLSL}
   }
   vShade = 1.0;
   if (uWave > 0.0) {
-    // Duken bølger ut fra den faste kanten (stanga): ingenting ved kanten, mest ytterst. Foldene får litt skygge.
+    // Duken bølger ut fra den faste kanten (stanga): ingenting ved kanten, mest ytterst. Foldene får litt skygge,
+    // mindre når bølgene er små (en grein med løv skal ikke få mørke striper).
     float u01 = clamp((position.x - uLeft) / max(uPropW, 0.01), 0.0, 1.0);
     float v01 = clamp((position.y - uBase) / max(uPropH, 0.01), 0.0, 1.0);
     float d = uWaveFrom < 0.5 ? u01 : (uWaveFrom < 1.5 ? 1.0 - u01 : 1.0 - v01);
@@ -66,7 +67,7 @@ ${WIND_GLSL}
     if (uWaveFrom < 1.5) p.y += a * sin(ph);
     else p.x += a * sin(ph);
     p.z += a * 0.7 * cos(ph);
-    vShade = 1.0 - 0.28 * min(1.0, d * 1.6) * (0.5 - 0.5 * cos(ph));
+    vShade = 1.0 - 0.28 * min(1.0, uWave * 6.0) * min(1.0, d * 1.6) * (0.5 - 0.5 * cos(ph));
   }
   vec4 mv = modelViewMatrix * vec4(p, 1.0);`],
   ['  gl_Position = projectionMatrix * mv;\n}', `  gl_Position = projectionMatrix * mv;
@@ -80,6 +81,7 @@ const FRAG = [
 uniform float uFade;
 uniform float uDark;
 uniform float uGlow;
+uniform float uEmit;
 varying float vShade;
 #include <fog_pars_fragment>`],
   ['  if (c.a < 0.06) discard;', `  if (c.a < 0.06) discard;
@@ -89,6 +91,8 @@ varying float vShade;
     if (dth > uFade) discard;
   }`],
   ['  col = mix(col, flashColor, flash);', `  col *= uGlow * (1.0 - uDark) * vShade;
+  // Lyser selv (flammer, glør): bildets egne farger uten lys og skygge fra scenen
+  col = mix(col, albedo * uGlow, uEmit);
   col = mix(col, flashColor, flash);`],
   ['  #include <colorspace_fragment>\n}', `  #include <colorspace_fragment>
   #include <fog_fragment>
@@ -117,6 +121,7 @@ function propMaterial(tex: THREE.Texture, relief: THREE.Texture | null) {
     uFade: { value: 1 },
     uDark: { value: 0 },
     uGlow: { value: 1 },
+    uEmit: { value: 0 },
     uWave: { value: 0 },
     uWaveSpeed: { value: 1 },
     uWaveLen: { value: 0.7 },
@@ -480,6 +485,7 @@ export class Scenery {
     u.uPhase.value = it.phase;
     const defaults = layerDefaults(p.layer);
     u.uDark.value = p.dark ?? kind.dark ?? defaults.dark;
+    u.uEmit.value = kind.emit ?? 0;
     if (p.tint) (u.tint.value as THREE.Color).set(p.tint);
     it.fades = p.fade ?? kind.fade ?? defaults.fade;
     const mesh = new THREE.Mesh(geo, mat);

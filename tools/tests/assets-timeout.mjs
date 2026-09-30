@@ -31,7 +31,7 @@ function harness(fetch) {
     clearTimeout(id) { timers.delete(id); },
     console: { warn(error) { warnings.push(error); } },
   });
-  new vm.Script(source + '\nglobalThis.api = { loadAssets, images };').runInContext(context);
+  new vm.Script(source + '\nglobalThis.api = { loadAssets, loadPropImages, propImagesLoaded, images };').runInContext(context);
   return {
     ...context.api, timers, requests, warnings,
     expire(delay) {
@@ -117,4 +117,31 @@ function harness(fetch) {
   assert.equal(h.timers.size, 0);
 }
 
-console.log('OK: manifest, JSON og bilder har tidsgrense; sene callbacks ignoreres og timere ryddes.');
+// Kulissene: bare de spillet ber om hentes ved oppstart, resten hentes én gang av loadPropImages (editoren).
+{
+  const h = harness(async () => ({ ok: true, json: async () => ({
+    props: { tent: { file: 'prop_tent.webp' }, crow: { file: 'prop_crow.webp' }, oak: { file: 'prop_oak.webp' } },
+  }) }));
+  const boot = h.loadAssets('./assets/', (id) => id === 'tent');
+  await flush();
+  assert.deepEqual(h.requests.map((r) => r.src), ['./assets/prop_tent.webp']);
+  h.requests[0].onload();
+  await boot;
+  assert.equal(h.images.props.tent.img, h.requests[0]);
+  assert.equal(h.images.props.crow, undefined);
+  assert.equal(h.propImagesLoaded(), false);
+  const rest = h.loadPropImages();
+  const again = h.loadPropImages(['crow']);
+  await flush();
+  assert.deepEqual(h.requests.map((r) => r.src), ['./assets/prop_tent.webp', './assets/prop_crow.webp', './assets/prop_oak.webp'], 'Et bilde ble hentet to ganger');
+  h.requests[1].onload();
+  h.requests[2].onerror();
+  await rest;
+  await again;
+  assert.equal(h.images.props.crow.meta.file, 'prop_crow.webp');
+  assert.equal(h.images.props.oak, undefined);
+  assert.equal(h.propImagesLoaded(), true, 'Et bilde som feilet, skal ikke holde editoren igjen');
+  assert.equal(h.timers.size, 0);
+}
+
+console.log('OK: manifest, JSON og bilder har tidsgrense; sene callbacks ignoreres og timere ryddes; kulissene hentes når de trengs.');

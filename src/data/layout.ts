@@ -72,6 +72,8 @@ export interface PresetPart {
   flip?: boolean;
   rot?: number;
   anim?: PropAnim[];
+  /** Henger på en annen del i settet (nummeret i lista, en del før denne) i stedet for på rekvisitten: flammen i lykta. */
+  on?: number;
 }
 
 /** Én rekvisitt på brettet. */
@@ -167,6 +169,17 @@ export interface LevelLayout {
 
 export function emptyLayout(level: string): LevelLayout {
   return { version: 1, level, props: [], runs: [] };
+}
+
+/** Rekvisittene brettfila bruker (kulisser, rader og variantene i radene). Bildene til disse hentes ved oppstart. */
+export function layoutPropIds(l: LevelLayout): string[] {
+  const ids = new Set<string>();
+  for (const p of l.props ?? []) ids.add(p.prop);
+  for (const r of l.runs ?? []) {
+    ids.add(r.prop);
+    for (const v of r.variants ?? []) ids.add(v);
+  }
+  return [...ids];
 }
 
 /** Standardverdier for et lag: mørkning og toning. */

@@ -28,6 +28,7 @@ import { LEVELS } from '../data/levels';
 import { levelWithLayout } from '../data/layout';
 import { EditorScene } from './scenes/editor';
 import { layoutFor } from '../data/layouts';
+import { loadPropImages, propImagesLoaded } from '../gfx/assets';
 import { DUELISTS, type DuelistDef } from '../data/duelists';
 import { MAP_NODES, type MapNode } from '../data/worldmap';
 import { loadSave, writeSave, defaultSave, type SaveData } from './save';
@@ -236,6 +237,8 @@ export class Game {
   paused = false;
   /** Et brett spilles fra brettverkstedet (PLAY FROM HERE): pausen og slutten går tilbake dit. */
   editorTest: { level: string } | null = null;
+  /** Editoren venter på kulissebildene (openEditor). */
+  private editorWaiting = false;
   last = performance.now();
   width = 1;
   height = 1;
@@ -413,6 +416,16 @@ export class Game {
   // ---------------------------------------------------------------- brettverkstedet
   /** STAGE FORGE, editoren for brettene (app/scenes/editor.ts). */
   openEditor(levelId?: string) {
+    // Biblioteket trenger alle kulissebildene. Spillet henter bare de brettene bruker (main.ts), så hent resten først.
+    if (!propImagesLoaded()) {
+      if (this.editorWaiting) return;
+      this.editorWaiting = true;
+      void loadPropImages().then(() => {
+        this.editorWaiting = false;
+        this.openEditor(levelId);
+      });
+      return;
+    }
     this.editorTest = null;
     this.paused = false;
     this.input.solo = true;

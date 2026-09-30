@@ -44,6 +44,8 @@ export interface PropKind {
   build?: (ctx: ModelCtx) => void;
   /** Flammer (partikler) ved punkter i bildet (u, v fra toppen). */
   fire?: [number, number][];
+  /** Lyser selv, 0..1 (flammer, glør, lava): bildets egne farger uten lys og skygge fra scenen. */
+  emit?: number;
   /** Et sett: delene legges ut sammen med denne og henges på den (forskjøvet dx, dy, dz, se PresetPart). */
   preset?: PresetPart[];
   /** Grupper i biblioteket. */
@@ -210,6 +212,8 @@ export function imageKind(id: string, img: HTMLCanvasElement | HTMLImageElement,
     fade: m.fade ?? base?.fade,
     dark: m.dark ?? base?.dark,
     preset: m.preset ?? base?.preset,
+    fire: m.fire ?? base?.fire,
+    emit: m.emit ?? base?.emit,
     image: () => img,
     build: undefined,
   };

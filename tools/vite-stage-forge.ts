@@ -40,16 +40,23 @@ function cleanMeta(id: string, m: Record<string, unknown>) {
   if (m.anim !== undefined) out.anim = m.anim;
   if (Array.isArray(m.preset)) {
     const parts = (m.preset as Record<string, unknown>[]).filter((q) => q && typeof q.prop === 'string' && /^[a-z0-9_]{1,40}$/.test(q.prop) && typeof q.dx === 'number' && typeof q.dy === 'number');
-    if (parts.length) out.preset = parts.slice(0, 32).map((q) => {
+    if (parts.length) out.preset = parts.slice(0, 32).map((q, i) => {
       const o: Record<string, unknown> = { prop: q.prop, dx: Math.round((q.dx as number) * 1000) / 1000, dy: Math.round((q.dy as number) * 1000) / 1000 };
       for (const k of ['dz', 'scale', 'rot']) if (typeof q[k] === 'number') o[k] = Math.round((q[k] as number) * 1000) / 1000;
       if (q.flip === true) o.flip = true;
       if (Array.isArray(q.anim)) o.anim = q.anim;
+      // En del som henger på en annen del: bare en del før denne
+      if (Number.isInteger(q.on) && (q.on as number) >= 0 && (q.on as number) < i) o.on = q.on;
       return o;
     });
   }
+  if (Array.isArray(m.fire)) {
+    const pts = (m.fire as unknown[]).filter((f): f is [number, number] => Array.isArray(f) && f.length === 2 && f.every((v) => typeof v === 'number' && v >= 0 && v <= 1));
+    if (pts.length) out.fire = pts.slice(0, 8).map((f) => f.map((v) => Math.round(v * 1000) / 1000));
+  }
   for (const k of ['shadow', 'fade']) if (typeof m[k] === 'boolean') out[k] = m[k];
   if (typeof m.dark === 'number') out.dark = m.dark;
+  if (typeof m.emit === 'number' && m.emit > 0) out.emit = Math.min(1, Math.round(m.emit * 100) / 100);
   if (typeof m.label === 'string') out.label = m.label.slice(0, 60);
   return out;
 }

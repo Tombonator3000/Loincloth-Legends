@@ -290,8 +290,11 @@ export class EditorScene implements Scene {
     const meta = editableMeta(p.prop);
     if (!meta) return;
     const s = p.scale ?? 1, f = p.flip ? -1 : 1;
-    const preset: PresetPart[] = this.st.layout.props.filter((c) => c.parent === p.id).map((c) => {
+    // Alle delene, også de som henger på en annen del (flammen i lykta): on er nummeret på den delen
+    const parts = this.descendants(p.id);
+    const preset: PresetPart[] = parts.map((c) => {
       const part: PresetPart = { prop: c.prop, dx: r3(((c.x - p.x) / s) * f), dy: r3(((c.y ?? 0) - (p.y ?? 0)) / s), dz: r3(c.z - p.z) };
+      if (c.parent !== p.id) part.on = parts.findIndex((q) => q.id === c.parent);
       if ((c.scale ?? 1) !== s) part.scale = r3((c.scale ?? 1) / s);
       if (!!c.flip !== !!p.flip) part.flip = true;
       if (c.rot) part.rot = r3(c.rot * f);
@@ -334,11 +337,15 @@ export class EditorScene implements Scene {
     const p: PropPlacement = { id: this.newId(), prop: kind.id, layer: L, x, z };
     if (at?.y) p.y = r3(at.y);
     this.commitProp(p);
-    // Et sett: delene henges på rekvisitten og følger den
+    // Et sett: delene henges på rekvisitten (eller på en annen del, on) og følger den
+    const made: string[] = [];
     for (const part of kind.preset ?? []) {
       const k2 = propKind(part.prop);
+      const id = this.newId();
+      made.push(k2 ? id : '');
       if (!k2) continue;
-      const q: PropPlacement = { id: this.newId(), prop: k2.id, parent: p.id, layer: L, x: r3(x + part.dx), y: r3((p.y ?? 0) + part.dy), z: r3(z + (part.dz ?? 0)) };
+      const parent = (part.on !== undefined && made[part.on]) || p.id;
+      const q: PropPlacement = { id, prop: k2.id, parent, layer: L, x: r3(x + part.dx), y: r3((p.y ?? 0) + part.dy), z: r3(z + (part.dz ?? 0)) };
       if (part.scale) q.scale = part.scale;
       if (part.flip) q.flip = true;
       if (part.rot) q.rot = part.rot;
@@ -1441,9 +1448,13 @@ export class EditorScene implements Scene {
       layer.append(o);
     }
     layer.addEventListener('change', () => apply({ ...meta, layer: layer.value as LayerId }));
+    const emit = el('input', { type: 'checkbox', title: 'Flames, embers and lava: the picture keeps its own colours, no light or shade from the scene' }) as HTMLInputElement;
+    emit.checked = (meta.emit ?? 0) > 0;
+    emit.addEventListener('change', () => apply({ ...meta, emit: emit.checked ? 1 : undefined }));
     P.append(
       el('div', { class: 'fg-row' }, el('label', { text: 'WIDTH (M)' }), w),
       el('div', { class: 'fg-row' }, el('label', { text: 'LAYER' }), layer),
+      el('div', { class: 'fg-row' }, el('label', { text: 'SELF-LIT' }), emit),
       el('div', { class: 'fg-small fg-dim', text: 'Click the picture to set the foot point. SAVE writes the image and these settings to the manifest.' }),
     );
   }

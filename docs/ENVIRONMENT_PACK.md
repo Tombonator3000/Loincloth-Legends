@@ -10,7 +10,9 @@ Originalkunsten er laget med GPT-image for Loincloth Legends: slitte materialer,
 
 Hvert bilde har en egen manifest-ID som er lik originalens PNG-navn uten filendelse. For eksempel blir `env_tent.png` til ID `env_tent`, med filen `public/assets/prop_env_tent.webp`. Det samme mønsteret gjelder hele tabellen: `public/assets/prop_<id>.webp`.
 
-De nye ID-ene erstatter ingen av de eksisterende plassholderne eller 3D-rekvisittene. Pakken er tilgjengelig i biblioteket; importen plasserer ikke objektene automatisk i brettene. Bredder og ankere er startverdier. Juster **WIDTH**, fotpunkt, lag og skala i editoren før en scene lagres. Se også [STAGE_FORGE.md](STAGE_FORGE.md).
+De nye ID-ene erstatter ingen av de eksisterende plassholderne eller 3D-rekvisittene. Plassholderne finnes fortsatt i biblioteket, men brett 1 bruker nå bildene fra pakken (se «Brett 1» under). Bredder og ankere er startverdier. Juster **WIDTH**, fotpunkt, lag og skala i editoren før en scene lagres. Se også [STAGE_FORGE.md](STAGE_FORGE.md).
+
+Spillet henter bare bildene brettfilene bruker når det starter (`main.ts`), så en spiller slipper å laste ned hele pakken. Editoren henter resten før den åpnes (`loadPropImages` i `src/gfx/assets.ts`), og med `?editor` i adressen hentes alt med en gang.
 
 ## Alle 52 bilder
 
@@ -69,23 +71,40 @@ De nye ID-ene erstatter ingen av de eksisterende plassholderne eller 3D-rekvisit
 | `fg_roots` | Grove røtter til forgrunnen. |
 | `fg_tall_grass` | Høyt gress til nedre bildekant. |
 
-## Separate deler og animasjon
+## Sett og animasjon
 
-Bildene er statiske utgangspunkt. Pakken inneholder ikke ferdige bildeserier, vingeslag, splatt-animasjoner eller en ferdig konfigurert rigg. Editoren har støtte for både bevegelser og sammensatte sett, men ingen slike sett eller animasjoner er satt opp for disse 52 bildene. Flere objekter er delt for å kunne monteres og animeres hver for seg:
+Bildene er statiske, men delene er satt sammen til sett og har fått bevegelse (2026-09-30). Festepunktene er målt på de importerte WebP-bildene, ikke på PNG-originalene. Et sett legges ut med ett klikk i biblioteket (SET OF 2 eller 3), med delene hengt på:
 
-| Objekt | Deler og montering |
+| Sett | Deler og montering |
 |---|---|
-| Bål | `env_campfire_base` og `env_campfire_flame`. Plasser flammens basis over vedkubbene. |
-| Lyktestolpe | `env_lamppost_post`, `env_lamppost_lantern` og `env_lantern_flame`. Heng lykten i kroken og plasser flammen ved veken. |
-| Fakkel | `env_torch_body` og `env_torch_flame`, eventuelt `env_torch_wall_holder`. |
-| Banner | `env_banner_pole` og `env_banner_cloth`. Duken festes langs venstrekanten. |
-| Levende eik | `env_oak_trunk` og `env_oak_canopy`. Overlapp kronen over stammens øvre forgrening. |
+| `env_lamppost_post` | Lykta henger i kroken (ringen på kroken), og flammen står på veken inne i lykta. Flammen henger på lykta, ikke på stolpen, så den følger svingen (`on` i settet). |
+| `env_torch_body` | Flammen står bak brennhodet, så hodet skjuler den flate bunnen av flammen. |
+| `env_torch_wall_holder` | Fakkelen går gjennom ringen (bak holderen), og flammen henger på fakkelen. Holderen er sett fra siden og passer på siden av en stolpe eller en murende. |
+| `env_campfire_base` | Flammen står bak vedkubbene og steinene og stiger opp mellom og over kubbene. Flammebildet har en rett bunn, så det må ikke stå foran. |
+| `env_banner_pole` | Duken henger i den øvre ringen på stanga, bak stanga, så ringene ser ut som de holder den. Skala 0,8. |
+| `env_oak_trunk` | Kronen ligger over den øvre forgreningen og skjuler de øverste greinene. |
 
-Monter delene med **PART OF** under **PARTS**, eller bruk **+ ADD PART** og dra delen på plass. En del følger bevegelsen til objektet den er festet til. Heng for eksempel lykten på stolpen og flammen på lykten, slik at flammen følger lykten når den svinger. Juster skala og innfesting på de beskårne bildene, og kontroller bevegelsen i editoren. **SAVE AS SET** lagrer et sammensatt bildeobjekt med delene i manifestet, slik at delene følger med når settet plasseres på nytt. Disse koblingene må opprettes for miljøpakken; importen har bare registrert de separate bildene.
+Ankeret er flyttet til der tingen faktisk står på bakken: stolpen på lyktestolpen (u 0,14), stanga på banneret (u 0,33), festeplata på veggholderen (u 0,09), skiltstolpen (u 0,45) og kråkeføttene (u 0,6).
 
-**SWAY** låser bildets nedre kant og bøyer toppen. Det passer busker og gress. Bruk **WAVE** til tøy: velg **LEFT** for bannerduken som er festet langs venstrekanten, **RIGHT** når festet er på høyre side, eller **TOP** for `fg_tattered_cloth` som henger fra toppen. WAVE deler opp og deformerer ett stillbilde mens festekanten står stille, så en slik bølgebevegelse trenger ikke en bildeserie. **SWING** roterer hele bildet rundt et valgt ledd og passer for eksempel en lykt som henger i en toppring. Bevegelsene må tilpasses og kontrolleres etter montering.
+Bevegelsene står i `anim` i manifestet og følger bildet uansett hvor det legges:
 
-En flamme kan få **FLICKER** og et lys i editoren. Dette endrer lys og intensitet; det tilfører ikke nye flammebilder. Kråka er ett helt bilde og har ingen separat vingebevegelse.
+| Bilde | Bevegelse |
+|---|---|
+| `env_banner_cloth` | WAVE fra venstre (duken bølger ut fra stanga) |
+| `fg_tattered_cloth` | WAVE fra toppen |
+| `fg_branch_leaves` | Svak WAVE fra venstre (greina vipper sakte) |
+| `fg_chain` | SWING rundt toppen |
+| `env_lamppost_lantern` | SWING rundt ringen, og rister når noen slåss i nærheten (REACT) |
+| `env_lantern_flame`, `env_torch_flame`, `env_campfire_flame` | FLICKER med lys og PULSE. Flammene lyser selv (`emit`), ellers blir de hvite av sitt eget lys |
+| `env_oak_canopy`, buskene, `env_dead_tree`, `fg_tall_grass` | SWAY i vinden |
+| `env_crow_perched` | Flyr når noen kommer nær eller slåss i nærheten, og kommer tilbake etter 12 sekunder (REACT FLEE) |
+| `env_barrel`, `env_crate`, `env_signpost` | Hopper eller rister når noe treffer i nærheten (REACT) |
+
+Flammebildene har ikke partikkelflammer (`fire`) i tillegg. Det ble prøvd, og partiklene la seg som hvite klumper oppå bildet.
+
+## Brett 1
+
+Brett 1 (`src/data/layouts/road.json`) bruker pakken i stedet for plassholderne: palisaden som en rad med ender og veggfakler ved de to åpningene, telt bak åpningene, lyktestolpe, skilt med kråke, bål, bannere, fakler, vogn med tønne og kasse, busker, eiker og et dødt tre bak palisaden, og gress, stamme, steiner og røtter rett foran kameraet. Den genererte 3D-palisaden, teltene, bålene og bannerne er slått av der. Eikekronene har en varm farge (`tint`), så de passer den røde og gule skogen.
 
 ## Import og originaler
 
@@ -95,4 +114,4 @@ Importen beskjærer etter alfa og bevarer gjennomsiktigheten i WebP. Originalpak
 
 Porten `env_palisade_gate` krevde en særskilt klargjøring av importkopien. Bildet har ekte alfa, men for liten gjennomsiktig flate til at importskriptets bakgrunnstest hopper over bakgrunnsfjerning. Importkopien fikk derfor 48 piksler gjennomsiktig marg på venstre og høyre side. Skriptets vanlige beskjæring fjerner denne marga igjen. RGBA-innholdet etter beskjæring ble kontrollert byte for byte mot originalens tilsvarende beskjæring før import. PNG-originalen og importskriptet er uendret.
 
-Pakken er registrert for bruk i editoren. Startverdiene innebærer ikke at sammensatte objekter, ferdige brettplasseringer eller animasjoner er kalibrert eller visuelt kontrollert inne i spillet.
+Settene, bevegelsene og brett 1 er kontrollert med skjermbilder i editoren og i spillet (`tools/tests/env-pack.mjs` sjekker lastingen, settene og brett 1). Bredder og ankere på bildene som ikke er nevnt over, er fortsatt startverdier.

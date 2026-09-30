@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "level": "road",
+  "generators": {"stakeWall":false,"tents":false},
+  "props": [
+    {"id":"p1","prop":"roadpost","layer":"mid","x":7,"z":-3.3},
+    {"id":"p2","prop":"signpost","layer":"mid","x":25,"z":-3.5},
+    {"id":"p3","prop":"signpost_sign","parent":"p2","layer":"mid","x":26.02,"y":2.14,"z":-3.48},
+    {"id":"p4","prop":"tent_red","layer":"back","x":34,"z":-9.6},
+    {"id":"p5","prop":"tent_purple","layer":"back","x":73,"z":-9.4,"flip":true},
+    {"id":"p6","prop":"banner_red","layer":"back","x":48,"z":-6.6},
+    {"id":"p7","prop":"torch","layer":"mid","x":52,"z":-3.5},
+    {"id":"p8","prop":"crow","layer":"mid","x":40,"y":3.6,"z":-3.2},
+    {"id":"p9","prop":"cart","layer":"mid","x":86,"z":-4},
+    {"id":"p10","prop":"tree_front_oak","layer":"front","x":43,"z":7.2},
+    {"id":"p11","prop":"bush_front","layer":"front","x":18,"z":6.6},
+    {"id":"p12","prop":"bush_front","layer":"front","x":66,"z":6.8,"flip":true},
+    {"id":"p13","prop":"bush_front","layer":"front","x":97,"z":6.6},
+    {"id":"p14","prop":"torch","layer":"mid","x":98,"z":-3.5},
+    {"id":"p15","prop":"flagpole","layer":"back","x":57,"z":-6.4},
+    {"id":"p16","prop":"flag_cloth","parent":"p15","layer":"back","x":57.04,"y":2.45,"z":-6.38}
+  ],
+  "runs": [
+    {"id":"row1","prop":"palisade_a","layer":"back","x0":4,"x1":110,"z":-7.2,"step":3.05,"jitter":0.06,"zJitter":0.12,"flipRandom":true,"gaps":[[30,38],[70,76]]}
+  ]
+}

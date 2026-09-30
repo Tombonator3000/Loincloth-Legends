@@ -73,6 +73,15 @@ try {
   const entry = man.props?.forgetest;
   check('bildet blir public/assets/prop_forgetest.webp og står i manifestet', webp.toString('latin1', 0, 4) === 'RIFF' && webp.toString('latin1', 8, 12) === 'WEBP' && entry?.file === 'prop_forgetest.webp' && entry.w > 0 && entry.anchor?.length === 2, { size: webp.length, entry, toast: await toast() });
   check('resten av manifestet er uendret', JSON.stringify({ ...man, props: undefined }) === JSON.stringify({ ...JSON.parse(backup.man), props: undefined }));
+  // Nye felt fra miljøpakken: lyser selv (emit), flammepunkter (fire) og deler som henger på en annen del (on)
+  const status = await page.evaluate(async () => (await fetch('/__forge/prop', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ id: 'forgetest', meta: { file: 'prop_forgetest.webp', w: 1, emit: 1, fire: [[0.5, 0.2], [2, 0]], preset: [
+      { prop: 'torch', dx: 0, dy: 1 }, { prop: 'flag_cloth', dx: 0, dy: 1.5, on: 0 }, { prop: 'crow', dx: 0, dy: 2, on: 7 },
+    ] } }),
+  })).status);
+  const entry2 = JSON.parse(fs.readFileSync(MAN, 'utf8')).props?.forgetest;
+  check('manifestet tar vare på emit, fire og on, og dropper ugyldige verdier', status === 200 && entry2?.emit === 1 && JSON.stringify(entry2.fire) === '[[0.5,0.2]]' && entry2.preset?.[1]?.on === 0 && entry2.preset?.[2] && entry2.preset[2].on === undefined, { status, entry2 });
   await page.waitForTimeout(2500);
   check('siden lastes ikke på nytt når editoren lagrer', await page.evaluate(() => window.__marker === 1 && window.__game.scene.name === 'editor'));
 

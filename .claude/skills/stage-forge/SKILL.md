@@ -47,7 +47,8 @@ z er dybden. Kamplinja er z = 0, og figurene går mellom z = -2,6 og 2,6.
 ```
 - `prop` er en id fra katalogen (`src/gfx/props/catalog.ts`) eller fra `props` i `public/assets/manifest.json`. `id` må være unik i fila.
 - Valgfritt per kulisse: `parent`, `y`, `scale`, `flip`, `rot` (helning), `yaw` (vridning), `tint`, `anim`, `fade`, `dark`, `shadow`, `locked`.
-- `parent` gjør kulissen til en del av en annen (id i samme fil): den henger på leddet og følger animasjonen. x, y og z er likevel plassen i verden. Flytter du forelderen for hånd i fila, flytt delene like mye (editoren gjør det selv). Legg delen 0,02 lenger fram i z, så den tegnes over.
+- `parent` gjør kulissen til en del av en annen (id i samme fil): den henger på leddet og følger animasjonen. x, y og z er likevel plassen i verden. Flytter du forelderen for hånd i fila, flytt delene like mye (editoren gjør det selv). Legg delen 0,02 lenger fram i z, så den tegnes over (eller 0,02 bak, så forelderen skjuler kanten, som flammen bak brennhodet og bålet). En del kan henge på en annen del (flammen på lykta, som henger på stolpen).
+- Et sett i manifestet (`preset`) har `dx`, `dy`, `dz` fra rotens fotpunkt, `scale`, `flip`, og `on` (nummeret på delen i lista den henger på). Speilvendes roten, snus `dx` og delene speilvendes. Settene i miljøpakken står i `docs/ENVIRONMENT_PACK.md`.
 - Varianter: navn som bare skiller seg på `_a`, `_b`, `_2` til slutt. En rad blander dem med `"variants": ["palisade_b"]`.
 - En rad (`runs`) legger ut samme kulisse fra `x0` til `x1` med `step`, og kan ha `jitter`, `zJitter`, `scaleJitter`, `flipRandom`, `gaps` og eget `seed`. Den blir lik hver gang.
 - `seed` styrer den genererte pynten. Et nytt frø flytter trær, steiner og gress. Ikke endre det uten at Tom ber om det.
@@ -81,9 +82,11 @@ En liste i `anim`, på kulissen i brettfila eller i katalogen og manifestet:
 
 Alt går på spilltid (dt), så pause og slowmo virker. u og v regnes fra øvre venstre hjørne av bildet.
 
+Flammer og annet som lyser: `emit: 1` på bildet i manifestet (SELF-LIT i editoren), ellers gjør flammens eget lys bildet hvitt. Hold lyset i FLICKER svakt (3 til 6) når det står tett inntil andre kulisser, og ikke legg partikkelflammer (`fire`) oppå et flammebilde.
+
 ## Sjekk før du sier deg ferdig
 1. `npm run typecheck` og `npm run build`.
-2. `node tools/tests/editor.mjs http://localhost:4173/ ./shots` og `node tools/tests/prop-anim.mjs http://localhost:4173/` (se skillen `game-tests` for oppsettet).
+2. `node tools/tests/editor.mjs http://localhost:4173/ ./shots`, `node tools/tests/prop-anim.mjs http://localhost:4173/` og `node tools/tests/env-pack.mjs http://localhost:4173/` (se skillen `game-tests` for oppsettet). `prop-anim.mjs` bruker testbrettet `tools/tests/fixtures/road-placeholders.json`, så den står seg når brett 1 endres. `env-pack.mjs` sjekker brett 1 (ingen advarsler, ingen plassholdere).
 3. Et skjermbilde av brettet du faktisk ser på: `node tools/tests/looks.mjs http://localhost:4173/ ./shots road`.
 4. Har du endret en miljøbygger: samme frø skal gi samme bilde to ganger på rad.
 5. Logg i `log.md`.

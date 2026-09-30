@@ -4,6 +4,7 @@
 // bildet; varianter (V og rader som blander); SAVE AS SET. Bruk: node tools/tests/prop-anim.mjs http://localhost:4173/ [./shots]
 import { chromium } from 'playwright';
 import zlib from 'node:zlib';
+import fs from 'node:fs';
 const [url, out] = process.argv.slice(2);
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 const page = await browser.newPage({ viewport: { width: 1400, height: 820 } });
@@ -42,6 +43,14 @@ const addAnim = (type) => page.evaluate((type) => {
 await page.goto(url + (url.includes('?') ? '&' : '?') + 'editor=road');
 await page.waitForFunction(() => window.__game?.scene?.name === 'editor' && window.__lib?.forgeState());
 await page.evaluate(() => { window.requestAnimationFrame = () => 0; });
+// Testbrettet er det gamle brett 1 med plassholderne (skilt og kråke, flaggstang, lykt og palisaderad), så testen
+// står seg når brett 1 får nye kulisser. PLAY FROM HERE nedenfor spiller det samme brettet.
+const FIXTURE = JSON.parse(fs.readFileSync(new URL('./fixtures/road-placeholders.json', import.meta.url), 'utf8'));
+await page.evaluate((l) => {
+  window.__lib.forgeState().layout = l;
+  window.__lib.setUnsavedLayout('road', l);
+  window.__game.scene.rebuild();
+}, FIXTURE);
 await tick(10);
 
 // ---------------------------------------------------------------- deler

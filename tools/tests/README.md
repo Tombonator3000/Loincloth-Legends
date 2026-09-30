@@ -50,8 +50,10 @@ node tools/tests/frostsound.mjs http://localhost:4173/                    # lyde
 node tools/tests/frostplay.mjs http://localhost:4173/ [./shots]           # spillet i frostpasset: fiender som rygger tas igjen, panikk, kast i juvet, istapper, fyrfat og glør, kjempen som kaster helten, ridedyr stopper ved juvet
 node tools/tests/editor.mjs http://localhost:4173/ [./shots]              # STAGE FORGE: biblioteket, legge ut, dra med musa, angre, slette, rad, slå av generert pynt, tidslinja, lagre (nedlasting), PNG inn, PLAY FROM HERE og tilbake
 node tools/tests/prop-images.mjs http://localhost:4173/                   # bilder som tar over for plassholderne: rutenett fra bildet, lys, flammer og bevegelse fra plassholderen
-node tools/tests/prop-anim.mjs http://localhost:4173/ [./shots]           # deler (følger animasjon, flytting, skala og speilvending, sletting og duplisering), wave, pulse, drift, react (TEST, kråka flykter fra helten, treff ved skiltet), ledd med klikk i bildet, varianter og SAVE AS SET
-node tools/tests/forge-save.mjs http://localhost:5173/                    # lagring gjennom dev-serveren (npm run dev): brettfila, bilde og manifest i repoet, ingen ny innlasting, alt der etter omstart. Setter filene tilbake
+node tools/tests/prop-anim.mjs http://localhost:4173/ [./shots]           # deler (følger animasjon, flytting, skala og speilvending, sletting og duplisering), wave, pulse, drift, react (TEST, kråka flykter fra helten, treff ved skiltet), ledd med klikk i bildet, varianter og SAVE AS SET. Bruker testbrettet fixtures/road-placeholders.json (det gamle brett 1)
+node tools/tests/env-pack.mjs http://localhost:4173/ [./shots]            # miljøpakken: spillet henter bare kulissebildene brettene bruker og editoren resten, settene i tre ledd (flammen på lykta), emit, SAVE AS SET med on, brett 1 uten advarsler, kråka på skiltet
+node tools/tests/assets-timeout.mjs                                       # uten nettleser (Node 22.13+): tidsgrenser i lasteren, og kulissebildene hentes bare når de trengs, hvert bare én gang
+node tools/tests/forge-save.mjs http://localhost:5173/                    # lagring gjennom dev-serveren (npm run dev): brettfila, bilde og manifest i repoet (også emit, fire og on), ingen ny innlasting, alt der etter omstart. Setter filene tilbake (blir testen avbrutt, sett road.json og manifest.json tilbake selv og slett prop_forgetest.webp)
 ```
 
 Skriptene skriver ut tilstand og eventuelle konsollfeil (`LOGS:`). Tom logg betyr ingen feil.
