@@ -1,8 +1,10 @@
 // Tastatur, gamepad og berøringsskjerm for opptil 2 lokale spillere.
 // Tastene leses med e.code (fysisk posisjon), slik at det fungerer likt på norsk og engelsk tastatur.
 // Gamepad følger "standard mapping" (Xbox/PlayStation/Switch Pro i nettleseren):
-//   A/Kryss = hopp, X/Firkant = angrep, B/Sirkel = spesial/blokk, Y/Trekant = grip/kast,
-//   RT = angrep, LT og LB = spesial, RB = grip, Start = pause, Select = tilbake i menyer.
+//   A/Kryss = hopp, X/Firkant = angrep, B/Sirkel = spesial/blokk, RT = angrep, LT og LB = spesial,
+//   Start = pause, Select = tilbake i menyer.
+// Spillet bruker tre knapper (angrep, hopp, spesial). Grep og ridning skjer ved å gå inn i fienden eller dyret.
+// Grip-knappen (R, U, høyre Shift, Numpad 0, V, Y og RB) finnes fortsatt som skjult snarvei.
 import { settings } from './settings';
 
 export type Btn = 'left' | 'right' | 'up' | 'down' | 'attack' | 'jump' | 'special' | 'grab' | 'start';

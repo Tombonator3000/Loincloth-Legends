@@ -8,7 +8,7 @@ import { registerChar } from '../gfx/chars';
 import { WEAPONS, scaleAttack, type WeaponStats } from '../data/weapons';
 import type { PlayerInput } from '../core/input';
 import { clamp } from '../core/math';
-import { updateHold } from './grab';
+import { updateHold, AUTO_GRAB } from './grab';
 import { defaultProgress, statEffects, type HeroProgress } from '../data/progress';
 
 export const HERO_HP = 115;
@@ -18,8 +18,10 @@ export interface HeroWorld {
   frozen: boolean;
   castMagic(h: Hero): void;
   respawn(h: Hero): void;
-  /** Prøv å gripe en fiende (eller et ridedyr). Returnerer true hvis noe skjedde. */
-  tryGrab(h: Hero): boolean;
+  /** Prøv å gripe en fiende (eller et ridedyr). `auto` = helten har gått inn i den (kortere rekkevidde). */
+  tryGrab(h: Hero, auto?: boolean): boolean;
+  /** Står helten inntil noe som kan gripes eller et ledig ridedyr (grep uten knapp)? */
+  grabContact(h: Hero): boolean;
 }
 
 export class Hero {
@@ -31,6 +33,9 @@ export class Hero {
   comboStep = 0;
   comboT = 0;
   respawnT = 0;
+  /** Hvor lenge helten har gått inn i noe som kan gripes, og pause etter et grep (se grabContact). */
+  private pushT = 0;
+  private grabCd = 0;
   name: string;
   cid: string;
   weapon: WeaponStats;
@@ -64,6 +69,7 @@ export class Hero {
     const f = this.f;
     const inp = this.input;
     this.comboT -= dt;
+    this.grabCd -= dt;
     if (!f.alive) {
       f.wantVX = f.wantVZ = 0;
       if (this.lives > 0) {
@@ -79,15 +85,23 @@ export class Hero {
     const ax = inp.axisX();
     const az = inp.axisY();
 
-    // Rir: dyret styres, angrep bruker dyrets angrep, grip = hopp av
+    // Rir: dyret styres, angrep bruker dyrets angrep, ned + hopp = hopp av (grip-knappen virker også)
     if (f.mount) {
       const m = f.mount;
       if (inp.consumeGrab()) {
         m.dismount(false);
+        this.grabCd = 0.8;
         return;
       }
+      if (inp.consumeJump()) {
+        if (inp.held.down) {
+          m.dismount(false);
+          this.grabCd = 0.8;
+          return;
+        }
+        m.hop();
+      }
       if (inp.consumeAttack() || inp.pressed.special) m.attack();
-      if (inp.consumeJump()) m.hop();
       if (ax === 0) f.running = false;
       if (inp.doubleTap.left || inp.doubleTap.right) f.running = true;
       m.drive(ax, az, f.running);
@@ -99,6 +113,8 @@ export class Hero {
       const atk = inp.consumeAttack();
       const toss = inp.consumeGrab() || inp.consumeJump();
       updateHold(f, dt, ax, az, atk, toss);
+      // Litt pause før neste grep, så han ikke griper den samme igjen med en gang
+      if (f.state !== 'hold') this.grabCd = 0.6;
       return;
     }
 
@@ -123,6 +139,14 @@ export class Hero {
     if (!f.canAct()) return;
 
     if (inp.consumeGrab() && st.tryGrab(this)) return;
+    // Grep uten knapp (Streets of Rage): gå inn i en fiende eller et ledig ridedyr et lite øyeblikk
+    if (ax !== 0 && !f.running && this.grabCd <= 0 && st.grabContact(this)) {
+      this.pushT += dt;
+      if (this.pushT >= AUTO_GRAB.time) {
+        this.pushT = 0;
+        if (st.tryGrab(this, true)) return;
+      }
+    } else this.pushT = 0;
 
     if (inp.pressed.special) {
       if (this.potions > 0) st.castMagic(this);

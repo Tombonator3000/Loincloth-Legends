@@ -105,7 +105,7 @@ export class MapScene implements Scene {
         ${extra ? `<div class="mp-extra">${extra}</div>` : ''}
         <div class="mp-blurb">${n.blurb}</div>
         ${reward}
-        <div class="mp-keys">ARROWS/WASD: MOVE &nbsp; F/ENTER: ${n.kind === 'home' ? 'VISIT' : 'START'} &nbsp; R: TRAIN &nbsp; ESC: MENU</div>
+        <div class="mp-keys">ARROWS/WASD: MOVE &nbsp; F/ENTER: ${n.kind === 'home' ? 'VISIT' : 'START'} &nbsp; H/ESC: MENU</div>
       </div>`;
   }
 

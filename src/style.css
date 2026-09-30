@@ -780,9 +780,9 @@ button:focus-visible, .menu li:focus-visible { outline: 3px solid var(--gold); o
 }
 .tbtn.down { transform: scale(0.88); filter: brightness(1.45); }
 .tb-attack { right: 0; bottom: 0; width: 94px; height: 94px; background: rgba(179, 0, 27, 0.78); font-size: 11px; }
-.tb-jump { right: 106px; bottom: 0; background: rgba(63, 134, 255, 0.72); }
-.tb-special { right: 10px; bottom: 106px; background: rgba(111, 208, 255, 0.6); }
-.tb-grab { right: 106px; bottom: 90px; background: rgba(241, 194, 74, 0.7); color: var(--ink); text-shadow: none; }
+.tb-jump { right: 106px; bottom: 0; width: 80px; height: 80px; background: rgba(63, 134, 255, 0.72); }
+/* Tre knapper i trekant: spesial over mellom angrep og hopp */
+.tb-special { right: 56px; bottom: 102px; width: 80px; height: 80px; background: rgba(111, 208, 255, 0.6); }
 .t-pause {
   position: absolute;
   top: calc(96px + env(safe-area-inset-top, 0px));

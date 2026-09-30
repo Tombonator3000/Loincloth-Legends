@@ -183,10 +183,9 @@ export class Screens {
           <tr><td>ATTACK</td><td>${k('F')}</td><td>${k(',')}</td><td>${pad('X')}</td></tr>
           <tr><td>JUMP</td><td>${k('G')}</td><td>${k('.')}</td><td>${pad('A')}</td></tr>
           <tr><td>SPECIAL / BLOCK</td><td>${k('H')}</td><td>${k('/')} <i>OR</i> ${k('-')}</td><td>${pad('B')}</td></tr>
-          <tr><td>GRAB / THROW / RIDE</td><td>${k('R')}</td><td>${k('R.SHIFT')}</td><td>${pad('Y')}</td></tr>
           <tr><td>PAUSE</td><td colspan="2">${k('P')} <i>OR</i> ${k('ESC')}</td><td>${k('START')}</td></tr>
         </table>
-        <p class="also">ALSO WORKS: J K L U FOR PLAYER 1 &middot; NUMPAD 1 2 3 0 FOR PLAYER 2 &middot; ALONE: ARROWS + Z X C V<br>ON A PHONE: STICK ON THE LEFT, BUTTONS ON THE RIGHT</p>`
+        <p class="also">THREE BUTTONS. TO GRAB A FOE OR RIDE A BEAST, JUST WALK INTO IT.<br>ALSO WORKS: J K L FOR PLAYER 1 &middot; NUMPAD 1 2 3 FOR PLAYER 2 &middot; ALONE: ARROWS + Z X C &middot; PHONE: STICK LEFT, BUTTONS RIGHT</p>`
       : page === 'stages'
         ? moves("STAGES (BEAT 'EM UP)", [
           ['ATTACK x3', 'combo, the third hit floors them'],
@@ -194,9 +193,9 @@ export class Screens {
           ['DOUBLE-TAP', 'run, then ATTACK for a shoulder charge'],
           ['SPECIAL', 'magic, burns your blue potions'],
           ['NO POTIONS?', 'SPECIAL becomes a berserk spin (costs HP)'],
-          ['GRAB', 'seize a foe, then ATTACK to knee him'],
+          ['WALK INTO A FOE', 'grab him, then ATTACK to knee him'],
           ['DIRECTION + ATTACK', 'throw the foe you are holding'],
-          ['GRAB BY A MOUNT', 'ride it, GRAB again to hop off'],
+          ['WALK INTO A MOUNT', 'ride it, DOWN + JUMP to hop off'],
         ], ['Throw foes into spikes, bogs, lava and gorges. Or bowl them into their friends.', 'Smack the little gnome for potions. Barrels hold food.'])
         : moves('DUELS (BARBARIAN STYLE)', [
           ['ATTACK', 'slash (mid)'],
@@ -206,7 +205,7 @@ export class Screens {
           ['AWAY + ATTACK', 'whirlwind, 3 hits'],
           ['JUMP, THEN ATTACK', 'flying neck chop: <em>beheads</em> if it lands unblocked'],
           ['HOLD SPECIAL', 'block high, add DOWN to block low'],
-          ['DOWN', 'duck, add JUMP (or GRAB) to roll'],
+          ['DOWN', 'duck, add JUMP to roll'],
         ]);
     this.set(`
       <div class="panel controls">

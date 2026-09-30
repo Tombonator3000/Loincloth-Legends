@@ -29,6 +29,8 @@ export const THROW_MOVE: AttackDef = {
 };
 
 const GRAB_REACH = 1.45;
+/** Grep uten knapp: helten må gå helt inntil fienden (se Hero.update). */
+export const AUTO_GRAB = { reach: 1.0, zr: 0.42, time: 0.12 };
 
 /** Kan denne figuren gripes? Sjefer, ridende og store beist er for tunge. */
 export function grabbable(f: Fighter) {
@@ -36,7 +38,7 @@ export function grabbable(f: Fighter) {
 }
 
 /** Finn nærmeste fiende foran som kan gripes. */
-export function findGrab(h: Fighter, foes: Fighter[]) {
+export function findGrab(h: Fighter, foes: Fighter[], reach = GRAB_REACH, zr = 0.6) {
   let best: Fighter | null = null;
   let bd = 1e9;
   let heavy: Fighter | null = null;
@@ -44,7 +46,7 @@ export function findGrab(h: Fighter, foes: Fighter[]) {
     if (!f.alive || f === h) continue;
     const dx = (f.pos.x - h.pos.x) * h.facing;
     const dz = Math.abs(f.pos.z - h.pos.z);
-    if (dx < -0.2 || dx > GRAB_REACH || dz > 0.6) continue;
+    if (dx < -0.2 || dx > reach || dz > zr) continue;
     if (!grabbable(f)) {
       if (f.state !== 'down' && f.state !== 'dead') heavy = f;
       continue;

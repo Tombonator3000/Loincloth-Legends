@@ -90,7 +90,7 @@ Brukes som finale i stedet for sjef (Frostbite Pass) og som valgfrie arena-noder
 | Hopp + angrep (i lufta) | Flying Neck Chop | Høy | Treffer det ublokkert: halshugging |
 | Hold spesial | Blokk høy/midt | | |
 | Ned + spesial | Blokk lav/midt | | |
-| Ned + hopp, eller grip | Rulle | | Unngår høye og midt-angrep |
+| Ned + hopp | Rulle | | Unngår høye og midt-angrep |
 
 Best av tre runder, 60 sekunder per runde (tiden ute: Vorthax zapper taperen). Med 2 spillere er dueller **tag team**.
 
@@ -129,13 +129,14 @@ Mann eller dame, og alle deler kan kombineres fritt:
 - Bevegelse i X og Z (dybde), hopp i Y
 - Combo: angrep x3 (hugg, bakhånd, tungt hugg som slår ned)
 - Hoppangrep, løp (dobbelttrykk) og skulderdytt, juggling i lufta
-- **Grep og kast**: grip-knappen tar tak i en fiende. Angrep = kne (tredje gang kastes han), retning + angrep eller hopp = kast. Opp eller ned kaster i dybden, for eksempel over taugjerdet og ned i juvet. Den kastede fienden velter andre fiender (bowling: STRIKE!) og dør hvis han lander i en fare. Store beist og sjefer er for tunge.
+- **Tre knapper** (angrep, hopp, spesial), som i Golden Axe. Grep og ridning har ingen egen knapp.
+- **Grep og kast**: gå inn i en fiende, så tar helten tak i ham (som i Streets of Rage). Angrep = kne (tredje gang kastes han), retning + angrep eller hopp = kast. Opp eller ned kaster i dybden, for eksempel over taugjerdet og ned i juvet. Den kastede fienden velter andre fiender (bowling: STRIKE!) og dør hvis han lander i en fare. Store beist og sjefer er for tunge.
 - **Juvet** (frostpasset): langs bakkanten av veien går juvet bak et taugjerde. Ingen går utfor av seg selv, men fiender som kastes eller slås inn, faller ned i dypet (SEE YOU NEVER!).
 - **Istapper**: av og til løsner en istapp over kampfeltet. En skygge på bakken og snø som drysser varsler den, og den treffer alle, helter som fiender. Kjempens bakkeslag river løs flere.
 - **Fyrfat som veltes**: slag, kastede fiender og bakkeslag velter fyrfatene. Glørne renner ut og brenner en stund, og fiender som tråkker i dem, tar fyr og løper i panikk.
 - **Panikk**: fiender får panikk av og til (grufulle drap i nærheten, nesten død, i brann, når METAL MODE starter). De løper skrikende vekk med armene i været, alltid saktere enn helten, og kommer tilbake etterpå.
 - **Fiender som rygger**: de holder avstand, men rygger på halv fart og blir i bildet når de først har kommet inn, så helten alltid når dem.
-- **Ridedyr**: slå rytteren av, gå bort til dyret og trykk grip for å sitte opp. Angrep bruker dyrets angrep, grip hopper av. Treff kaster rytteren av. Etter tre avkastinger stikker dyret av.
+- **Ridedyr**: slå rytteren av og gå inn i dyret for å sitte opp. Angrep bruker dyrets angrep, ned + hopp hopper av. Treff kaster rytteren av. Etter tre avkastinger stikker dyret av.
   - War Hog: stormløp som spidder alt foran seg
   - Cluckatrice (halvt hane, halvt øgle): halesvip som treffer begge sider
   - Magma Newt: ildpust som griller alt foran
@@ -193,11 +194,10 @@ Musikken styres av en dirigent etter mønster fra Morbidium, inspirert av iMUSE:
 | Bevegelse | WASD | Piltaster | Stikke / D-pad |
 | Angrep | F (eller J) | , (eller Numpad 1) | X / RT |
 | Hopp | G (eller K) | . (eller Numpad 2) | A |
-| Spesial/blokk | H (eller L) | - (eller Numpad 3) | B / LB / LT |
-| Grip/kast/ri | R (eller U) | Høyre Shift (eller Numpad 0) | Y / RB |
+| Spesial/blokk | H (eller L) | / eller - (eller Numpad 3) | B / LB / LT |
 | Pause | P / Esc | | Start |
 
-Hold opp eller ned mens du kaster en fiende for å kaste ham bakover eller forover (over taugjerdet og ned i juvet). Med én gamepad i 2-spiller er gamepaden spiller 2. **Mobil og nettbrett**: flytende stikke til venstre, knappene HIT, JUMP, MAGIC og GRAB til høyre, pause oppe til høyre. Spillet ber deg snu telefonen på siden.
+Tre knapper. Gå inn i en fiende for å gripe ham, og inn i et ledig ridedyr for å sitte opp (ned + hopp hopper av). Den gamle grip-knappen (R, høyre Shift, Y/RB) virker fortsatt som snarvei, men står ikke i menyene. Hold opp eller ned mens du kaster en fiende for å kaste ham bakover eller forover (over taugjerdet og ned i juvet). Med én gamepad i 2-spiller er gamepaden spiller 2. **Mobil og nettbrett**: flytende stikke til venstre, knappene HIT, JUMP og MAGIC til høyre, pause oppe til høyre. Spillet ber deg snu telefonen på siden.
 
 ## 16. Flere forslag
 

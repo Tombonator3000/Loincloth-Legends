@@ -94,7 +94,7 @@ class DuelCtl {
       return;
     }
     if (f.state === 'block') f.setState('idle');
-    // Grip-knappen er rulle i duellen (lettere på berøringsskjerm enn ned + hopp)
+    // Grip-knappen (skjult snarvei) ruller også. Ellers er det ned + hopp.
     if (inp.consumeGrab()) {
       f.setState('roll');
       audio.jump();

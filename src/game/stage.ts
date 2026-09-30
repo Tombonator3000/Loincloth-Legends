@@ -9,7 +9,7 @@ import { Foe, type FoeWorld } from './foes';
 import { BossCtl, type BossWorld } from './boss';
 import { Hero, type HeroWorld } from './hero';
 import { Hazard } from './hazards';
-import { findGrab, startHold, bowl, SLAM } from './grab';
+import { findGrab, startHold, bowl, SLAM, AUTO_GRAB } from './grab';
 import { buildHazard } from '../gfx/env/hazards';
 import { chasmHole } from '../data/hazards';
 import { Icicles, ICICLE_WARN } from './icicles';
@@ -317,17 +317,32 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   }
 
   // ---------------------------------------------------------------- grep, kast og farer
-  tryGrab(h: Hero) {
+  /** Et ledig ridedyr ved helten. `auto` = han går inn i det (må stå foran og helt inntil). */
+  private freeMount(f: Fighter, auto: boolean) {
+    return this.mounts.find((x) => {
+      if (x.rider || x.state !== 'wild') return false;
+      const dx = x.pos.x - f.pos.x, dz = Math.abs(x.pos.z - f.pos.z);
+      return auto ? Math.abs(dx) < 1.15 && dx * f.facing > -0.2 && dz < 0.55 : Math.abs(dx) < 1.6 && dz < 0.9;
+    });
+  }
+
+  /** Står helten inntil noe han kan gripe eller sitte opp på (grep uten knapp)? */
+  grabContact(h: Hero) {
+    const f = h.f;
+    return !!this.freeMount(f, true) || !!findGrab(f, this.foes.map((x) => x.f), AUTO_GRAB.reach, AUTO_GRAB.zr).target;
+  }
+
+  tryGrab(h: Hero, auto = false) {
     const f = h.f;
     // Ledig ridedyr i nærheten? Sitt opp.
-    const m = this.mounts.find((x) => !x.rider && x.state === 'wild' && Math.abs(x.pos.x - f.pos.x) < 1.6 && Math.abs(x.pos.z - f.pos.z) < 0.9);
+    const m = this.freeMount(f, auto);
     if (m) return m.mountUp(f);
-    const { target, tooHeavy } = findGrab(f, this.foes.map((x) => x.f));
+    const { target, tooHeavy } = auto ? findGrab(f, this.foes.map((x) => x.f), AUTO_GRAB.reach, AUTO_GRAB.zr) : findGrab(f, this.foes.map((x) => x.f));
     if (target) {
       startHold(f, target);
       return true;
     }
-    if (tooHeavy) {
+    if (tooHeavy && !auto) {
       W.fx.text(tooHeavy.headPoint().add(new THREE.Vector3(0, 0.8, 0)), pick(['TOO HEAVY!', 'NICE TRY!', 'HE\'S BIG-BONED!']), 'word', 0.9);
       return true;
     }

@@ -6,7 +6,6 @@ const BUTTONS: { btn: Btn; label: string; cls: string }[] = [
   { btn: 'attack', label: 'HIT', cls: 'tb-attack' },
   { btn: 'jump', label: 'JUMP', cls: 'tb-jump' },
   { btn: 'special', label: 'MAGIC', cls: 'tb-special' },
-  { btn: 'grab', label: 'GRAB', cls: 'tb-grab' },
 ];
 
 export class TouchControls {

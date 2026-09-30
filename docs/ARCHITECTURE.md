@@ -174,7 +174,7 @@ Tittelen har fire knapper (STORY, DUEL, HERO FORGE, OPTIONS). OPTIONS (`Game.sho
 
 ## Input
 
-`InputManager` slår sammen tastatur, gamepad og berøring til to `PlayerInput`. Knappene er `left right up down attack jump special grab start`. Gamepad følger standard mapping (A hopp, X angrep, B spesial, Y grip, Start pause). I 2-spiller med én gamepad styrer gamepaden spiller 2. Berøring (`ui/touch.ts`) styrer alltid spiller 1 og vises bare når det spilles (ikke i menyer). `W.rumble(player, sterk, svak, ms)` rister riktig gamepad.
+`InputManager` slår sammen tastatur, gamepad og berøring til to `PlayerInput`. Knappene er `left right up down attack jump special grab start`, men spillet bruker bare tre handlingsknapper: `grab` er en skjult snarvei. Grep skjer når helten går inn i en fiende eller et ledig ridedyr i `AUTO_GRAB.time` sekunder (`Hero.update`, `Stage.grabContact` og `tryGrab(h, true)` med kortere rekkevidde), og ned + hopp hopper av dyret. Gamepad følger standard mapping (A hopp, X angrep, B spesial, Start pause). I 2-spiller med én gamepad styrer gamepaden spiller 2. Berøring (`ui/touch.ts`) styrer alltid spiller 1 og vises bare når det spilles (ikke i menyer). `W.rumble(player, sterk, svak, ms)` rister riktig gamepad.
 
 ## Oppskrifter
 

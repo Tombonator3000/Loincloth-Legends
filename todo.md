@@ -5,7 +5,8 @@
 - [x] Innstillingene i grupper (gore, SOUND, SCREEN, CONTROLS), ERASE SAVE bare fra tittelen
 - [x] Forklaringen til valgt rad i ett felt under menyen, navn til venstre og verdi til høyre i lister, treningspoeng som ruter
 - [x] Kontrollskjermen i tre sider (tastene, brettene, duellene) med tastetegn og gamepad-knapper i farger, "/ OR -" for spiller 2
-- [ ] Tom: si fra om "knapper" også gjaldt spillknappene. Da kan grip skje av seg selv når man går inn i en fiende (som i Streets of Rage), så det holder med tre knapper
+- [x] Tre spillknapper (angrep, hopp, spesial): grep og ridning ved å gå inn i fienden eller dyret, ned + hopp av dyret (tools/tests/buttons.mjs)
+- [ ] Tom: spill og si om grepet kommer for lett eller for tungt (i dag 0,12 s inntil fienden, AUTO_GRAB i game/grab.ts)
 - [ ] HUD-en: større og tydeligere tall og navn (livene, gullet og METAL-måleren er små)
 
 ## Frostpasset som konseptbilde 4 (fra 2026-09-29 22:23)

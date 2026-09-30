@@ -69,11 +69,10 @@ npm run typecheck
 | Beveg | WASD | Piltaster | Stikke / D-pad |
 | Angrep | F (eller J) | , (eller Numpad 1) | X / RT |
 | Hopp | G (eller K) | . (eller Numpad 2) | A |
-| Spesial / blokk | H (eller L) | - (eller Numpad 3) | B / LB / LT |
-| Grip / kast / ri | R (eller U) | Høyre Shift (eller Numpad 0) | Y / RB |
+| Spesial / blokk | H (eller L) | / eller - (eller Numpad 3) | B / LB / LT |
 | Pause | P / Esc | | Start |
 
-M = lyd av/på. Hold opp eller ned mens du kaster en fiende for å kaste ham bakover eller forover (over taugjerdet og ned i juvet i frostpasset). I 1-spiller kan du også bruke piltaster + Z/X/C/V. Med én gamepad i 2-spiller er gamepaden spiller 2. På mobil: stikke til venstre, knapper til høyre.
+Tre knapper. Gå inn i en fiende for å gripe ham, og inn i et ledig ridedyr for å sitte opp (ned + hopp hopper av). M = lyd av/på. Hold opp eller ned mens du kaster en fiende for å kaste ham bakover eller forover (over taugjerdet og ned i juvet i frostpasset). I 1-spiller kan du også bruke piltaster + Z/X/C. Med én gamepad i 2-spiller er gamepaden spiller 2. På mobil: stikke til venstre, knapper til høyre.
 
 ## Dokumentasjon
 

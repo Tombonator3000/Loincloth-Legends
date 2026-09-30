@@ -905,7 +905,7 @@ export class Game {
     this.touch.setVisible(touchOn && playing);
     if (this.app.classList.contains('touchmode') !== touchOn) this.app.classList.toggle('touchmode', touchOn);
     if (this.touch.visible) {
-      this.touch.setLabels(this.scene.name === 'duel' ? { special: 'BLOCK', grab: 'ROLL' } : this.scene.name === 'map' ? { attack: 'ENTER', jump: 'ENTER', special: 'MENU', grab: 'STATS' } : {});
+      this.touch.setLabels(this.scene.name === 'duel' ? { special: 'BLOCK' } : this.scene.name === 'map' ? { attack: 'ENTER', jump: 'ENTER', special: 'MENU' } : {});
     }
     if (this.toastT > 0) {
       this.toastT -= realDt;
