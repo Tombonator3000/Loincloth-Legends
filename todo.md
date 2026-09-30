@@ -3,7 +3,10 @@
 ## Plan: brettverksted, gørr, AI og teksturer (fra 2026-09-30 15:54, docs/PLAN_BRETT_GORR_AI.md)
 - [x] Blodråper i lufta, gnister og sjokkbølger var usynlige (speilvendte partikler i GLOW_VERT). Rettet, med ny test tools/tests/particles.mjs
 - [x] Plan med editor, lag, rekvisitter, Morbidium-animasjon, gørr, AI (moderne Golden Axe-kloner), teksturer og andre forbedringer
-- [ ] Tom: bestill teksturene i del 9.1 (kan kjøres gjennom process_art.py nå) og kulissene i docs/ART_PROMPTS.md, «Kulisser til brettverkstedet» (process_art.py tar dem nå). Gørrbildene (gore_) venter i art/inbox/venter/ til runde A
+- [ ] Tom: bestill teksturene i del 9.1 (kan kjøres gjennom process_art.py nå). Gørrbildene (gore_) venter i art/inbox/venter/ til runde A
+- [x] Levert og importert 52 kulissebilder som WebP med alfa, 43 `env_*` og ni `fg_*`, i manifestets `props` og STAGE FORGE, LIBRARY, IMAGES. Egen filoversikt i docs/ENVIRONMENT_PACK.md; forgrunnsbildene har FRONT som standardlag
+- [ ] Kalibrer miljøpakken visuelt i STAGE FORGE: størrelse, fotpunkt, veggskjøter, forgrunnsdekning og innfesting for bål, lykt, fakkel, banner og eik. Kontroller SWAY, SWING, FLICKER og WAVE der de brukes; bildene har ingen ferdig konfigurert rigg eller animasjon
+- [ ] Rett alfagjenkjenningen varig i process_art.py: ekte RGBA skal ikke miste mørke detaljer når mindre enn 20 prosent av flaten er gjennomsiktig. Portens importkopi er foreløpig klargjort med 48 piksler gjennomsiktig marg på hver side; original og skript er uendret
 - [ ] Tom: si om rekkefølgen passer (A, B, C, D, E), eller om AI del 1 (D) skal før editoren (C)
 - [ ] Tom: si fra om blodmengden nå som dråpene synes (standard EXCESSIVE)
 - [ ] Runde A: beina løper etter todeling, pulserende sprut, kuttflater, blod på våpenet, treffstopp ved kutt; teksturer på palisade, telt, stolper, hytter og tak (med reserve i kode); spilltid i stedet for setTimeout (stage.ts 482 og 710, duel.ts)
@@ -13,7 +16,7 @@
 - [ ] Tom: prøv STAGE FORGE på brett 1 og si hva som mangler eller er tungvint
 - [x] 2D-animasjoner for kulissene: wave (tøy), pulse, drift og react (near, hit, any: shake, hop, spin, flee), deler med PART OF, sett (SAVE AS SET), varianter (V og MIX VARIANTS), ledd med klikk i bildet (tools/tests/prop-anim.mjs)
 - [x] Mottak for mange GPT-bilder: process_art.py --fra <zip|mappe> (navn gjøres om, lag gjettes), tools/prop_gallery.py
-- [ ] Tom: last opp de 52 PNG-ene fra GPT (gjerne som zip, så navnene blir med). Så tas de inn med --fra, settes sammen til sett der det er deler, og legges ut på brett 1
+- [ ] Sett sammen de leverte og importerte kulissedelene med PART OF og SAVE AS SET, og plasser de ferdig kontrollerte settene og enkeltbildene på brett 1. Selve leveransen og importen av alle 52 bilder er ferdig
 - [ ] Brettfiler med kulisser for swamp, frost, scorch, tower og nattleiren (bare tomme filer nå)
 - [ ] `gore_` i process_art.py (runde A)
 - [ ] Senere i editoren: gjøre en generator om til enkeltkulisser («bake inn»), `solid` og `breakable` på kulisser, InstancedMesh for lange rader hvis det blir tungt
@@ -64,7 +67,8 @@
 - [x] Blåtimen: dypblå himmel med varmt bånd i horisonten, blå tåke, ny gradering
 - [x] Klippevegger med snø, fossefall med dis, taubro, ruiner, fyrfat med ild, lys og varmeflimmer, fillete krigsbannere med hornet hodeskalle, runesteiner i 3D (noen gløder), istapper, taugjerde, snø på steinene, snøføyke og tettere snøfall
 - [x] Trollets seks ChatGPT-deler (troll_*.webp). Kjempetrollet arver delene og får samme stil
-- [ ] Krigsbanneret som eget bilde fra ChatGPT (trenger en ny kategori i process_art.py, ikke flisbar tekstur)
+- [x] Krigsbanner som separate ChatGPT-bilder: `env_banner_pole` og `env_banner_cloth` er levert og importert gjennom `prop_`-kategorien (docs/ENVIRONMENT_PACK.md)
+- [ ] Tilpass, monter og plasser det nye banneret i frostpasset dersom det skal brukes der; innfesting og bevegelse er ikke satt opp
 - [x] Gameplay fra bildet: kast fiender i juvet (opp + kast), istapper som faller, fyrfat som kan veltes med glør og brann, kjempen griper og kaster helter, panikk (tools/tests/frostplay.mjs)
 - [x] Fiender som rygget ut av bildet og var for raske: rygger på halv fart og blir i bildet (Tom meldte fra)
 - [x] Heltene og ridedyrene stopper foran taugjerdet ved juvet, ikke mellom gjerdet og stupet
@@ -161,7 +165,8 @@
 - [x] Koble inn heltebygger-lag som bilder (hår, hjelm, skjegg og iris; se ART_PROMPTS.md "Separate utseendelag")
 - [x] PNG-deler for alle tre ridedyr og alle fem kjæledyr
 - [ ] PNG for farer (prompter ligger i ART_PROMPTS.md)
-- [ ] Rekvisitter og ikoner som PNG
+- [x] Rekvisittpakke med 52 PNG-originaler levert og importert som WebP med alfa til editorbiblioteket (docs/ENVIRONMENT_PACK.md)
+- [ ] Ikoner som PNG
 - [ ] Vis tittelbilde og sjef-VS-kort fra assets
 - [ ] Rydd opp geometri/materialer når scener byttes (liten minnelekkasje ved mange omstarter)
 - [ ] Flere rekvisitter inn i staticGroup (telt, bannere, bål, tårnets møbler) for enda færre tegnekall

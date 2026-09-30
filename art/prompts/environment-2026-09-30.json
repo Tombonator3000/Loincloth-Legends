@@ -1,0 +1,1472 @@
+{
+  "schema_version": 1,
+  "project": "Loincloth Legends",
+  "created": "2026-09-30",
+  "generator": "OpenAI image generation, original artwork",
+  "asset_count": 52,
+  "format": "WebP RGBA, kvalitet 90, behandlet med tools/process_art.py",
+  "source_archive": "Loincloth-Legends-Miljopakke-52-PNG.zip (levert separat)",
+  "status": "Statiske bilder registrert i manifestets props. Ingen nye animasjoner eller sammensatte rigger.",
+  "placement_status": "Startverdier for mål, lag og ankere. Ikke visuelt kalibrert sammen i editoren.",
+  "pivot_coordinates": "Manifestets ankere gjelder beskåret WebP. Kildeforslag er bare semantiske hint.",
+  "source_padding_note": "Portens importkopi fikk 48 transparente piksler på hver side for å omgå bakgrunnsfjerningens 20-prosentgrense. Beskjært alfa er identisk med originalen.",
+  "assets": [
+    {
+      "id": "env_brick_wall_straight",
+      "group": "architecture",
+      "source_png": "env_brick_wall_straight.png",
+      "source_sha256": "f77d75fc0fab2c49b93af40a29b22304672aca3755aa6b48aaa162e360ad3707",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        24,
+        187,
+        1514,
+        876
+      ],
+      "runtime_file": "public/assets/prop_env_brick_wall_straight.webp",
+      "runtime_size_px": [
+        1490,
+        689
+      ],
+      "runtime_sha256": "374182006b5cd7b73fdfdce234babbc4408afea4c119308e7d198bb346be92da",
+      "runtime_bytes": 556998,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "ground contact at bottom centre; horizontal snap sockets at left and right cut edges",
+      "animation_role_proposed": "static modular wall",
+      "prompt": "Use case: stylized-concept. Asset type: standalone realistic environment cutout for Loincloth Legends.\nSubject: Low straight section of old red-brown brick wall, eroded pale mortar, small remnants of cracked lime plaster; level full-height cut ends for modular joining, shallow visible top edge.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas: 1536x1024 PNG, genuinely transparent outside the object. Centre the whole object with 3% clear transparent margins. Important: no shadow, haze, ground patch or background. Neutral material colours. This is a static modular wall. ground contact at bottom centre; horizontal snap sockets at left and right cut edges.\nBrick family: horizontal courses of standard chunky red-brown bricks, six masonry courses high in undamaged regions, very sparse cream plaster remnants."
+    },
+    {
+      "id": "env_brick_wall_end",
+      "group": "architecture",
+      "source_png": "env_brick_wall_end.png",
+      "source_sha256": "6025d6e8708554167aa1bb158b4cf33b7b95e99a9d3d8767337a4e9b9e14de87",
+      "source_canvas_px": [
+        1254,
+        1254
+      ],
+      "crop_alpha_gt_12": [
+        55,
+        133,
+        1205,
+        1066
+      ],
+      "runtime_file": "public/assets/prop_env_brick_wall_end.webp",
+      "runtime_size_px": [
+        1150,
+        933
+      ],
+      "runtime_sha256": "9eb7141d66fc6b97c4f9d499a4e10caf816abf1ccf8e7d3fb304805e3af56923",
+      "runtime_bytes": 501158,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre; joining socket at left cut edge",
+      "animation_role_proposed": "static wall end cap",
+      "prompt": "Create one NEW narrow brick-wall END SECTION for the same game environment set, using the attached straight wall only as the exact MATERIAL, CAMERA and BRICK-COURSE reference. Not a copy of the full width. Preserve its red-brown weathered bricks, eroded pale mortar, occasional peeling cream plaster, coarse photoreal practical fantasy prop detail, soft neutral frontal studio light, nearly orthographic side view slightly above. THE IMPORTANT MODULAR DETAIL: make exactly SEVEN full horizontal brick courses from flat baseline to the top. Make this short section about THREE whole brick lengths wide and seven courses high. On the LEFT edge, produce a toothed joining edge complementary to the reference wall's RIGHT edge: rows alternate indentation and protrusion, with same brick-course heights. On the RIGHT edge close the masonry with a clean intact vertical end face, show only a shallow side face. All seven courses and complete bottom must be visible. Keep same colour, texture, brick length-to-height proportions, and only shallow top surface visible. Top edge is mildly worn and near level; do not add a pillar, capstone or gate. This is one single complete short terminal segment, 1024x1024 PNG canvas, with genuinely transparent background. Small transparent margin all around, no cast shadow, no ground, no labels. Practical game cutout, not a scene. Do not reproduce the surrounding dark gradient RGB of reference: fully transparent outside the wall silhouette.\n\nFinal corrective edit after eight-course draft:\nPrecise object edit of this single brick wall end cutout. Make exactly ONE change: REMOVE THE BOTTOMMOST HORIZONTAL ROW OF BRICKS ENTIRELY and replace that removed bottom row with full transparency. The source currently has eight horizontal courses on its front face; the output must have seven, with the current second-from-bottom course becoming the new flat bottom. Leave every other course, the top edge, all the plaster, the left toothed edge and the intact right end IDENTICAL. Do not add any new bricks. Do not rebuild the object. Keep a single wall segment. Retain the near photoreal weathered red-brown material, seven remaining courses with exact same proportions, soft neutral studio light and true transparent alpha background. Keep the whole object in frame. No ground, no shadow, no text, no black border or colored edge halo."
+    },
+    {
+      "id": "env_brick_wall_ruined",
+      "group": "architecture",
+      "source_png": "env_brick_wall_ruined.png",
+      "source_sha256": "1531a81394cb237bb37400a2ee4bc047c47e8261eb1f6bc00300f5c1ba922dc5",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        49,
+        78,
+        1480,
+        958
+      ],
+      "runtime_file": "public/assets/prop_env_brick_wall_ruined.webp",
+      "runtime_size_px": [
+        1431,
+        880
+      ],
+      "runtime_sha256": "ae95e73795ce79420d87754c6247494433a55da06f6a654e70e0ea5f8f1735fa",
+      "runtime_bytes": 463444,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "lowest stable masonry contact at bottom centre",
+      "animation_role_proposed": "static ruined wall variant",
+      "prompt": "Use case: stylized-concept. Asset type: standalone realistic environment cutout for Loincloth Legends.\nSubject: Collapsed section of the same red-brown brick wall with a jagged broken top and a small connected pile of fallen bricks at its foot; no loose distant debris.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas: 1536x1024 PNG, genuinely transparent outside the object. Centre the whole object with 3% clear transparent margins. Important: no shadow, haze, ground patch or background. Neutral material colours. This is a static ruined wall variant. lowest stable masonry contact at bottom centre.\nBrick family: horizontal courses of standard chunky red-brown bricks, six masonry courses high in undamaged regions, very sparse cream plaster remnants."
+    },
+    {
+      "id": "env_stone_wall_straight",
+      "group": "architecture",
+      "source_png": "env_stone_wall_straight.png",
+      "source_sha256": "814cfdc584a28a801fd06295661f7b0970183cb4b8da28744b89cf8e13b71f4d",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        21,
+        287,
+        1516,
+        787
+      ],
+      "runtime_file": "public/assets/prop_env_stone_wall_straight.webp",
+      "runtime_size_px": [
+        1495,
+        500
+      ],
+      "runtime_sha256": "f2810bbfa1845632e6cb6f9016041c059b2889787b92b0a947245165402b80f8",
+      "runtime_bytes": 402662,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "ground contact at bottom centre; left and right joining edges",
+      "animation_role_proposed": "static modular wall",
+      "prompt": "ONE isolated game environment asset: a low straight dry stone wall section, about waist-high and twice as wide as high, built of uneven weathered grey granite fieldstones with tiny amounts of dark moss in crevices. Flat horizontal bottom, level rough top, square vertical end faces suitable for attaching neighboring wall segments. Three to four irregular courses of large heavy stones; strong simple shape; not a pile of loose rubble. No separate ground or grass around it. Canvas 1536x1024. STYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game."
+    },
+    {
+      "id": "env_stone_wall_broken",
+      "group": "architecture",
+      "source_png": "env_stone_wall_broken.png",
+      "source_sha256": "0778b43e7d578a942de678aac5f8b68b510d96ac35928cb980924f164e921dc9",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        39,
+        337,
+        1499,
+        759
+      ],
+      "runtime_file": "public/assets/prop_env_stone_wall_broken.webp",
+      "runtime_size_px": [
+        1460,
+        422
+      ],
+      "runtime_sha256": "6eb1391dad72a3f013166599de695437ab4c78f31604834cef2071beaa1f1870",
+      "runtime_bytes": 275836,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "ground contact at bottom centre",
+      "animation_role_proposed": "static ruined wall variant",
+      "prompt": "Use case: stylized-concept. Asset type: standalone realistic environment cutout for Loincloth Legends.\nSubject: Broken variant of the same low grey fieldstone wall, uneven collapsed middle and connected fallen stones; sparse moss and matching stone scale.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas: 1536x1024 PNG, genuinely transparent outside the object. Centre the whole object with 3% clear transparent margins. Important: no shadow, haze, ground patch or background. Neutral material colours. This is a static ruined wall variant. ground contact at bottom centre.\n About four horizontal courses of big irregular fieldstones. Low wall four times as wide as high, scattered sparsely mossed grey stones form one connected silhouette."
+    },
+    {
+      "id": "env_castle_wall_straight",
+      "group": "architecture",
+      "source_png": "env_castle_wall_straight.png",
+      "source_sha256": "02b80a9ede8c74c831e78b11e0e1234f6bcf6eb6ca49b2f372886e28770c8f9c",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        37,
+        54,
+        1500,
+        974
+      ],
+      "runtime_file": "public/assets/prop_env_castle_wall_straight.webp",
+      "runtime_size_px": [
+        1463,
+        920
+      ],
+      "runtime_sha256": "d424c098413e682d4dfc5eee96a82e61593797859ca8f882188b221733199377",
+      "runtime_bytes": 715634,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre; matching left and right vertical cut edges",
+      "animation_role_proposed": "static modular castle wall",
+      "prompt": "Use case: stylized-concept. Asset type: standalone realistic environment cutout for Loincloth Legends.\nSubject: Tall castle curtain-wall section of large weathered grey ashlar blocks with chunky battlements and one narrow arrow slit; front face dominant and shallow upper surfaces visible.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas: 1536x1024 PNG, genuinely transparent outside the object. Centre the whole object with 3% clear transparent margins. Important: no shadow, haze, ground patch or background. Neutral material colours. This is a static modular castle wall. bottom centre; matching left and right vertical cut edges.\nCastle family: grey slightly warm coarse limestone, substantial ashlar blocks, restrained surface detail."
+    },
+    {
+      "id": "env_castle_wall_pillar",
+      "group": "architecture",
+      "source_png": "env_castle_wall_pillar.png",
+      "source_sha256": "54ed889b6ba0433f2f4d045159eee8fce400c1c60d36368815916d4100624aab",
+      "source_canvas_px": [
+        1024,
+        1536
+      ],
+      "crop_alpha_gt_12": [
+        124,
+        73,
+        915,
+        1482
+      ],
+      "runtime_file": "public/assets/prop_env_castle_wall_pillar.webp",
+      "runtime_size_px": [
+        791,
+        1409
+      ],
+      "runtime_sha256": "8e373a56df787cc024f66967d5af00b087c120454b3531f60530cd8b9305e412",
+      "runtime_bytes": 456294,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre at base of pillar",
+      "animation_role_proposed": "static castle wall connector",
+      "prompt": "Use case: stylized-concept. Asset type: standalone realistic environment cutout for Loincloth Legends.\nSubject: Heavy square masonry pier for the same castle wall, chipped large grey stone blocks and a broad worn cap, full freestanding pier without attached wall.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas: 1024x1536 PNG, genuinely transparent outside the object. Centre the whole object with 3% clear transparent margins. Important: no shadow, haze, ground patch or background. Neutral material colours. This is a static castle wall connector. bottom centre at base of pillar.\nCastle family: grey slightly warm coarse limestone, substantial ashlar blocks, restrained surface detail."
+    },
+    {
+      "id": "env_castle_wall_breach",
+      "group": "architecture",
+      "source_png": "env_castle_wall_breach.png",
+      "source_sha256": "dd64835727e9436be4166212efc51b998bc8510740a60f8017526079202d858d",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        38,
+        143,
+        1497,
+        887
+      ],
+      "runtime_file": "public/assets/prop_env_castle_wall_breach.webp",
+      "runtime_size_px": [
+        1459,
+        744
+      ],
+      "runtime_sha256": "ba6fdd5b4cd0c58afa4611ed579c4ca46a0a825e8abfd17ca0e68af038b65040",
+      "runtime_bytes": 440118,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre along original wall baseline",
+      "animation_role_proposed": "static castle breach variant",
+      "prompt": "Use case: stylized-concept. Asset type: standalone realistic environment cutout for Loincloth Legends.\nSubject: Ruptured castle wall segment of matching large grey blocks, jagged open breach through the middle and damaged battlements; visible opening is truly transparent, rubble remains connected near base.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas: 1536x1024 PNG, genuinely transparent outside the object. Centre the whole object with 3% clear transparent margins. Important: no shadow, haze, ground patch or background. Neutral material colours. This is a static castle breach variant. bottom centre along original wall baseline.\nCastle family: grey slightly warm coarse limestone, substantial ashlar blocks, restrained surface detail."
+    },
+    {
+      "id": "env_palisade_straight",
+      "group": "architecture",
+      "source_png": "env_palisade_straight.png",
+      "source_sha256": "b8b7b1b8ac89df4f2ecfc964e46f30d7f3e970393f6f5c4122c0ca90ae00c0ea",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        27,
+        49,
+        1510,
+        970
+      ],
+      "runtime_file": "public/assets/prop_env_palisade_straight.webp",
+      "runtime_size_px": [
+        1483,
+        921
+      ],
+      "runtime_sha256": "ce7eca5cfa69a39f1a7891f6374107940f7a5c40159ea9553017b220059e0fac",
+      "runtime_bytes": 590478,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre; left and right section boundaries",
+      "animation_role_proposed": "static modular palisade",
+      "prompt": "Use case: stylized-concept. Asset type: standalone realistic environment cutout for Loincloth Legends.\nSubject: Straight row of heavy sharpened weathered timber stakes, coarse rope bindings and rusty iron straps, rough crossbeam; repeated vertical stakes and consistent bottom baseline.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas: 1536x1024 PNG, genuinely transparent outside the object. Centre the whole object with 3% clear transparent margins. Important: no shadow, haze, ground patch or background. Neutral material colours. This is a static modular palisade. bottom centre; left and right section boundaries."
+    },
+    {
+      "id": "env_palisade_end",
+      "group": "architecture",
+      "source_png": "env_palisade_end.png",
+      "source_sha256": "05b592b6e8693a791d4e055cc70d2e4a72597a5e29033ceb50bca54a58950cae",
+      "source_canvas_px": [
+        1024,
+        1536
+      ],
+      "crop_alpha_gt_12": [
+        56,
+        114,
+        966,
+        1418
+      ],
+      "runtime_file": "public/assets/prop_env_palisade_end.webp",
+      "runtime_size_px": [
+        910,
+        1304
+      ],
+      "runtime_sha256": "caaa72ac653a833a03849762dffd27f8c5249b15a68fe2fb0e30924469983d98",
+      "runtime_bytes": 509366,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre; joining edge at left",
+      "animation_role_proposed": "static palisade end cap",
+      "prompt": "Use case: stylized-concept. Asset type: standalone realistic environment cutout for Loincloth Legends.\nSubject: Short terminal palisade section with two sharpened logs and a thicker braced end post on the right; matching weathered timber, rope and rusty fittings.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas: 1024x1536 PNG, genuinely transparent outside the object. Centre the whole object with 3% clear transparent margins. Important: no shadow, haze, ground patch or background. Neutral material colours. This is a static palisade end cap. bottom centre; joining edge at left."
+    },
+    {
+      "id": "env_palisade_broken",
+      "group": "architecture",
+      "source_png": "env_palisade_broken.png",
+      "source_sha256": "1ed683db21d1d6817a2d11e7fce4708ccfbc9b7a5ed524f2a9b56b7c36d90f32",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        17,
+        9,
+        1522,
+        1000
+      ],
+      "runtime_file": "public/assets/prop_env_palisade_broken.webp",
+      "runtime_size_px": [
+        1505,
+        991
+      ],
+      "runtime_sha256": "c119dd60967a0e34467b7615fad6ac51f5169b0153793e20ea4815f65511f971",
+      "runtime_bytes": 500452,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre along the stake baseline",
+      "animation_role_proposed": "static broken palisade variant",
+      "prompt": "ONE isolated game environment asset. Breached palisade section with snapped splintered stakes, a broken crossbeam and a low open centre; matching rough timber and rope, no broad dirt patch.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nUse case: stylized-concept. Portrait/landscape requirement: exactly 1536x1024 pixels. Fully transparent alpha background. bottom centre along the stake baseline. Only this one asset, no other objects. Make it large and visually clear."
+    },
+    {
+      "id": "env_grave_mound",
+      "group": "cemetery",
+      "source_png": "env_grave_mound.png",
+      "source_sha256": "ad96eeb7fc70c39f29556aef81eb965197cf978a12e7136f0e7d9cee378e987c",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        13,
+        300,
+        1522,
+        742
+      ],
+      "runtime_file": "public/assets/prop_env_grave_mound.webp",
+      "runtime_size_px": [
+        1509,
+        442
+      ],
+      "runtime_sha256": "8976977bba8ca4c36c2980258908bbc539ee1a5a99e32b91043d2de4d82d3748",
+      "runtime_bytes": 296348,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "centre of mound footprint",
+      "animation_role_proposed": "static ground prop",
+      "prompt": "ONE isolated game environment asset. Single elongated fresh burial mound of dark damp clumped earth and a few embedded pebbles; clear raised silhouette, no gravestone, no surrounding landscape or turf rectangle.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas 1536x1024 pixels. Treat this as a LOW HORIZONTAL GROUND PROP, a soil mound with its entire perimeter visibly raised. Long axis runs left to right. Show small amount of top like a low camera looking slightly down. Genuine transparent alpha everywhere outside the mound's irregular edge. No base board, grave markers, grass field, shadows or rectangular ground tile. centre of mound footprint."
+    },
+    {
+      "id": "env_grave_open",
+      "group": "cemetery",
+      "source_png": "env_grave_open.png",
+      "source_sha256": "a1653e3e22d4bd579b2019ad0ba9d9994a1023b856826710c948ebd88de77073",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        15,
+        310,
+        1520,
+        767
+      ],
+      "runtime_file": "public/assets/prop_env_grave_open.webp",
+      "runtime_size_px": [
+        1505,
+        457
+      ],
+      "runtime_sha256": "898c200b24a5f49c648a72cdec22c08d9bdc2ac52b976d9755c0b97971b5d0fa",
+      "runtime_bytes": 283672,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "centre of opening footprint; preserve the painted dark interior",
+      "animation_role_proposed": "static depth illusion or ground decal; requires editor placement support",
+      "prompt": "ONE isolated game environment asset. One freshly dug open rectangular grave seen from the shared slightly elevated side camera, narrow uneven earth rim and readable earthen interior walls descending into darkness; no corpse, coffin, gravestone or surrounding ground plane.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas 1536x1024 pixels. Special geometry: this is a hole IN the ground, a low ground decal illusion. Long axis horizontal left-right, slight perspective looking down sufficiently to see the opening. Thin irregular dark-earth rim frames a dark cavity and rough interior soil sides. The near edge is very low and thin. All outer ground beyond this narrow dirt rim is alpha transparent. Preserve opaque painted earth and dark interior INSIDE the opening. No raised box, no planter, no coffin, no brick walls, no thick plinth, no cross-section of a soil block, no flat rectangular field. No object other than this single hole with its narrow rim."
+    },
+    {
+      "id": "env_gravestone_simple",
+      "group": "cemetery",
+      "source_png": "env_gravestone_simple.png",
+      "source_sha256": "c201e3280ec48ae68192a88ad31d982898fd22092f56d46db10ad77b8a5d8312",
+      "source_canvas_px": [
+        1024,
+        1536
+      ],
+      "crop_alpha_gt_12": [
+        112,
+        44,
+        935,
+        1493
+      ],
+      "runtime_file": "public/assets/prop_env_gravestone_simple.webp",
+      "runtime_size_px": [
+        823,
+        1449
+      ],
+      "runtime_sha256": "8bd4600a995c76c9a04b9a07bae09f08b92f8dcdcbbfdefcbc37074d2af5c33b",
+      "runtime_bytes": 628626,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre where stone enters ground",
+      "animation_role_proposed": "static prop",
+      "prompt": "ONE isolated game environment asset. Simple slightly crooked round-topped grey gravestone, chipped edges, weathered granular stone, restrained moss near the foot and a blank worn face.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas exactly 1024x1536 pixels. One plain humble stone grave marker, vertical standing silhouette, mostly front view with tiny sliver of side for thickness. No symbol, no writing, no accompanying props. Small transparent margin around the entire stone including bottom base. bottom centre where stone enters ground."
+    },
+    {
+      "id": "env_gravestone_cracked",
+      "group": "cemetery",
+      "source_png": "env_gravestone_cracked.png",
+      "source_sha256": "2d497c5415b06fb35a6157a57bf6d5bc31fa5808a1bd212accd503a2748a4dd8",
+      "source_canvas_px": [
+        1024,
+        1536
+      ],
+      "crop_alpha_gt_12": [
+        165,
+        25,
+        863,
+        1508
+      ],
+      "runtime_file": "public/assets/prop_env_gravestone_cracked.webp",
+      "runtime_size_px": [
+        698,
+        1483
+      ],
+      "runtime_sha256": "754c7745418289a85354109ddeacf2dc2081b1e2181579c1186de89d0e416853",
+      "runtime_bytes": 586172,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre of stone base",
+      "animation_role_proposed": "static prop",
+      "prompt": "ONE isolated game environment asset. Tall cracked carved gravestone with a restrained worn geometric border, one damaged corner and a deep diagonal fissure; blank centre with no legible writing.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas exactly 1024x1536 pixels. One vertical rectangular narrow grey stone grave marker with slightly peaked top and heavy age. Geometric border carved shallowly into the face, front face almost square-on with tiny side edge. A large diagonal fissure runs through it but the stone remains together. Absolutely no text or glyphs. Clean isolated complete shape with bottom resting on transparent background, no ground patch. bottom centre of stone base."
+    },
+    {
+      "id": "env_gravestone_skull",
+      "group": "cemetery",
+      "source_png": "env_gravestone_skull.png",
+      "source_sha256": "8d42ac370d3fa7480763c1bbbecfb1605e9f45c5e5add7efcbae43fc5070b747",
+      "source_canvas_px": [
+        1024,
+        1536
+      ],
+      "crop_alpha_gt_12": [
+        18,
+        12,
+        1007,
+        1515
+      ],
+      "runtime_file": "public/assets/prop_env_gravestone_skull.webp",
+      "runtime_size_px": [
+        989,
+        1503
+      ],
+      "runtime_sha256": "bc5b6a93564def62e16ed8b1defb11532eba36c12412ea122a21520d74094d46",
+      "runtime_bytes": 616752,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre of broad stone foot",
+      "animation_role_proposed": "static prop",
+      "prompt": "ONE isolated game environment asset. Pompous heavy fantasy gravestone with a carved skull relief, worn stone scrollwork and a broad foot; the skull is part of the masonry, blank memorial panel and no writing.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas exactly 1024x1536 pixels. Mostly front view with tiny side reveal for thickness. Heavy monumental weathered grey stone with a carved yellow-grey skull high at the top, shallow swirls carved to either side, broad pedestal foot that is an integral part of this gravestone. Blank recessed central name panel. No additional loose skulls, grave, flowers or text. Realistic chisel marks, moss only in a few crevices. Full uncut object, clean transparent outer edge. bottom centre of broad stone foot."
+    },
+    {
+      "id": "env_campfire_base",
+      "group": "camp",
+      "source_png": "env_campfire_base.png",
+      "source_sha256": "fb104c20d8a093c0c5698fb01aad91c1f3b2a7c5bb8e63574a6ac0e928b4df57",
+      "source_canvas_px": [
+        1254,
+        1254
+      ],
+      "crop_alpha_gt_12": [
+        12,
+        259,
+        1243,
+        1011
+      ],
+      "runtime_file": "public/assets/prop_env_campfire_base.webp",
+      "runtime_size_px": [
+        1231,
+        752
+      ],
+      "runtime_sha256": "0bdbb142caa8e9bb613f2e41cfd7b559866fda1a1f3d53b968935d895477463d",
+      "runtime_bytes": 369738,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "ground contact at bottom centre; flame socket at centre of wood pile",
+      "animation_role_proposed": "static base; separate flame child",
+      "prompt": "ONE isolated game environment asset. Low ring of irregular soot-stained stones holding crossed charred firewood, detailed cracked bark and blackened wood, unlit with no flame or airborne embers.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas exactly 1024x1024 pixels. Side-scrolling game ground prop, seen from a low camera slightly above the top. Crossed charred logs loosely piled inside a squat stone ring, lower centre of log pile clearly visible so a separate animated flame image can be layered over it. All stones and logs belong to one intact campfire-base prop. Unlit neutral material colours. Entire object visible with clear alpha outside silhouette and in any gaps; no smoke, ember glow, flame, sparks, soil patch or floor shadow. ground contact at bottom centre; flame socket at centre of wood pile."
+    },
+    {
+      "id": "env_campfire_flame",
+      "group": "fire",
+      "source_png": "env_campfire_flame.png",
+      "source_sha256": "0f7fbeb5d71260f82489cd954801c88b61df8d335d313f76a70ddbf579505c8b",
+      "source_canvas_px": [
+        1254,
+        1254
+      ],
+      "crop_alpha_gt_12": [
+        153,
+        17,
+        1134,
+        1241
+      ],
+      "runtime_file": "public/assets/prop_env_campfire_flame.webp",
+      "runtime_size_px": [
+        981,
+        1224
+      ],
+      "runtime_sha256": "43559e3f59f9bc342ddd6c47db16054ad6f300fb363974667a1d2c89e26dce53",
+      "runtime_bytes": 251528,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre at root of flames",
+      "animation_role_proposed": "flame deformation and opacity modulation; can seed later animation frames",
+      "prompt": "ONE isolated game visual effect asset. One compact campfire flame cluster rising from a broad invisible fire bed, natural yellow-orange tongues with darker orange tips; only flame, no wood, smoke, detached embers or broad glow halo.\nPhotorealistic natural fire photographed front-on as an isolated VFX cutout for a rugged sword-and-sorcery game. A compact joined cluster of vivid yellow-orange natural flame tongues, flickering curling lobes rising mostly vertically. Crisp readable outer silhouette with delicate natural flame edges, all flame lobes joined to one broad root at bottom centre. No circular glow bloom. No background illumination, no smoke, no logs, no stones, no sparks. Fully transparent real PNG alpha outside actual flames, with natural interior transparency where needed. Sharp focus. Near-orthographic side view. Entire flame visible with margin. Canvas exactly 1024x1024 pixels. Root must form stable broad lower attachment for deformation animation. No other objects, no floor shadow."
+    },
+    {
+      "id": "env_tent",
+      "group": "camp",
+      "source_png": "env_tent.png",
+      "source_sha256": "7603841a2e5db4a3f71ad4a7eda87ba7837bd28200b23e6bda6d2b8961734386",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        27,
+        96,
+        1508,
+        928
+      ],
+      "runtime_file": "public/assets/prop_env_tent.webp",
+      "runtime_size_px": [
+        1481,
+        832
+      ],
+      "runtime_sha256": "cab526720f2ea1f2bdce0f9b39daf81f65eafaaed9d840a7404d70685b6a4da1",
+      "runtime_bytes": 311236,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre of tent footprint; cloth movement pinned along ridge and ground ties",
+      "animation_role_proposed": "static base; restrained future cloth mesh deformation",
+      "prompt": "ONE isolated game environment asset. Low barbarian campaign tent made from dirty heavy tan canvas and patched brown hide, thick stitched seams, wooden ridge poles and a dark open entrance; full self-contained tent with taut guy ropes, no ground patch.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas exactly 1536x1024 pixels. Low broad A-frame campaign tent, front entrance facing slightly to the right, mostly long side visible. Real worn undyed tan canvas with a few dark brown hide patches stitched securely on. Complete triangular opening on the right side with opaque dark cloth interior, hanging door flap bound back. A few taut coarse guy ropes leading to stakes close to the tent. All ropes and stakes fully visible with generous clear alpha margin, not cut off by image. No items inside or outside, no person, no ground or grass, no fire, no flags. Animation preparation: keep hanging cloth edges clearly readable and sturdy ridge seam easy to pin; no detached tatters."
+    },
+    {
+      "id": "env_signpost",
+      "group": "camp",
+      "source_png": "env_signpost.png",
+      "source_sha256": "35b966929d55ec300f1713a396e235eb34db30c3c35da5cbfd8e56188ec66a5f",
+      "source_canvas_px": [
+        1024,
+        1536
+      ],
+      "crop_alpha_gt_12": [
+        74,
+        15,
+        975,
+        1517
+      ],
+      "runtime_file": "public/assets/prop_env_signpost.webp",
+      "runtime_size_px": [
+        901,
+        1502
+      ],
+      "runtime_sha256": "8981febc67b535e2557e88eab91e7f25bec8027e87f67e6c487e2a85d0a7d0d7",
+      "runtime_bytes": 252274,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre at foot of post",
+      "animation_role_proposed": "static prop; optional subtle whole-prop sway",
+      "prompt": "ONE isolated game environment asset. Crooked weathered wooden signpost with a single broad arrow-shaped plank pointing right, rusty nails and split grain; entirely blank readable plank face.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas exactly 1024x1536 pixels. A single tall rough crooked brown timber post, nearly vertical, with only one large right-pointing arrow plank nailed across near its top. Sign face almost frontal and broad enough for later game text. Three rusty nail heads, realistic coarse split wood grain, worn bevelled edges. Point faces right. Absolutely blank unpainted face, no text, no pictogram, no carved letter-like shapes. Full post reaches lower centre and ends in a blunt narrow ground-contact foot, with a generous transparent margin. No ground, vegetation or detached items."
+    },
+    {
+      "id": "env_lamppost_post",
+      "group": "lighting",
+      "source_png": "env_lamppost_post.png",
+      "source_sha256": "fc2d65cb0710b097164d80a658f6db22ea9ac80a69c92c79e96c381cee18d951",
+      "source_canvas_px": [
+        1024,
+        1536
+      ],
+      "crop_alpha_gt_12": [
+        251,
+        11,
+        923,
+        1524
+      ],
+      "runtime_file": "public/assets/prop_env_lamppost_post.webp",
+      "runtime_size_px": [
+        672,
+        1513
+      ],
+      "runtime_sha256": "b441c0e412b04b08b32cabeded383f8c94de99ae7ff0a113502f7010a1cdb24b",
+      "runtime_bytes": 168300,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre of timber post; lantern suspension socket at iron hook tip",
+      "animation_role_proposed": "static support; separate lantern child",
+      "prompt": "Use case: product-mockup. Asset filename: env_lamppost_post.png (do not render filename). Subject: Tall rough timber lamp post with a curved rusty wrought-iron arm and a downward hanging hook on the right; post and bracket only, with no lantern, flame or light glow.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas 1024x1536 PNG. Intended animation: static support; separate lantern child. Attachment planning: bottom centre of timber post; lantern suspension socket at iron hook tip. Keep all attachment ends and hidden overlap complete, clean and fully in frame. The hanging hook must be clearly open and suitable to accept a separate lantern loop. No lantern or other separate part."
+    },
+    {
+      "id": "env_lamppost_lantern",
+      "group": "lighting",
+      "source_png": "env_lamppost_lantern.png",
+      "source_sha256": "5ca17a84a1680ecf5e17c1e117a634a3b77f306bdf434ae9ebe986a80311a993",
+      "source_canvas_px": [
+        1254,
+        1254
+      ],
+      "crop_alpha_gt_12": [
+        209,
+        6,
+        1046,
+        1222
+      ],
+      "runtime_file": "public/assets/prop_env_lamppost_lantern.webp",
+      "runtime_size_px": [
+        837,
+        1216
+      ],
+      "runtime_sha256": "7c3546141d90a6e3359a2a98bf91a773e34d1b0bd17bdaf7aaa68fa525f468de",
+      "runtime_bytes": 303378,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "top centre of suspension loop; flame socket directly above interior wick",
+      "animation_role_proposed": "pendulum sway from top suspension loop; separate flame overlay",
+      "prompt": "Use case: product-mockup. Asset filename: env_lamppost_lantern.png (do not render filename). Subject: Complete squat soot-darkened iron hanging lantern with a top loop, roof cap, protective ribs and smoky glass sides; visible small unlit wick inside, no flame or external glow.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas 1024x1024 PNG. Intended animation: pendulum sway from top suspension loop; separate flame overlay. Attachment planning: top centre of suspension loop; flame socket directly above interior wick. Keep its top loop fully closed, centred over lantern mass, clear rounded inner hole, clean attachment shape and generous margin. Lantern alone, no support, no hanging chain. Glass softly translucent and unlit; no external light haze. Every background pixel fully transparent."
+    },
+    {
+      "id": "env_lantern_flame",
+      "group": "fire",
+      "source_png": "env_lantern_flame.png",
+      "source_sha256": "00dc34fd39c246365e16ced23637eb2e9b85151a5171f413241dabf4d6020b31",
+      "source_canvas_px": [
+        1254,
+        1254
+      ],
+      "crop_alpha_gt_12": [
+        519,
+        345,
+        742,
+        986
+      ],
+      "runtime_file": "public/assets/prop_env_lantern_flame.webp",
+      "runtime_size_px": [
+        223,
+        641
+      ],
+      "runtime_sha256": "c74a4aa9d3043a7cbf153e8e45959f4eb9970b5a225e947c4b4423f72719e7fc",
+      "runtime_bytes": 23592,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre of flame at wick contact",
+      "animation_role_proposed": "subtle flame flicker and opacity modulation",
+      "prompt": "Use case: product-mockup. Subject: Single small teardrop oil-wick flame, pale gold core and amber outer edge, vertical compact silhouette with no wick, lantern, smoke or surrounding glow.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nAsset filename: env_lantern_flame.png (do not render filename). Canvas exactly 1024x1024 pixels. Intended animation: subtle flame flicker and opacity modulation. Attachment planning: bottom centre of flame at wick contact. Fire light is intrinsic only within this flame silhouette. No outer halo, bloom or diffuse mist. Single natural compact upright oil lamp flame, entirely in frame with at least 5% transparent space each side. Every pixel outside the small flame fully transparent."
+    },
+    {
+      "id": "env_oak_trunk",
+      "group": "vegetation",
+      "source_png": "env_oak_trunk.png",
+      "source_sha256": "15582e3d301ee4336de0f53abc796387c1f2f1089399bfd6d5fda4bed6e77414",
+      "source_canvas_px": [
+        1024,
+        1536
+      ],
+      "crop_alpha_gt_12": [
+        11,
+        96,
+        1013,
+        1437
+      ],
+      "runtime_file": "public/assets/prop_env_oak_trunk.webp",
+      "runtime_size_px": [
+        1002,
+        1341
+      ],
+      "runtime_sha256": "3c9dd26fef91ec8bf2ca2dc21c8f44924bbd077ee3f41f6ace42f621d2626a2b",
+      "runtime_bytes": 413264,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre between roots; canopy socket around main upper branch junction",
+      "animation_role_proposed": "static tree base; separate canopy child",
+      "prompt": "Use case: product-mockup. Subject: Huge gnarled oak trunk with spreading roots and a strong branching skeleton reaching into a broad crown shape, deeply furrowed brown-grey bark; no leaves or ground patch, complete hidden upper branches for canopy overlap.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nAsset filename: env_oak_trunk.png (do not render filename). Canvas 1024x1536 PNG. Intended animation: static tree base; separate canopy child. Attachment planning: bottom centre between roots; canopy socket around main upper branch junction. Static complete oak skeleton only, without leaves. Crown branches make a broad spreading tree shape, and central upper branch junction is fully painted for future leaf canopy overlap. Wide muscular root flare, full roots with rounded tips and no surrounding dirt. Entire tree in frame with at least 5% transparent margin all around."
+    },
+    {
+      "id": "env_oak_canopy",
+      "group": "vegetation",
+      "source_png": "env_oak_canopy.png",
+      "source_sha256": "2f65791856b39beedc557bdd3f06cfe87b8c7590225e76c4ad37acf050b2aeba",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        26,
+        179,
+        1501,
+        815
+      ],
+      "runtime_file": "public/assets/prop_env_oak_canopy.webp",
+      "runtime_size_px": [
+        1475,
+        636
+      ],
+      "runtime_sha256": "b0c280d302e346f7ded2811331ab1f2a34b5482784bec06395658f8e41564c64",
+      "runtime_bytes": 483088,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "lower central interior where crown meets upper trunk; keep interior overlap generous",
+      "animation_role_proposed": "restrained wind deformation; optional later subdivision into leaf clusters",
+      "prompt": "Use case: product-mockup. Subject: Broad irregular mature oak canopy of dense deep-green leaf clusters and small twig ends, natural gaps and layered near-photoreal leaves; foliage crown only, no main trunk, designed to overlap a large branching oak.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nAsset filename: env_oak_canopy.png (do not render filename). Canvas 1536x1024 PNG. Intended animation: restrained wind deformation; optional later subdivision into leaf clusters. Attachment planning: lower central interior where crown meets upper trunk; keep interior overlap generous. One extremely broad flattened oak FOLIAGE CROWN, twice as wide as it is tall, like the canopy seen from the side atop a tall tree. Short inner twigs may appear inside dense leaf masses only. Bottom central crown has dense generous leaf overlap covering the upper junction of a separate trunk; NO visible hanging main branches, NO trunk, NO roots, NO whole tree. Full canopy including outer leaf tips stays at least 5% away from all image boundaries."
+    },
+    {
+      "id": "env_dead_tree",
+      "group": "vegetation",
+      "source_png": "env_dead_tree.png",
+      "source_sha256": "9602d85e867a3b6228ee44dd66823c9772b9f27cabf1168200974278f991c912",
+      "source_canvas_px": [
+        1024,
+        1536
+      ],
+      "crop_alpha_gt_12": [
+        76,
+        27,
+        979,
+        1510
+      ],
+      "runtime_file": "public/assets/prop_env_dead_tree.webp",
+      "runtime_size_px": [
+        903,
+        1483
+      ],
+      "runtime_sha256": "3df585e0a34a6a646d1689f4fa7cddb61a2d92d0b54c8cb9103cda35ed42bf36",
+      "runtime_bytes": 329244,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre between major roots",
+      "animation_role_proposed": "static prop; optional tiny branch-tip deformation",
+      "prompt": "Use case: product-mockup. Subject: Complete dead ancient tree with a twisted thick trunk, clawlike bare branches and exposed spreading roots; deeply cracked bark and broken branch tips, no foliage or ground patch.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nAsset filename: env_dead_tree.png (do not render filename). Canvas 1024x1536 PNG. Intended animation: static prop; optional tiny branch-tip deformation. Attachment planning: bottom centre between major roots. Tree silhouette should be asymmetrical, taller than wide, twisted almost claw-like with a partly hollow crooked trunk and snapped branch tips. Restrained weathered fantasy menace in a realistic tree. Entire tree in frame with at least 5% transparent margin all around. No leaves, no ground, no separate objects."
+    },
+    {
+      "id": "env_bush_dense",
+      "group": "vegetation",
+      "source_png": "env_bush_dense.png",
+      "source_sha256": "0695f3852dc452cc0c10512ab0c27b9188a566efe66d8c9a81c2271b80f8c901",
+      "source_canvas_px": [
+        1254,
+        1254
+      ],
+      "crop_alpha_gt_12": [
+        20,
+        85,
+        1233,
+        1172
+      ],
+      "runtime_file": "public/assets/prop_env_bush_dense.webp",
+      "runtime_size_px": [
+        1213,
+        1087
+      ],
+      "runtime_sha256": "e309f63aa68173c72e4ad69cad53ef30d80942a4fb01d5364abf646fa0102244",
+      "runtime_bytes": 566802,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre of stem cluster",
+      "animation_role_proposed": "wind deformation pinned at stem base",
+      "prompt": "Use case: product-mockup. Subject: Dense rounded green woodland bush with chunky readable leaf clusters, irregular natural silhouette and a few visible woody stems at the foot; no soil base.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nAsset filename: env_bush_dense.png (do not render filename). Canvas 1024x1024 PNG. Intended animation: wind deformation pinned at stem base. Attachment planning: bottom centre of stem cluster. Natural dense green deciduous bush with round layered foliage lobes, slightly asymmetrical wild shape. Small woody stem cluster visible at bottom, with fully painted overlap. One bush, no rock, earth, pot, grass or other object. Every leaf tip contained with transparent margin."
+    },
+    {
+      "id": "env_bush_low",
+      "group": "vegetation",
+      "source_png": "env_bush_low.png",
+      "source_sha256": "2b18218ebb1bb39cfa864b9d2af199d3d69e57f268bef7c7d597b64a899f58ac",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        13,
+        260,
+        1523,
+        828
+      ],
+      "runtime_file": "public/assets/prop_env_bush_low.webp",
+      "runtime_size_px": [
+        1510,
+        568
+      ],
+      "runtime_sha256": "cd4ba3282eee307617cd442f44d088243c2d66c167757c590a2373a6258715cf",
+      "runtime_bytes": 447916,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre of woody stem cluster",
+      "animation_role_proposed": "subtle wind deformation pinned near ground",
+      "prompt": "Use case: product-mockup. Subject: Low wide uneven scrub bush, small muted olive leaves among wiry woody branches, clearly distinct spreading silhouette and no ground patch.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nAsset filename: env_bush_low.png (do not render filename). Canvas 1536x1024 PNG. Intended animation: subtle wind deformation pinned near ground. Attachment planning: bottom centre of woody stem cluster. One low spreading scrub shrub, widest spreading branches extend horizontally, shape more than twice as wide as tall. Dry muted olive-green small leaves, modest density, readable thin woody stems converging near bottom centre, transparent gaps between foliage. No soil, grass, rocks or other separate objects. Entire bush contained with 5% margin, no yellow outline or luminous fringe."
+    },
+    {
+      "id": "env_bush_thorn",
+      "group": "vegetation",
+      "source_png": "env_bush_thorn.png",
+      "source_sha256": "bf952c33633c3feff34752c95f804ff52cdeacda1fb83c08ddc5fee03912f30c",
+      "source_canvas_px": [
+        1254,
+        1254
+      ],
+      "crop_alpha_gt_12": [
+        35,
+        132,
+        1236,
+        1149
+      ],
+      "runtime_file": "public/assets/prop_env_bush_thorn.webp",
+      "runtime_size_px": [
+        1201,
+        1017
+      ],
+      "runtime_sha256": "578279eb68e5af93d56f90306340f7f97141e6065b3f6b649c9b0d2adbe01b7d",
+      "runtime_bytes": 493780,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre where branches emerge",
+      "animation_role_proposed": "subtle wind deformation pinned at base",
+      "prompt": "Use case: product-mockup. Subject: Dry thorn bush of tangled grey-brown branches, long hard thorns and only a few curled dead leaves, angular open silhouette with real transparent gaps.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nAsset filename: env_bush_thorn.png (do not render filename). Canvas 1024x1024 PNG. Intended animation: subtle wind deformation pinned at base. Attachment planning: bottom centre where branches emerge. One dry wiry thorn bush, coarse twisted grey-brown stems with many clearly visible long dark thorns, open network of branches with real transparent openings. Only three or four shrivelled brown leaves. Bush sits low and squat with fully painted stem roots. No soil patch, grass, rocks, pot or other object. Entire subject contained with 5% transparent margin all around."
+    },
+    {
+      "id": "env_wagon_intact",
+      "group": "props",
+      "source_png": "env_wagon_intact.png",
+      "source_sha256": "b739129e0d9fb028a8e80c67c5a9bc53af095384c98a12c327e582b63f70129e",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        22,
+        174,
+        1522,
+        832
+      ],
+      "runtime_file": "public/assets/prop_env_wagon_intact.webp",
+      "runtime_size_px": [
+        1500,
+        658
+      ],
+      "runtime_sha256": "992f64b2e5aa33f01cc04b5cd418d7d398faa10920c9103b0d0d02cc99627a39",
+      "runtime_bytes": 291604,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "ground baseline midway between wheel contacts",
+      "animation_role_proposed": "static prop; later wheel separation requires additional asset work",
+      "prompt": "Use case: product-mockup. Subject: Heavy empty wooden four-wheeled cart seen side-on slightly from above, iron-rimmed spoked wheels, battered planked cargo bed and long shafts pointing right; full wheels and shafts visible.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nAsset filename: env_wagon_intact.png (do not render filename). Canvas 1536x1024 PNG. Intended animation: static prop; later wheel separation requires additional asset work. Attachment planning: ground baseline midway between wheel contacts. Broadside view of a sturdy four-wheeled medieval cargo wagon, two wheels on visible side and discreet opposite wheels behind. Slightly elevated near-orthographic camera shows only a shallow glimpse into empty cargo bed. Big wooden spokes with rusty iron rims, plausible axle geometry, heavy rough boards and two long wooden draft shafts pointing right. Entire wagon including wheel rims and far shaft ends inside image with 5% margin. No horse, driver, cargo or ground."
+    },
+    {
+      "id": "env_wagon_wrecked",
+      "group": "props",
+      "source_png": "env_wagon_wrecked.png",
+      "source_sha256": "53bfcf48d78ec1d50b4194ac53d58882bf3dd619832f3a8ece35e1ecb2b8737b",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        12,
+        44,
+        1525,
+        927
+      ],
+      "runtime_file": "public/assets/prop_env_wagon_wrecked.webp",
+      "runtime_size_px": [
+        1513,
+        883
+      ],
+      "runtime_sha256": "f1a314a7ea5a01f66acaff2328f4221d6958c950d0466053feb9effe41fb27da",
+      "runtime_bytes": 439886,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre of wreck ground contact",
+      "animation_role_proposed": "static wreck variant",
+      "prompt": "Use case: stylized-concept. ONE isolated original game asset: Wrecked version of a heavy wooden cart, collapsed tilted cargo bed, split planks, one broken spoked wheel and bent iron fittings; connected compact wreck silhouette, no scattered distant parts.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas 1536x1024. Transparent PNG. Production requirement: static wreck variant. bottom centre of wreck ground contact. This is a single complete reusable 2D cutout, not a scene or a collage. Keep all object parts in frame. Transparent background has zero opacity."
+    },
+    {
+      "id": "env_banner_pole",
+      "group": "banners",
+      "source_png": "env_banner_pole.png",
+      "source_sha256": "5e084382a95880c073497f9f08d5dd306298a81b38242efacb1d1d0a0d440909",
+      "source_canvas_px": [
+        1024,
+        1536
+      ],
+      "crop_alpha_gt_12": [
+        449,
+        14,
+        625,
+        1522
+      ],
+      "runtime_file": "public/assets/prop_env_banner_pole.webp",
+      "runtime_size_px": [
+        176,
+        1508
+      ],
+      "runtime_sha256": "24961289aa142ed19630b6c204a211f99009d1b85fcbaf4e6a91b419a16b35f4",
+      "runtime_bytes": 74338,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre of pole; cloth mounts at the two upper side loops",
+      "animation_role_proposed": "static support; separate cloth child",
+      "prompt": "Use case: stylized-concept. ONE isolated original game asset: Tall rough dark wooden war-banner pole capped with a blunt aged iron finial, two small cloth attachment loops along the upper right side; pole only, no cloth, emblem, skull or ground base.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas 1024x1536. Transparent PNG. Production requirement: static support; separate cloth child. bottom centre of pole; cloth mounts at the two upper side loops. This is a single complete reusable 2D cutout, not a scene or a collage. Keep all object parts in frame. Transparent background has zero opacity."
+    },
+    {
+      "id": "env_banner_cloth",
+      "group": "banners",
+      "source_png": "env_banner_cloth.png",
+      "source_sha256": "5198d719625e6f51f591a501e9a170f7510a0a513b58bff0a9a22fe8a2186b66",
+      "source_canvas_px": [
+        1254,
+        1254
+      ],
+      "crop_alpha_gt_12": [
+        30,
+        157,
+        1227,
+        1113
+      ],
+      "runtime_file": "public/assets/prop_env_banner_cloth.webp",
+      "runtime_size_px": [
+        1197,
+        956
+      ],
+      "runtime_sha256": "58163d0cfce4f7809d28b13eb2db99c1d7d3303c50c4e6ebed38bc4e31a780df",
+      "runtime_bytes": 415868,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "midpoint of straight left attachment edge; pin the whole mounted edge",
+      "animation_role_proposed": "wind deformation pinned along left attachment edge",
+      "prompt": "ONE isolated soft cloth game asset: a detached single sheet of dark crimson woven cloth for a war banner. Only fabric, entirely fabric including its left edge. The straight left edge is a thin sewn crimson fabric hem, exactly the same red cloth as the rest, with two small simple eyelet holes near its top and bottom. The cloth extends horizontally to the right with small loose folds, sun-faded coarse red weave, several small tears and ragged ends toward the right. A blank red face with no text, no emblem. It has no rigid supporting component: no pole, no wood, no leather, no rod, no brown stripe, no lacing, no cord and no rope. Its left edge is meant to be pinned by a game engine to an existing separate pole.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nSquare canvas 1024x1024. Genuine transparent PNG. Entire piece visible within margins on all sides. Only crimson fabric in the image, precisely clipped out from all background. Every pixel outside the fabric is zero alpha. Reusable cloth attachment for later wind animation. Natural neutral flat light, photographic fabric realism."
+    },
+    {
+      "id": "env_crow_perched",
+      "group": "animals",
+      "source_png": "env_crow_perched.png",
+      "source_sha256": "f23159ef896e6f6e8a31967bbff8af5d9f71b9b3f0191db161479bf18f26802b",
+      "source_canvas_px": [
+        1254,
+        1254
+      ],
+      "crop_alpha_gt_12": [
+        62,
+        74,
+        1230,
+        1201
+      ],
+      "runtime_file": "public/assets/prop_env_crow_perched.webp",
+      "runtime_size_px": [
+        1168,
+        1127
+      ],
+      "runtime_sha256": "d1096f33436199b3d76108763d061d0c9d11d3ed7cce087658470fa7b078e38d",
+      "runtime_bytes": 310092,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "midpoint between gripping claws",
+      "animation_role_proposed": "small whole-body idle motion only; articulated head or flight needs later parts or frames",
+      "prompt": "Use case: stylized-concept. ONE isolated original game asset: One ragged adult black crow perched upright and facing right, folded wings, layered near-photoreal black feathers, stout beak and complete gripping claws; no perch, branch or ground.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas 1024x1024. Transparent PNG. Production requirement: small whole-body idle motion only; articulated head or flight needs later parts or frames. midpoint between gripping claws. This is a single complete reusable 2D cutout, not a scene or a collage. Keep all object parts in frame. Transparent background has zero opacity."
+    },
+    {
+      "id": "env_torch_body",
+      "group": "lighting",
+      "source_png": "env_torch_body.png",
+      "source_sha256": "a84dc3ac10b95749a5ea758afeefbba6b0519079087a7422a61a74863990157a",
+      "source_canvas_px": [
+        1024,
+        1536
+      ],
+      "crop_alpha_gt_12": [
+        361,
+        26,
+        663,
+        1504
+      ],
+      "runtime_file": "public/assets/prop_env_torch_body.webp",
+      "runtime_size_px": [
+        302,
+        1478
+      ],
+      "runtime_sha256": "28e1b79ed199a117569a7f513a4572c42d43cbd3418a8a6dad7bf9f0203b1440",
+      "runtime_bytes": 147108,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "lower handle grip; flame socket at upper centre of wrapped head",
+      "animation_role_proposed": "static torch body; separate flame child",
+      "prompt": "Use case: stylized-concept. ONE isolated original game asset: Complete straight medieval torch shaft of rough dark wood with a bulky tarred cloth-wrapped head, soot and coarse binding; unlit, no flame, holder or glow.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas 1024x1536. Transparent PNG. Production requirement: static torch body; separate flame child. lower handle grip; flame socket at upper centre of wrapped head. This is a single complete reusable 2D cutout, not a scene or a collage. Keep all object parts in frame. Transparent background has zero opacity."
+    },
+    {
+      "id": "env_torch_flame",
+      "group": "fire",
+      "source_png": "env_torch_flame.png",
+      "source_sha256": "bf09e184298db359c0b980080995c51e5b9fc0f16366814ca63f3cdc58538ad9",
+      "source_canvas_px": [
+        1024,
+        1536
+      ],
+      "crop_alpha_gt_12": [
+        319,
+        10,
+        776,
+        1525
+      ],
+      "runtime_file": "public/assets/prop_env_torch_flame.webp",
+      "runtime_size_px": [
+        457,
+        1515
+      ],
+      "runtime_sha256": "2aeef32d371469dda0632407de983c39cda322a4acf7e7ded719e6fc18073644",
+      "runtime_bytes": 156844,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre at flame root",
+      "animation_role_proposed": "flame deformation and opacity flicker; can seed later frames",
+      "prompt": "Use case: stylized-concept. ONE isolated original game asset: One elongated natural torch flame rising vertically, bright yellow-orange core and curling orange tongues; compact root, no torch wood, smoke, flying embers or wide glow haze.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas 1024x1536. Transparent PNG. Production requirement: flame deformation and opacity flicker; can seed later frames. bottom centre at flame root. This is a single complete reusable 2D cutout, not a scene or a collage. Keep all object parts in frame. Transparent background has zero opacity.\nFire is the only subject. Maintain realistic bright self-emission inside the flame silhouette, with smoothly antialiased boundary and completely transparent exterior. The flame is a separate reusable attachment to an unlit torch asset."
+    },
+    {
+      "id": "env_torch_wall_holder",
+      "group": "lighting",
+      "source_png": "env_torch_wall_holder.png",
+      "source_sha256": "1e6e419b07ce47a37c470cba43ba40b36f8784654bbb4aaabe1be6ca3c120742",
+      "source_canvas_px": [
+        1254,
+        1254
+      ],
+      "crop_alpha_gt_12": [
+        36,
+        50,
+        1227,
+        1197
+      ],
+      "runtime_file": "public/assets/prop_env_torch_wall_holder.webp",
+      "runtime_size_px": [
+        1191,
+        1147
+      ],
+      "runtime_sha256": "23fdbfa551c1d0f9d33fb28370297a5e14961f68c03eaf353ff70da5ebface27",
+      "runtime_bytes": 224178,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "centre of wall mounting plate; torch socket inside retaining ring",
+      "animation_role_proposed": "static support for separate torch body",
+      "prompt": "Use case: stylized-concept. ONE isolated original game asset: Single rusty forged-iron wall bracket for a torch, flat mounting plate with rivets, short projecting arm and open retaining ring; isolated hardware with no wall or torch.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas 1024x1024. Transparent PNG. Production requirement: static support for separate torch body. centre of wall mounting plate; torch socket inside retaining ring. This is a single complete reusable 2D cutout, not a scene or a collage. Keep all object parts in frame. Transparent background has zero opacity."
+    },
+    {
+      "id": "env_barrel",
+      "group": "extra_props",
+      "source_png": "env_barrel.png",
+      "source_sha256": "53c674b9d68ec798559a713e7f3cbc143be511857133af581de7374a7a2b8acc",
+      "source_canvas_px": [
+        1254,
+        1254
+      ],
+      "crop_alpha_gt_12": [
+        138,
+        36,
+        1117,
+        1223
+      ],
+      "runtime_file": "public/assets/prop_env_barrel.webp",
+      "runtime_size_px": [
+        979,
+        1187
+      ],
+      "runtime_sha256": "59f430bffd990e1ca47a54eee505d46ba3467b7e9930118ba2e655162dc84e76",
+      "runtime_bytes": 525158,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre of barrel base",
+      "animation_role_proposed": "static prop; optional rigid wobble",
+      "prompt": "Use case: stylized-concept. ONE isolated original game asset: Stout closed wooden barrel with warped dark oak staves, rusty iron hoops, visible worn lid and stained grain, slight exaggerated bulk for clear gameplay silhouette.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas 1024x1024. Transparent PNG. Production requirement: static prop; optional rigid wobble. bottom centre of barrel base. This is a single complete reusable 2D cutout, not a scene or a collage. Keep all object parts in frame. Transparent background has zero opacity."
+    },
+    {
+      "id": "env_crate",
+      "group": "extra_props",
+      "source_png": "env_crate.png",
+      "source_sha256": "cee18a22c9f55116b6ccc6f124cc97d1d5903aa381e29d869caa2471147d56c2",
+      "source_canvas_px": [
+        1254,
+        1254
+      ],
+      "crop_alpha_gt_12": [
+        31,
+        69,
+        1232,
+        1179
+      ],
+      "runtime_file": "public/assets/prop_env_crate.webp",
+      "runtime_size_px": [
+        1201,
+        1110
+      ],
+      "runtime_sha256": "5f2584c893bd02db3f310caf3d455374acf9caba5005fef16d0975d9cbf1ecda",
+      "runtime_bytes": 658938,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre of crate footprint",
+      "animation_role_proposed": "static prop",
+      "prompt": "Use case: stylized-concept. ONE isolated original game asset: Heavy square rough timber supply crate with diagonal bracing, rusty nails and chipped edges; front face dominant, shallow top and right side visible, no labels or contents.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas 1024x1024. Transparent PNG. Production requirement: static prop. bottom centre of crate footprint. This is a single complete reusable 2D cutout, not a scene or a collage. Keep all object parts in frame. Transparent background has zero opacity."
+    },
+    {
+      "id": "env_boulder",
+      "group": "extra_props",
+      "source_png": "env_boulder.png",
+      "source_sha256": "ae43720f33eb6c9a51a26c2c38642b85d6cfaa4ffa10e2189159abb67016b1ea",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        29,
+        88,
+        1507,
+        964
+      ],
+      "runtime_file": "public/assets/prop_env_boulder.webp",
+      "runtime_size_px": [
+        1478,
+        876
+      ],
+      "runtime_sha256": "5b7669e8f00eb3ebb0927441ebe0a0965bd2dccf6ab597409c474128a8211fe9",
+      "runtime_bytes": 619628,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre of stable rock contact",
+      "animation_role_proposed": "static prop",
+      "prompt": "Use case: stylized-concept. ONE isolated original game asset: Single large squat irregular grey granite boulder with cracked weathered faces, gritty surface and restrained patches of lichen; clear asymmetrical silhouette, no surrounding gravel or ground.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas 1536x1024. Transparent PNG. Production requirement: static prop. bottom centre of stable rock contact. This is a single complete reusable 2D cutout, not a scene or a collage. Keep all object parts in frame. Transparent background has zero opacity."
+    },
+    {
+      "id": "env_fallen_log",
+      "group": "extra_props",
+      "source_png": "env_fallen_log.png",
+      "source_sha256": "879e0a636d64678619a86672548f1fdc585dd73c885a5d0d64e6f0cd9b2cae61",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        29,
+        135,
+        1513,
+        911
+      ],
+      "runtime_file": "public/assets/prop_env_fallen_log.webp",
+      "runtime_size_px": [
+        1484,
+        776
+      ],
+      "runtime_sha256": "622f4164d9814a5c78c3a265ed17e0832b80b0b69c418f0221b2bd74a7e77390",
+      "runtime_bytes": 400970,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre of trunk ground contact",
+      "animation_role_proposed": "static prop",
+      "prompt": "Use case: stylized-concept. Asset type: production game environment cutout. Asset: env_fallen_log.png\nSubject: Thick fallen oak trunk lying horizontally, split bark, broken branch stub and visible jagged pale wood at one end; restrained moss, entire log isolated with no ground patch.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas: 1536x1024 pixels. Keep the full object entirely within the canvas with a small transparent margin. No text or labels. Genuine transparent background."
+    },
+    {
+      "id": "env_palisade_gate",
+      "group": "extra_props",
+      "source_png": "env_palisade_gate.png",
+      "source_sha256": "4abc825fa808599e27a3c47cc20f0e4d7b2a8aa6b6a666fa38b828e15c65d9af",
+      "source_canvas_px": [
+        1024,
+        1536
+      ],
+      "crop_alpha_gt_12": [
+        20,
+        32,
+        1013,
+        1496
+      ],
+      "runtime_file": "public/assets/prop_env_palisade_gate.webp",
+      "runtime_size_px": [
+        993,
+        1464
+      ],
+      "runtime_sha256": "7dbdf4c8a77221f0ce24cea49f2b31240cc435b3bd471fd6addc3dc36f484f43",
+      "runtime_bytes": 708556,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 48,
+      "pivot_hint_unverified": "vertical hinge axis along left edge; ground baseline at bottom",
+      "animation_role_proposed": "rigid gate rotation if supported; pair with palisade end posts",
+      "prompt": "Use case: stylized-concept. Asset type: production game environment cutout. Asset: env_palisade_gate.png\nSubject: Single broad closed barbarian palisade gate leaf made from heavy sharpened timbers, diagonal bracing, rusty strap hinges at the left and a crude latch at the right; leaf only, no surrounding fence or posts.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas: 1024x1536 pixels. Keep the full object entirely within the canvas with a small transparent margin. No text or labels. Genuine transparent background."
+    },
+    {
+      "id": "env_altar",
+      "group": "extra_props",
+      "source_png": "env_altar.png",
+      "source_sha256": "f5df5f5a7634b27750a67d8ab71d55166579053217d87d2e1f7980f614495670",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        10,
+        201,
+        1527,
+        859
+      ],
+      "runtime_file": "public/assets/prop_env_altar.webp",
+      "runtime_size_px": [
+        1517,
+        658
+      ],
+      "runtime_sha256": "66b2b3c280129d5405e781983b3f4a6a01286d357c8a3abed7217701147e9c98",
+      "runtime_bytes": 355060,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre between the stone supports",
+      "animation_role_proposed": "static prop",
+      "prompt": "Use case: stylized-concept. Asset type: production game environment cutout. Asset: env_altar.png\nSubject: Rough ancient sacrificial stone altar, heavy cracked flat slab on two squat supports, worn primitive geometric carving and dark old stains; empty top, no candles, figures or surrounding ground.\nSTYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game.\n\nCanvas: 1536x1024 pixels. Keep the full object entirely within the canvas with a small transparent margin. No text or labels. Genuine transparent background."
+    },
+    {
+      "id": "fg_skull_stake",
+      "group": "foreground",
+      "source_png": "fg_skull_stake.png",
+      "source_sha256": "b37b86e94627adbbbb5513ea1d8b3a94d571df7fb8916393641f38486504fb7b",
+      "source_canvas_px": [
+        1024,
+        1536
+      ],
+      "crop_alpha_gt_12": [
+        210,
+        9,
+        839,
+        1528
+      ],
+      "runtime_file": "public/assets/prop_fg_skull_stake.webp",
+      "runtime_size_px": [
+        629,
+        1519
+      ],
+      "runtime_sha256": "5c277ae28f5896b6d7a04a3e14f1963a317f30ecc6e2559eb472c593d48bd60e",
+      "runtime_bytes": 241068,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre of stake; typically crop lower stake outside screen",
+      "animation_role_proposed": "foreground parallax and runtime blur; static object",
+      "prompt": "ONE isolated foreground game cutout. Large close foreground silhouette of a weathered human skull on a thick rough wooden stake, stained cracked bone and deep empty sockets, near-black warm-brown shading with restrained visible material detail; whole skull and full stake visible, sharp master cutout. The skull is large, occupying the upper half of the object, on a short stout wooden stake. Three-quarter view of the skull facing slightly right. It is a dark near-camera framing prop: mostly warm charcoal silhouette with only very restrained brown detail, not bright ivory bone. Entire object visible. STYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game. FOREGROUND OVERRIDE: keep overall material values very dark and matte with subdued soft frontal illumination. Keep sharp source edges; any camera blur and cropping will be applied by the game later. Canvas 1024x1536."
+    },
+    {
+      "id": "fg_branch_leaves",
+      "group": "foreground",
+      "source_png": "fg_branch_leaves.png",
+      "source_sha256": "208019d5fb931dc7faab59147b3af90364509b13fddb53f0175cbea72e7d3374",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        1,
+        18,
+        1528,
+        794
+      ],
+      "runtime_file": "public/assets/prop_fg_branch_leaves.webp",
+      "runtime_size_px": [
+        1527,
+        776
+      ],
+      "runtime_sha256": "36f79c6608414a7f511af5b74be61522e9c33ecaca6d26359eecc63fc5628baf",
+      "runtime_bytes": 284524,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "thick branch root at left end; typically place root outside screen",
+      "animation_role_proposed": "foreground parallax; subtle foliage wind deformation and runtime blur",
+      "prompt": "ONE isolated foreground game cutout. One thick crooked branch sweeping horizontally with hanging oak leaf clusters, dark brown-green near-camera silhouette with restrained bark and leaf detail; whole branch visible, transparent leaf gaps, sharp master cutout. A heavy branch attaches at the far left and sweeps along the upper part of the canvas; uneven clusters of mature oak leaves hang downward, with large clear gaps between clusters so the game action can remain visible. Full silhouette entirely inside canvas. STYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game. FOREGROUND OVERRIDE: dark matte charcoal-brown bark and deep olive-black leaves, subdued front light, intentionally much darker than ordinary scenery, no bright leaf highlights. Sharp reusable source cutout, blur and cropping applied later. Canvas 1536x1024."
+    },
+    {
+      "id": "fg_tree_trunk",
+      "group": "foreground",
+      "source_png": "fg_tree_trunk.png",
+      "source_sha256": "e17a1154b99368124af76c84e5249d7e02e758d5cc60d3b8255c523613b8ad6b",
+      "source_canvas_px": [
+        1024,
+        1536
+      ],
+      "crop_alpha_gt_12": [
+        27,
+        14,
+        1009,
+        1522
+      ],
+      "runtime_file": "public/assets/prop_fg_tree_trunk.webp",
+      "runtime_size_px": [
+        982,
+        1508
+      ],
+      "runtime_sha256": "915f323898cc2cb2430152aed8a10fd022b590d0daf5fd176f015c657b7eb2fd",
+      "runtime_bytes": 430020,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre between roots; commonly crop beyond side and lower screen edges",
+      "animation_role_proposed": "foreground parallax and runtime blur; static object",
+      "prompt": "ONE isolated foreground game cutout. Massive dark gnarled foreground tree trunk with a forked upper end and short spreading roots, deeply furrowed bark visible in subdued brown-black values; full isolated trunk, no foliage or ground. Thick compact monumental oak trunk, broad squat roots, two short strong branch stubs at top. Heavy silhouette that can be partly cropped by the game camera at one side of the screen. STYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game. FOREGROUND OVERRIDE: near-black warm dark brown bark, subdued neutral fill light, very low highlights, readable as a dark silhouette. No leaf canopy. Sharp edges, runtime blur later. Canvas 1024x1536."
+    },
+    {
+      "id": "fg_palisade_stakes",
+      "group": "foreground",
+      "source_png": "fg_palisade_stakes.png",
+      "source_sha256": "932c9adec9975e8c975e6442fd52f65d44694902a5cc54f443c7d1a2759ed854",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        438,
+        10,
+        1174,
+        1014
+      ],
+      "runtime_file": "public/assets/prop_fg_palisade_stakes.webp",
+      "runtime_size_px": [
+        736,
+        1004
+      ],
+      "runtime_sha256": "916f7656c6705f5f02199d299dc86acb7a428104bd31a719bcab55ec54fe38ce",
+      "runtime_bytes": 209016,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre of connected stake group; crop base below screen",
+      "animation_role_proposed": "foreground parallax and runtime blur; static object",
+      "prompt": "ONE isolated foreground game cutout. Compact group of three uneven sharpened timber stakes tied together by a short rope and crossbeam, large near-black foreground shapes with subtle splintered wood texture; complete spikes and bases visible. The three stakes form one narrow fence cluster, thick and chunky, different heights, modest gaps between timbers. A low horizontal crossbar binds them into one connected object. Entire silhouette in frame. STYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game. FOREGROUND OVERRIDE: dark matte warm charcoal-brown wood with subdued soft light and only faint detail. No bright splinter highlights, no ground. Sharp master cutout for later runtime blur. Canvas 1536x1024."
+    },
+    {
+      "id": "fg_chain",
+      "group": "foreground",
+      "source_png": "fg_chain.png",
+      "source_sha256": "880809c05424e723d775b5e4ae20b9cf7685082208721b88a981ade3d5a99eb1",
+      "source_canvas_px": [
+        1024,
+        1536
+      ],
+      "crop_alpha_gt_12": [
+        431,
+        14,
+        629,
+        1480
+      ],
+      "runtime_file": "public/assets/prop_fg_chain.webp",
+      "runtime_size_px": [
+        198,
+        1466
+      ],
+      "runtime_sha256": "335be784d5e5c73296e8382ed308e08d2ea36d3e22eacc516b993365d8052d7a",
+      "runtime_bytes": 75024,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "centre of topmost link; usually place suspension beyond upper screen edge",
+      "animation_role_proposed": "pendulum sway, foreground parallax and runtime blur",
+      "prompt": "ONE isolated foreground game cutout. One heavy hanging chain made from large irregular rusty forged-iron links, slight natural bend and a complete top link and bottom link; near-black iron with subdued rust detail, true transparent link openings. About twelve chunky closed oval chain links, alternating perpendicular orientations, suspended vertically in one continuous chain with a very subtle curve. No hook, no object hanging at the bottom, no fixtures beyond the chain itself. Every opening in every visible link is transparent. STYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game. FOREGROUND OVERRIDE: nearly black matte iron with tiny muted reddish rust pits, no silver shine. Sharp cutout, no blur in the source. Canvas 1024x1536."
+    },
+    {
+      "id": "fg_tattered_cloth",
+      "group": "foreground",
+      "source_png": "fg_tattered_cloth.png",
+      "source_sha256": "be02ffffd81cdfbf28527b80b69795e1fcd9db00aac8de9499f0f95f7dae75b3",
+      "source_canvas_px": [
+        1024,
+        1536
+      ],
+      "crop_alpha_gt_12": [
+        313,
+        0,
+        734,
+        1532
+      ],
+      "runtime_file": "public/assets/prop_fg_tattered_cloth.webp",
+      "runtime_size_px": [
+        421,
+        1532
+      ],
+      "runtime_sha256": "229d6923bc541141f7671e8ae1b5347d4b6a4b47f3898d4cfb9678dcfbfaf0c0",
+      "runtime_bytes": 198886,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "centre of intact top attachment edge",
+      "animation_role_proposed": "wind deformation pinned at top; foreground parallax and runtime blur",
+      "prompt": "ONE isolated foreground game cutout. One long hanging strip of heavy torn dark cloth with an intact narrow upper attachment edge, frayed pointed bottom and several holes; muted near-black burgundy fabric with restrained woven detail, no pole or chain. Broad elongated strip of torn heavy cloth, hanging almost vertically in a neutral relaxed position, with a clean straight reinforced top seam for animation pinning. Ragged lower edge with three long tattered ends; a few small see-through worn holes. No knots, metal, pole, chain or support. STYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game. FOREGROUND OVERRIDE: very dark matte muted burgundy-charcoal, softly visible woven fabric folds, no colored light. Sharp master edges; movement, blur, and cropping applied in game. Canvas 1024x1536."
+    },
+    {
+      "id": "fg_rocks",
+      "group": "foreground",
+      "source_png": "fg_rocks.png",
+      "source_sha256": "31a3be5e4d2232e9d473c8e51549e7e498649677195350366dea4c02499ae9b9",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        13,
+        296,
+        1523,
+        837
+      ],
+      "runtime_file": "public/assets/prop_fg_rocks.webp",
+      "runtime_size_px": [
+        1510,
+        541
+      ],
+      "runtime_sha256": "9ef769b0b1673a2191163f70f3f67e01dcd264ac7162402ad0efd26c8cedc694",
+      "runtime_bytes": 246946,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre of rock cluster; crop base below screen",
+      "animation_role_proposed": "foreground parallax and runtime blur; static object",
+      "prompt": "ONE isolated foreground game cutout. Low wide connected cluster of three chunky jagged foreground rocks, very dark grey-brown weathered stone with readable upper planes, bold uneven silhouette; no soil, mist or surrounding pebbles. Heavy compact low wedge of dark jagged stones, flatter on the bottom, uneven skyline on top, three interlocking angular stones form one ground-level silhouette. Broad and low, about three times as wide as tall. STYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game. FOREGROUND OVERRIDE: very dark slate charcoal with minimal warm brown undertones, subdued front illumination and weak highlights. Sharp master cutout for later foreground crop and blur. Canvas 1536x1024."
+    },
+    {
+      "id": "fg_roots",
+      "group": "foreground",
+      "source_png": "fg_roots.png",
+      "source_sha256": "fae416fbf7da8a3383b127ac44353cb3dcc014e7fd5f6627309d0eb81f7bb28a",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        12,
+        222,
+        1525,
+        880
+      ],
+      "runtime_file": "public/assets/prop_fg_roots.webp",
+      "runtime_size_px": [
+        1513,
+        658
+      ],
+      "runtime_sha256": "e37872eeb474418309fb307fcb23d51f80867f2332bddd3405f52af2bde45401",
+      "runtime_bytes": 254544,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "thick central root junction near bottom; crop lower tips when placing",
+      "animation_role_proposed": "foreground parallax and runtime blur; static object",
+      "prompt": "ONE isolated foreground game cutout. One connected sprawling cluster of thick twisted exposed roots, dark rough bark and pointed tapering tendrils, low horizontal near-camera silhouette with true transparent gaps and no tree trunk or dirt patch. Wide low arching network of heavy exposed roots, all attached to one broad central junction, strong uneven silhouette, several transparent spaces between curling roots. It reads as a natural root mass, not an animal, sculpture or creature. Full uncut tips with safe margin. STYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game. FOREGROUND OVERRIDE: deep matte charcoal-brown bark with very restrained warm texture, mostly dark silhouette. Sharp reusable cutout, foreground blur added in game. Canvas 1536x1024."
+    },
+    {
+      "id": "fg_tall_grass",
+      "group": "foreground",
+      "source_png": "fg_tall_grass.png",
+      "source_sha256": "44c0025f9d77abb21d700a05ab84ae1ebe664843b53917ba2e0a79ca5b6d143e",
+      "source_canvas_px": [
+        1536,
+        1024
+      ],
+      "crop_alpha_gt_12": [
+        14,
+        66,
+        1522,
+        992
+      ],
+      "runtime_file": "public/assets/prop_fg_tall_grass.webp",
+      "runtime_size_px": [
+        1508,
+        926
+      ],
+      "runtime_sha256": "a07e80a4fb4f06d4e115b43a14928e862b4d25e38bf31e2f851ba7bf55f40c6e",
+      "runtime_bytes": 452870,
+      "alpha_identical_to_cropped_source": true,
+      "import_padding_left_right_px": 0,
+      "pivot_hint_unverified": "bottom centre of basal clump; pin lower edge for wind movement",
+      "animation_role_proposed": "wind deformation pinned at base; foreground parallax and runtime blur",
+      "prompt": "ONE isolated foreground game cutout. One broad tuft of tall coarse wild grass with a few seed heads, long uneven crossing blades and dark olive-black values, restrained realistic leaf texture; connected basal clump with no soil or ground patch. Dense broad low basal tuft with long blades fanning upward and sideways, about twice as wide as high; a few taller seed heads. Natural coarse wild meadow grass, not tropical palm leaves. All blade tips contained inside canvas with a small margin, open transparent spaces between leaves. STYLE LOCK: Near-photoreal original 1980s sword-and-sorcery environment prop. Museum-quality practical film prop photographed in a studio, high-end 3D asset realism: coarse timber with fibres, weathered stone with chips, rusty forged iron, worn stitched leather, yellowed bone, woven cloth. Serious rugged barbarian fantasy. Real materials, substantial readable silhouette, no cartoon drawing, no outlines, no cel shading. Soft even neutral frontal light from slightly above, gentle form shading, no cast or drop shadow, no colored rim light, no scenery, no ground plane. Long lens almost orthographic, seen mostly from the side with a small view of top surfaces, camera about 12 degrees above horizontal, no isometric perspective. Entire object in sharp focus and completely in frame, small transparent margin. One isolated object only, no grid, no collage, no labels, no letters, no watermark. Genuine transparent PNG alpha, no painted checkerboard. Designed as a 2D cutout placed in a side-scrolling 3D game. FOREGROUND OVERRIDE: dark olive-charcoal leaves, subdued flat illumination, only subtle texture, mostly a dark framing silhouette. No earth, no cast shadow, no mist. Sharp original source for later wind deformation and camera blur. Canvas 1536x1024."
+    }
+  ],
+  "importer_commit": "8faed5b264ac4f7ded7ee2408299e7e2b5ee18ac"
+}

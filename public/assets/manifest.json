@@ -1276,5 +1276,597 @@
       "id": "appearance_hair_wild",
       "file": "appearance_hair_wild.webp"
     }
-  ]
+  ],
+  "props": {
+    "env_altar": {
+      "file": "prop_env_altar.webp",
+      "w": 2.5,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "ALTAR",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_banner_cloth": {
+      "file": "prop_env_banner_cloth.webp",
+      "w": 2.003,
+      "anchor": [
+        0.02,
+        0.5
+      ],
+      "label": "BANNER CLOTH",
+      "layer": "mid",
+      "shadow": false
+    },
+    "env_banner_pole": {
+      "file": "prop_env_banner_pole.webp",
+      "w": 0.408,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "BANNER POLE",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_barrel": {
+      "file": "prop_env_barrel.webp",
+      "w": 0.8,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "BARREL",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_boulder": {
+      "file": "prop_env_boulder.webp",
+      "w": 2.5,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "BOULDER",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_brick_wall_end": {
+      "file": "prop_env_brick_wall_end.webp",
+      "w": 1.849,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "BRICK WALL END",
+      "layer": "back",
+      "shadow": true
+    },
+    "env_brick_wall_ruined": {
+      "file": "prop_env_brick_wall_ruined.webp",
+      "w": 2.439,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "BRICK WALL RUINED",
+      "layer": "back",
+      "shadow": true
+    },
+    "env_brick_wall_straight": {
+      "file": "prop_env_brick_wall_straight.webp",
+      "w": 3.244,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "BRICK WALL STRAIGHT",
+      "layer": "back",
+      "shadow": true
+    },
+    "env_bush_dense": {
+      "file": "prop_env_bush_dense.webp",
+      "w": 1.7,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "BUSH DENSE",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_bush_low": {
+      "file": "prop_env_bush_low.webp",
+      "w": 2.2,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "BUSH LOW",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_bush_thorn": {
+      "file": "prop_env_bush_thorn.webp",
+      "w": 1.8,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "BUSH THORN",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_campfire_base": {
+      "file": "prop_env_campfire_base.webp",
+      "w": 1.6,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "CAMPFIRE BASE",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_campfire_flame": {
+      "file": "prop_env_campfire_flame.webp",
+      "w": 0.962,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "CAMPFIRE FLAME",
+      "layer": "mid",
+      "shadow": false
+    },
+    "env_castle_wall_breach": {
+      "file": "prop_env_castle_wall_breach.webp",
+      "w": 6.471,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "CASTLE WALL BREACH",
+      "layer": "back",
+      "shadow": true
+    },
+    "env_castle_wall_pillar": {
+      "file": "prop_env_castle_wall_pillar.webp",
+      "w": 2.021,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "CASTLE WALL PILLAR",
+      "layer": "back",
+      "shadow": true
+    },
+    "env_castle_wall_straight": {
+      "file": "prop_env_castle_wall_straight.webp",
+      "w": 5.248,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "CASTLE WALL STRAIGHT",
+      "layer": "back",
+      "shadow": true
+    },
+    "env_crate": {
+      "file": "prop_env_crate.webp",
+      "w": 1.0,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "CRATE",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_crow_perched": {
+      "file": "prop_env_crow_perched.webp",
+      "w": 0.466,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "CROW PERCHED",
+      "layer": "mid",
+      "shadow": false
+    },
+    "env_dead_tree": {
+      "file": "prop_env_dead_tree.webp",
+      "w": 3.045,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "DEAD TREE",
+      "layer": "back",
+      "shadow": true
+    },
+    "env_fallen_log": {
+      "file": "prop_env_fallen_log.webp",
+      "w": 3.2,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "FALLEN LOG",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_grave_mound": {
+      "file": "prop_env_grave_mound.webp",
+      "w": 2.3,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "GRAVE MOUND",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_grave_open": {
+      "file": "prop_env_grave_open.webp",
+      "w": 2.3,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "GRAVE OPEN",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_gravestone_cracked": {
+      "file": "prop_env_gravestone_cracked.webp",
+      "w": 0.565,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "GRAVESTONE CRACKED",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_gravestone_simple": {
+      "file": "prop_env_gravestone_simple.webp",
+      "w": 0.568,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "GRAVESTONE SIMPLE",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_gravestone_skull": {
+      "file": "prop_env_gravestone_skull.webp",
+      "w": 0.888,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "GRAVESTONE SKULL",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_lamppost_lantern": {
+      "file": "prop_env_lamppost_lantern.webp",
+      "w": 0.447,
+      "anchor": [
+        0.5,
+        0.02
+      ],
+      "label": "LAMPPOST LANTERN",
+      "layer": "mid",
+      "shadow": false
+    },
+    "env_lamppost_post": {
+      "file": "prop_env_lamppost_post.webp",
+      "w": 1.332,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "LAMPPOST POST",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_lantern_flame": {
+      "file": "prop_env_lantern_flame.webp",
+      "w": 0.07,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "LANTERN FLAME",
+      "layer": "mid",
+      "shadow": false
+    },
+    "env_oak_canopy": {
+      "file": "prop_env_oak_canopy.webp",
+      "w": 7.0,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "OAK CANOPY",
+      "layer": "back",
+      "shadow": false
+    },
+    "env_oak_trunk": {
+      "file": "prop_env_oak_trunk.webp",
+      "w": 3.736,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "OAK TRUNK",
+      "layer": "back",
+      "shadow": true
+    },
+    "env_palisade_broken": {
+      "file": "prop_env_palisade_broken.webp",
+      "w": 3.493,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "PALISADE BROKEN",
+      "layer": "back",
+      "shadow": true
+    },
+    "env_palisade_end": {
+      "file": "prop_env_palisade_end.webp",
+      "w": 1.605,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "PALISADE END",
+      "layer": "back",
+      "shadow": true
+    },
+    "env_palisade_gate": {
+      "file": "prop_env_palisade_gate.webp",
+      "w": 1.56,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "PALISADE GATE",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_palisade_straight": {
+      "file": "prop_env_palisade_straight.webp",
+      "w": 3.703,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "PALISADE STRAIGHT",
+      "layer": "back",
+      "shadow": true
+    },
+    "env_signpost": {
+      "file": "prop_env_signpost.webp",
+      "w": 1.32,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "SIGNPOST",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_stone_wall_broken": {
+      "file": "prop_env_stone_wall_broken.webp",
+      "w": 2.941,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "STONE WALL BROKEN",
+      "layer": "back",
+      "shadow": true
+    },
+    "env_stone_wall_straight": {
+      "file": "prop_env_stone_wall_straight.webp",
+      "w": 2.99,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "STONE WALL STRAIGHT",
+      "layer": "back",
+      "shadow": true
+    },
+    "env_tent": {
+      "file": "prop_env_tent.webp",
+      "w": 4.4,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "TENT",
+      "layer": "back",
+      "shadow": true
+    },
+    "env_torch_body": {
+      "file": "prop_env_torch_body.webp",
+      "w": 0.204,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "TORCH BODY",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_torch_flame": {
+      "file": "prop_env_torch_flame.webp",
+      "w": 0.211,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "TORCH FLAME",
+      "layer": "mid",
+      "shadow": false
+    },
+    "env_torch_wall_holder": {
+      "file": "prop_env_torch_wall_holder.webp",
+      "w": 0.45,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "TORCH WALL HOLDER",
+      "layer": "mid",
+      "shadow": false
+    },
+    "env_wagon_intact": {
+      "file": "prop_env_wagon_intact.webp",
+      "w": 3.3,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "WAGON INTACT",
+      "layer": "mid",
+      "shadow": true
+    },
+    "env_wagon_wrecked": {
+      "file": "prop_env_wagon_wrecked.webp",
+      "w": 3.3,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "WAGON WRECKED",
+      "layer": "mid",
+      "shadow": true
+    },
+    "fg_branch_leaves": {
+      "file": "prop_fg_branch_leaves.webp",
+      "w": 5.5,
+      "anchor": [
+        0.02,
+        0.5
+      ],
+      "label": "BRANCH LEAVES (FRONT)",
+      "layer": "front",
+      "shadow": false,
+      "dark": 0,
+      "fade": true
+    },
+    "fg_chain": {
+      "file": "prop_fg_chain.webp",
+      "w": 0.4,
+      "anchor": [
+        0.5,
+        0.02
+      ],
+      "label": "CHAIN (FRONT)",
+      "layer": "front",
+      "shadow": false,
+      "dark": 0,
+      "fade": true
+    },
+    "fg_palisade_stakes": {
+      "file": "prop_fg_palisade_stakes.webp",
+      "w": 2.5,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "PALISADE STAKES (FRONT)",
+      "layer": "front",
+      "shadow": false,
+      "dark": 0,
+      "fade": true
+    },
+    "fg_rocks": {
+      "file": "prop_fg_rocks.webp",
+      "w": 5.0,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "ROCKS (FRONT)",
+      "layer": "front",
+      "shadow": false,
+      "dark": 0,
+      "fade": true
+    },
+    "fg_roots": {
+      "file": "prop_fg_roots.webp",
+      "w": 5.0,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "ROOTS (FRONT)",
+      "layer": "front",
+      "shadow": false,
+      "dark": 0,
+      "fade": true
+    },
+    "fg_skull_stake": {
+      "file": "prop_fg_skull_stake.webp",
+      "w": 1.3,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "SKULL STAKE (FRONT)",
+      "layer": "front",
+      "shadow": false,
+      "dark": 0,
+      "fade": true
+    },
+    "fg_tall_grass": {
+      "file": "prop_fg_tall_grass.webp",
+      "w": 4.0,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "TALL GRASS (FRONT)",
+      "layer": "front",
+      "shadow": false,
+      "dark": 0,
+      "fade": true
+    },
+    "fg_tattered_cloth": {
+      "file": "prop_fg_tattered_cloth.webp",
+      "w": 1.0,
+      "anchor": [
+        0.5,
+        0.02
+      ],
+      "label": "TATTERED CLOTH (FRONT)",
+      "layer": "front",
+      "shadow": false,
+      "dark": 0,
+      "fade": true
+    },
+    "fg_tree_trunk": {
+      "file": "prop_fg_tree_trunk.webp",
+      "w": 3.5,
+      "anchor": [
+        0.5,
+        0.99
+      ],
+      "label": "TREE TRUNK (FRONT)",
+      "layer": "front",
+      "shadow": false,
+      "dark": 0,
+      "fade": true
+    }
+  }
 }
