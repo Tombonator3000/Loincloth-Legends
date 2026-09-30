@@ -294,7 +294,7 @@ Slik gjør du det:
 
 Nye kulisser: velg et nytt navn (bare a-z, 0-9 og _), `prop_<navn>.png` eller `anim_<navn>_<kolonner>x<rader>.png`. De dukker opp i biblioteket i editoren.
 
-**Mange bilder på én gang.** Legg dem i en zip (eller en mappe) og kjør `python3 tools/process_art.py --fra <zip>`. Navnene trenger ikke være riktige: de gjøres om til små bokstaver med _ (æøå til ae, o og a), og et navn verktøyet ikke kjenner, blir `prop_<navn>`, eller `anim_<navn>_<K>x<R>` når det ender på `_<K>x<R>`. `python3 tools/prop_gallery.py` lager et galleri over alle kulissene i manifestet (`art/inbox/behandlet/galleri.png`).
+**Mange bilder på én gang.** Legg dem i en zip (eller en mappe) og kjør `python3 tools/process_art.py --fra <zip>`. Navnene trenger ikke være riktige: de gjøres om til små bokstaver med _ (æøå til ae, o og a), og et navn verktøyet ikke kjenner, blir `prop_<navn>`, eller `anim_<navn>_<K>x<R>` når det ender på `_<K>x<R>`. Nye kulisser får en høyde i meter og en animasjon ut fra ordene i navnet: `tree` blir 6,5 meter og svaier, `bush` 1,4 meter, `windmill_blades` 7 meter og snurrer, `flag` og `banner` bølger, `torch` og `lantern` flakker og lyser, `crow` flykter når helten kommer, `mushroom` gløder og `cloud` driver. `small` og `large` skalerer. Lista står i `HØYDER` og `gjett_anim` i `tools/process_art.py`, og alt kan endres i editoren. `python3 tools/prop_gallery.py` lager et galleri over alle kulissene i manifestet (`art/inbox/behandlet/galleri.png`).
 
 **Navn som hjelper editoren:**
 - Varianter av samme ting: samme navn med `_a`, `_b` eller `_1`, `_2` til slutt (`rock_1`, `rock_2`, `palisade_c`). V bytter mellom dem, og rader kan blande dem.

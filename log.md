@@ -511,3 +511,9 @@ Tom: GPT har laget 52 separate PNG-er med kontrollert gjennomsiktighet (variante
 - Ny test `tools/tests/prop-anim.mjs` (19 sjekker, alle grønne på første kjøring). editor.mjs teller nå ut fra brettfila. Sjekket i nettleseren at flagget bølger (to bilder med ulik form).
 - Tester: prop-anim (19), editor (19), prop-images (7, forventningen for kråka har fått react, siden plassholderen nå har den), forge-save (7 mot dev-serveren, sett i manifestet), particles, menus (18), riders, story, alle fem brettene til finalen, frostplay (15), looks for brett 1 og frosten, check_art_pack, typecheck og build. process_art prøvd med zip i en kopi av repoet.
 - Dokumentasjon: STAGE_FORGE (deler og sett, varianter, de nye animasjonene), ART_PROMPTS (navn for varianter, forgrunn og deler, zip-mottak, tøy og deler som beveger seg), ARCHITECTURE, skillene stage-forge og prop-art, tests/README, README, memory og todo.
+
+## 2026-09-30 21:05 (Europe/Oslo)
+Tom sendte en ChatGPT-lenke til samtalen der bildene ble laget, og skrev at han legger dem i repoet.
+- Lenken viser bare tittelen («Lag forslag til spillobjekter») uten innlogging, og backend-api/share svarer 403, så navn og beskrivelser må leses fra selve filene.
+- Fulgt med på repoet i rundt 30 minutter (git ls-remote hvert 15.-20. sekund, også PR-er): ingen nye commits eller grener ennå.
+- Mens jeg ventet: `process_art.py` gjetter nå høyden i meter (`HØYDER`, det siste ordet som passer, `small` og `large` skalerer) og animasjonen (`gjett_anim`) for nye kulissenavn: trær og busker svaier, flagg og bannere bølger, vinger og hjul snurrer, lykter og skilt svinger, fakler og bål flakker og lyser, fugler flykter, sopp og krystaller gløder, skyer og tåke driver. Røyk driver ikke og lyser ikke. Prøvd med zip-en fra sandkassen: `windmill_blades` ble 7 meter med SPIN, `foreground_fern` 1,3 meter i FRONT med SWAY, og check_art_pack er grønn.

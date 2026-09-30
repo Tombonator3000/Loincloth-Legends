@@ -23,7 +23,7 @@ Bilder kan også dras rett inn i editoren med de samme filnavnene. Da vises de m
 - `<navn>` har bare a-z, 0-9 og _ (ikke æ, ø eller å), høyst 40 tegn. Et feil navn stopper hele kjøringen, og ingenting flyttes.
 - Samme navn som en plassholder i `src/gfx/props/catalog.ts` tar over for den og beholder mål, lys, flammer og bevegelse: palisade_a, palisade_b, tent_red, tent_purple, signpost, signpost_sign, roadpost, skullpike, tree_front_oak, bush_front, cart, banner_red, banner_purple, crow, torch. Et navn fra 3D-rekvisittene (brazier, rock, tree_oak ...) bytter 3D-modellen mot bildet.
 - Et stillbilde i stedet for en bildeserie (`prop_torch.png`) mister bildeserien, men beholder lyset og flammene. En bildeserie får farten plassholderen hadde, ellers 10 bilder i sekundet i løkke.
-- Nye navn får bredde ut fra formen (1, 1,6 eller 3 meter) og fotpunkt nederst på midten. Juster i editoren.
+- Nye navn får høyde i meter og animasjon ut fra ordene i navnet (`HØYDER` og `gjett_anim` i `tools/process_art.py`: tre, busk, stein, telt, fakkel, flagg, vinger, kråke ...), ellers bredde ut fra formen (1, 1,6 eller 3 meter). Fotpunkt nederst på midten. Juster i editoren.
 - I manifestet står rutenettet som `grid` og `n` (hører til bildet). `anim` i manifestet er hele animasjonslista og går foran plassholderens (se `imageKind` i catalog.ts).
 
 ## Varianter, forgrunn og deler

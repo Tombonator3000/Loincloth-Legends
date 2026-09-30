@@ -32,7 +32,9 @@ Stopper uten å flytte noe hvis et bilde ikke kunne behandles.
 Bilder med andre navn (en zip eller mappe fra ChatGPT): --fra <zip eller mappe> legger dem i innboksen først. Navnene
 gjøres om til små bokstaver med _ (æ blir ae, ø blir o, å blir a), og et navn verktøyet ikke kjenner, blir en kulisse:
 prop_<navn>, eller anim_<navn>_<K>x<R> når det ender på _<K>x<R>. Kulisser med front eller foreground i navnet legges
-i FRONT, far, distant eller background i FAR, og back i BACK (kan endres i editoren).
+i FRONT, far, distant eller background i FAR, og back i BACK. Nye kulisser får også en høyde i meter og en animasjon
+ut fra ordene i navnet (HØYDER og gjett_anim: tøy bølger, vinger snurrer, flammer flakker, fugler flykter, trær
+svaier). Alt kan endres i editoren.
 
 Krever Pillow:  pip install pillow
 Bruk:           python3 tools/process_art.py          tar imot alt i innboksen
@@ -319,6 +321,62 @@ def behandle_ark(im, kol, rad, navn):
     return ut, n, (fw + 4, fh + 4)
 
 
+# Høyde i meter for kulisser med disse ordene i navnet. Det siste ordet som finnes, vinner (windmill_blades er vinger,
+# wall_torch er en fakkel), og bredden blir høyden ganger formen på bildet. small og large skalerer. Justeres i editoren.
+HØYDER = {
+    'tree': 6.5, 'oak': 7, 'pine': 8, 'birch': 7, 'willow': 6, 'trunk': 6, 'crown': 5, 'canopy': 5,
+    'bush': 1.4, 'shrub': 1.3, 'bramble': 1.4, 'brambles': 1.4, 'fern': 1.0, 'ferns': 1.0, 'grass': 0.7, 'reeds': 1.3,
+    'flowers': 0.5, 'mushroom': 0.6, 'mushrooms': 0.6, 'rock': 1.1, 'rocks': 1.0, 'boulder': 1.8, 'stone': 1.0,
+    'stones': 0.7, 'crystal': 1.2, 'crystals': 1.2, 'fence': 1.4, 'palisade': 3.2, 'wall': 3.5, 'gate': 4.0, 'door': 2.4,
+    'bridge': 2.5, 'tent': 3.0, 'banner': 2.6, 'flag': 1.0, 'cloth': 1.0, 'pennant': 0.8, 'pole': 3.4, 'flagpole': 3.4,
+    'sign': 0.9, 'signpost': 2.6, 'post': 2.4, 'lamppost': 2.8, 'lantern': 0.55, 'lamp': 0.55, 'torch': 1.6,
+    'candle': 0.3, 'candles': 0.4, 'brazier': 1.2, 'campfire': 0.8, 'fire': 1.0, 'flame': 0.8, 'smoke': 2.0,
+    'barrel': 1.0, 'barrels': 1.1, 'crate': 0.8, 'crates': 1.2, 'box': 0.8, 'sack': 0.7, 'sacks': 0.8, 'chest': 0.7,
+    'pot': 0.6, 'jar': 0.5, 'cart': 1.9, 'wagon': 2.3, 'wheel': 1.2, 'skull': 0.3, 'skulls': 0.5, 'bones': 0.4,
+    'skeleton': 1.8, 'pike': 2.6, 'stake': 2.6, 'spike': 1.2, 'spikes': 1.2, 'gallows': 4.5, 'cage': 1.6, 'chain': 1.4,
+    'chains': 1.4, 'rope': 1.2, 'hut': 4.5, 'house': 6.0, 'cabin': 4.5, 'shack': 4.0, 'tower': 12, 'watchtower': 9,
+    'castle': 20, 'ruin': 4, 'ruins': 4, 'pillar': 4, 'column': 4, 'arch': 5, 'statue': 3, 'totem': 3.5, 'altar': 1.3,
+    'tomb': 2, 'grave': 1.1, 'gravestone': 1.1, 'tombstone': 1.1, 'cross': 1.8, 'well': 2.4, 'windmill': 9, 'mill': 8,
+    'blades': 7, 'sails': 7, 'mountain': 40, 'mountains': 40, 'hill': 15, 'hills': 15, 'cliff': 20, 'cloud': 5,
+    'clouds': 6, 'fog': 3, 'mist': 3, 'crow': 0.35, 'raven': 0.4, 'bird': 0.35, 'bat': 0.3, 'rat': 0.25, 'chicken': 0.5,
+    'vulture': 0.7, 'log': 0.6, 'logs': 0.8, 'stump': 0.7, 'roots': 1.0, 'vines': 3.0, 'ivy': 3.0, 'web': 1.2,
+    'cobweb': 1.2, 'sword': 1.2, 'axe': 1.1, 'spear': 2.2, 'shield': 0.8, 'rack': 1.8, 'anvil': 0.8,
+}
+SKALA = {'tiny': 0.4, 'small': 0.6, 'little': 0.6, 'large': 1.5, 'big': 1.5, 'huge': 2.2, 'giant': 2.2, 'tall': 1.4}
+
+
+def gjett_høyde(navn):
+    """Høyden i meter ut fra navnet (se HØYDER), eller None."""
+    ord_ = navn.split('_')
+    treff = [HØYDER[o] for o in ord_ if o in HØYDER]
+    if not treff: return None
+    h = treff[-1]
+    for o in ord_:
+        h *= SKALA.get(o, 1)
+    return h
+
+
+def gjett_anim(navn):
+    """Animasjoner ut fra navnet: tøy bølger, vinger snurrer, lykter svinger, flammer flakker og lyser, fugler flykter,
+    trær og busker svaier, sopp og krystaller gløder, skyer og tåke driver. None når ingenting passer."""
+    o = set(navn.split('_'))
+    a = []
+    if o & {'flag', 'pennant'}: a.append({'type': 'wave', 'amount': 0.12, 'speed': 0.9, 'length': 0.8, 'from': 'left'})
+    elif o & {'banner', 'cloth', 'curtain', 'tapestry', 'laundry', 'rag', 'rags', 'cape', 'hide'}: a.append({'type': 'wave', 'amount': 0.1, 'speed': 0.7, 'length': 0.9, 'from': 'top'})
+    if o & {'blades', 'sails', 'wheel', 'waterwheel', 'fan'}: a.append({'type': 'spin', 'speed': 0.12, 'pivot': [0.5, 0.5]})
+    if o & {'lantern', 'lamp', 'sign', 'cage', 'chain', 'chains', 'hanging'} and not o & {'lamppost', 'signpost', 'post'}: a.append({'type': 'swing', 'amount': 6, 'speed': 0.5, 'pivot': [0.5, 0.02]})
+    if o & {'torch', 'brazier', 'campfire', 'fire', 'flame', 'flames', 'candle', 'candles', 'lantern', 'lamp', 'lamppost'} and 'smoke' not in o:
+        a.append({'type': 'flicker', 'amount': 0.3, 'speed': 9, 'light': '#ffa040', 'intensity': 7, 'range': 7, 'at': [0.5, 0.2]})
+    if o & {'crow', 'raven', 'bird', 'birds', 'bat', 'vulture'}:
+        a += [{'type': 'bob', 'amount': 0.04, 'speed': 0.7}, {'type': 'react', 'on': 'any', 'radius': 3.5, 'effect': 'flee', 'back': 10}]
+    elif o & {'rat', 'rats', 'chicken', 'frog', 'cat'}: a.append({'type': 'react', 'on': 'any', 'radius': 2.5, 'effect': 'flee', 'back': 8})
+    if o & {'tree', 'oak', 'pine', 'birch', 'willow', 'crown', 'canopy'}: a.append({'type': 'sway', 'amount': 0.3, 'speed': 1})
+    elif o & {'bush', 'shrub', 'bramble', 'brambles', 'fern', 'ferns', 'grass', 'reeds', 'flowers', 'vines', 'ivy', 'weeds'}: a.append({'type': 'sway', 'amount': 0.8, 'speed': 1})
+    if o & {'mushroom', 'mushrooms', 'crystal', 'crystals', 'rune', 'runes', 'glowing', 'glow', 'orb', 'embers'}: a.append({'type': 'pulse', 'amount': 0.02, 'speed': 0.5, 'glow': 0.4})
+    if o & {'cloud', 'clouds', 'fog', 'mist'}: a.append({'type': 'drift', 'speed': 0.3, 'range': 40})
+    return a or None
+
+
 def gjett_lag(navn):
     """Laget ut fra ordene i navnet (front_bush, distant_mountain ...), eller None for MID."""
     ord_ = set(navn.split('_'))
@@ -338,11 +396,15 @@ def kulisse_i_manifestet(man, navn, fil, størrelse, ark, kjente):
         meta = props[navn] = {'file': fil}
         if navn not in kjente:
             fw, fh = størrelse; form = fw / fh
-            meta['w'] = 3 if form > 1.6 else 1 if form < .5 else 1.6
+            h = gjett_høyde(navn)
+            meta['w'] = round(max(0.1, h * form) * 20) / 20 if h else (3 if form > 1.6 else 1 if form < .5 else 1.6)
             meta['anchor'] = [0.5, 0.99]
             meta['label'] = navn.upper().replace('_', ' ')
             lag = gjett_lag(navn)
             if lag: meta['layer'] = lag
+            anim = gjett_anim(navn)
+            if anim: meta['anim'] = anim
+            if set(navn.split('_')) & {'cloud', 'clouds', 'fog', 'mist', 'smoke'}: meta['shadow'] = False
     meta['file'] = fil
     if ark:
         meta['grid'], meta['n'] = [ark[0], ark[1]], ark[2]
