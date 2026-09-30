@@ -19,11 +19,13 @@ export class Hazard {
     return HAZARDS[this.def.kind];
   }
 
-  /** Er punktet inne i faren? Pøler er ovale, piggfeller firkantede. */
+  /** Er punktet inne i faren? Pøler er ovale, piggfeller og juv firkantede. */
   contains(x: number, z: number, pad = 0) {
     const d = this.def;
     const hx = d.w / 2 + pad, hz = d.d / 2 + pad;
     if (d.kind === 'spiketrap') return Math.abs(x - d.x) < hx && Math.abs(z - d.z) < hz;
+    // Juvet går bakover forbi kampfeltet, så alt bak forkanten er inne
+    if (d.kind === 'chasm') return Math.abs(x - d.x) < hx && z < d.z + hz;
     const u = (x - d.x) / hx, v = (z - d.z) / hz;
     return u * u + v * v <= 1;
   }
@@ -57,6 +59,11 @@ export class Hazard {
   /** Skyv en gående figur ut til kanten (fiender går rundt farene). */
   pushOut(f: Fighter, zLimit = 2.5) {
     const d = this.def;
+    // Juvet: bare forkanten fører ut (bak er dypet)
+    if (d.kind === 'chasm') {
+      f.pos.z = d.z + d.d / 2 + 0.06;
+      return;
+    }
     let ux = f.pos.x - d.x, uz = f.pos.z - d.z;
     if (Math.abs(ux) + Math.abs(uz) < 1e-3) uz = 0.01;
     const hx = d.w / 2 + 0.25, hz = d.d / 2 + 0.25;
@@ -114,6 +121,17 @@ export class Hazard {
         audio.splash();
         audio.iceCrack();
         for (let i = 0; i < 26; i++) W.gore.ambient(f.pos.x + rand(-0.4, 0.4), 0.2, f.pos.z + rand(-0.3, 0.3), rand(-2.5, 2.5), rand(3, 7), pick(['#ffffff', '#bfe3ff', '#6fa8dc']), rand(0.1, 0.24), 1, false, 16);
+        break;
+      case 'chasm':
+        // Ned i dypet: faller fortere og fortere og skriker hele veien, og et dunk langt der nede
+        f.die('normal', dir, killer);
+        f.collapseT = 0.15;
+        f.sinkRate = 1.2;
+        f.sinkAcc = 16;
+        f.sinkDepth = 11;
+        audio.scream(f.def.voice);
+        W.gore.dust(new THREE.Vector3(f.pos.x, 0.1, this.def.z + this.def.d / 2), 10);
+        W.gore.later(1.3, () => audio.thud(0.6, true));
         break;
       case 'lava':
         f.die('normal', dir, killer);

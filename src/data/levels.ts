@@ -95,7 +95,8 @@ export const LEVELS: Record<string, LevelDef> = {
       w(90, 6, 'troll:R:0.3 troll:L:1.2 frostskel:R:1.8 frostskel:L:2.4 cultist:R:3.0 gnome:R:3.4', { title: 'AVALANCHE OF IDIOTS!' }),
     ],
     barrels: [[20, 'chicken'], [48, 'potion'], [74, 'gold'], [100, 'ham']],
-    hazards: [hz('icehole', 23, -1.7, 2.8, 1.4), hz('icehole', 49, 1.7, 2.8, 1.4), hz('icehole', 76, -1.7, 2.8, 1.4), hz('icehole', 102, 1.7, 2.6, 1.4)],
+    // Juvet (konseptbilde 4): kast fiendene over taugjerdet og ned i dypet
+    hazards: [hz('icehole', 23, -1.7, 2.8, 1.4), hz('chasm', 37, -2.0, 9, 1.4), hz('icehole', 49, 1.7, 2.8, 1.4), hz('icehole', 76, -1.7, 2.8, 1.4), hz('chasm', 90, -2.0, 10, 1.4), hz('icehole', 102, 1.7, 2.6, 1.4)],
     riders: [[1, 'frostskel', 'warhog'], [2, 'frostskel', 'cluckatrice']],
     finale: { type: 'duel', duelist: 'kaldor' }, gateTitle: 'THE FROZEN PIT >>>', gateSub: 'KALDOR AWAITS. BRING A SCARF.',
   },

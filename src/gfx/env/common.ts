@@ -12,6 +12,7 @@ import { SunShadow } from './sun';
 import { screenFX } from '../screenfx';
 import { STAGE_CAM } from '../stagecam';
 import { withSurface, type SurfaceOpts } from './surface';
+import type { Hole } from '../../data/hazards';
 import { groundTexture, roadTexture, stoneTexture, tileTexture, sandTexture, woodTexture, lavaRockTexture, imageTexture } from './textures';
 
 // ---------------------------------------------------------------- materialer
@@ -238,8 +239,18 @@ export interface Env {
   fires?: THREE.Vector3[];
   /** Fossene (satt av waterfall() i props.ts). Fossesuset blir sterkere nær dem. */
   waters?: THREE.Vector3[];
+  /** Ting som kan veltes (fyrfatene i props.ts). Stage velter dem når slag, kastede fiender eller bakkeslag treffer. */
+  tippables?: Tippable[];
   /** Regn, 0..1: vanndråper treffer glasset og renner (gfx/screenwet.ts). Ingen brett har regn ennå. */
   rain?: number;
+}
+
+/** Noe som kan veltes (et fyrfat). tip() gir hvor glørne havner og hvor lenge de brenner, eller null om det alt er veltet. */
+export interface Tippable {
+  x: number;
+  z: number;
+  tipped: boolean;
+  tip(): { x: number; z: number; t: number } | null;
 }
 
 export interface Look {
@@ -257,6 +268,42 @@ export interface Look {
   biome?: string;
   /** Fysisk himmel i stedet for fargeovergangen (dagbrettene). */
   atmosphere?: Atmosphere;
+  /** Hull i bakken og veien (juvet, se data/hazards.ts). */
+  holes?: Hole[];
+}
+
+/**
+ * Flatt plan i xz sett ovenfra (W langs x, H langs z, midt i cx, cz) med firkantede hull, laget av rektangler med
+ * samme UV som ett helt plan, så teksturen går i ett. Brukes når et brett har juv.
+ */
+function holedPlane(W: number, H: number, cx: number, cz: number, holes: Hole[]) {
+  const xmin = cx - W / 2, xmax = cx + W / 2, zmin = cz - H / 2, zmax = cz + H / 2;
+  const rects: [number, number, number, number][] = [];
+  const hs = holes.filter((h) => h.x1 > xmin && h.x0 < xmax && h.z1 > zmin && h.z0 < zmax).sort((a, b) => a.x0 - b.x0);
+  let x = xmin;
+  for (const h of hs) {
+    const a = Math.max(x, h.x0), b = Math.min(xmax, h.x1);
+    if (a > x) rects.push([x, a, zmin, zmax]);
+    if (h.z0 > zmin) rects.push([a, b, zmin, Math.min(zmax, h.z0)]);
+    if (h.z1 < zmax) rects.push([a, b, Math.max(zmin, h.z1), zmax]);
+    x = Math.max(x, b);
+  }
+  if (x < xmax) rects.push([x, xmax, zmin, zmax]);
+  const pos: number[] = [], uv: number[] = [], idx: number[] = [];
+  for (const [x0, x1, z0, z1] of rects) {
+    const i = pos.length / 3;
+    for (const [px, pz] of [[x0, z1], [x1, z1], [x1, z0], [x0, z0]]) {
+      pos.push(px - cx, 0, pz - cz);
+      uv.push((px - xmin) / W, (zmax - pz) / H);
+    }
+    idx.push(i, i + 1, i + 2, i, i + 2, i + 3);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx);
+  g.computeVertexNormals();
+  return g;
 }
 
 /** Himmel, lys, bakke og vei. Returnerer gruppen og en liste med oppdateringsfunksjoner. */
@@ -296,14 +343,20 @@ export function stageBase(scene: THREE.Scene, length: number, look: Look) {
 
   // Ett bilde dekker 5 x 5 enheter (omtrent 3.5 x 3.5 meter), så teksturer fra ChatGPT blir ikke strukket
   look.ground.repeat.set((length + 140) / 5, 12);
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(length + 140, 60), toon('#ffffff', look.ground));
-  ground.rotation.x = -Math.PI / 2;
+  const holes = look.holes ?? [];
+  // Med juv lages bakken og veien av rektangler rundt hullene (samme tekstur og UV som et helt plan)
+  const flat = (W: number, H: number, cx: number, cz: number) => {
+    if (holes.length) return holedPlane(W, H, cx, cz, holes);
+    const p = new THREE.PlaneGeometry(W, H);
+    p.rotateX(-Math.PI / 2);
+    return p;
+  };
+  const ground = new THREE.Mesh(flat(length + 140, 60, length / 2, -18), toon('#ffffff', look.ground));
   ground.position.set(length / 2, 0, -18);
   ground.userData.noCast = true;
   g.add(ground);
   look.road.repeat.set((length + 60) / 10, 1);
-  const road = new THREE.Mesh(new THREE.PlaneGeometry(length + 60, 8.4), lit({ map: look.road, alphaTest: 0.5 }));
-  road.rotation.x = -Math.PI / 2;
+  const road = new THREE.Mesh(flat(length + 60, 8.4, length / 2, 0), lit({ map: look.road, alphaTest: 0.5 }));
   road.position.set(length / 2, 0.004, 0);
   road.userData.noCast = true;
   g.add(road);
@@ -417,6 +470,7 @@ export function finishEnv(g: THREE.Group, updates: ((dt: number, t: number, camX
     grade,
     fires: g.userData.fires as THREE.Vector3[] | undefined,
     waters: g.userData.waters as THREE.Vector3[] | undefined,
+    tippables: g.userData.tippables as Tippable[] | undefined,
     update(dt, t, camX) {
       for (const u of updates) u(dt, t, camX);
     },

@@ -2,6 +2,7 @@
 import type * as THREE from 'three';
 import type { Gore } from '../gore';
 import type { Env } from './common';
+import type { Hole } from '../../data/hazards';
 import { buildGrass } from './grass';
 import { buildSwamp } from './swamp';
 import { buildFrost } from './frost';
@@ -16,6 +17,8 @@ export interface StageEnvOpts {
   gateSub?: string;
   bossX?: number;
   bossSign?: string;
+  /** Hull i bakken og veien (juvet langs bakkanten, data/hazards.ts). Miljøet lar dem stå åpne og holder rekvisitter unna. */
+  holes?: Hole[];
 }
 export type StageBuilder = (scene: THREE.Scene, gore: Gore, o: StageEnvOpts) => Env;
 

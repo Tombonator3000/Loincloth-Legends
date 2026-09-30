@@ -287,7 +287,7 @@ varying vec2 vUv;
 void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
 
 // ---------------------------------------------------------------- lyspool
-interface LightSource { pos: THREE.Vector3; color: THREE.Color; intensity: number; range: number; flicker: number; ph: number }
+export interface LightSource { pos: THREE.Vector3; color: THREE.Color; intensity: number; range: number; flicker: number; ph: number }
 interface Flash { pos: THREE.Vector3; color: THREE.Color; intensity: number; range: number; t: number; dur: number }
 /** Et punktlys og hvem som har det: en fast kilde (med toning w) eller et glimt. */
 interface Slot { light: THREE.PointLight; src: LightSource | null; fl: Flash | null; w: number; want: boolean; d: number }
@@ -332,9 +332,11 @@ export class LightPool {
     }
   }
 
-  /** Fast lyskilde (fakkel, fyrfat, lavasprekk). flicker 0..1. */
-  source(pos: THREE.Vector3, color: THREE.ColorRepresentation, intensity: number, range = 10, flicker = 0.3) {
-    this.sources.push({ pos: pos.clone(), color: new THREE.Color(color), intensity, range, flicker, ph: Math.random() * 100 });
+  /** Fast lyskilde (fakkel, fyrfat, lavasprekk). flicker 0..1. Gir kilden, så den kan flyttes (et fyrfat som veltes). */
+  source(pos: THREE.Vector3, color: THREE.ColorRepresentation, intensity: number, range = 10, flicker = 0.3): LightSource {
+    const src = { pos: pos.clone(), color: new THREE.Color(color), intensity, range, flicker, ph: Math.random() * 100 };
+    this.sources.push(src);
+    return src;
   }
 
   /** Kort lysglimt. */

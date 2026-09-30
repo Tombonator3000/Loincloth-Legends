@@ -15,8 +15,12 @@ import { brazier, warBanner, runeStone, cliff, waterfall, ropeBridge, icicles, r
 
 export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env {
   const L = o.length;
+  // Juvet langs bakkanten (data/hazards.ts): hull i bakken, og rekvisittene holdes unna
+  const holes = o.holes ?? [];
+  const inHole = (x: number, z: number, pad = 0.8) => holes.some((h) => x > h.x0 - pad && x < h.x1 + pad && z > h.z0 - pad && z < h.z1 + pad);
   const { g, updates } = stageBase(scene, L, {
     biome: 'frost',
+    holes,
     // Himmellyset kommer høyt og litt bakfra: korte, myke skygger. Faklene står for det varme lyset.
     sunDir: [0.25, 0.9, -0.4],
     sky: ['#0e1a36', '#34507e', '#8aa2c4'], bg: '#34496a', fog: ['#56708f', 24, 92],
@@ -68,7 +72,8 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   // Småfuruer helt fremme: så nær kameraet at bare toppene stikker opp nederst i bildet
   for (let x = 4; x < L; x += rand(16, 24)) pines.add(x, rand(6.6, 7.2), rand(0.14, 0.2));
   g.add(pines.build());
-  const frostGrass = new Meadow({ bands: [[4.4, 7.5, 3], [-7, -4.4, 3]], height: [0.18, 0.4], base: '#4a5a62', tip: '#d4e0ea', dry: '#b8c4ce', blades: 3 });
+  // Gresset bak står bak juvet (hullet går til z -5.2)
+  const frostGrass = new Meadow({ bands: [[4.4, 7.5, 3], [holes.length ? -7.4 : -7, holes.length ? -5.5 : -4.4, 3]], height: [0.18, 0.4], base: '#4a5a62', tip: '#d4e0ea', dry: '#b8c4ce', blades: 3 });
   g.add(frostGrass.mesh);
   const mist = fogLayers(g, L, '#8aa2c2', [
     { z: -7, h: 3, opacity: 0.28, drift: 1.4 },
@@ -83,9 +88,18 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
 
   // Langs veien bak: fyrfat med ild, krigsbannere, hodeskaller på stake og runesteiner
   const flames: THREE.Vector3[] = [];
-  for (let x = 5; x < L - 3; x += rand(11, 15)) flames.push(brazier(g, gore, x, rand(-3.9, -3.5), rand(2.1, 2.5)));
-  for (let x = 12; x < L - 6; x += rand(22, 30)) warBanner(g, updates, x, rand(-5.4, -4.8), rand(5, 5.8));
-  for (let x = 20; x < L; x += rand(20, 28)) skullPike(g, gore, x, rand(-4.4, -3.8));
+  for (let x = 5; x < L - 3; x += rand(11, 15)) {
+    const z = rand(-3.9, -3.5);
+    if (!inHole(x, z)) flames.push(brazier(g, gore, updates, x, z, rand(2.1, 2.5)));
+  }
+  for (let x = 12; x < L - 6; x += rand(22, 30)) {
+    const z = rand(-5.4, -4.8);
+    if (!inHole(x, z)) warBanner(g, updates, x, z, rand(5, 5.8));
+  }
+  for (let x = 20; x < L; x += rand(20, 28)) {
+    const z = rand(-4.4, -3.8);
+    if (!inHole(x, z)) skullPike(g, gore, x, z);
+  }
   let runeN = 0;
   for (let x = 9; x < L; x += rand(16, 24)) runeStone(g, x, rand(-7.5, -5.8), rand(2.4, 3.4), runeN++ % 3 === 1);
   for (let x = 30; x < L; x += rand(36, 50)) runeStone(g, x, rand(-11, -9.5), rand(4, 5), true);
@@ -93,6 +107,7 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   // Iskrystaller langs kantene
   for (let x = 0; x < L; x += rand(7, 13)) {
     const z = pick([rand(3.6, 5.4), rand(-5.5, -4.2)]);
+    if (inHole(x, z, 1.2)) continue;
     for (let k = 0; k < 3; k++) {
       const s = z > 0 ? rand(0.12, 0.3) : rand(0.3, 0.7);
       const cr = M(new THREE.OctahedronGeometry(s, 0), '#bfe8ff', x + rand(-0.6, 0.6), s * 0.9, z + rand(-0.3, 0.3), 0.06, undefined, '#3a6a8a');
@@ -105,6 +120,7 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   // Frosne krigere i isblokker, med istapper langs kanten
   for (let x = 18; x < L; x += rand(34, 46)) {
     const z = rand(-6.4, -5.6);
+    if (inHole(x, z, 1.5)) continue;
     const sk = skull3D(0.55);
     sk.position.set(x, 1.3, z);
     g.add(sk);
@@ -123,10 +139,16 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   g.add(tw);
   icicles(g, L * 0.35 - 1.3, L * 0.35 + 1.3, 5.85, -8.6, 5, 0.5);
 
-  for (let x = 0; x < L; x += rand(6, 12)) rock(g, x, pick([rand(4, 6), rand(-6.5, -4.2)]), rand(0.4, 1.0), ['#8a96a6', '#a4b0c0'], 0.9);
+  for (let x = 0; x < L; x += rand(6, 12)) {
+    const z = pick([rand(4, 6), rand(-6.5, -4.2)]);
+    if (!inHole(x, z, 1)) rock(g, x, z, rand(0.4, 1.0), ['#8a96a6', '#a4b0c0'], 0.9);
+  }
   // Taugjerde foran veien her og der (kanten av juvet)
   for (let x = 14; x < L - 6; x += rand(26, 36)) ropeFence(g, x, x + rand(5, 9), rand(4.3, 4.7));
-  for (let i = 0; i < L / 5; i++) gore.stain(rand(0, L), rand(-2.4, 2.4), rand(0.3, 0.9));
+  for (let i = 0; i < L / 5; i++) {
+    const x = rand(0, L), z = rand(-2.4, 2.4);
+    if (!inHole(x, z, 0.3)) gore.stain(x, z, rand(0.3, 0.9));
+  }
 
   if (o.finale === 'duel') endGate(g, gore, L - 4, o.gateTitle ?? 'THE FROZEN PIT >>>', o.gateSub ?? 'BRING A SCARF', '#8aa0b8', '#1a3a6a');
   if (o.finale === 'boss' && o.bossX !== undefined) bossMarker(g, gore, o.bossX - 3, o.bossSign ?? 'NO RETURN');

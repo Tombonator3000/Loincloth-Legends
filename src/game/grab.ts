@@ -84,8 +84,11 @@ export function pummel(h: Fighter) {
   audio.swish(1.2);
 }
 
-/** Kast den du holder. dir = 1 (høyre) eller -1 (venstre). */
-export function throwHeld(h: Fighter, dir: number) {
+/**
+ * Kast den du holder. dir = 1 (høyre) eller -1 (venstre). dz = -1 (opp, bakover) eller 1 (ned, forover) kaster
+ * i dybden, for eksempel over taugjerdet og ned i juvet.
+ */
+export function throwHeld(h: Fighter, dir: number, dz = 0) {
   const t = h.holding;
   if (!t) return;
   h.holding = null;
@@ -96,7 +99,8 @@ export function throwHeld(h: Fighter, dir: number) {
   t.thrownBy = h;
   t.data.bowled = [] as number[];
   t.pos.set(h.pos.x + dir * 0.6, 1.1, h.pos.z);
-  t.knockdown(dir * 10.5, 6.2);
+  t.knockdown(dir * (dz ? 5 : 10.5), dz ? 7 : 6.2);
+  if (dz) t.vel.z = Math.sign(dz) * 6;
   t.facing = -dir;
   t.invuln = 0;
   audio.swish(0.7, true);
@@ -106,9 +110,9 @@ export function throwHeld(h: Fighter, dir: number) {
 
 /**
  * Oppdater holdet for en helt: angrep = kne (tre ganger og han kastes), retning + angrep, hopp eller grip = kast.
- * Returnerer true når holdet håndterte input denne framen.
+ * Opp eller ned kaster i dybden (az). Returnerer true når holdet håndterte input denne framen.
  */
-export function updateHold(h: Fighter, dt: number, ax: number, attack: boolean, toss: boolean) {
+export function updateHold(h: Fighter, dt: number, ax: number, az: number, attack: boolean, toss: boolean) {
   const t = h.holding;
   if (!t || !t.alive || t.state !== 'held') {
     if (h.state === 'hold') h.setState('idle');
@@ -124,11 +128,11 @@ export function updateHold(h: Fighter, dt: number, ax: number, attack: boolean, 
     return true;
   }
   if (toss) {
-    throwHeld(h, ax !== 0 ? Math.sign(ax) : h.facing);
+    throwHeld(h, ax !== 0 ? Math.sign(ax) : h.facing, az);
     return true;
   }
   if (attack) {
-    if (ax !== 0) throwHeld(h, Math.sign(ax));
+    if (ax !== 0 || az !== 0) throwHeld(h, ax !== 0 ? Math.sign(ax) : h.facing, az);
     else if (((h.data.pummels as number) ?? 0) >= 2) {
       pummel(h);
       if (h.holding?.alive) throwHeld(h, h.facing);

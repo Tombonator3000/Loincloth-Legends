@@ -9,7 +9,8 @@ import { rand } from '../../core/math';
 import type { Gore } from '../gore';
 import { screenFX } from '../screenfx';
 import { wind } from '../wind';
-import { lit, toon, staticGroup, canvasTex, stoneTex } from './common';
+import { lit, toon, staticGroup, mergeStatic, canvasTex, stoneTex, type Tippable } from './common';
+import { audio } from '../../core/audio';
 
 type Updates = ((dt: number, t: number, camX: number) => void)[];
 
@@ -36,16 +37,46 @@ function rod(a: THREE.Vector3, b: THREE.Vector3, r: number, m: THREE.Material, s
 }
 
 // ---------------------------------------------------------------- fyrfat
+/** Så lenge glørne brenner på bakken etter at et fyrfat er veltet (sekunder). */
+export const EMBER_LIFE = 8;
+
+let emberTex: THREE.Texture | null = null;
+/** Glør på bakken: mørk aske med oransje og gule punkter som gløder (brukes som emisjon). */
+function emberTexture() {
+  if (emberTex) return emberTex;
+  emberTex = canvasTex(plainCanvas(128, 128, (c) => {
+    const gr = c.createRadialGradient(64, 64, 4, 64, 64, 62);
+    gr.addColorStop(0, 'rgba(255,150,40,0.9)');
+    gr.addColorStop(0.5, 'rgba(160,50,10,0.7)');
+    gr.addColorStop(1, 'rgba(20,8,4,0)');
+    c.fillStyle = gr;
+    c.fillRect(0, 0, 128, 128);
+    for (let i = 0; i < 70; i++) {
+      const a = Math.random() * Math.PI * 2, r = Math.pow(Math.random(), 0.7) * 54;
+      c.fillStyle = Math.random() < 0.5 ? 'rgba(255,220,120,0.95)' : 'rgba(255,110,20,0.9)';
+      c.beginPath();
+      c.arc(64 + Math.cos(a) * r, 64 + Math.sin(a) * r, rand(1.5, 4.5), 0, Math.PI * 2);
+      c.fill();
+    }
+  }), false);
+  return emberTex;
+}
+
 /**
  * Fyrfat: jernkurv med pigger på en stolpe, med glødende kull. Lyset går via lyspoolen, lufta over dirrer, og
  * stemningen knitrer nær det (Env.fires). Returnerer punktet flammene skal komme fra (gore.fire i miljøets update).
+ * Fyrfatet kan veltes (Env.tippables, Stage velter det når noe treffer det): det faller mot kampfeltet, og
+ * flammene, lyset og varmen flytter seg til glørne som renner ut på bakken og brenner en stund.
  */
-export function brazier(g: THREE.Group, gore: Gore, x: number, z: number, h = 2.3): THREE.Vector3 {
-  const sg = staticGroup(g);
+export function brazier(g: THREE.Group, gore: Gore, updates: Updates, x: number, z: number, h = 2.3): THREE.Vector3 {
+  // Egen gruppe med foten i origo, så hele fyrfatet kan vippe rundt foten. Delene slås sammen til to mesher.
+  const bz = new THREE.Group();
+  bz.position.set(x, 0, z);
+  const sg = staticGroup(bz);
   const iron = ironMat();
-  const at = (px: number, py: number, pz: number) => new THREE.Vector3(x + px, py, z + pz);
+  const at = (px: number, py: number, pz: number) => new THREE.Vector3(px, py, pz);
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.065, h, 6), iron);
-  pole.position.set(x, h / 2, z);
+  pole.position.set(0, h / 2, 0);
   sg.add(pole);
   // Tre korte føtter
   for (let i = 0; i < 3; i++) {
@@ -57,25 +88,85 @@ export function brazier(g: THREE.Group, gore: Gore, x: number, z: number, h = 2.
   for (const [y, r] of [[bot, rb], [top, rt], [bot + 0.26, (rb + rt) / 2]]) {
     const ring = new THREE.Mesh(new THREE.TorusGeometry(r, 0.022, 4, 14), iron);
     ring.rotation.x = Math.PI / 2;
-    ring.position.set(x, y, z);
+    ring.position.set(0, y, 0);
     sg.add(ring);
   }
   for (let i = 0; i < 10; i++) {
     const a = (i / 10) * Math.PI * 2;
     sg.add(rod(at(Math.cos(a) * rb, bot, Math.sin(a) * rb), at(Math.cos(a) * rt, top, Math.sin(a) * rt), 0.016, iron, 4));
     const spike = new THREE.Mesh(new THREE.ConeGeometry(0.022, 0.18, 4), iron);
-    spike.position.set(x + Math.cos(a) * rt, top + 0.09, z + Math.sin(a) * rt);
+    spike.position.set(Math.cos(a) * rt, top + 0.09, Math.sin(a) * rt);
     sg.add(spike);
   }
   // Glødende kull i kurven (sterk emisjon, så bloom tar det)
   const coal = new THREE.Mesh(new THREE.SphereGeometry(0.28, 9, 5, 0, Math.PI * 2, 0, Math.PI / 2), toon('#3a1a0a', undefined, '#ff5a14'));
   coal.scale.y = 0.7;
-  coal.position.set(x, bot + 0.22, z);
+  coal.position.set(0, bot + 0.22, 0);
   sg.add(coal);
+  mergeStatic(bz);
+  g.add(bz);
   const flame = new THREE.Vector3(x, top - 0.08, z);
-  gore.vfx.lights.source(new THREE.Vector3(x, top + 0.45, z + 0.6), '#ff8a3a', 15, 11, 0.4);
-  screenFX.addHeat(new THREE.Vector3(x, top + 0.25, z), 0.7, 0.8);
+  const light = gore.vfx.lights.source(new THREE.Vector3(x, top + 0.45, z + 0.6), '#ff8a3a', 15, 11, 0.4);
+  const heat = screenFX.addHeat(new THREE.Vector3(x, top + 0.25, z), 0.7, 0.8);
   ((g.userData.fires ??= []) as THREE.Vector3[]).push(flame);
+
+  // Velting: fyrfatet faller om foten mot kampfeltet (+z), glørne havner der kurven treffer bakken
+  const spill = new THREE.Vector3(x, 0.12, z + top * 0.9);
+  const rest = Math.PI / 2 - 0.12;
+  let ang = 0, vel = 0, falling = false, burn = 0;
+  let embers: THREE.Mesh | null = null;
+  const handle: Tippable = {
+    x, z, tipped: false,
+    tip() {
+      if (handle.tipped) return null;
+      handle.tipped = true;
+      falling = true;
+      vel = 0.6;
+      // Ingen flammer mens kurven faller; de kommer igjen i glørne
+      flame.set(1e5, -50, 0);
+      audio.clang();
+      return { x: spill.x, z: spill.z, t: EMBER_LIFE };
+    },
+  };
+  ((g.userData.tippables ??= []) as Tippable[]).push(handle);
+  updates.push((dt) => {
+    if (falling) {
+      vel += 7.5 * dt;
+      ang = Math.min(rest, ang + vel * dt);
+      bz.rotation.x = ang;
+      if (ang >= rest) {
+        falling = false;
+        // Glørne renner ut: flammene, lyset og varmen flytter seg ned til dem
+        audio.thud(1.1, true);
+        gore.dust(spill, 10, '#3a3430');
+        gore.fire(spill, 18, 0.7, 2.5);
+        flame.copy(spill);
+        light.pos.set(spill.x, 0.7, spill.z + 0.6);
+        heat.pos.copy(spill);
+        heat.r = 1.1;
+        embers = new THREE.Mesh(new THREE.CircleGeometry(1, 20), new THREE.MeshBasicMaterial({ map: emberTexture(), color: new THREE.Color(2.2, 1.4, 1.1), transparent: true, depthWrite: false }));
+        embers.rotation.x = -Math.PI / 2;
+        embers.scale.set(1.15, 0.7, 1);
+        embers.position.set(spill.x, 0.02, spill.z);
+        embers.renderOrder = 1;
+        g.add(embers);
+        burn = EMBER_LIFE;
+      }
+    } else if (burn > 0) {
+      burn -= dt;
+      const k = Math.min(1, burn / 2);
+      (embers!.material as THREE.MeshBasicMaterial).opacity = k;
+      light.intensity = 15 * k;
+      heat.s = 0.8 * k;
+      if (burn <= 0) {
+        // Brent ut: ingen flammer, lys eller varme igjen (punktet flyttes langt unna, så ingen løkke finner det)
+        flame.set(1e5, -50, 0);
+        light.intensity = 0;
+        heat.s = 0;
+        embers!.removeFromParent();
+      }
+    }
+  });
   return flame;
 }
 

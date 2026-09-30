@@ -27,6 +27,8 @@ export interface FoeDef {
    * verken slått tilbake eller slått ned (kjemper som kjempetrollet).
    */
   poise?: number;
+  /** Et grep han bruker av og til mot heltene i stedet for vanlig angrep (løfter og kaster, se AttackDef.grab). */
+  grab?: AttackDef;
   poseMod?: Partial<Pose>;
   barks: string[];
 }
@@ -50,6 +52,11 @@ const trollSmash: AttackDef = { ...ENEMY_ATK.hog, id: 'trollsmash', dmg: 16, rea
 const giantSlam: AttackDef = {
   ...ENEMY_ATK.hog, id: 'giantslam', dmg: 20, reach: 2.5, zr: 1.3, startup: 1.05, recovery: 1.0, launch: 8, push: 7, stun: 0.8, quake: 3.2,
   word: ['KRA-THOOM!', 'AVALANCHE!', 'BONK.'],
+};
+// Kjempetrollet griper en helt, holder ham opp og kaster ham langt
+const giantGrab: AttackDef = {
+  ...ENEMY_ATK.hog, id: 'giantgrab', dmg: 4, reach: 2.3, zr: 1.0, startup: 0.6, active: 0.16, recovery: 0.5, grab: true, kd: false, launch: 0, push: 0,
+  heavy: false, wind: { armF: -0.6, armB: -0.3, torso: 0.35, head: 0.1 }, strike: { armF: 1.6, armB: 0.4, torso: -0.2, head: -0.05 }, word: [], swoosh: 'side',
 };
 const emberSlash: AttackDef = { ...ENEMY_ATK.skel, id: 'emberslash', dmg: 8, startup: 0.36 };
 
@@ -89,7 +96,7 @@ export const FOES: Record<string, FoeDef> = {
   },
   bigtroll: {
     id: 'bigtroll', char: 'bigtroll', name: 'AVALANCHE TROLL', hp: 320, speed: 1.25, gold: 25, behavior: 'brute', attack: giantSlam, range: 2.7,
-    proj: 'snowball', projCd: [5, 8], poise: 0.14,
+    proj: 'snowball', projCd: [5, 8], poise: 0.14, grab: giantGrab,
     barks: ['ME NOT BIG. YOU SMALL.', 'MAMA CALL ME LITTLE BJORN!', 'ME SIT ON YOU. NOTHING PERSONAL.', 'WHO ORDERED BARBARIAN? ME ORDERED BARBARIAN.'],
   },
   fireimp: {
@@ -109,5 +116,8 @@ export const FOES: Record<string, FoeDef> = {
     tint: [0.78, 0.72, 1.05], barks: ['HALT! PAPERS, PLEASE!', 'NO BARBARIANS AFTER 9PM!', 'OINK OF DUTY!'],
   },
 };
+
+/** Når en fiende får panikk (grufulle drap i nærheten, lite liv, brann, METAL MODE). */
+export const PANIC_BARKS = ['AAAAAAAH!', 'NOPE! NOPE! NOPE!', 'MOMMY!', 'I QUIT!', 'THIS WAS NOT IN THE BROCHURE!', 'EVERY MAN FOR HIMSELF!', 'I LEFT THE OVEN ON!', 'TELL VORTHAX I WAS SICK!', 'I HAVE CHILDREN! PROBABLY!'];
 
 export const DEATH_BARKS = ['WORTH IT...', 'TELL MY WIFE... ACTUALLY DON\'T', 'I REGRET NOTHING... WAIT', 'MY SPLEEN!', 'NOT LIKE THIS!', 'I WAS TWO DAYS FROM RETIREMENT!'];

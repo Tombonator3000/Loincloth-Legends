@@ -170,6 +170,18 @@ export function applyHit(att: Fighter, tgt: Fighter, a: AttackDef, dmgOverride?:
 
   // Holdt fast: skaden tas, men han blir hengende i grepet
   if (tgt.state === 'held') return res;
+  // Et grep (kjempen): han løftes i neven i stedet for å bli slått tilbake, og kastes etterpå (game/foes.ts)
+  if (a.grab && att.alive && !tgt.mount) {
+    att.setState('hold');
+    att.holding = tgt;
+    att.data.holdT = 0;
+    tgt.setState('held');
+    tgt.heldBy = att;
+    tgt.atk = null;
+    tgt.vel.set(0, 0, 0);
+    W.fx.text(contact.clone().add(new THREE.Vector3(0, 1.2, 0)), pick(['GOTCHA, TINY MAN!', 'MINE NOW!', 'UP YOU GO!']), 'speech', 1.4);
+    return res;
+  }
   const armored = (tgt.atk?.armor && tgt.phase() === 'wind') || tgt.armored;
   if (armored) {
     tgt.onArmorHit?.(dmg, att);

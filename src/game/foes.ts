@@ -5,10 +5,10 @@ import { ENEMY_ATK } from './attacks';
 import { W } from './world';
 import type { Hero } from './hero';
 import type { Projectiles, ProjKind } from './projectiles';
-import type { FoeDef } from '../data/enemies';
+import { PANIC_BARKS, type FoeDef } from '../data/enemies';
 import { audio } from '../core/audio';
 import { screenFX } from '../gfx/screenfx';
-import { rand, chance } from '../core/math';
+import { rand, chance, pick } from '../core/math';
 
 export interface FoeWorld {
   frozen: boolean;
@@ -19,6 +19,8 @@ export interface FoeWorld {
   requestToken(f: Foe): boolean;
   releaseToken(f: Foe): void;
   onScreen(x: number, margin: number): boolean;
+  /** Et bakkeslag (AttackDef.quake): istapper løsner og fyrfat velter (Stage). */
+  onQuake?(x: number, z: number, r: number): void;
 }
 
 const PROJ_SPEC: Record<ProjKind, { speed: number; vy: number; grav: number; dmg: number }> = {
@@ -32,6 +34,11 @@ const PROJ_SPEC: Record<ProjKind, { speed: number; vy: number; grav: number; dmg
   lightning: { speed: 0, vy: 0, grav: 0, dmg: 16 },
   tongue: { speed: 16, vy: 0, grav: 0, dmg: 8 },
 };
+
+/** Fart når en fiende rygger unna helten (andel av egen fart). */
+const RETREAT = 0.5;
+/** Høyeste fart i panikk. Helten går 3.85, så han tar dem alltid igjen. */
+const PANIC_SPEED = 3.3;
 
 export function fireProjectile(proj: Projectiles, owner: Fighter, kind: ProjKind, dirX: number, vz = 0, dmgMul = 1) {
   const s = PROJ_SPEC[kind];
@@ -56,6 +63,15 @@ export class Foe {
   escaped = false;
   leapCd = rand(1, 2.5);
   quaked = false;
+  /** Har vært inne i bildet. Da holdes han der (se Stage), så han ikke kan rygge ut dit helten ikke når. */
+  entered = false;
+  /** Panikk: sekunder igjen, hvilken vei han løper, og nedkjøling før neste gang. */
+  panicT = 0;
+  panicDir = 0;
+  panicCd = rand(2, 5);
+  private screamT = 0;
+  /** Kjempegrepet: sekunder til han kan gripe igjen. */
+  grabCd = rand(2, 4);
 
   constructor(public def: FoeDef, x: number, z: number, hpMul = 1) {
     // Litt variasjon per fiende, etter oppskriftssystemet i Toms Morbidium: størrelse og en svak fargetone, så en bølge
@@ -84,6 +100,27 @@ export class Foe {
       f.flash(0.2);
       W.fx.text(f.headPoint().add(new THREE.Vector3(0, 0.8, 0)), 'STAGGERED!', 'word');
     };
+  }
+
+  /** Kjempen kaster helten han holder, langt og høyt. Kastet gjør vondt. */
+  private toss() {
+    const f = this.f, t = f.holding!;
+    f.holding = null;
+    t.heldBy = null;
+    // Kastebevegelsen er et «prosjektil»-angrep, så det treffer ingen selv, og thrown hindrer snøballen
+    this.thrown = true;
+    f.startAttack(ENEMY_ATK.throw);
+    if (!t.alive) return;
+    const dir = f.facing;
+    t.pos.set(f.pos.x + dir * 1.1 * f.size, 0.9 * f.size, t.pos.z);
+    t.knockdown(dir * 11, 8.5);
+    t.hp -= 14 * t.dmgTaken;
+    t.flash(0.15);
+    if (t.hp <= 0) t.die('normal', dir, f);
+    audio.swish(0.6, true);
+    audio.grunt(f.def.voice);
+    W.fx.shake(0.3);
+    W.fx.text(f.headPoint().add(new THREE.Vector3(0, 0.8, 0)), pick(['TINY MAN FLY!', 'RETURN TO SENDER!', 'YEET!']), 'speech', 1.4);
   }
 
   /** Bakken rister der et tungt slag (AttackDef.quake) treffer: snø og støv spruter, sjokkbølge og risting. */
@@ -120,6 +157,8 @@ export class Foe {
     this.cd -= dt;
     this.projCd -= dt;
     this.leapCd -= dt;
+    this.panicCd -= dt;
+    this.grabCd -= dt;
     if (this.token && f.state !== 'attack' && this.thrown) st.releaseToken(this);
     if (this.token && (f.state === 'hurt' || f.state === 'down' || f.state === 'held')) st.releaseToken(this);
 
@@ -133,6 +172,7 @@ export class Foe {
     if (f.state === 'attack' && f.atk?.quake && f.phase() === 'active' && !this.quaked) {
       this.quaked = true;
       this.quake(f.atk.quake);
+      st.onQuake?.(f.pos.x + f.facing * 1.6 * f.size, f.pos.z, f.atk.quake);
     }
     if (f.state !== 'attack') this.quaked = false;
 
@@ -140,6 +180,19 @@ export class Foe {
     if (this.def.behavior === 'jumper' && f.state === 'jump' && !f.airAttackUsed && f.vel.y < 2) {
       f.airAttackUsed = true;
       f.startAttack(this.def.air ?? { ...this.def.attack, id: 'air-' + this.def.id, air: true, kd: true, launch: 4 });
+    }
+    // Kjempen holder en helt: etter et sekund kastes han langt
+    if (f.state === 'hold' && f.holding) {
+      f.data.holdT = ((f.data.holdT as number) ?? 0) + dt;
+      if ((f.data.holdT as number) > 1.0) this.toss();
+      return;
+    }
+    if (this.panicT > 0) {
+      this.panicT -= dt;
+      if (this.token) st.releaseToken(this);
+      if (this.panicT <= 0) this.calm();
+      else if (f.canAct()) return this.flee(dt, st);
+      else return;
     }
     if (!f.canAct()) return;
     if (this.def.behavior === 'runner') return this.runner(st);
@@ -171,7 +224,8 @@ export class Foe {
           this.cd = rand(1.2, 2);
           return;
         }
-        this.moveTo(tf.pos.x + this.side * this.def.range, tf.pos.z, 0.8);
+        // Ønsket avstand innenfor bildet (det nye, nærmere kameraet er smalere)
+        this.moveTo(tf.pos.x + this.side * Math.min(this.def.range, st.halfW * 0.7), tf.pos.z, 0.8, tf.pos.x);
         f.face(dx);
         return;
       }
@@ -183,7 +237,7 @@ export class Foe {
           this.cd = rand(1.4, 2.4);
           return;
         }
-        this.moveTo(tf.pos.x + this.side * (this.def.range - 0.2), tf.pos.z, 1);
+        this.moveTo(tf.pos.x + this.side * (this.def.range - 0.2), tf.pos.z, 1, tf.pos.x);
         f.face(dx);
         return;
       }
@@ -206,27 +260,83 @@ export class Foe {
       if (near && this.cd <= 0) {
         f.face(dx);
         this.thrown = false;
-        f.startAttack(this.def.attack);
+        // Kjempen griper av og til i stedet for å slå
+        const grab = !!this.def.grab && this.grabCd <= 0 && tf.state !== 'held' && !tf.mount && chance(0.45);
+        f.startAttack(grab ? this.def.grab! : this.def.attack);
+        if (grab) this.grabCd = rand(7, 11);
         this.cd = this.def.behavior === 'brute' ? rand(1.8, 3) : rand(1.1, 2.2);
         return;
       }
-      this.moveTo(tx, tf.pos.z, 1);
+      this.moveTo(tx, tf.pos.z, 1, tf.pos.x);
     } else {
       if (chance(dt * 0.3)) this.hoverDz = rand(-1.5, 1.5);
-      this.moveTo(tf.pos.x + this.side * this.hoverDx, tf.pos.z + this.hoverDz, 0.6);
+      this.moveTo(tf.pos.x + this.side * Math.min(this.hoverDx, st.halfW * 0.55), tf.pos.z + this.hoverDz, 0.6, tf.pos.x);
     }
     f.face(dx);
   }
 
-  private moveTo(x: number, z: number, speedMul: number) {
+  /** Gå mot et punkt. awayFrom er heltens x: rygger fienden unna ham, går han på halv fart, så helten tar ham igjen. */
+  private moveTo(x: number, z: number, speedMul: number, awayFrom?: number) {
     const f = this.f;
     const ddx = x - f.pos.x;
     const ddz = z - f.pos.z;
     const d = Math.hypot(ddx, ddz);
     if (d < 0.12) return;
-    const sp = Math.min(f.speed * speedMul, d * 3);
+    let sp = Math.min(f.speed * speedMul, d * 3);
+    if (awayFrom !== undefined && ddx * (f.pos.x - awayFrom) > 0) sp *= RETREAT;
     f.wantVX = (ddx / d) * sp;
     f.wantVZ = (ddz / d) * sp * 0.75;
+  }
+
+  /**
+   * Panikk i dur sekunder: løper vekk fra heltene i sikksakk, skriker og veiver med armene, og kommer tilbake etterpå.
+   * Kjemper, tyver på flukt og ryttere får ikke panikk. force hopper over nedkjølingen (brann).
+   */
+  panic(dur: number, force = false) {
+    const f = this.f;
+    if (this.def.poise || this.def.behavior === 'runner' || !f.alive || f.mount || f.state === 'held') return false;
+    if (!force && (this.panicT > 0 || this.panicCd > 0)) return false;
+    const first = this.panicT <= 0;
+    this.panicT = Math.max(this.panicT, dur);
+    this.panicDir = 0;
+    f.panicking = true;
+    if (first) {
+      this.screamT = rand(1, 1.8);
+      audio.scream(this.f.def.voice);
+      W.fx.text(f.headPoint().add(new THREE.Vector3(0, 0.9, 0)), pick(PANIC_BARKS), 'speech', 1.6);
+    }
+    return true;
+  }
+
+  private calm() {
+    const f = this.f;
+    this.panicT = 0;
+    f.panicking = false;
+    f.running = false;
+    if (f.state === 'flee') f.state = 'idle';
+    this.cd = rand(0.4, 1);
+    this.panicCd = rand(6, 12);
+  }
+
+  /** Panikkflukten: bort fra nærmeste helt, snur ved kanten av bildet, alltid saktere enn helten går. */
+  private flee(dt: number, st: FoeWorld) {
+    const f = this.f;
+    if (!this.panicDir) {
+      const h = st.nearestHero(f.pos);
+      this.panicDir = h ? (f.pos.x >= h.f.pos.x ? 1 : -1) : pick([-1, 1]);
+    }
+    const edge = st.camX + this.panicDir * (st.halfW - 1);
+    if (this.panicDir * (f.pos.x - edge) > 0) this.panicDir = -this.panicDir;
+    f.running = true;
+    f.state = 'flee';
+    f.wantVX = this.panicDir * Math.min(f.speed * 1.3, PANIC_SPEED);
+    f.wantVZ = Math.sin(W.time * 4.5 + f.id * 1.7) * 2.2;
+    f.face(this.panicDir);
+    this.screamT -= dt;
+    if (this.screamT <= 0) {
+      this.screamT = rand(1.2, 2.2);
+      audio.scream(this.f.def.voice);
+    }
   }
 
   private runner(st: FoeWorld) {

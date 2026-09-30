@@ -301,3 +301,12 @@ Flere lyder og stemmemanus (oppgaven etter frostpasset).
 
 ## 2026-09-29 23:12 (Europe/Oslo)
 - Frostpasset, kjempetrollet, de nye lydene og stemmemanuset er committet (8f45958) og pushet til main og claude/loincloth-legends-setup-qx39n4. GitHub Pages serverer det samme bygget (index-BXRzWNA7.js), og de nye lydfilene ligger ute. Siste kjøring: lydbanktesten alle OK (også enkeltfil-bygget fra file://), frostsound 10 av 10, giant 9 av 9, dirigenten 35 OK, pngparts, arenaen og looks for frosten uten feil.
+
+## 2026-09-30 06:43 (Europe/Oslo)
+Tom meldte at noen fiender alltid rygger unna og er for raske, så helten aldri når dem, og ba om det neste fra konseptbilde 4 (juvet, istapper, fyrfat som veltes, kjempen som kaster heltene) og fiender som løper i panikk innimellom.
+- Årsaken til ryggingen: fiendene fikk gå tre enheter ut av bildet, og kameraet står stille under en bølge, så de som kaster (kultister, ildimper) rygget ut dit helten ikke kom. Det nye, nærmere kameraet gjorde det verre (bildet er smalere). Nå holdes en fiende innenfor bildet når han først har kommet inn (tyver på flukt og ryttere går fritt), han rygger på halv fart, og ønsket avstand for dem som kaster er begrenset av bredden på bildet.
+- Panikk: fiender løper skrikende vekk i sikksakk med armene i været i to til fire sekunder, alltid saktere enn helten, og kommer tilbake. Utløses av grufulle drap i nærheten, nesten død, brann og når METAL MODE starter. Kjemper, tyver og ryttere får ikke panikk.
+- Juvet: to juv langs bakkanten av veien i frostpasset, med taugjerde. Hull i bakken og veien, steinvegger ned i dypet med istapper og dis. Grip en fiende og kast med opp: han flyr over gjerdet og faller skrikende ned (SEE YOU NEVER!). Fiender som slås inn, faller også. Heltene, fiendene som går og ridedyrene stoppes ved kanten. Blod og kroppsdeler blir ikke liggende i lufta over hullet.
+- Istapper: løsner av og til mens det slåss, og alltid når kjempen slår i bakken. Skygge og drysset snø varsler, så stuper den og knuser. Treffer alle, så fiendene kan lokkes under.
+- Fyrfatene kan veltes av slag, kastede fiender og bakkeslag. Glørne renner ut i kampfeltet og brenner i åtte sekunder, med flammer, lys og varmeflimmer som flytter seg ned. Fiender som tråkker i dem, tar fyr og løper i panikk; heltene brenner litt.
+- Kjempetrollet griper av og til en helt, løfter ham opp i neven, rister ham og kaster ham langt (TINY MAN FLY!). Den andre helten kan få ham til å slippe ved å slå til han vakler.

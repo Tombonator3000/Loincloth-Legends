@@ -8,6 +8,7 @@ import { unitCanvas, INK, shade } from './draw';
 import { rand, pick, chance } from '../core/math';
 import { audio } from '../core/audio';
 import { goreMul, type GoreLevel } from '../core/settings';
+import type { Hole } from '../data/hazards';
 
 const BLOODS = ['#b3001b', '#8e0015', '#c4121f', '#6d0010', '#a0061a'];
 const GREENS = ['#58b82c', '#3f8f1d', '#7ad44a'];
@@ -135,6 +136,8 @@ export class Gore {
   dustColor = SAND_DUST;
   /** Partikler rundt foten per fottrinn (dobbelt når figuren løper). 0 = ingen; snøen i frosten sparkes opp. */
   stepDust = 0;
+  /** Hull i bakken (juvet): blod legger seg ikke der, og kroppsdeler faller ned i dypet. Settes av Stage. */
+  holes: Hole[] = [];
   debris: Debris[] = [];
   fountains: Fountain[] = [];
   private gibTex = new Map<GibKind, THREE.MeshBasicMaterial>();
@@ -276,10 +279,17 @@ export class Gore {
     return x >= this.bounds.minX && x <= this.bounds.maxX;
   }
 
+  /** Over et hull i bakken (juvet)? */
+  overHole(x: number, z: number) {
+    for (const h of this.holes) if (x > h.x0 && x < h.x1 && z > h.z0 && z < h.z1) return true;
+    return false;
+  }
+
   /** Flekk der en dråpe landet: avlang i treffretningen når den kom fort, ellers rund. */
   private landSplat(x: number, z: number, dropSize: number, vx: number, vz: number, c: THREE.Color) {
     if (!this.inBounds(x)) return;
     z = Math.max(this.bounds.minZ, Math.min(this.bounds.maxZ, z));
+    if (this.overHole(x, z)) return;
     const size = this.sizeFor(dropSize * rand(3, 5.5));
     const hs = Math.hypot(vx, vz);
     if (hs > 1.2) {
@@ -295,6 +305,7 @@ export class Gore {
     if (!this.inBounds(x)) return;
     size = this.sizeFor(size);
     z = Math.max(this.bounds.minZ, Math.min(this.bounds.maxZ, z));
+    if (this.overHole(x, z)) return;
     const c = kind === 'lava' ? this.col.set('#2a1410') : this.bloodColor(kind);
     c.multiplyScalar(rand(0.75, 1));
     const v = chance(0.75) ? Math.floor(Math.random() * 6) : 10 + Math.floor(Math.random() * 2);
@@ -315,6 +326,7 @@ export class Gore {
     if (!this.inBounds(x) || kind === 'lava') return;
     size = this.sizeFor(size);
     z = Math.max(this.bounds.minZ, Math.min(this.bounds.maxZ, z));
+    if (this.overHole(x, z)) return;
     const c = this.bloodColor(kind).multiplyScalar(this.family ? 1 : 0.7);
     this.decals.add(x, z, size * rand(1, 1.25), size * rand(0.65, 0.85), rand(-0.3, 0.3), c, 12 + Math.floor(Math.random() * 4), 0.0105, grow, 1);
   }
@@ -440,6 +452,11 @@ export class Gore {
         this.drop(o.position.x, o.position.y, o.position.z, rand(-0.5, 0.5), rand(-0.5, 0.5), 0, rand(0.04, 0.08), d.bleedCol, 1);
         d.bleed -= dt;
       }
+      // Over juvet er det ingen bakke: delen faller til den er borte i dypet
+      if (o.position.y - d.radius < 0 && this.overHole(o.position.x, o.position.z)) {
+        if (o.position.y < -9) d.life = 0;
+        continue;
+      }
       if (o.position.y - d.radius < 0) {
         o.position.y = d.radius;
         const rest = d.bouncy ?? 0.38;
@@ -489,6 +506,7 @@ export class Gore {
     this.litres = 0;
     this.dustColor = SAND_DUST;
     this.stepDust = 0;
+    this.holes = [];
   }
 }
 

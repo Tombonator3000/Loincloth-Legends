@@ -133,7 +133,10 @@ export class ScreenFX {
    */
   addHeat(pos: THREE.Vector3, r: number, s = 1, band = false, life = -1) {
     if (this.heat.length > 64) this.heat.shift();
-    this.heat.push({ pos: pos.clone(), r, s, band, life, max: life });
+    const h = { pos: pos.clone(), r, s, band, life, max: life };
+    this.heat.push(h);
+    // Kilden kan flyttes (et fyrfat som veltes) ved å endre pos
+    return h;
   }
 
   /**

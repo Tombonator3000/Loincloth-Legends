@@ -129,7 +129,12 @@ Mann eller dame, og alle deler kan kombineres fritt:
 - Bevegelse i X og Z (dybde), hopp i Y
 - Combo: angrep x3 (hugg, bakhånd, tungt hugg som slår ned)
 - Hoppangrep, løp (dobbelttrykk) og skulderdytt, juggling i lufta
-- **Grep og kast**: grip-knappen tar tak i en fiende. Angrep = kne (tredje gang kastes han), retning + angrep eller hopp = kast. Den kastede fienden velter andre fiender (bowling: STRIKE!) og dør hvis han lander i en fare. Store beist og sjefer er for tunge.
+- **Grep og kast**: grip-knappen tar tak i en fiende. Angrep = kne (tredje gang kastes han), retning + angrep eller hopp = kast. Opp eller ned kaster i dybden, for eksempel over taugjerdet og ned i juvet. Den kastede fienden velter andre fiender (bowling: STRIKE!) og dør hvis han lander i en fare. Store beist og sjefer er for tunge.
+- **Juvet** (frostpasset): langs bakkanten av veien går juvet bak et taugjerde. Ingen går utfor av seg selv, men fiender som kastes eller slås inn, faller ned i dypet (SEE YOU NEVER!).
+- **Istapper**: av og til løsner en istapp over kampfeltet. En skygge på bakken og snø som drysser varsler den, og den treffer alle, helter som fiender. Kjempens bakkeslag river løs flere.
+- **Fyrfat som veltes**: slag, kastede fiender og bakkeslag velter fyrfatene. Glørne renner ut og brenner en stund, og fiender som tråkker i dem, tar fyr og løper i panikk.
+- **Panikk**: fiender får panikk av og til (grufulle drap i nærheten, nesten død, i brann, når METAL MODE starter). De løper skrikende vekk med armene i været, alltid saktere enn helten, og kommer tilbake etterpå.
+- **Fiender som rygger**: de holder avstand, men rygger på halv fart og blir i bildet når de først har kommet inn, så helten alltid når dem.
 - **Ridedyr**: slå rytteren av, gå bort til dyret og trykk grip for å sitte opp. Angrep bruker dyrets angrep, grip hopper av. Treff kaster rytteren av. Etter tre avkastinger stikker dyret av.
   - War Hog: stormløp som spidder alt foran seg
   - Cluckatrice (halvt hane, halvt øgle): halesvip som treffer begge sider
@@ -139,7 +144,7 @@ Mann eller dame, og alle deler kan kombineres fritt:
 - Berserk-spinn uten potions, koster litt HP
 - Pickups: stekt kylling, halvspist skinke, potions, gull, egg fra kampkyllingen
 - Kameraet låses per bølge. GO-pil når bølgen er ryddet
-- **Kjemper** (Avalanche Troll i frostpasset): over dobbelt så høye som heltene. Slagene biter ikke før de har tatt en viss andel av livet i skade, da vakler de (STAGGERED!). Bakkeslaget rister skjermen og virvler opp snø, og kameraet trekker seg bakover mens kjempen er i bildet. For tunge til å gripes
+- **Kjemper** (Avalanche Troll i frostpasset): over dobbelt så høye som heltene. Slagene biter ikke før de har tatt en viss andel av livet i skade, da vakler de (STAGGERED!). Bakkeslaget rister skjermen, virvler opp snø, river løs istapper og velter fyrfat, og kameraet trekker seg bakover mens kjempen er i bildet. Av og til griper kjempen en helt, holder ham opp i neven og kaster ham langt (TINY MAN FLY!). Den andre helten kan få ham til å slippe ved å slå til han vakler. For tunge til å gripes
 - **METAL MODE**: en felles måler øverst fylles av drap (mer for halshugging, eksplosjoner og miljødrap, og for lange drapsrekker). Når den er full, spiller bandet en gitarsolo med dobbel stortromme, en falsettsanger skriker, våpnene brenner, heltene slår 60 prosent hardere og lynet slår ned i fiendene. Varer i 12 sekunder.
 
 ## 11. Nivåer, butikk og kjæledyr
@@ -192,7 +197,7 @@ Musikken styres av en dirigent etter mønster fra Morbidium, inspirert av iMUSE:
 | Grip/kast/ri | R (eller U) | Høyre Shift (eller Numpad 0) | Y / RB |
 | Pause | P / Esc | | Start |
 
-Med én gamepad i 2-spiller er gamepaden spiller 2. **Mobil og nettbrett**: flytende stikke til venstre, knappene HIT, JUMP, MAGIC og GRAB til høyre, pause oppe til høyre. Spillet ber deg snu telefonen på siden.
+Hold opp eller ned mens du kaster en fiende for å kaste ham bakover eller forover (over taugjerdet og ned i juvet). Med én gamepad i 2-spiller er gamepaden spiller 2. **Mobil og nettbrett**: flytende stikke til venstre, knappene HIT, JUMP, MAGIC og GRAB til høyre, pause oppe til høyre. Spillet ber deg snu telefonen på siden.
 
 ## 16. Flere forslag
 
@@ -206,5 +211,5 @@ Videre:
 5. **Co-op-gjenoppliving**: bær en falt partner til et alter, eller del kyllingen.
 6. **Flere kroppstyper**: dverg, halvtroll, og en helt som bare er en veldig sint gnome.
 7. **Online co-op** og Steam Deck.
-8. **Fra konseptbilde 4**: kast fiender ned i juvet bak taugjerdet, istapper som faller når noe smeller i klippene, fyrfat som kan veltes (ild på bakken), og kjempetrollet som kaster heltene.
+8. **Fra konseptbilde 4** (gjort): juvet, istapper, fyrfat som veltes, kjempen som kaster heltene og panikk. Videre: juv og fallende stein i andre biomer, og at en kastet helt kan velte fiender han treffer.
 9. **Flere kjemper**: en kjempe per land (sumpkjempe, lavakjempe) med egne bakkeslag.

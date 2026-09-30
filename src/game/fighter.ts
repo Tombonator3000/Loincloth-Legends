@@ -133,12 +133,19 @@ export class Fighter {
   // ---- grep og kast (se game/grab.ts)
   holding: Fighter | null = null;
   heldBy: Fighter | null = null;
+  /** Panikk (game/foes.ts): løper med armene i været. */
+  panicking = false;
+  /** Brenner i så mange sekunder til (glør fra et veltet fyrfat, Stage.updateProps). */
+  burnT = 0;
   thrownBy: Fighter | null = null;
   /** Kalles når en kastet figur treffer bakken (settes av brettet). */
   static onThrownLand: ((f: Fighter, by: Fighter) => void) | null = null;
   // ---- miljødrap (se game/hazards.ts)
   /** Liket synker (myr, råk, lava). Enheter per sekund. */
   sinkRate = 0;
+  /** Synker fortere og fortere (faller i juvet) og forsvinner først så dypt. */
+  sinkAcc = 0;
+  sinkDepth = 2.6;
   /** Navnet på faren som drepte figuren (for bonus og tekst). */
   envKill = '';
   // ---- ridedyr (se game/mounts.ts)
@@ -518,7 +525,8 @@ export class Fighter {
         this.onGround = false;
         this.setState('jump');
       } else {
-        this.pos.set(h.pos.x + h.facing * 0.8 * h.size, h.pos.y + 0.3, h.pos.z + 0.03);
+        // En kjempe holder deg oppe i neven, en helt i nakkeskinnet
+        this.pos.set(h.pos.x + h.facing * 0.8 * h.size, h.pos.y + (h.size > 1.8 ? 0.95 * h.size : 0.3), h.pos.z + 0.03);
         this.facing = -h.facing;
         this.vel.set(0, 0, 0);
         this.onGround = true;
@@ -577,8 +585,9 @@ export class Fighter {
         if (this.sinkRate > 0) {
           this.onGround = true;
           this.vel.set(0, 0, 0);
+          this.sinkRate += this.sinkAcc * dt;
           this.pos.y -= dt * this.sinkRate;
-          if (this.pos.y < -2.6) this.removeMe = true;
+          if (this.pos.y < -this.sinkDepth) this.removeMe = true;
         }
         if (this.headlessT > 0) {
           this.headlessT -= dt;
@@ -743,6 +752,8 @@ export class Fighter {
           bodyY: -0.04 + Math.abs(Math.cos(ph)) * (run ? 0.1 : 0.06),
           ...this.poseMod,
         };
+        // Panikk: armene veiver over hodet og blikket er bakover
+        if (this.panicking) Object.assign(target, { armF: 2.6 + Math.sin(t * 17) * 0.5, armB: 2.4 + Math.cos(t * 15) * 0.5, head: -0.25, torso: -0.05, weapon: -0.6 });
         speed = 22;
         break;
       }
@@ -806,6 +817,12 @@ export class Fighter {
         speed = 14;
         break;
       case 'hold': {
+        // Kjempen holder helten høyt og rister ham
+        if (this.size > 1.8) {
+          target = { armF: 2.3 + Math.sin(t * 9) * 0.12, armB: 0.5, weapon: -1.0, torso: -0.15, head: 0.25, legF: 0.3, legB: -0.3, bodyY: -0.05 };
+          speed = 14;
+          break;
+        }
         const knee = ((this.data.pummelT as number) ?? 0) > 0;
         target = knee
           ? { armF: 1.5, armB: 1.3, weapon: -2.0, torso: 0.3, head: -0.2, legF: 1.5, legB: -0.3, bodyY: 0.02 }

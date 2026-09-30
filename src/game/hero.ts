@@ -98,7 +98,7 @@ export class Hero {
     if (f.state === 'hold') {
       const atk = inp.consumeAttack();
       const toss = inp.consumeGrab() || inp.consumeJump();
-      updateHold(f, dt, ax, atk, toss);
+      updateHold(f, dt, ax, az, atk, toss);
       return;
     }
 

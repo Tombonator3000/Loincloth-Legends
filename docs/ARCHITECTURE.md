@@ -170,6 +170,7 @@ Legg en `Species` i `SPECIES` (`env/trees.ts`): lengde, radius, seksjoner, barn,
 2. Legg til en `FoeDef` i `data/enemies.ts` med `behavior`, `attack`, `range` og eventuelt `proj`.
 3. Bruk id-en i bølgene i `data/levels.ts`.
 Bare fargevariant? Bruk en eksisterende `char` og sett `tint` (se `frostskel`).
+Fiende-AI (`game/foes.ts`): fiender holder avstand, men rygger på halv fart (`RETREAT`), og når de først har vært i bildet (`Foe.entered`), holder `Stage` dem innenfor det (tyver på flukt og ryttere går fritt). Ønsket avstand for dem som kaster, begrenses av bredden på bildet. `Foe.panic(sek)` gir panikk (løper vekk i sikksakk, armene i været via `Fighter.panicking`, høyst `PANIC_SPEED`); `Stage` utløser den ved grufulle drap i nærheten, lite liv, brann og når METAL MODE starter.
 Kjempe? Lag en `CharDef` med stor `scale` som arver delene fra en vanlig figur (`inherit`, se `bigtroll` i `gfx/chars/wilds.ts`). Store figurer tegnes med flere piksler per enhet og like tynn strek på skjermen (`rig.ts`). Sett `poise` på `FoeDef` (han tar skade, men blir verken slått tilbake eller ned før han har tatt så stor andel av livet, da vakler han), og gi angrepet `quake` (bakken rister der slaget treffer). Kameraet trekker seg bakover mens en figur større enn 1.8 er i bildet (`Stage.camPull`, avstandene i `gfx/stagecam.ts`).
 
 ### Ny sjef
@@ -182,6 +183,8 @@ Nytt trekk som ikke finnes: legg det til i `BossMoveKind` og i `exec()` i `game/
 1. Lag `gfx/env/<biom>.ts` med en `build<Biom>(scene, gore, opts)` som returnerer `Env`. Bruk `stageBase` og hjelperne i `common.ts`.
 2. Registrer den i `STAGE_BUILDERS` i `gfx/env/index.ts`.
 3. Bruk biom-id-en i en `LevelDef`.
+Juv: en fare med `kind: 'chasm'` langs bakkanten (data/hazards.ts). `Stage` gir hullene til miljøet (`StageEnvOpts.holes`), `stageBase` lager bakken og veien rundt dem (`Look.holes`), `gore.holes` hindrer blod og kroppsdeler i å bli liggende i lufta, og farevisningen tegner veggene ned i dypet med taugjerde. `blocks` på faren: ingen går utfor, bare kastede og slåtte fiender faller.
+Istapper (`game/icicles.ts`) og fyrfat som veltes (`Env.tippables`, `Tippable` i common.ts) styres av `Stage.updateProps`, som også håndterer glør på bakken og `Fighter.burnT` (brann). Bakkeslag melder fra via `FoeWorld.onQuake`. Skade fra omgivelsene går gjennom `applyHit` med en skjult figur som angriper (`Stage.nature`).
 Rekvisittene i `env/props.ts` kan brukes i alle biomer: `brazier()` gir ild, lys, varmeflimmer og knitring (returnerer punktet flammene skal komme fra), `warBanner()` bølger i vinden, `cliff()` returnerer høyden på toppen så ruiner, bro og fossefall kan settes der. Sett `gore.dustColor` hvis støvet fra bakken ikke er sand (snø i frosten).
 
 ### Nytt brett

@@ -49,10 +49,11 @@ npm run typecheck
 - **METAL MODE**: drap og lemlestelse fyller en måler. Full måler gir gitarsolo, brennende våpen, hardere slag og lyn som slår ned i fiendene.
 - **Verdenskart** i 3D med fem biomer, stier, låste noder og fremgang som lagres.
 - **Fem brett** med egne fiender, farer (pigger, myr, råk, lava, piggfeller) og fiender som kommer ridende. Finale per brett: fire sjefer og én duell til døden.
-- **Frostpasset i blåtimen**: klippevegger med snø, fossefall, taubro, ruiner, fyrfat med ild, fillete krigsbannere med hornet hodeskalle, runesteiner som gløder, istapper og tett snøfall. Midtveis kommer Avalanche Troll, en kjempe over dobbelt så høy som heltene, som rister bakken og får kameraet til å trekke seg bakover.
+- **Frostpasset i blåtimen**: klippevegger med snø, fossefall, taubro, ruiner, juv langs veien, fyrfat med ild, fillete krigsbannere med hornet hodeskalle, runesteiner som gløder, istapper og tett snøfall. Midtveis kommer Avalanche Troll, en kjempe over dobbelt så høy som heltene, som rister bakken, griper heltene og kaster dem, og får kameraet til å trekke seg bakover.
 - **Nattleir** som i Golden Axe: heltene sover ved bålet mens tyvnisser napper krukkene deres.
 - **Magi** i tre varianter (meteorregn, forfedrenes skrik og tordenguden), sterkere jo flere krukker. Sjonglering i lufta og B-film-replikker.
-- **Grep og kast**: ta tak i fiender, kne dem, kast dem i andre fiender (bowling) eller rett i lava.
+- **Grep og kast**: ta tak i fiender, kne dem, kast dem i andre fiender (bowling), rett i lava, eller opp over taugjerdet og ned i juvet i frostpasset (hold opp og kast).
+- **Omgivelser som slåss med**: istapper som løsner og faller (lokk fiendene under), fyrfat som kan veltes så glørne setter fyr på fiendene, og fiender som får panikk og løper skrikende vekk når det blir for grufullt.
 - **Ridedyr**: War Hog (stormløp), Cluckatrice (halesvip) og Magma Newt (ildpust). Slå av rytteren og sitt opp selv.
 - **Teit vold**: impen sparker avkappede hoder rett i skjermen, der de klasker og sklir sakte ned med en hvinende lyd. Armer ryker av og spretter vekk ("IT'S JUST A FLESH WOUND!"), og hodeløse fiender løper rundt en stund.
 - **Nivåer og butikk**: XP, STR/DEF/MAG/AGI, ekstra liv, potions og deler i YE OLDE SHOPPE.
@@ -72,7 +73,7 @@ npm run typecheck
 | Grip / kast / ri | R (eller U) | Høyre Shift (eller Numpad 0) | Y / RB |
 | Pause | P / Esc | | Start |
 
-M = lyd av/på. I 1-spiller kan du også bruke piltaster + Z/X/C/V. Med én gamepad i 2-spiller er gamepaden spiller 2. På mobil: stikke til venstre, knapper til høyre.
+M = lyd av/på. Hold opp eller ned mens du kaster en fiende for å kaste ham bakover eller forover (over taugjerdet og ned i juvet i frostpasset). I 1-spiller kan du også bruke piltaster + Z/X/C/V. Med én gamepad i 2-spiller er gamepaden spiller 2. På mobil: stikke til venstre, knapper til høyre.
 
 ## Dokumentasjon
 

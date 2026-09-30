@@ -7,7 +7,10 @@
 - [x] Klippevegger med snø, fossefall med dis, taubro, ruiner, fyrfat med ild, lys og varmeflimmer, fillete krigsbannere med hornet hodeskalle, runesteiner i 3D (noen gløder), istapper, taugjerde, snø på steinene, snøføyke og tettere snøfall
 - [ ] Tom: lag trollet i ChatGPT (troll_*.png). Kjempetrollet arver delene, så begge får den nye stilen
 - [ ] Krigsbanneret som eget bilde fra ChatGPT (trenger en ny kategori i process_art.py, ikke flisbar tekstur)
-- [ ] Gameplay fra bildet: kast fiender i juvet, istapper som faller, fyrfat som kan veltes, kjempen kaster helter
+- [x] Gameplay fra bildet: kast fiender i juvet (opp + kast), istapper som faller, fyrfat som kan veltes med glør og brann, kjempen griper og kaster helter, panikk (tools/tests/frostplay.mjs)
+- [x] Fiender som rygget ut av bildet og var for raske: rygger på halv fart og blir i bildet (Tom meldte fra)
+- [ ] Tom: spill frostpasset og si fra om balansen (hvor ofte istapper faller, hvor lenge glørne brenner, hvor ofte kjempen griper, hvor ofte panikk)
+- [ ] Juv og fallende stein i andre biomer, og at en kastet helt velter fiender han treffer
 - [x] Flere lyder: snøtrinn og fottrinn per underlag, isknak, vindkast, fossesus, trollbrøl, krigshorn, ulv, sverdklang og publikum (21 nye CC0-opptak, tools/make_sounds.py)
 - [x] Stemmemanus for VoiceStudio (docs/STEMMER.md, 175 replikker) og innlesing i spillet (audio.voice, voice/inbox/, make_sounds.py --stemmer)
 - [ ] Tom: lag replikkene i VoiceStudio, prioritet A først (fortelleren, utropene, sjefene og kjempetrollet)

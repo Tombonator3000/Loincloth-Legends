@@ -1,10 +1,12 @@
 // Tegning av farer i brettene: piggrop, myr, råk i isen, lavapøl og piggfelle.
 import * as THREE from 'three';
 import { plainCanvas } from '../draw';
-import { lit, toon, canvasTex } from './common';
+import { lit, toon, canvasTex, mergeStatic, applyShadows } from './common';
+import { icicles, ropeFence } from './props';
+import { valueNoise3, fbm3 } from '../noise';
 import { rand } from '../../core/math';
 import type { Gore } from '../gore';
-import type { HazardDef } from '../../data/hazards';
+import { chasmHole, type HazardDef } from '../../data/hazards';
 import { screenFX } from '../screenfx';
 
 export interface HazardVisual {
@@ -81,9 +83,94 @@ const tip = new THREE.ConeGeometry(0.045, 0.2, 6);
 tip.translate(0, 0.72, 0);
 const chunk = new THREE.DodecahedronGeometry(0.16, 0);
 
+let chasmMat: THREE.MeshStandardMaterial | null = null;
+let mistTex: THREE.Texture | null = null;
+
+/**
+ * Juvet: steinvegger ned i dypet (snø på kanten, svart nederst), istapper langs bakveggen, dis som driver nede i
+ * juvet og taugjerde langs forkanten. Hullet i bakken og veien lager stageBase (Look.holes). Gir oppdateringen.
+ */
+function chasm(grp: THREE.Group, h: HazardDef) {
+  const { x0, x1, z0, z1 } = chasmHole(h);
+  const D = 10, w = x1 - x0, d = z1 - z0;
+  const n3 = valueNoise3(Math.floor(rand(1, 999)));
+  const rock = new THREE.Color('#6c768a'), deep = new THREE.Color('#080c16'), snow = new THREE.Color('#e6eef8');
+  chasmMat ??= lit({ vertexColors: true, roughness: 0.95 }, { scale: 0.5, normal: 1.2, albedo: 0.35, snow: 0.5 });
+  const wall = (W: number, seed: number) => {
+    const geo = new THREE.PlaneGeometry(W, D, Math.max(4, Math.round(W * 2.5)), 26);
+    const pos = geo.getAttribute('position') as THREE.BufferAttribute;
+    const col: number[] = [];
+    const c = new THREE.Color();
+    for (let i = 0; i < pos.count; i++) {
+      const px = pos.getX(i), py = pos.getY(i);
+      const depth = D / 2 - py;
+      const n = fbm3(n3, px * 0.55 + seed, py * 0.3, seed * 0.7, 4);
+      // Ingen utbuling ved kanten, så veggen møter hullet i bakken
+      pos.setZ(i, (n - 0.5) * 1.1 * Math.min(1, depth / 1.5));
+      c.copy(rock).multiplyScalar(0.45 + n * 0.7).lerp(deep, Math.min(1, depth / 7.5));
+      if (depth < 0.35) c.lerp(snow, 0.85);
+      col.push(c.r, c.g, c.b);
+    }
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+    geo.computeVertexNormals();
+    const m = new THREE.Mesh(geo, chasmMat!);
+    m.userData.noCast = true;
+    return m;
+  };
+  const back = wall(w, 1);
+  back.position.set(x0 + w / 2, -D / 2, z0);
+  const left = wall(d, 7);
+  left.rotation.y = Math.PI / 2;
+  left.position.set(x0, -D / 2, z0 + d / 2);
+  const right = wall(d, 13);
+  right.rotation.y = -Math.PI / 2;
+  right.position.set(x1, -D / 2, z0 + d / 2);
+  const bottom = new THREE.Mesh(new THREE.PlaneGeometry(w, d), new THREE.MeshBasicMaterial({ color: deep }));
+  bottom.rotation.x = -Math.PI / 2;
+  bottom.position.set(x0 + w / 2, -D, z0 + d / 2);
+  grp.add(back, left, right, bottom);
+  // Dis nede i juvet som driver sakte
+  mistTex ??= canvasTex(plainCanvas(256, 64, (c) => {
+    for (let i = 0; i < 40; i++) {
+      const x = Math.random() * 256, y = 20 + Math.random() * 24, r = 14 + Math.random() * 26;
+      for (const dx of [-256, 0, 256]) {
+        const gr = c.createRadialGradient(x + dx, y, 0, x + dx, y, r);
+        gr.addColorStop(0, 'rgba(255,255,255,0.3)');
+        gr.addColorStop(1, 'rgba(255,255,255,0)');
+        c.fillStyle = gr;
+        c.fillRect(x + dx - r, y - r, r * 2, r * 2);
+      }
+    }
+  }), false);
+  const mists: THREE.Texture[] = [];
+  for (const [y, op] of [[-3, 0.45], [-6, 0.6]] as const) {
+    const t = mistTex.clone();
+    t.wrapS = THREE.RepeatWrapping;
+    t.repeat.x = w / 6;
+    mists.push(t);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, 3), new THREE.MeshBasicMaterial({ map: t, color: '#a8bcd6', transparent: true, opacity: op, depthWrite: false }));
+    m.position.set(x0 + w / 2, y, z0 + d * 0.45);
+    grp.add(m);
+  }
+  // Istapper langs bakveggen og taugjerde langs forkanten, slått sammen for seg
+  const props = new THREE.Group();
+  icicles(props, x0 + 0.3, x1 - 0.3, -0.02, z0 + 0.2, 2, 0.9);
+  ropeFence(props, x0 + 0.2, x1 - 0.2, z1 + 0.22, 1.0);
+  mergeStatic(props);
+  applyShadows(props);
+  grp.add(props);
+  return (dt: number) => {
+    for (let i = 0; i < mists.length; i++) mists[i].offset.x += dt * (i ? 0.012 : -0.02);
+  };
+}
+
 export function buildHazard(g: THREE.Group, gore: Gore, h: HazardDef): HazardVisual {
   const grp = new THREE.Group();
   g.add(grp);
+  if (h.kind === 'chasm') {
+    const update = chasm(grp, h);
+    return { group: grp, update };
+  }
   const inside = (fx: number, fz: number) => (fx * fx) / 0.25 + (fz * fz) / 0.25 <= 0.85;
   switch (h.kind) {
     case 'spikes': {

@@ -63,6 +63,8 @@ export interface AttackDef {
   armor?: boolean;
   /** Slaget ryster bakken i denne radiusen når det treffer bakken: støv og snø, risting og en sjokkbølge. */
   quake?: number;
+  /** Et grep (kjempen): den som treffes, løftes i neven i stedet for å slås tilbake, og kastes etterpå (game/foes.ts). */
+  grab?: boolean;
   spin?: boolean;
   hpCost?: number;
   projectile?: boolean;
