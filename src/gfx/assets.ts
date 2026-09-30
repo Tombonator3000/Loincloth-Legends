@@ -102,8 +102,21 @@ export function getOverride(charId: string, key: string): PartOverride | undefin
 function loadImage(src: string) {
   return new Promise<HTMLImageElement>((res, rej) => {
     const img = new Image();
-    img.onload = () => res(img);
-    img.onerror = () => rej(new Error('Kunne ikke laste ' + src));
+    let settled = false;
+    const finish = (error?: Error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      img.onload = img.onerror = null;
+      if (error) {
+        // Avbryt nedlastingen og ignorer en eventuell callback som allerede er køet.
+        img.removeAttribute('src');
+        rej(error);
+      } else res(img);
+    };
+    const timer = setTimeout(() => finish(new Error('Tidsavbrudd ved lasting av ' + src)), 60_000);
+    img.onload = () => finish();
+    img.onerror = () => finish(new Error('Kunne ikke laste ' + src));
     img.src = src;
   });
 }
@@ -174,12 +187,28 @@ export async function loadAssets(base = './assets/') {
   let man: Manifest;
   // Åpnet som fil (dobbeltklikk på single-file-bygget): fetch virker ikke der, så dropp PNG-ene
   if (location.protocol === 'file:') return 0;
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    const r = await fetch(base + 'manifest.json', { cache: 'no-cache' });
-    if (!r.ok) return 0;
-    man = (await r.json()) as Manifest;
+    // Grensen dekker både svaret og JSON-innholdet. Ingen sene data får starte
+    // bildelasting etter at spillet har gått videre med reservegrafikken.
+    man = await Promise.race([
+      (async () => {
+        const r = await fetch(base + 'manifest.json', { cache: 'no-cache', signal: controller.signal });
+        if (!r.ok) throw new Error('Kunne ikke laste grafikkmanifestet');
+        return (await r.json()) as Manifest;
+      })(),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => {
+          controller.abort();
+          reject(new Error('Tidsavbrudd ved lasting av grafikkmanifestet'));
+        }, 15_000);
+      }),
+    ]);
   } catch {
     return 0;
+  } finally {
+    clearTimeout(timer);
   }
   let n = 0;
   const jobs: Promise<void>[] = [];

@@ -182,8 +182,23 @@ def lagre(im, navn, tapsfri, kvalitet=88):
     """WebP: tapsfritt for figurdeler (alfa og kanter må være nøyaktige, spillet beskjærer på alfa), ellers kvalitet."""
     fil = f'{navn}.webp'
     if not SJEKK:
-        if tapsfri: im.save(UT / fil, 'WEBP', lossless=True, method=6)
-        else: im.save(UT / fil, 'WEBP', quality=kvalitet, method=6)
+        # libwebp kan under høy belastning gi en tom fil uten å kaste feil. Ikke
+        # oppdater manifestet før en ferdig dekodbar fil kan legges atomisk på plass.
+        maal = UT / fil
+        midlertidig = UT / f'.{fil}.tmp'
+        for metode in (6, 4, 0):
+            try:
+                if tapsfri: im.save(midlertidig, 'WEBP', lossless=True, method=metode)
+                else: im.save(midlertidig, 'WEBP', quality=kvalitet, method=metode)
+                with Image.open(midlertidig) as kontroll:
+                    kontroll.verify()
+                midlertidig.replace(maal)
+                midlertidig.unlink(missing_ok=True)
+                break
+            except Exception:
+                midlertidig.unlink(missing_ok=True)
+        else:
+            raise OSError(f'kunne ikke skrive en gyldig WebP-fil: {fil}')
     return fil
 
 

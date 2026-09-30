@@ -1,0 +1,623 @@
+{
+  "parts": [
+    {
+      "char": "valkyra",
+      "part": "arm",
+      "file": "valkyra_arm.webp"
+    },
+    {
+      "char": "valkyra",
+      "part": "head",
+      "file": "valkyra_head.webp",
+      "anchor": [
+        0.51,
+        0.85
+      ]
+    },
+    {
+      "char": "valkyra",
+      "part": "leg",
+      "file": "valkyra_leg.webp"
+    },
+    {
+      "char": "valkyra",
+      "part": "pelvis",
+      "file": "valkyra_pelvis.webp",
+      "anchor": [
+        0.5,
+        0.12
+      ]
+    },
+    {
+      "char": "valkyra",
+      "part": "torso",
+      "file": "valkyra_torso.webp"
+    },
+    {
+      "char": "valkyra",
+      "part": "weapon",
+      "file": "valkyra_weapon.webp"
+    },
+    {
+      "char": "skeleton",
+      "part": "arm",
+      "file": "skeleton_arm.webp"
+    },
+    {
+      "char": "skeleton",
+      "part": "head",
+      "file": "skeleton_head.webp"
+    },
+    {
+      "char": "skeleton",
+      "part": "leg",
+      "file": "skeleton_leg.webp"
+    },
+    {
+      "char": "skeleton",
+      "part": "pelvis",
+      "file": "skeleton_pelvis.webp"
+    },
+    {
+      "char": "skeleton",
+      "part": "torso",
+      "file": "skeleton_torso.webp"
+    },
+    {
+      "char": "skeleton",
+      "part": "weapon",
+      "file": "skeleton_weapon.webp"
+    },
+    {
+      "char": "valkyra",
+      "part": "hairback",
+      "file": "valkyra_hairback.webp",
+      "anchor": [
+        0.75,
+        0.18
+      ]
+    },
+    {
+      "char": "cultist",
+      "part": "arm",
+      "file": "cultist_arm.webp"
+    },
+    {
+      "char": "cultist",
+      "part": "head",
+      "file": "cultist_head.webp"
+    },
+    {
+      "char": "cultist",
+      "part": "leg",
+      "file": "cultist_leg.webp"
+    },
+    {
+      "char": "cultist",
+      "part": "pelvis",
+      "file": "cultist_pelvis.webp",
+      "anchor": [
+        0.52,
+        0.07
+      ]
+    },
+    {
+      "char": "cultist",
+      "part": "torso",
+      "file": "cultist_torso.webp"
+    },
+    {
+      "char": "cultist",
+      "part": "weapon",
+      "file": "cultist_weapon.webp"
+    },
+    {
+      "char": "gnome",
+      "part": "arm",
+      "file": "gnome_arm.webp"
+    },
+    {
+      "char": "gnome",
+      "part": "head",
+      "file": "gnome_head.webp",
+      "anchor": [
+        0.57,
+        0.77
+      ]
+    },
+    {
+      "char": "gnome",
+      "part": "leg",
+      "file": "gnome_leg.webp"
+    },
+    {
+      "char": "gnome",
+      "part": "pelvis",
+      "file": "gnome_pelvis.webp"
+    },
+    {
+      "char": "gnome",
+      "part": "torso",
+      "file": "gnome_torso.webp"
+    },
+    {
+      "char": "hogman",
+      "part": "arm",
+      "file": "hogman_arm.webp"
+    },
+    {
+      "char": "hogman",
+      "part": "head",
+      "file": "hogman_head.webp"
+    },
+    {
+      "char": "hogman",
+      "part": "leg",
+      "file": "hogman_leg.webp"
+    },
+    {
+      "char": "hogman",
+      "part": "pelvis",
+      "file": "hogman_pelvis.webp"
+    },
+    {
+      "char": "hogman",
+      "part": "torso",
+      "file": "hogman_torso.webp"
+    },
+    {
+      "char": "hogman",
+      "part": "weapon",
+      "file": "hogman_weapon.webp"
+    },
+    {
+      "char": "frogman",
+      "part": "arm",
+      "file": "frogman_arm.webp"
+    },
+    {
+      "char": "frogman",
+      "part": "head",
+      "file": "frogman_head.webp"
+    },
+    {
+      "char": "frogman",
+      "part": "leg",
+      "file": "frogman_leg.webp"
+    },
+    {
+      "char": "frogman",
+      "part": "pelvis",
+      "file": "frogman_pelvis.webp"
+    },
+    {
+      "char": "frogman",
+      "part": "torso",
+      "file": "frogman_torso.webp"
+    },
+    {
+      "char": "frogman",
+      "part": "weapon",
+      "file": "frogman_weapon.webp"
+    },
+    {
+      "char": "gorthak",
+      "part": "arm",
+      "file": "gorthak_arm.webp"
+    },
+    {
+      "char": "gorthak",
+      "part": "head",
+      "file": "gorthak_head.webp"
+    },
+    {
+      "char": "gorthak",
+      "part": "leg",
+      "file": "gorthak_leg.webp"
+    },
+    {
+      "char": "gorthak",
+      "part": "pelvis",
+      "file": "gorthak_pelvis.webp",
+      "anchor": [
+        0.5,
+        0.17
+      ]
+    },
+    {
+      "char": "gorthak",
+      "part": "torso",
+      "file": "gorthak_torso.webp"
+    },
+    {
+      "char": "gorthak",
+      "part": "weapon",
+      "file": "gorthak_weapon.webp"
+    },
+    {
+      "char": "imp",
+      "part": "arm",
+      "file": "imp_arm.webp"
+    },
+    {
+      "char": "imp",
+      "part": "head",
+      "file": "imp_head.webp"
+    },
+    {
+      "char": "imp",
+      "part": "leg",
+      "file": "imp_leg.webp"
+    },
+    {
+      "char": "imp",
+      "part": "pelvis",
+      "file": "imp_pelvis.webp"
+    },
+    {
+      "char": "imp",
+      "part": "torso",
+      "file": "imp_torso.webp"
+    },
+    {
+      "char": "imp",
+      "part": "weapon",
+      "file": "imp_weapon.webp"
+    },
+    {
+      "char": "troll",
+      "part": "arm",
+      "file": "troll_arm.webp"
+    },
+    {
+      "char": "troll",
+      "part": "head",
+      "file": "troll_head.webp"
+    },
+    {
+      "char": "troll",
+      "part": "leg",
+      "file": "troll_leg.webp"
+    },
+    {
+      "char": "troll",
+      "part": "pelvis",
+      "file": "troll_pelvis.webp"
+    },
+    {
+      "char": "troll",
+      "part": "torso",
+      "file": "troll_torso.webp"
+    },
+    {
+      "char": "troll",
+      "part": "weapon",
+      "file": "troll_weapon.webp"
+    },
+    {
+      "char": "zombie",
+      "part": "arm",
+      "file": "zombie_arm.webp"
+    },
+    {
+      "char": "zombie",
+      "part": "head",
+      "file": "zombie_head.webp"
+    },
+    {
+      "char": "zombie",
+      "part": "leg",
+      "file": "zombie_leg.webp"
+    },
+    {
+      "char": "zombie",
+      "part": "pelvis",
+      "file": "zombie_pelvis.webp"
+    },
+    {
+      "char": "zombie",
+      "part": "torso",
+      "file": "zombie_torso.webp"
+    },
+    {
+      "char": "croakus",
+      "part": "head",
+      "file": "croakus_head.webp"
+    },
+    {
+      "char": "croakus",
+      "part": "leg",
+      "file": "croakus_leg.webp"
+    },
+    {
+      "char": "croakus",
+      "part": "pelvis",
+      "file": "croakus_pelvis.webp"
+    },
+    {
+      "char": "croakus",
+      "part": "torso",
+      "file": "croakus_torso.webp"
+    },
+    {
+      "char": "croakus",
+      "part": "weapon",
+      "file": "croakus_weapon.webp"
+    },
+    {
+      "char": "fireimp",
+      "part": "arm",
+      "file": "fireimp_arm.webp"
+    },
+    {
+      "char": "fireimp",
+      "part": "head",
+      "file": "fireimp_head.webp"
+    },
+    {
+      "char": "fireimp",
+      "part": "leg",
+      "file": "fireimp_leg.webp"
+    },
+    {
+      "char": "fireimp",
+      "part": "pelvis",
+      "file": "fireimp_pelvis.webp"
+    },
+    {
+      "char": "fireimp",
+      "part": "torso",
+      "file": "fireimp_torso.webp"
+    },
+    {
+      "char": "hogmother",
+      "part": "head",
+      "file": "hogmother_head.webp"
+    },
+    {
+      "char": "hogmother",
+      "part": "torso",
+      "file": "hogmother_torso.webp"
+    },
+    {
+      "char": "hogmother",
+      "part": "weapon",
+      "file": "hogmother_weapon.webp"
+    },
+    {
+      "char": "magmor",
+      "part": "arm",
+      "file": "magmor_arm.webp"
+    },
+    {
+      "char": "magmor",
+      "part": "head",
+      "file": "magmor_head.webp"
+    },
+    {
+      "char": "magmor",
+      "part": "leg",
+      "file": "magmor_leg.webp"
+    },
+    {
+      "char": "magmor",
+      "part": "pelvis",
+      "file": "magmor_pelvis.webp"
+    },
+    {
+      "char": "magmor",
+      "part": "torso",
+      "file": "magmor_torso.webp"
+    },
+    {
+      "char": "vorthax",
+      "part": "arm",
+      "file": "vorthax_arm.webp"
+    },
+    {
+      "char": "vorthax",
+      "part": "head",
+      "file": "vorthax_head.webp",
+      "anchor": [
+        0.56,
+        0.74
+      ]
+    },
+    {
+      "char": "vorthax",
+      "part": "leg",
+      "file": "vorthax_leg.webp"
+    },
+    {
+      "char": "vorthax",
+      "part": "pelvis",
+      "file": "vorthax_pelvis.webp",
+      "anchor": [
+        0.53,
+        0.07
+      ]
+    },
+    {
+      "char": "vorthax",
+      "part": "torso",
+      "file": "vorthax_torso.webp"
+    },
+    {
+      "char": "vorthax",
+      "part": "weapon",
+      "file": "vorthax_weapon.webp"
+    },
+    {
+      "char": "thrugg",
+      "part": "arm",
+      "file": "thrugg_arm.webp"
+    },
+    {
+      "char": "thrugg",
+      "part": "head",
+      "file": "thrugg_head.webp"
+    },
+    {
+      "char": "thrugg",
+      "part": "leg",
+      "file": "thrugg_leg.webp"
+    },
+    {
+      "char": "thrugg",
+      "part": "pelvis",
+      "file": "thrugg_pelvis.webp",
+      "anchor": [
+        0.51,
+        0.13
+      ]
+    },
+    {
+      "char": "thrugg",
+      "part": "torso",
+      "file": "thrugg_torso.webp"
+    },
+    {
+      "char": "thrugg",
+      "part": "weapon",
+      "file": "thrugg_weapon.webp"
+    },
+    {
+      "char": "cluckatrice",
+      "part": "body",
+      "file": "cluckatrice_body.webp"
+    },
+    {
+      "char": "cluckatrice",
+      "part": "head",
+      "file": "cluckatrice_head.webp",
+      "anchor": [
+        0.39,
+        0.91
+      ]
+    },
+    {
+      "char": "cluckatrice",
+      "part": "leg",
+      "file": "cluckatrice_leg.webp"
+    },
+    {
+      "char": "cluckatrice",
+      "part": "tail",
+      "file": "cluckatrice_tail.webp"
+    },
+    {
+      "char": "magmanewt",
+      "part": "body",
+      "file": "magmanewt_body.webp"
+    },
+    {
+      "char": "magmanewt",
+      "part": "head",
+      "file": "magmanewt_head.webp",
+      "anchor": [
+        0.1,
+        0.56
+      ]
+    },
+    {
+      "char": "magmanewt",
+      "part": "leg",
+      "file": "magmanewt_leg.webp",
+      "anchor": [
+        0.27,
+        0.06
+      ]
+    },
+    {
+      "char": "magmanewt",
+      "part": "tail",
+      "file": "magmanewt_tail.webp"
+    },
+    {
+      "char": "warhog",
+      "part": "body",
+      "file": "warhog_body.webp"
+    },
+    {
+      "char": "warhog",
+      "part": "head",
+      "file": "warhog_head.webp"
+    },
+    {
+      "char": "warhog",
+      "part": "leg",
+      "file": "warhog_leg.webp"
+    },
+    {
+      "char": "warhog",
+      "part": "tail",
+      "file": "warhog_tail.webp"
+    },
+    {
+      "char": "pet_chicken",
+      "part": "body",
+      "file": "pet_chicken.webp"
+    },
+    {
+      "char": "pet_dragon",
+      "part": "body",
+      "file": "pet_dragon.webp"
+    },
+    {
+      "char": "pet_eyeball",
+      "part": "body",
+      "file": "pet_eyeball.webp"
+    },
+    {
+      "char": "pet_rat",
+      "part": "body",
+      "file": "pet_rat.webp"
+    },
+    {
+      "char": "pet_skull",
+      "part": "body",
+      "file": "pet_skull.webp"
+    }
+  ],
+  "textures": {
+    "ground_grass": "tex_ground_grass.webp",
+    "ground_frost": "tex_ground_frost.webp",
+    "ground_night": "tex_ground_night.webp",
+    "ground_scorch": "tex_ground_scorch.webp",
+    "ground_swamp": "tex_ground_swamp.webp",
+    "floor_arena-bone": "tex_floor_arena-bone.webp",
+    "floor_arena-ice": "tex_floor_arena-ice.webp",
+    "floor_arena-pit": "tex_floor_arena-pit.webp",
+    "floor_tower": "tex_floor_tower.webp",
+    "pillar_arena-bone": "tex_pillar_arena-bone.webp",
+    "pillar_arena-ice": "tex_pillar_arena-ice.webp",
+    "pillar_arena-pit": "tex_pillar_arena-pit.webp",
+    "pillar_tower": "tex_pillar_tower.webp",
+    "road_frost": "tex_road_frost.webp",
+    "road_grass": "tex_road_grass.webp",
+    "road_night": "tex_road_night.webp",
+    "road_scorch": "tex_road_scorch.webp",
+    "road_swamp": "tex_road_swamp.webp",
+    "sand_arena-bone": "tex_sand_arena-bone.webp",
+    "sand_arena-ice": "tex_sand_arena-ice.webp",
+    "sand_arena-pit": "tex_sand_arena-pit.webp",
+    "wall_arena-bone": "tex_wall_arena-bone.webp",
+    "wall_arena-ice": "tex_wall_arena-ice.webp",
+    "wall_arena-pit": "tex_wall_arena-pit.webp",
+    "wall_gate": "tex_wall_gate.webp",
+    "wall_keep": "tex_wall_keep.webp",
+    "wall_tower": "tex_wall_tower.webp",
+    "wood": "tex_wood.webp"
+  },
+  "map": "map.webp",
+  "sky": {
+    "arena-bone": "sky_arena-bone.webp",
+    "arena-ice": "sky_arena-ice.webp",
+    "arena-pit": "sky_arena-pit.webp",
+    "frost": "sky_frost.webp",
+    "grass": "sky_grass.webp",
+    "night": "sky_night.webp",
+    "scorch": "sky_scorch.webp",
+    "swamp": "sky_swamp.webp"
+  }
+}

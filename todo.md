@@ -22,7 +22,7 @@
 - [x] Avalanche Troll: kjempe med rustning til han vakler, bakkeslag som rister, midtveis i frostpasset (tools/tests/giant.mjs)
 - [x] Blåtimen: dypblå himmel med varmt bånd i horisonten, blå tåke, ny gradering
 - [x] Klippevegger med snø, fossefall med dis, taubro, ruiner, fyrfat med ild, lys og varmeflimmer, fillete krigsbannere med hornet hodeskalle, runesteiner i 3D (noen gløder), istapper, taugjerde, snø på steinene, snøføyke og tettere snøfall
-- [ ] Tom: lag trollet i ChatGPT (troll_*.png). Kjempetrollet arver delene, så begge får den nye stilen
+- [x] Trollets seks ChatGPT-deler (troll_*.webp). Kjempetrollet arver delene og får samme stil
 - [ ] Krigsbanneret som eget bilde fra ChatGPT (trenger en ny kategori i process_art.py, ikke flisbar tekstur)
 - [x] Gameplay fra bildet: kast fiender i juvet (opp + kast), istapper som faller, fyrfat som kan veltes med glør og brann, kjempen griper og kaster helter, panikk (tools/tests/frostplay.mjs)
 - [x] Fiender som rygget ut av bildet og var for raske: rygger på halv fart og blir i bildet (Tom meldte fra)
@@ -50,9 +50,10 @@
 - [x] Egen lysmodus for malte PNG-deler (ingen blekkfurer, relieff fra lysheten, hud fra fargetonen)
 - [x] Hårmanke bak ryggen som egen PNG-del (hairback)
 - [x] Den tegnede Valkyra etter referansen: vill kobberrød manke (ny frisyre MANE), selvgodt blikk, øks, pelsstøvler, uten pannebånd
-- [ ] Tom: lag Valkyra-delene i ChatGPT etter ART_PROMPTS.md (helfiguren finnes), så justerer vi anker og høyder sammen
-- [ ] Tom: lag teksturene, gjerne først ground_grass, road_grass og wall_keep
-- [ ] Thrugg og fiendene i samme stil (PNG-deler)
+- [x] Valkyras sju deler i samme stil, med ankere for hår, hode og lendeklede
+- [x] Alle 28 teksturer, åtte himler og verdenskartet i manifestet
+- [x] Thrugg og alle fiendene i samme stil (PNG-deler)
+- [ ] Visuell kontroll av alle sammensatte figurer, ridedyr og kjæledyr i nettleseren med kunstpakken lastet (filer, manifest, alfa og bygg er kontrollert)
 - [ ] Enhåndsøks som eget våpen (Valkyras øks har ett blad, spillets AXE har to)
 - [ ] Hårmanken svaier i vinden (hairback og den tegnede manken)
 
@@ -106,7 +107,8 @@
 - [ ] Hemmeligheter: gnomekonge, The Ham Dimension, bard som synger om drapene
 - [ ] Co-op-gjenoppliving
 - [ ] Koble inn heltebygger-lag som PNG (hår, hjelm, skjegg osv., se ART_PROMPTS.md "Planlagt")
-- [ ] PNG for ridedyr, kjæledyr og farer (prompter ligger i ART_PROMPTS.md)
+- [x] PNG-deler for alle tre ridedyr og alle fem kjæledyr
+- [ ] PNG for farer (prompter ligger i ART_PROMPTS.md)
 - [ ] Rekvisitter og ikoner som PNG
 - [ ] Vis tittelbilde og sjef-VS-kort fra assets
 - [ ] Rydd opp geometri/materialer når scener byttes (liten minnelekkasje ved mange omstarter)
