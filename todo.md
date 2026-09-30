@@ -1,5 +1,14 @@
 # todo.md
 
+## Hero Forge: felles pool av malte deler (2026-09-30)
+- [x] Finn årsaken til at malte deler forsvant ved endring av preset; kontroller alle 143 grunnfiler
+- [x] 19 uavhengige delvalg med miniatyrer, bakhår fra valgt hode, samme figur i forhåndsvisning og kamp
+- [x] Lagre blandinger for begge spillere, bevare gamle helter og klassisk modus, beholde opplåsinger og riktige våpenegenskaper
+- [x] Innlesing og kontroll av ekstra `forge_*`-deler uten å svekke kontrollen av de 143 grunnfilene
+- [ ] Lag de 13 nye delene i `docs/HERO_FORGE_GRAFIKK.md`, først krigshammeren; registrer hvert ferdige bilde i manifest og delkatalog
+- [ ] Egne ansikts-, hår-, skjegg- og hjelmlag samt masker for hud/hår/tøy
+- [ ] Visuell finjustering av blandede kroppsdeler og ledd, med nye deler kontrollert mot helteriggen
+
 ## Menyene (fra 2026-09-30 07:38)
 - [x] Tittelen fra åtte til fire knapper (STORY og DUEL med venstre/høyre, HERO FORGE, OPTIONS)
 - [x] Innstillingene i grupper (gore, SOUND, SCREEN, CONTROLS), ERASE SAVE bare fra tittelen

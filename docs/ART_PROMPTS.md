@@ -173,7 +173,7 @@ Lim inn beskrivelsen, så templatet for delen du vil lage. Kolonnen "Deler" vise
 | `magmor` | `Character: MAGMOR THE MOLTEN, a lava golem boss made of black and dark grey rock chunks with glowing orange lava cracks, small blocky head with glowing yellow eyes and a lava mouth, flames on top of the head, huge rock fists. No weapon.` | head, torso, pelvis, arm, leg |
 | `vorthax` | `Character: VORTHAX THE MODERATELY EVIL, an old sorcerer villain. Purple robes with gold trim and dots, tall purple pointy hat with a small skull, long white beard, glowing red eyes, pale wrinkled skin, wide sleeves. Weapon: a crooked wooden staff with a glowing cyan orb.` | head, torso, pelvis, arm, leg, weapon |
 
-Heltebyggerens deler (hode med hårfrisyrer, hjelmer, skjegg og så videre) tegnes fortsatt i kode. Se "Planlagt" nederst.
+Hero Forge har en felles pool med 19 malte delvalg fra Thrugg, Valkyra, Gorthak og Hogmans klubbe. Se `docs/HERO_FORGE_GRAFIKK.md` for filkart og neste kunstbestilling. Frie hårfrisyrer, hjelmer, skjegg og farger finnes foreløpig i CLASSIC BUILDER; egne bildelag er fortsatt planlagt.
 
 ### Valkyra og referansebildet
 
@@ -339,7 +339,7 @@ Logoen til **Tom's Happy Happy Funtimes Emporium** er levert av Tom og ligger i 
 
 ## Planlagt (ikke koblet inn i koden ennå)
 
-Disse kan lages nå, så er de klare når koden støtter dem.
+Dette er senere utvidelser. Avtal først filnavn, lagplassering og innlesing: flere av navnene nedenfor avvises av dagens innleser. Prioriter de separate delene i `docs/HERO_FORGE_GRAFIKK.md` før egne hår-, hjelm- og fargelag.
 
 | Pakke | Filer | Merknad |
 |---|---|---|

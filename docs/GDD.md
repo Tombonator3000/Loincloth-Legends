@@ -105,7 +105,9 @@ Etter halshugging kommer Cleanup Imp og **sparker hodet rett mot kameraet**. Det
 
 ## 9. Hero Forge (heltebygger)
 
-Mann eller dame, og alle deler kan kombineres fritt:
+PAINTED PARTS er en felles pool for hode, overkropp, armer, belte/lendeklede, bein og våpen. Hver del velges uavhengig med bildeminiatyrer. Første pool har 19 valg fra eksisterende kunst; Thrugg og Valkyra er ferdige startoppsett. Våpenets egenskaper følger valgt våpenbilde, og langt bakhår følger hodet. Se `HERO_FORGE_GRAFIKK.md` for manglende kunst.
+
+CLASSIC BUILDER beholder de prosedyretegnede valgene nedenfor. Malt hår, hjelmer og hud er foreløpig en del av selve bildene, så disse finvalgene vises bare i den klassiske byggeren:
 
 | Kategori | Valg |
 |---|---|

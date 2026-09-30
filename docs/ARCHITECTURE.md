@@ -228,6 +228,11 @@ Legg til en `MapNode` i `data/worldmap.ts` (posisjon, krav, belønning) og en ka
 Legg til en `DuelistDef` i `data/duelists.ts`. `char: '@player'` gir en ond tvilling av spillerens helt.
 
 ### Ny del i heltebyggeren
+Malte deler: legg inn bildet under støttet delnavn i `public/assets/manifest.json`, og legg et valg med stabil `id`, `source`, `slot` og `label` i `src/data/hero-parts.ts`. Våpen må angi indeks i `WEAPONS`, overkropper kroppstype, og låste deler en eksisterende opplåsingsnøkkel. Se `HERO_FORGE_GRAFIKK.md` for kunstkrav og kontrollverktøy før grunnpakken utvides.
+
+`HeroConfig.parts` lagrer seks uavhengige del-ID-er. `withHeroParts()` holder kroppstype og våpenegenskaper i takt med kunsten; `buildHeroDef()` bruker samme arving per del i forhåndsvisning, kamp, duell og portrett. Bakhår følger hodets kilde. Uten `parts` brukes CLASSIC BUILDER. Katalogen importerer ikke Three.js, og menyen tilbyr bare bilder som faktisk er lastet. Endringer kopieres dypt, så avbryt og spillerbytte ikke endrer lagrede helter.
+
+For et nytt valg i den klassiske byggeren:
 1. Legg navnet til i riktig liste i `HERO_OPTIONS` (`gfx/chars/hero.ts`).
 2. Tegn varianten i tilsvarende funksjon (`helmet`, `beard`, `torsoPart` osv., eller i `muscle.ts`).
 3. Skal den låses opp? Legg den i `PART_LOCKS` og som `reward.unlock` på en kartnode, og gjerne i `SHOP`.

@@ -68,8 +68,9 @@ const DEFAULT_H: Record<PartKey, number> = {
   body: 0.6,
   tail: 0.6,
 };
-/** Heltene (lange bein, store armer, stort hår) har egne standardhøyder. */
+/** Heltene og nye forge_-deler følger samme rigg og beltebredde. */
 const HERO_IDS = new Set(['thrugg', 'valkyra']);
+const isHeroArt = (id: string) => HERO_IDS.has(id) || id.startsWith('forge_');
 /** Kropp, arm og bein følger proporsjonene i chars/types.ts, så PNG-deler og tegnede deler passer sammen. */
 const HERO_H: Partial<Record<PartKey, number>> = {
   // PNG-hoder i karikaturstil har stort hår, så hele bildet blir høyere enn det tegnede hodet
@@ -218,9 +219,9 @@ export async function loadAssets(base = './assets/') {
         .then((img) => {
           const cv = trim(img);
           const beast = BEAST_IDS.has(p.char);
-          let h = p.height ?? (beast ? BEAST_H[p.part] : HERO_IDS.has(p.char) ? HERO_H[p.part] : undefined) ?? DEFAULT_H[p.part] ?? 1;
+          let h = p.height ?? (beast ? BEAST_H[p.part] : isHeroArt(p.char) ? HERO_H[p.part] : undefined) ?? DEFAULT_H[p.part] ?? 1;
           let fixedH = p.height !== undefined;
-          if (!fixedH && p.part === 'pelvis' && HERO_IDS.has(p.char)) {
+          if (!fixedH && p.part === 'pelvis' && isHeroArt(p.char)) {
             const bw = beltWidth(cv);
             if (bw > 0) {
               h = Math.min(1.2, Math.max(0.25, (HERO_BELT_W * cv.height) / bw));

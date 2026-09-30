@@ -1,5 +1,7 @@
 # Startprompt til ChatGPT
 
+Oppdatert 30. september 2026: de 143 filene nedenfor er grunnpakken og finnes nå i repoet. Hero Forge bruker en felles pool av eksisterende delbilder. Nye delvarianter, manglende krigshammer og senere hår-, hjelm- og fargelag står i `docs/HERO_FORGE_GRAFIKK.md`; de er ikke inkludert i tallet 143. Les den listen før neste kunstbestilling.
+
 Dette er hele arbeidsbeskrivelsen for ChatGPT: hva spillet er, hvordan det bruker bildene, stilen (nesten ekte karikatur), arbeidsflyten, kommandoene du kan skrive, alle figurene, teksturene og himmelbildene, og en sjekkliste over alle 143 filene. Den er på engelsk fordi den er til ChatGPT. ChatGPT svarer deg på norsk.
 
 ## Slik bruker du den
@@ -398,7 +400,7 @@ Notes:
 - The wide sleeve ends above the bony fist; the fist is still the lowest thing.
 - The orb glows inside the orb only.
 
-The duels need no extra files: the ice champion is gorthak tinted ice-blue, the hog champion is hogman, the bone champion is skeleton, and the shadow duel uses the player's own hero, tinted. Thrugg's and Valkyra's images are also used when a player picks those presets unchanged in the hero creator.
+The duels need no extra files: the ice champion is gorthak tinted ice-blue, the hog champion is hogman, the bone champion is skeleton, and the shadow duel uses the player's own hero, tinted. Hero Forge now mixes individual painted parts from the shared catalogue in src/data/hero-parts.ts. Thrugg and Valkyra are starting recipes, not a restriction on mixing. The separate expansion list in docs/HERO_FORGE_GRAFIKK.md covers missing Forge variants; those files are outside this original 143-file checklist.
 
 # 10. Mounts
 

@@ -9,6 +9,8 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - 80-talls fantasy-klisjeer spilt rett, med humor og mange parodier, og over-the-top gore
 
 ## Beslutninger
+- 2026-09-30: Hero Forge bruker en felles katalog med malte deler (`src/data/hero-parts.ts`). `HeroConfig.parts` har seks stabile del-ID-er; Thrugg og Valkyra er startoppsett. Hårbakstykket følger valgt hode. CLASSIC BUILDER beholder hår-, hjelm- og fargevalg fra tegnebyggeren. `heroPartsVersion: 1` i lagringen skiller et uttrykkelig klassisk valg fra gamle presets som skal migreres. Våpenbilde og kampegenskaper synkroniseres med `withHeroParts()`.
+- 2026-09-30: Grunnpakken har 143 bilder og dekker ikke alle Forge-varianter. Se `docs/HERO_FORGE_GRAFIKK.md` for 19 eksisterende delvalg og prioritert bestilling av 13 nye bilder. Nye `forge_*`-deler følger helteriggen, beholder 1024 px ved innlesing og kan valideres i tillegg til grunnpakken. Egne hår-, hjelm- og fargelag er fortsatt framtidig arbeid.
 - 2026-09-29: Motor er Three.js + TypeScript (valgt av Tom). Kjører i nettleser.
 - 2026-09-29: Første leveranse er en spillbar prototype (vertikal slice).
 - 2026-09-29: 1 spiller + 2 spillere lokalt. Opptil 4 kan komme senere.
