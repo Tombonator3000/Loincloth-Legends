@@ -42,7 +42,7 @@ for (const name of names) {
       bus.connect(master).connect(comp).connect(ctx.destination);
       const band = new L.MetalBand(ctx, bus);
       band.shred = shred;
-      if (real) band.samples = { pick: (g, m) => L.audio.bank.pick(g, m), full: (g) => L.audio.bank.full(g) };
+      if (real) band.samples = { pick: (g, m, v) => L.audio.bank.pick(g, m, v), full: (g) => L.audio.bank.full(g) };
       // Ett instrument alene: de andre blir stille (bassen følger akkordene, så den spilles fra powerChord)
       const nop = () => {};
       const kit = ['kick', 'snare', 'hat', 'crash', 'tom'];

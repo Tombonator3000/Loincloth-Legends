@@ -7,6 +7,8 @@
 // Dirigenten (core/conductor.ts) bruker lagbussene, broen, avslutningen og stingerne nederst i MetalBand.
 // Alle riff og melodier her er skrevet for spillet.
 
+import { guitarAmp, type AmpVoice } from './guitaramp';
+
 const mtof = (m: number) => 440 * Math.pow(2, (m - 69) / 12);
 
 /** Rytmegitar: [steg, grunntone (midi), lengde i steg, åpen akkord (ellers palm mute)]. */
@@ -285,20 +287,23 @@ export function impulse(ctx: BaseAudioContext, dur: number, gated: boolean) {
 interface Amp { input: GainNode }
 
 /**
- * En forsterker: gain, høypass inn (Hz), kabinettet (lavpass, Hz), nivå ut, og klangen etter forvrengningen: dunken i
- * kabinettet (dB ved 110 Hz), midten (dB ved 450 Hz) og nærværet (dB ved 1,9 kHz).
+ * Synthforsterkeren: gain, høypass inn (Hz), kabinettet (lavpass, Hz), nivå ut, og klangen etter forvrengningen: dunken
+ * i kabinettet (dB ved 110 Hz), midten (dB ved 450 Hz) og nærværet (dB ved 1,9 kHz).
  */
 interface AmpSpec { drive: number; hp: number; lp: number; level: number; thump: number; mid: number; pres: number }
-/**
- * Synthen trenger mye gain for å likne en gitar. Opptakene (Karoryfer) kjøres som et stack fra 80-tallet, med mye
- * mindre gain, så anslaget, klangen i strengene og uttoningen høres gjennom forvrengningen, og med mer dunk i
- * kabinettet, siden en ekte streng gir mindre bunn enn en sagtann etter forvrengningen.
- */
-const AMPS: Record<'rhythm' | 'lead' | 'rhythmReal' | 'leadReal', AmpSpec> = {
+/** Synthen trenger mye gain for å likne en gitar. Opptakene har sin egen forsterkermodell (REAL_AMP). */
+const AMPS: Record<'rhythm' | 'lead', AmpSpec> = {
   rhythm: { drive: 18, hp: 110, lp: 5200, level: 0.42, thump: 0, mid: -4, pres: 4 },
   lead: { drive: 34, hp: 320, lp: 4600, level: 0.26, thump: 0, mid: -4, pres: 4 },
-  rhythmReal: { drive: 10, hp: 90, lp: 5400, level: 0.5, thump: 6, mid: -7, pres: 6 },
-  leadReal: { drive: 20, hp: 250, lp: 4800, level: 0.3, thump: 0, mid: -3, pres: 4 },
+};
+/**
+ * Forsterkermodellen for el-gitaren (opptakene, core/guitaramp.ts): rytmegitarene som et britisk stack fra 80-tallet
+ * med Tube Screamer foran (stram bunn, løftet midt, tonestakken litt skåret i midten), leadgitaren med mer gain og
+ * mer midt, så den synger.
+ */
+const REAL_AMP: Record<'rhythm' | 'lead', AmpVoice> = {
+  rhythm: { tight: 100, boost: 5, gain1: 3, gain2: 8, couple: 160, bass: 3, mid: -2, treble: 3, resonance: 3, presence: 4, level: 0.56 },
+  lead: { tight: 200, boost: 7, gain1: 4, gain2: 8, couple: 300, bass: 0, mid: 1, treble: 1, resonance: 0, presence: 3, level: 0.3 },
 };
 
 /** Intensitet (core/conductor.ts): 0 rolig, 1 kamp (låta som skrevet), 2 hete, 3 sjef. */
@@ -332,12 +337,15 @@ export interface Pitched { buf: AudioBuffer; rate: number; lead: number }
  * midt i en frase. Bandet lager kildene selv i sin egen kontekst, så det virker også ved offline-rendring.
  */
 export interface SampleSource {
-  pick(group: string, midi: number): Pitched | null;
+  /** v = variant nummer v i stedet for tilfeldig (venstre og høyre gitar får hvert sitt opptak). */
+  pick(group: string, midi: number, v?: number): Pitched | null;
   full(group: string): boolean;
 }
 
-/** Hvor hardt gitar- og bassopptakene går inn i forsterkerne sine (AMPS og BASS_R). */
-const REAL = { chord: 1.2, mute: 4, lead: 1, bass: 1.2 };
+/**
+ * Hvor hardt opptakene går inn i forsterkerne sine (REAL_AMP og BASS_R). chk er strengestøyen under palm mute.
+ */
+const REAL = { chord: 1, mute: 1.1, chk: 0.15, lead: 1, bass: 1.2 };
 /** Den ekte bassen: nivået på den rene bunnen, gain og nivå på knurren over 160 Hz. */
 const BASS_R = { low: 6, drive: 4, growl: 0.8 };
 /** Et filter i EQ-en på et trommeopptak: type, frekvens (Hz), Q og forsterkning (dB). */
@@ -356,9 +364,7 @@ const KIT: Record<'kick' | 'snare' | 'hat' | 'crash' | 'tom', { vol: number; eq:
   tom: { vol: 1.3, eq: [['peaking', 480, 1.2, -6], ['peaking', 4000, 1.2, 7]] },
 };
 const DRUMS = ['ins_stortromme', 'ins_skarp', 'ins_hihat', 'ins_crash', 'ins_tam'];
-const GUITARS = ['ins_gitar', 'ins_gitarkort'];
-/** Palm mute bruker de korte gitartonene opp til denne tonen, lysere toner de lange (med kort konvolutt). */
-const MUTE_TOP = 55;
+const GUITARS = ['ins_elgitar', 'ins_gitardemp'];
 const hzToMidi = (f: number) => 69 + 12 * Math.log2(f / 440);
 
 /** Flytt en tone med hele oktaver til den ligger fra lo og opp til (men ikke med) lo + 12. */
@@ -430,7 +436,7 @@ export class MetalBand {
   private rhythm: Amp[] = [];
   private lead: Amp;
   private bassIn: GainNode;
-  /** Forsterkerne og bassinngangen for opptakene (AMPS.rhythmReal og leadReal). */
+  /** Forsterkerne og bassinngangen for opptakene (REAL_AMP og BASS_R). */
   private rhythmR: Amp[] = [];
   private leadR: Amp;
   private bassInR: GainNode;
@@ -493,8 +499,7 @@ export class MetalBand {
     // forsterkere på de samme plassene.
     this.rhythmBus = bus(1);
     for (const pan of [-0.8, 0.8]) {
-      for (const [spec, list] of [[AMPS.rhythm, this.rhythm], [AMPS.rhythmReal, this.rhythmR]] as const) {
-        const amp = this.makeAmp(spec);
+      for (const [amp, list] of [[this.makeAmp(AMPS.rhythm), this.rhythm], [guitarAmp(c, REAL_AMP.rhythm), this.rhythmR]] as const) {
         const p = c.createStereoPanner();
         p.pan.value = pan;
         amp.out.connect(p).connect(this.rhythmBus);
@@ -503,7 +508,7 @@ export class MetalBand {
     }
     // Leadgitar i midten, mer gain, ekko og hall. Ekkoet og hallen hentes etter lagbussen, så halen følger med ned.
     const lead = this.makeAmp(AMPS.lead);
-    const leadR = this.makeAmp(AMPS.leadReal);
+    const leadR = guitarAmp(c, REAL_AMP.lead);
     this.leadBus = bus(1);
     lead.out.connect(this.leadBus);
     leadR.out.connect(this.leadBus);
@@ -616,7 +621,7 @@ export class MetalBand {
     const i = real ? 1 : 0;
     let input = this.stingIn[i];
     if (!input) {
-      const a = this.makeAmp(real ? AMPS.leadReal : AMPS.lead);
+      const a = real ? guitarAmp(this.ctx, REAL_AMP.lead) : this.makeAmp(AMPS.lead);
       a.out.connect(this.fx);
       a.out.connect(this.hall);
       input = this.stingIn[i] = a.input;
@@ -733,14 +738,20 @@ export class MetalBand {
   // ---------------------------------------------------------------- gitarer
   /** Kraftakkord (grunntone, kvint og oktav) på begge gitarene. Palm mute er mørk og kort. Bassen følger med. */
   powerChord(t: number, root: number, dur: number, open: boolean, vel = 1, withBass = true) {
+    if (this.real(GUITARS)) this.realChord(t, root, dur, open, vel);
+    else this.synthChord(t, root, dur, open, vel);
+    // Bassen følger grunntonen en oktav ned
+    if (withBass) this.bass(t, root - 12, open ? dur : Math.min(dur, 0.24), vel);
+  }
+
+  private synthChord(t: number, root: number, dur: number, open: boolean, vel: number) {
     const c = this.ctx;
-    const real = this.real(GUITARS);
     this.rhythm.forEach((_amp, side) => {
-      const input = (real ? this.sec.rr : this.sec.r)[side];
+      const input = this.sec.r[side];
       const t0 = t + side * 0.007;
       const f = c.createBiquadFilter();
       f.type = 'lowpass';
-      f.frequency.value = open ? 3800 : real ? 450 : 620;
+      f.frequency.value = open ? 3800 : 620;
       f.Q.value = open ? 0.7 : 1.4;
       const g = c.createGain();
       const len = open ? dur : Math.min(dur, 0.2);
@@ -754,20 +765,8 @@ export class MetalBand {
         g.gain.exponentialRampToValueAtTime(0.0001, t0 + len + 0.03);
       }
       f.connect(g).connect(input);
-      const notes = open ? [0, 7, 12] : [0, 7];
       const cents = side ? [-4, 5, 3] : [2, -2, -3];
-      // Ekte gitar: én ren tone per streng inn i sin egen forsterker, som på en ekte forsterker (plekteret er i opptaket)
-      if (real) {
-        notes.forEach((iv, k) => {
-          const m = root + iv;
-          const p = this.samples!.pick(open || m > MUTE_TOP ? 'ins_gitar' : 'ins_gitarkort', m);
-          if (!p) return;
-          const v = this.voice(p, t0, open ? REAL.chord : REAL.mute, f, len + 0.08, 0.04);
-          v.src.detune.value = cents[k];
-        });
-        return;
-      }
-      notes.forEach((iv, k) => {
+      (open ? [0, 7, 12] : [0, 7]).forEach((iv, k) => {
         const o = c.createOscillator();
         o.type = 'sawtooth';
         o.frequency.value = mtof(root + iv);
@@ -779,8 +778,56 @@ export class MetalBand {
       // Plekteret
       this.noiseAt(t0, 0.02, input, 'highpass', 1800, 0.35 * vel, 0.012);
     });
-    // Bassen følger grunntonen en oktav ned
-    if (withBass) this.bass(t, root - 12, open ? dur : Math.min(dur, 0.24), vel);
+  }
+
+  /**
+   * Kraftakkord på el-gitarene (opptakene), spilt som en gitarist gjør: strengene slås an fra den dype og opp (6 ms
+   * mellom strengene på åpne akkorder, 2 ms på palm mute), og gitaren til venstre og til høyre er hvert sitt opptak
+   * av tonene med litt ulik timing (opptil 8 ms), styrke og stemming, som to innspillinger. Palm mute er tonen dempet
+   * med håndflaten: kort, diskanten forsvinner fort etter anslaget, og strengestøyen fra plekteret ligger under.
+   */
+  private realChord(t: number, root: number, dur: number, open: boolean, vel: number) {
+    const c = this.ctx;
+    const len = open ? dur : Math.min(dur, 0.2);
+    const notes = open ? [0, 7, 12] : [0, 7];
+    const v0 = Math.floor(Math.random() * 6);
+    for (let side = 0; side < 2; side++) {
+      const input = this.sec.rr[side];
+      const t0 = t + Math.random() * 0.008;
+      const vs = vel * (0.93 + Math.random() * 0.07);
+      const g = c.createGain();
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(vs, t0 + 0.003);
+      if (open) {
+        g.gain.setValueAtTime(vs, t0 + Math.max(0.01, len - 0.03));
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + len + 0.07);
+      } else {
+        g.gain.exponentialRampToValueAtTime(vs * 0.35, t0 + len * 0.7);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + len + 0.03);
+      }
+      g.connect(input);
+      let dest: AudioNode = g;
+      if (!open) {
+        // Håndflaten demper diskanten like etter anslaget
+        const f = c.createBiquadFilter();
+        f.type = 'lowpass';
+        f.Q.value = 0.7;
+        f.frequency.setValueAtTime(1500, t0);
+        f.frequency.exponentialRampToValueAtTime(450, t0 + 0.05);
+        f.connect(g);
+        dest = f;
+        const chk = this.samples!.pick('ins_gitardemp', 60, v0 + side * 2);
+        if (chk) this.voice(chk, t0, REAL.chk * vs, dest);
+      }
+      const cents = side ? [-4, 5, 3] : [2, -2, -3];
+      notes.forEach((iv, k) => {
+        const p = this.samples!.pick('ins_elgitar', root + iv, v0 + side);
+        if (!p) return;
+        const at = t0 + k * (open ? 0.006 : 0.002);
+        const v = this.voice(p, at, (open ? REAL.chord : REAL.mute) * (1 - 0.1 * k), dest, len + 0.08 - (at - t0), 0.04);
+        v.src.detune.value = cents[k];
+      });
+    }
   }
 
   private bass(t: number, m: number, dur: number, vel: number) {
@@ -815,7 +862,7 @@ export class MetalBand {
   leadNote(t: number, m: number, dur: number, bend = 0, vel = 1, pan = 0, sting = false) {
     const c = this.ctx;
     // Ekte gitar (opptaket) i sin egen forsterker. Lange toner (over 2,4 s) spilles av synthen.
-    const p = dur < 2.4 && this.real(['ins_gitar']) ? this.samples!.pick('ins_gitar', m) : null;
+    const p = dur < 2.4 && this.real(['ins_elgitar']) ? this.samples!.pick('ins_elgitar', m) : null;
     let dest: AudioNode = sting ? this.sting(!!p) : p ? this.sec.leadR : this.sec.lead;
     const g = c.createGain();
     g.gain.setValueAtTime(0.0001, t);

@@ -1,7 +1,8 @@
 // Ekte instrumenter i musikken (Karoryfer, CC0): alle gruppene lastes, gitaren og bassen spiller riktig tone gjennom
 // forsterkerne, en låt rendres rent med opptakene (ingen klipping eller NaN, nivået nær synthen), trommene høres
-// tydelig bedre enn synthtrommene på små høyttalere, gitarene har egne forsterkere med mindre gain (de svarer på hvor
-// hardt det slås an), og uten opptak (RECORDED SOUNDS av) spiller bandet synth som før.
+// tydelig bedre enn synthtrommene på små høyttalere, gitarene svarer på hvor hardt det slås an, venstre og høyre
+// rytmegitar får hvert sitt opptak, kabinettet i forsterkermodellen har kurven til en ekte høyttaler og tar bort
+// synthsuset over 10 kHz, og uten opptak (RECORDED SOUNDS av) spiller bandet synth som før.
 // Bruk: node tools/tests/instruments.mjs http://localhost:4173/
 import { chromium } from 'playwright';
 const [url] = process.argv.slice(2);
@@ -24,7 +25,7 @@ for (let i = 0; i < 120; i++) {
   if (await page.evaluate(() => window.__lib.audio.bank.done)) break;
   await page.waitForTimeout(500);
 }
-const GROUPS = ['ins_stortromme', 'ins_skarp', 'ins_hihat', 'ins_crash', 'ins_tam', 'ins_gitar', 'ins_gitarkort', 'ins_bass'];
+const GROUPS = ['ins_stortromme', 'ins_skarp', 'ins_hihat', 'ins_crash', 'ins_tam', 'ins_elgitar', 'ins_gitardemp', 'ins_bass'];
 const loaded = await page.evaluate((gs) => Object.fromEntries(gs.map((g) => [g, window.__lib.audio.bank.full(g)])), GROUPS);
 check('alle instrumentgruppene er lastet', Object.values(loaded).every(Boolean), loaded);
 
@@ -33,7 +34,7 @@ const pitch = (code, f0, secs = 1.2, from = 0.15, len = 0.8) => page.evaluate(as
   const L = window.__lib, sr = 44100;
   const ctx = new OfflineAudioContext(1, Math.floor(sr * secs), sr);
   const b = new L.MetalBand(ctx, ctx.destination);
-  b.samples = { pick: (g, m) => L.audio.bank.pick(g, m), full: (g) => L.audio.bank.full(g) };
+  b.samples = { pick: (g, m, v) => L.audio.bank.pick(g, m, v), full: (g) => L.audio.bank.full(g) };
   new Function('b', code)(b);
   const x = (await ctx.startRendering()).getChannelData(0).slice(Math.floor(sr * from), Math.floor(sr * (from + len)));
   // Spekteret med Goertzel på et fint rutenett rundt f0 (± 60 cent)
@@ -65,7 +66,7 @@ const song = (real) => page.evaluate(async ({ real }) => {
   const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 6;
   bus.connect(master).connect(comp).connect(ctx.destination);
   const b = new L.MetalBand(ctx, bus);
-  if (real) b.samples = { pick: (g, m) => L.audio.bank.pick(g, m), full: (g) => L.audio.bank.full(g) };
+  if (real) b.samples = { pick: (g, m, v) => L.audio.bank.pick(g, m, v), full: (g) => L.audio.bank.full(g) };
   const tr = L.METAL_TRACKS.stage, sd = 60 / tr.bpm / 4;
   for (let s = 0, t = 0.05; t < secs - 0.4; s++, t += sd) b.playStep(tr, s % tr.steps, t, sd);
   const buf = await ctx.startRendering();
@@ -93,7 +94,7 @@ const drumsOnly = (real) => page.evaluate(async ({ real }) => {
   const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 6;
   bus.connect(master).connect(comp).connect(ctx.destination);
   const b = new L.MetalBand(ctx, bus);
-  if (real) b.samples = { pick: (g, m) => L.audio.bank.pick(g, m), full: (g) => L.audio.bank.full(g) };
+  if (real) b.samples = { pick: (g, m, v) => L.audio.bank.pick(g, m, v), full: (g) => L.audio.bank.full(g) };
   b.powerChord = () => {};
   b.leadNote = () => {};
   const tr = L.METAL_TRACKS.stage, sd = 60 / tr.bpm / 4;
@@ -128,7 +129,7 @@ const touch = (real) => page.evaluate(async ({ real }) => {
   const level = async (code) => {
     const ctx = new OfflineAudioContext(2, sr, sr);
     const b = new L.MetalBand(ctx, ctx.destination);
-    if (real) b.samples = { pick: (g, m) => L.audio.bank.pick(g, m), full: (g) => L.audio.bank.full(g) };
+    if (real) b.samples = { pick: (g, m, v) => L.audio.bank.pick(g, m, v), full: (g) => L.audio.bank.full(g) };
     new Function('b', code)(b);
     const buf = await ctx.startRendering();
     const x = buf.getChannelData(0), y = buf.getChannelData(1);
@@ -141,6 +142,50 @@ const touch = (real) => page.evaluate(async ({ real }) => {
 }, { real });
 const tch = { synth: await touch(false), real: await touch(true) };
 check('de ekte gitarene svarer på anslaget (egne forsterkere med mindre gain)', tch.real.chord + tch.real.lead >= 5, tch);
+
+// Dobbeltinnspillingen: variant 0 og 1 av grunntonen, kvinten og oktaven i en E-akkord er ulike opptak
+const takes = await page.evaluate(() => {
+  const b = window.__lib.audio.bank;
+  return [40, 47, 52].map((m) => { const a = b.pick('ins_elgitar', m, 0), c = b.pick('ins_elgitar', m, 1); return !!a && !!c && a.buf !== c.buf; });
+});
+check('venstre og høyre rytmegitar får hvert sitt opptak av tonene', takes.every(Boolean), takes);
+
+// Kabinettet (core/guitaramp.ts): kurven til en Celestion Vintage 30 med SM57, topper ved 2,5 og 4 kHz og fall over
+// 5,5 kHz. Frekvensresponsen til impulsresponsen måles direkte.
+const cab = await page.evaluate(() => {
+  const sr = 44100, ir = window.__lib.cabinetIR(new OfflineAudioContext(1, 1024, sr)).getChannelData(0);
+  const at = (f) => { let re = 0, im = 0; for (let i = 0; i < ir.length; i++) { re += ir[i] * Math.cos((2 * Math.PI * f * i) / sr); im -= ir[i] * Math.sin((2 * Math.PI * f * i) / sr); } return +(10 * Math.log10(re * re + im * im + 1e-20)).toFixed(1); };
+  return Object.fromEntries([118, 420, 1100, 2500, 4000, 8000, 12000].map((f) => [f, at(f)]));
+});
+check('kabinettet har kurven til en ekte høyttaler (topper ved 2,5 og 4 kHz, -10 dB ved 8 kHz og -25 ved 12 kHz)',
+  cab[2500] > cab[1100] + 2 && cab[4000] > cab[1100] + 2 && cab[118] > cab[420] && cab[8000] < cab[4000] - 10 && cab[12000] < cab[4000] - 25, cab);
+
+// Rytmegitarene alene i låta: andelen av energien over 10 kHz. Forvrengning uten høyttaler (synthen) har sus der oppe,
+// en ekte høyttaler nesten ingenting.
+const fizz = (real) => page.evaluate(async ({ real }) => {
+  const L = window.__lib, sr = 44100, secs = 8;
+  const ctx = new OfflineAudioContext(1, sr * secs, sr);
+  const b = new L.MetalBand(ctx, ctx.destination);
+  if (real) b.samples = { pick: (g, m, v) => L.audio.bank.pick(g, m, v), full: (g) => L.audio.bank.full(g) };
+  for (const d of ['kick', 'snare', 'hat', 'crash', 'tom']) b[d] = () => {};
+  b.leadNote = () => {};
+  b.bass = () => {};
+  const tr = L.METAL_TRACKS.stage, sd = 60 / tr.bpm / 4;
+  for (let s = 0, t = 0.05; t < secs - 0.4; s++, t += sd) b.playStep(tr, s % tr.steps, t, sd);
+  const x = (await ctx.startRendering()).getChannelData(0);
+  // Spekteret i vinduer på 4096 punkter (Hann), summert
+  const N = 4096, re = new Float64Array(N), im = new Float64Array(N);
+  let hi = 0, all = 0;
+  for (let o = 0; o + N < x.length; o += N) {
+    for (let i = 0; i < N; i++) { re[i] = x[o + i] * (0.5 - 0.5 * Math.cos((2 * Math.PI * i) / N)); im[i] = 0; }
+    for (let i = 1, j = 0; i < N; i++) { let bit = N >> 1; for (; j & bit; bit >>= 1) j ^= bit; j ^= bit; if (i < j) { [re[i], re[j]] = [re[j], re[i]]; [im[i], im[j]] = [im[j], im[i]]; } }
+    for (let len = 2; len <= N; len <<= 1) { const ang = (-2 * Math.PI) / len; for (let i = 0; i < N; i += len) for (let k = 0; k < len / 2; k++) { const wr = Math.cos(ang * k), wi = Math.sin(ang * k), a = i + k, c2 = a + len / 2; const vr = re[c2] * wr - im[c2] * wi, vi = re[c2] * wi + im[c2] * wr; re[c2] = re[a] - vr; im[c2] = im[a] - vi; re[a] += vr; im[a] += vi; } }
+    for (let k = 1; k < N / 2; k++) { const e = re[k] * re[k] + im[k] * im[k], hz = (k * sr) / N; if (hz > 60) all += e; if (hz > 10000) hi += e; }
+  }
+  return +(10 * Math.log10(hi / all)).toFixed(1);
+}, { real });
+const fz = { synth: await fizz(false), real: await fizz(true) };
+check('el-gitaren har mindre sus over 10 kHz enn synthen (minst 3 dB)', fz.real <= fz.synth - 3, fz);
 
 // Uten opptak (RECORDED SOUNDS av): synth
 const off = await page.evaluate(() => {

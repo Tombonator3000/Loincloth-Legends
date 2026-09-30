@@ -3,7 +3,7 @@
 // hørbar lydstyrke (K-vekting som LUFS) og "mobil" (K pluss høypass 150 Hz og lavpass 9 kHz, omtrent det en
 // mobilhøyttaler får fram), toppnivået og energien i ni bånd fra 20 Hz til 16 kHz.
 // Rå RMS lurer: synthbassen og synthstortromma legger mye energi under 60 Hz som små høyttalere ikke spiller. Bruk K og
-// mobil når nivåene i AMPS, REAL, BASS_R og KIT (src/core/metal.ts) justeres.
+// mobil når nivåene i REAL_AMP, REAL, BASS_R og KIT (src/core/metal.ts) eller kabinettet (src/core/guitaramp.ts) justeres.
 // Bruk: node tools/tests/mix.mjs http://localhost:4173/ [kick,snare,hat,crash,tom,chord,mute,lead,bass]
 import { chromium } from 'playwright';
 const [url, only] = process.argv.slice(2);
@@ -80,7 +80,7 @@ for (const [name, code] of Object.entries(TESTS)) {
       const comp = ctx.createDynamicsCompressor(); comp.threshold.value = -14; comp.ratio.value = 6;
       bus.connect(master).connect(comp).connect(ctx.destination);
       const b = new L.MetalBand(ctx, bus);
-      if (real) b.samples = { pick: (g, m) => L.audio.bank.pick(g, m), full: (g) => L.audio.bank.full(g) };
+      if (real) b.samples = { pick: (g, m, v) => L.audio.bank.pick(g, m, v), full: (g) => L.audio.bank.full(g) };
       new Function('b', code)(b);
       const buf = await ctx.startRendering();
       const a = buf.getChannelData(0), c = buf.getChannelData(1);

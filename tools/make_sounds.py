@@ -7,8 +7,8 @@ Kilder:
   freesound  forhåndsvisningen (hq, 128 kbps) av lyder merket Creative Commons 0 på freesound.org.
              Lisensen sjekkes på lydens egen side hver gang fila hentes; mangler CC0-lenken, stopper verktøyet.
   vcsl       Versilian Community Sample Library (CC0, github.com/sgossner/VCSL), rå WAV-filer.
-  karoryfer  Karoryfer Lecolds sine bibliotek på github.com/sfzinstruments (CC0): Black And Green Guitars (gitaren),
-             Growlybass (bassen) og Big Rusty Drums (trommene). Instrumentene i metal-musikken (src/core/metal.ts).
+  karoryfer  Karoryfer Lecolds sine bibliotek på github.com/sfzinstruments (CC0): Emilyguitar (el-gitaren), Growlybass
+             (bassen) og Big Rusty Drums (trommene). Instrumentene i metal-musikken (src/core/metal.ts).
 
 Hver lyd får et navn, det samme som lydbanken bruker (src/core/soundbank.ts). Flere lyder med samme navn blir
 varianter (navn, navn_2, navn_3), og spillet velger tilfeldig. Instrumentprøvene heter ins_<instrument>_<n> og får
@@ -135,9 +135,10 @@ INSTRUMENTER = {
 }
 
 # ---------- instrumentprøver fra Karoryfer (CC0) ----------
-# Gitaren (en Gretsch fra Black And Green Guitars) og bassen (en Squier Jazz Bass, Growlybass) er tatt opp rent og
-# direkte, og går gjennom forsterkerne i bandet (src/core/metal.ts). Karoryfer kaller den dype E-en e3 på gitaren og
-# e2 på bassen, en oktav over vanlig notasjon, så MIDI-tonen er 12 x oktav + tone. Trommene (Big Rusty Drums) er
+# El-gitaren (en Epiphone med humbuckere, Emilyguitar) og bassen (en Squier Jazz Bass, Growlybass) er tatt opp rent
+# og direkte, og går gjennom forsterkerne i bandet (src/core/metal.ts og guitaramp.ts). Growlybass kaller den dype E-en
+# e2, en oktav over vanlig notasjon, så MIDI-tonen er 12 x oktav + tone (kn). Emilyguitar bruker vanlig notasjon
+# (e2 er MIDI 40), så der er det kn + 12. Trommene (Big Rusty Drums) er
 # nærmikrofonen og overheadene blandet til ett opptak per slag, i et hardt lag med flere varianter (round robin), så
 # dobbel stortromme ikke høres ut som en maskin.
 def kn(navn):
@@ -145,7 +146,6 @@ def kn(navn):
     m = re.match(r'([a-g]b?)(\d)$', navn)
     return 12 * int(m.group(2)) + t[m.group(1)]
 
-GITAR = 'Samples/green/'
 BRD = 'Samples/'
 def trommer(sti, mik, fil, vekter):
     return [(f'{BRD}{sti}/{m}/{fil}', v) for m, v in zip(mik, vekter)]
@@ -153,18 +153,24 @@ def trommer(sti, mik, fil, vekter):
 # instrument: (repo, [(blanding, rot), ...], valg). Blanding er [(sti, vekt), ...]. rot None = uten tone,
 # 'fft' = målt i spekteret (tammene).
 KARORYFER = {
-  'gitar': ('karoryfer.black-and-green-guitars',
-            [([(f'{GITAR}ord/twang_{n}_f_rr{r}.wav', 1)], kn(n)) for n, r in
-             [('e3', 1), ('e3', 2), ('ab3', 1), ('ab3', 2), ('c4', 1), ('c4', 2), ('e4', 1), ('e4', 2), ('ab4', 1), ('c5', 1), ('e5', 1), ('ab5', 1), ('c6', 1), ('e6', 1), ('ab6', 1), ('c7', 1)]],
-            # Lange nok til at sluttakkorden (2,6 s) ringer ut
-            dict(lengde=2.8, ut=.8, sr=32000, br='56k')),
-  'gitarkort': ('karoryfer.black-and-green-guitars',
-                [([(f'{GITAR}stac/staccato_{n}_rr{r}.wav', 1)], kn(n) + .08) for n, r in [('e3', 1), ('e3', 2), ('ab3', 1), ('c4', 1), ('e4', 1)]],
-                # For korte til å måle sikkert: samme stemming som de lange tonene på samme gitar (+8 cent)
-                dict(lengde=.45, ut=.08, sr=32000, br='56k', stem=False)),
+  # El-gitaren: en Epiphone med to humbuckere, tatt opp direkte (Emilyguitar), inn i forsterkermodellen i
+  # src/core/guitaramp.ts. Emilyguitar navngir tonene vanlig (e2 er den dype E-en, MIDI 40). Tre varianter per tone
+  # i rytmeregisteret (så gitaren til venstre og til høyre får hvert sitt opptak), to i leadregisteret.
+  'elgitar': ('karoryfer.emilyguitar',
+              [([(f'notes/{n}_f_rr{r}.wav', 1)], kn(n) + 12) for n, rr in
+               [('e2', 3), ('gb2', 3), ('a2', 3), ('c3', 3), ('eb3', 3), ('gb3', 3), ('a3', 3), ('c4', 3), ('eb4', 3),
+                ('gb4', 2), ('a4', 2), ('c5', 2), ('eb5', 2), ('gb5', 2), ('a5', 2), ('c6', 2), ('d6', 2)] for r in range(1, rr + 1)],
+              # Hele tonen (4,2 s), så lange akkorder ringer ut som på en ekte gitar (nattlåta har akkorder på nesten 3 s).
+              # 24 kHz holder: forsterkeren og kabinettet slipper nesten ikke gjennom noe over 10 kHz.
+              dict(lengde=4.2, ut=.8, sr=24000, br='40k')),
+  # Dempede strenger (plekteret mot strenger dempet med venstre hånd), lagt under palm mute
+  'gitardemp': ('karoryfer.emilyguitar',
+                [([(f'noises/muted{n}_rr1.wav', 1)], None) for n in (1, 2, 3, 4, 5)],
+                dict(lengde=.35, ut=.1, sr=24000, br='40k')),
   'bass': ('karoryfer.growlybass',
            [([(f'sustain/{n}_f_rr1.wav', 1)], kn(n)) for n in ['e2', 'gb2', 'a2', 'c3', 'eb3', 'gb3', 'a3']],
-           dict(lengde=1.8, ut=.4, sr=24000, br='48k')),
+           # 3,2 s: bassen holder ut lange akkorder (før 1,8 s, og da stoppet den midt i akkordene i nattlåta)
+           dict(lengde=3.2, ut=.5, sr=24000, br='48k')),
   'stortromme': ('karoryfer.big-rusty-drums',
                  [(trommer('kick_24/kick', ['kick', 'oh'], f'k_vl13_rr{r}.flac', [1, .45]), None) for r in (1, 2, 3, 4)],
                  dict(lengde=.55, ut=.12, sr=32000, br='64k')),
@@ -346,7 +352,7 @@ def kilder(meta):
     for k, m in sorted(meta.items()):
         if m['kilde'] == 'VCSL': ut.append(f"| `{k}.mp3` | {m['fil']} |")
     ut += ['', '## Instrumenter i musikken (Karoryfer Lecolds, github.com/sfzinstruments)', '',
-           'Black And Green Guitars (gitaren, en Gretsch Anniversary), Growlybass (bassen, en Squier Jazz Bass) og Big Rusty Drums (trommene). CC0 1.0. Trommene er nærmikrofonen og overheadene blandet.', '',
+           'Emilyguitar (el-gitaren, en Epiphone med humbuckere, spilt og mappet av D. Smolken), Growlybass (bassen, en Squier Jazz Bass) og Big Rusty Drums (trommene). CC0 1.0. Trommene er nærmikrofonen og overheadene blandet.', '',
            '| Fil | Prøve | Bibliotek |', '|---|---|---|']
     for k, m in sorted(meta.items()):
         if m['kilde'] == 'Karoryfer': ut.append(f"| `{k}.mp3` | {m['fil']} | {m['side']} |")

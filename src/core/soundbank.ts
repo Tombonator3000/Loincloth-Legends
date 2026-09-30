@@ -202,9 +202,10 @@ export class SoundBank {
 
   /**
    * Opptaket nærmest en tone i gruppen, med avspillingsfarten som gir tonen (opptak uten tone spilles som de er).
-   * Varianter med samme tone (round robin) velges tilfeldig, aldri den samme to ganger på rad.
+   * Varianter med samme tone (round robin) velges tilfeldig, aldri den samme to ganger på rad. Med v velges variant
+   * nummer v (i navnerekkefølge, rundt), så to gitarer i samme akkord kan få hvert sitt opptak.
    */
-  pick(group: string, midi: number): { buf: AudioBuffer; rate: number; lead: number } | null {
+  pick(group: string, midi: number, v?: number): { buf: AudioBuffer; rate: number; lead: number } | null {
     if (!this.on) return null;
     const L = (this.groups[group] ?? []).filter((k) => this.buf.has(k));
     if (!L.length) return null;
@@ -218,8 +219,14 @@ export class SoundBank {
         best = [k];
       } else if (d <= bd + 0.25) best.push(k);
     }
-    let k = best[Math.floor(Math.random() * best.length)];
-    if (best.length > 1 && k === this.last[group]) k = best[(best.indexOf(k) + 1) % best.length];
+    let k: string;
+    if (v !== undefined) {
+      best.sort();
+      k = best[((Math.floor(v) % best.length) + best.length) % best.length];
+    } else {
+      k = best[Math.floor(Math.random() * best.length)];
+      if (best.length > 1 && k === this.last[group]) k = best[(best.indexOf(k) + 1) % best.length];
+    }
     this.last[group] = k;
     const root = this.meta[k].rot ?? midi;
     return { buf: this.buf.get(k)!, rate: Math.pow(2, (midi - root) / 12), lead: this.lead.get(k) ?? 0 };

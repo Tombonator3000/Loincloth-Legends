@@ -8,6 +8,7 @@ import { buildHeroDef, PRESETS, randomHero, HERO_OPTIONS } from '../gfx/chars/he
 import { headCanvas } from '../gfx/rig';
 import { charUniforms } from '../gfx/charlight';
 import { MetalBand, METAL_TRACKS } from '../core/metal';
+import { cabinetIR, guitarAmp } from '../core/guitaramp';
 import { audio } from '../core/audio';
 import { Conductor, BandPerformer } from '../core/conductor';
 import { WEAPONS } from '../data/weapons';
@@ -22,6 +23,6 @@ import { showCamp, showShop, showTraining } from './camp';
 export function installDebug() {
   (window as unknown as { __lib: unknown }).__lib = {
     THREE, Fighter, W, registerChar, getChar, buildHeroDef, PRESETS, randomHero, HERO_OPTIONS, headCanvas, WEAPONS, settings, setSettings, defaultSave, charUniforms, MetalBand, METAL_TRACKS, Conductor, BandPerformer, audio, images,
-    screenFX, applyHit, HERO_ATK, ENEMY_ATK, showCamp, showShop, showTraining,
+    screenFX, applyHit, HERO_ATK, ENEMY_ATK, showCamp, showShop, showTraining, cabinetIR, guitarAmp,
   };
 }

@@ -85,7 +85,7 @@ Versilian Studios, CC0 1.0, https://github.com/sgossner/VCSL
 
 ## Instrumenter i musikken (Karoryfer Lecolds, github.com/sfzinstruments)
 
-Black And Green Guitars (gitaren, en Gretsch Anniversary), Growlybass (bassen, en Squier Jazz Bass) og Big Rusty Drums (trommene). CC0 1.0. Trommene er nærmikrofonen og overheadene blandet.
+Emilyguitar (el-gitaren, en Epiphone med humbuckere, spilt og mappet av D. Smolken), Growlybass (bassen, en Squier Jazz Bass) og Big Rusty Drums (trommene). CC0 1.0. Trommene er nærmikrofonen og overheadene blandet.
 
 | Fil | Prøve | Bibliotek |
 |---|---|---|
@@ -98,27 +98,54 @@ Black And Green Guitars (gitaren, en Gretsch Anniversary), Growlybass (bassen, e
 | `ins_bass_7.mp3` | sustain/a3_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.growlybass |
 | `ins_crash_1.mp3` | Samples/crash_17/cr/cl/cr_vl5_rr1.flac + Samples/crash_17/cr/oh/cr_vl5_rr1.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
 | `ins_crash_2.mp3` | Samples/crash_17/cr/cl/cr_vl5_rr2.flac + Samples/crash_17/cr/oh/cr_vl5_rr2.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
-| `ins_gitar_1.mp3` | Samples/green/ord/twang_e3_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitar_10.mp3` | Samples/green/ord/twang_c5_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitar_11.mp3` | Samples/green/ord/twang_e5_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitar_12.mp3` | Samples/green/ord/twang_ab5_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitar_13.mp3` | Samples/green/ord/twang_c6_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitar_14.mp3` | Samples/green/ord/twang_e6_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitar_15.mp3` | Samples/green/ord/twang_ab6_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitar_16.mp3` | Samples/green/ord/twang_c7_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitar_2.mp3` | Samples/green/ord/twang_e3_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitar_3.mp3` | Samples/green/ord/twang_ab3_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitar_4.mp3` | Samples/green/ord/twang_ab3_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitar_5.mp3` | Samples/green/ord/twang_c4_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitar_6.mp3` | Samples/green/ord/twang_c4_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitar_7.mp3` | Samples/green/ord/twang_e4_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitar_8.mp3` | Samples/green/ord/twang_e4_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitar_9.mp3` | Samples/green/ord/twang_ab4_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitarkort_1.mp3` | Samples/green/stac/staccato_e3_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitarkort_2.mp3` | Samples/green/stac/staccato_e3_rr2.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitarkort_3.mp3` | Samples/green/stac/staccato_ab3_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitarkort_4.mp3` | Samples/green/stac/staccato_c4_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
-| `ins_gitarkort_5.mp3` | Samples/green/stac/staccato_e4_rr1.wav | https://github.com/sfzinstruments/karoryfer.black-and-green-guitars |
+| `ins_elgitar_1.mp3` | notes/e2_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_10.mp3` | notes/c3_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_11.mp3` | notes/c3_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_12.mp3` | notes/c3_f_rr3.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_13.mp3` | notes/eb3_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_14.mp3` | notes/eb3_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_15.mp3` | notes/eb3_f_rr3.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_16.mp3` | notes/gb3_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_17.mp3` | notes/gb3_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_18.mp3` | notes/gb3_f_rr3.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_19.mp3` | notes/a3_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_2.mp3` | notes/e2_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_20.mp3` | notes/a3_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_21.mp3` | notes/a3_f_rr3.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_22.mp3` | notes/c4_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_23.mp3` | notes/c4_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_24.mp3` | notes/c4_f_rr3.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_25.mp3` | notes/eb4_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_26.mp3` | notes/eb4_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_27.mp3` | notes/eb4_f_rr3.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_28.mp3` | notes/gb4_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_29.mp3` | notes/gb4_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_3.mp3` | notes/e2_f_rr3.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_30.mp3` | notes/a4_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_31.mp3` | notes/a4_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_32.mp3` | notes/c5_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_33.mp3` | notes/c5_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_34.mp3` | notes/eb5_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_35.mp3` | notes/eb5_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_36.mp3` | notes/gb5_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_37.mp3` | notes/gb5_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_38.mp3` | notes/a5_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_39.mp3` | notes/a5_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_4.mp3` | notes/gb2_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_40.mp3` | notes/c6_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_41.mp3` | notes/c6_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_42.mp3` | notes/d6_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_43.mp3` | notes/d6_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_5.mp3` | notes/gb2_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_6.mp3` | notes/gb2_f_rr3.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_7.mp3` | notes/a2_f_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_8.mp3` | notes/a2_f_rr2.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_elgitar_9.mp3` | notes/a2_f_rr3.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_gitardemp_1.mp3` | noises/muted1_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_gitardemp_2.mp3` | noises/muted2_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_gitardemp_3.mp3` | noises/muted3_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_gitardemp_4.mp3` | noises/muted4_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
+| `ins_gitardemp_5.mp3` | noises/muted5_rr1.wav | https://github.com/sfzinstruments/karoryfer.emilyguitar |
 | `ins_hihat_1.mp3` | Samples/hihat_14/tc/cl/ht_tc_vl7_rr1.flac + Samples/hihat_14/tc/oh/ht_tc_vl7_rr1.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
 | `ins_hihat_2.mp3` | Samples/hihat_14/tc/cl/ht_tc_vl7_rr2.flac + Samples/hihat_14/tc/oh/ht_tc_vl7_rr2.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |
 | `ins_hihat_3.mp3` | Samples/hihat_14/tc/cl/ht_tc_vl7_rr3.flac + Samples/hihat_14/tc/oh/ht_tc_vl7_rr3.flac | https://github.com/sfzinstruments/karoryfer.big-rusty-drums |

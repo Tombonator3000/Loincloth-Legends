@@ -102,7 +102,7 @@ Loincloth Legends bygger på kode og ideer fra Toms egne spill og fra åpne kild
 - Musikksystemet er inspirert av iMUSE (LucasArts, Michael Land og Peter McConnell). Ingen kode eller musikk er hentet derfra. Tidsstyringen følger Chris Wilsons «A Tale of Two Clocks».
 - Lydopptak fra Freesound, alle CC0 1.0. Tittel, innspiller og lenke for hver fil står i `public/assets/sound/KILDER.md`.
 - Slagverk fra Versilian Community Sample Library (VCSL) av Versilian Studios, CC0 1.0.
-- Instrumentene i metal-musikken fra Karoryfer Lecolds (github.com/sfzinstruments), CC0 1.0: Big Rusty Drums (trommene), Black And Green Guitars (gitaren, en Gretsch) og Growlybass (bassen, en Squier Jazz Bass). Hver fil står i `public/assets/sound/KILDER.md`.
+- Instrumentene i metal-musikken fra Karoryfer Lecolds (github.com/sfzinstruments), CC0 1.0: Big Rusty Drums (trommene), Emilyguitar (el-gitaren, en Epiphone med humbuckere, spilt og mappet av D. Smolken) og Growlybass (bassen, en Squier Jazz Bass). Hver fil står i `public/assets/sound/KILDER.md`.
 - Skrifttyper fra Google Fonts: Metal Mania, Press Start 2P og VT323 (SIL Open Font License 1.1).
 
 Lisenstekstene ligger i `public/LICENSES/` og i `THIRD_PARTY_LICENSES.md` i bygget. Hele gjennomgangen av opphav og lisenser står i `docs/GJENBRUK.md`.

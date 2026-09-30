@@ -289,7 +289,7 @@ export class AudioEngine {
     // Bandet bruker VCSL-paukene og bekkensvulmen fra lydbanken når de er lastet (ellers synth)
     this.band.sampler = (g, m, t, v, out) => !!this.bank.note(g, m, { vol: v, t, out });
     // Trommene, gitaren og bassen fra Karoryfer (CC0) når de er lastet og opptakene er på
-    this.band.samples = { pick: (g, m) => this.bank.pick(g, m), full: (g) => this.bank.full(g) };
+    this.band.samples = { pick: (g, m, v) => this.bank.pick(g, m, v), full: (g) => this.bank.full(g) };
     this.band.swellSample = () => (this.bank.hasFile('ins_bekken_1') ? { buf: this.bank.buffer('ins_bekken_1')!, lead: this.bank.leadIn('ins_bekken_1') } : null);
     this.amb = new Ambience(c, this.sfx, this.bank, this.layers);
     if (this.wantAmb) this.amb.set(this.wantAmb);

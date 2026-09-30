@@ -12,10 +12,10 @@
 ## Ekte instrumenter i musikken (fra 2026-09-30 08:10)
 - [x] Trommer, gitar og bass fra Karoryfer (CC0) spilt av bandet, synth som reserve (tools/tests/instruments.mjs)
 - [x] Tom hørte ikke forskjell: egne forsterkere med mindre gain for gitarene, egen basskjede, trommer med EQ, panorering og rimshot, og trommene 4 til 6 dB over synthtrommene
-- [ ] Tom: lytt på A/B-filene (ab-1 til ab-6, først synth, så ekte) og si hva som skal justeres: trommenivå, mer eller mindre forvrengning, mer bunn i gitarene, bassen
-- [ ] Dobbeltinnspillingen: ulike opptak på hver side også for toner over E3 (der finnes bare én variant, så begge sider får ofte samme opptak)
-- [ ] Leadgitaren: egne opptak med mer sustain (i dag er lange soloer over 2,4 s synth)
-- [ ] Når freesound.org er åpnet igjen: vurdere en ekte el-gitar med humbuckere til rytmegitaren (Gretschen er en hul gitar)
+- [x] Tom: rytmegitaren låt fortsatt syntetisk. Ny el-gitar (Emilyguitar, humbuckere), ny forsterkermodell med 4x12-kabinett (core/guitaramp.ts), anslag fra dyp til lys streng, dobbeltinnspilling med ulike opptak, palm mute med dempede strenger
+- [ ] Tom: lytt på gitar-1 til gitar-4 (først synth eller forrige versjon, så den nye) og si hva som skal justeres: mer eller mindre forvrengning, mer bunn eller mer diskant
+- [ ] Nattlåta er 2 dB svakere med opptakene: lange akkorder (nesten 3 s) klinger ut på en ekte gitar og bass, synthen holder nivået. Vurder mer sustain (kompressor foran forsterkeren) hvis Tom vil
+- [ ] Leadgitaren: toner over 2,4 s spilles av synthen; vurder opptak med mer sustain
 
 ## Frostpasset som konseptbilde 4 (fra 2026-09-29 22:23)
 - [x] Kameraet nærmere og lavere (gfx/stagecam.ts), og det trekker seg bakover når en kjempe er i bildet
