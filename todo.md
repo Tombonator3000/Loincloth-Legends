@@ -2,11 +2,15 @@
 
 ## Hero Forge: felles pool av malte deler (2026-09-30)
 - [x] Finn årsaken til at malte deler forsvant ved endring av preset; kontroller alle 143 grunnfiler
-- [x] 58 uavhengige delvalg i katalogen, med miniatyrer, bakhår fra valgt hode og samme figur i forhåndsvisning og kamp
+- [x] 60 uavhengige delvalg i katalogen, med miniatyrer, bakhår fra valgt hode og samme figur i forhåndsvisning og kamp
 - [x] Lagre blandinger for begge spillere, bevare gamle helter og klassisk modus, beholde opplåsinger og riktige våpenegenskaper
 - [x] Innlesing og kontroll av ekstra `forge_*`-deler uten å svekke kontrollen av de 143 grunnfilene
 - [x] Lag de 13 nye delene i `docs/HERO_FORGE_GRAFIKK.md`, inkludert krigshammeren; registrer hvert bilde i manifest og delkatalog
-- [ ] Egne ansikts-, hår-, skjegg- og hjelmlag samt masker for hud/hår/tøy
+- [x] To redigerbare grunnhoder og 16 separate hår-, skjegg-, hodeplagg- og irisbilder, med sju lagrede utseendevalg
+- [x] Registrerte hudområder for alle 49 hode-/kroppsdeler; omfarging av egne hår-/skjegglag og iris uten å endre originalbildene
+- [x] HERO PARTS / HEAD DETAILS, uttrykkelig CUSTOM-hodevalg, fargeprøver, separate spillerutkast, gamle hoder og klassisk bygger beholdt
+- [x] Samlet sluttkontroll av 200 bilder, de nye hodelagene og hudmaskene, lagring, opplåsinger, manglende ressurser og mobil
+- [ ] Tøymasker for fri farge på lendeklede og annet malt tøy; flere redigerbare ansiktsuttrykk
 - [x] Visuell finjustering av de 13 nye delene i fire blandede helter og fire poser: hodehøyde, torsoanker, beltefeste, bakarm og våpengrep
 - [x] Andre tillegg i delkatalogen: ti orc-/frostdeler, sabel og beinklubbe, med kroppstype, våpenklasse og eksisterende opplåsinger
 - [x] Fullfør bildeinnlesing og visuell kalibrering av de tolv orc-/frost-/våpendelene; kontroller skulder, nakke, hofte og våpengrep i blandede poser
@@ -75,7 +79,7 @@
 - [x] Fiende-ryttere holder seg innen rekkevidde og kan tas, og de angriper nå (2026-09-30, tools/tests/riders.mjs)
 - [ ] Balansetest av fiende-ryttere i ekte spill: de angriper nå for første gang, så sjekk at bølgene med ryttere ikke er blitt for harde
 - [x] Armene i trekvart profil: våpenarmen på den nære skulderen foran, hodet bak overkroppen, skulderledd og halsrot fra bildene, stillingene rettet så slagene når fram (2026-09-30)
-- [x] Heltesmia bruker en felles delpool: 58 valg, inkludert 39 Forge-bilder. Siste tillegg er kalibrert og kontrollert; egne hår-, hjelm- og fargelag er fortsatt senere utvidelser
+- [x] Heltesmia bruker en felles delpool: 60 valg, inkludert 41 Forge-bilder, samt 16 separate utseendelag og hudmasker; sluttkontroll av hodelagene føres øverst
 - [x] Malt stridshammer: `forge_warhammer_weapon.webp`, med WARHAMMER-egenskaper og eksisterende opplåsingskrav
 - [ ] Rydd små løse bildefragmenter i eksisterende imp_weapon og imp_head; funnet ved visuell kontroll, den nye imp-armen er ren
 - [x] Behandle og godkjenn erstatningsbilder for hogmother_torso (kuttet i høyre kant), imp_arm (tynnere enn skulderkula) og gorthak_arm (smalere hette enn platen), med nye målte punkter og visuell kontroll
@@ -133,7 +137,7 @@
 - [ ] Endeløs arena med lokal toppliste
 - [ ] Hemmeligheter: gnomekonge, The Ham Dimension, bard som synger om drapene
 - [ ] Co-op-gjenoppliving
-- [ ] Koble inn heltebygger-lag som PNG (hår, hjelm, skjegg osv., se ART_PROMPTS.md "Planlagt")
+- [x] Koble inn heltebygger-lag som bilder (hår, hjelm, skjegg og iris; se ART_PROMPTS.md "Separate utseendelag")
 - [x] PNG-deler for alle tre ridedyr og alle fem kjæledyr
 - [ ] PNG for farer (prompter ligger i ART_PROMPTS.md)
 - [ ] Rekvisitter og ikoner som PNG
