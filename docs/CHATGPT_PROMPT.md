@@ -1,6 +1,6 @@
 # Startprompt til ChatGPT
 
-Oppdatert 30. september 2026: de 143 filene nedenfor er grunnpakken og finnes i repoet. Hero Forge har i tillegg 25 delbilder og en felles pool med 44 valg, totalt 168 bildefiler i kunstpakken. Tilleggene dekker blant annet krigshammer, kvinnelige orc-deler, mannlige frostdeler, sabel og beinklubbe. Filkart, opplåsinger og senere hår-, hjelm- og fargelag står i `docs/HERO_FORGE_GRAFIKK.md`. Ikke bestill grunnpakken eller de oppførte Forge-delene på nytt.
+Oppdatert 30. september 2026: de 143 filene nedenfor er grunnpakken og finnes i repoet. Hero Forge har i tillegg 39 delbilder og en felles pool med 58 valg, totalt 182 bildefiler i kunstpakken. Siste tillegg er Ash Raider, Iron Warden, cleaver, dobbeløks, maul og flensklubbe. De to nye fiendene bruker Forge-delene i Scorchlands og Tower. Erstatninger for `hogmother_torso`, `imp_arm` og `gorthak_arm` øker ikke filantallet. Filkart, opplåsinger og senere hår-, hjelm- og fargelag står i `docs/HERO_FORGE_GRAFIKK.md`. Ikke bestill grunnpakken eller de oppførte Forge-delene på nytt. Reglene nedenfor for nær skulder, hals og målte punkter gjelder også utvidelsene.
 
 Dette er hele arbeidsbeskrivelsen for ChatGPT: hva spillet er, hvordan det bruker bildene, stilen (nesten ekte karikatur), arbeidsflyten, kommandoene du kan skrive, alle figurene, teksturene og himmelbildene, og en sjekkliste over alle 143 filene. Den er på engelsk fordi den er til ChatGPT. ChatGPT svarer deg på norsk.
 

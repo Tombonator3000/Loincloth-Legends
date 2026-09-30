@@ -28,6 +28,8 @@ export const HERO_PARTS: Record<HeroPartSlot, HeroPartOption[]> = {
     { id: 'forge_silvercut_head', label: 'SILVER-HAIRED RAIDER', source: 'forge_silvercut', slot: 'head' },
     { id: 'forge_orc_head', label: 'ORC RAIDER', source: 'forge_orc', slot: 'head' },
     { id: 'forge_frost_head', label: 'FROST WARRIOR', source: 'forge_frost', slot: 'head', unlock: 'skin:6' },
+    { id: 'forge_ash_head', label: 'ASH RAIDER', source: 'forge_ash', slot: 'head' },
+    { id: 'forge_warden_head', label: 'WARDEN GREATHELM', source: 'forge_warden', slot: 'head', unlock: 'helmet:5' },
   ],
   torso: [
     { id: 'thrugg_torso', label: 'THRUGG FUR', source: 'thrugg', slot: 'torso', body: 0 },
@@ -37,6 +39,8 @@ export const HERO_PARTS: Record<HeroPartSlot, HeroPartOption[]> = {
     { id: 'forge_plate_torso', label: 'DENTED BREASTPLATE', source: 'forge_plate', slot: 'torso', body: 1 },
     { id: 'forge_orc_torso', label: 'ORC TORSO', source: 'forge_orc', slot: 'torso', body: 1 },
     { id: 'forge_frost_torso', label: 'FROST TORSO', source: 'forge_frost', slot: 'torso', body: 0, unlock: 'skin:6' },
+    { id: 'forge_ash_torso', label: 'ASH RAIDER BRONZE', source: 'forge_ash', slot: 'torso', body: 1 },
+    { id: 'forge_warden_torso', label: 'WARDEN PLATE', source: 'forge_warden', slot: 'torso', body: 0 },
   ],
   pelvis: [
     { id: 'thrugg_pelvis', label: 'THRUGG LOINCLOTH', source: 'thrugg', slot: 'pelvis' },
@@ -46,6 +50,8 @@ export const HERO_PARTS: Record<HeroPartSlot, HeroPartOption[]> = {
     { id: 'forge_tassets_pelvis', label: 'IRON TASSETS', source: 'forge_tassets', slot: 'pelvis' },
     { id: 'forge_orc_pelvis', label: 'ORC WAR BELT', source: 'forge_orc', slot: 'pelvis' },
     { id: 'forge_frost_pelvis', label: 'FROST WAR BELT', source: 'forge_frost', slot: 'pelvis' },
+    { id: 'forge_ash_pelvis', label: 'ASH RAIDER BELT', source: 'forge_ash', slot: 'pelvis' },
+    { id: 'forge_warden_pelvis', label: 'WARDEN TASSETS', source: 'forge_warden', slot: 'pelvis' },
   ],
   arm: [
     { id: 'thrugg_arm', label: 'THRUGG', source: 'thrugg', slot: 'arm' },
@@ -55,6 +61,8 @@ export const HERO_PARTS: Record<HeroPartSlot, HeroPartOption[]> = {
     { id: 'forge_plate_arm', label: 'IRON GAUNTLETS', source: 'forge_plate', slot: 'arm' },
     { id: 'forge_orc_arm', label: 'ORC ARMS', source: 'forge_orc', slot: 'arm' },
     { id: 'forge_frost_arm', label: 'FROST ARMS', source: 'forge_frost', slot: 'arm', unlock: 'skin:6' },
+    { id: 'forge_ash_arm', label: 'ASH RAIDER ARMS', source: 'forge_ash', slot: 'arm' },
+    { id: 'forge_warden_arm', label: 'WARDEN GAUNTLETS', source: 'forge_warden', slot: 'arm' },
   ],
   leg: [
     { id: 'thrugg_leg', label: 'THRUGG BOOTS', source: 'thrugg', slot: 'leg' },
@@ -64,6 +72,8 @@ export const HERO_PARTS: Record<HeroPartSlot, HeroPartOption[]> = {
     { id: 'forge_greaves_leg', label: 'IRON GREAVES', source: 'forge_greaves', slot: 'leg' },
     { id: 'forge_orc_leg', label: 'ORC LEGS', source: 'forge_orc', slot: 'leg' },
     { id: 'forge_frost_leg', label: 'FROST LEGS', source: 'forge_frost', slot: 'leg', unlock: 'skin:6' },
+    { id: 'forge_ash_leg', label: 'ASH RAIDER BOOTS', source: 'forge_ash', slot: 'leg' },
+    { id: 'forge_warden_leg', label: 'WARDEN GREAVES', source: 'forge_warden', slot: 'leg' },
   ],
   weapon: [
     { id: 'thrugg_weapon', label: 'THRUGG SWORD', source: 'thrugg', slot: 'weapon', weapon: 0 },
@@ -73,6 +83,10 @@ export const HERO_PARTS: Record<HeroPartSlot, HeroPartOption[]> = {
     { id: 'forge_warhammer_weapon', label: 'IRON WARHAMMER', source: 'forge_warhammer', slot: 'weapon', weapon: 2, unlock: 'weapon:2' },
     { id: 'forge_sabre_weapon', label: 'RAIDER SABRE', source: 'forge_sabre', slot: 'weapon', weapon: 0 },
     { id: 'forge_boneclub_weapon', label: 'BONE CRUSHER', source: 'forge_boneclub', slot: 'weapon', weapon: 3, unlock: 'weapon:3' },
+    { id: 'forge_cleaver_weapon', label: 'RAIDER CLEAVER', source: 'forge_cleaver', slot: 'weapon', weapon: 0 },
+    { id: 'forge_doubleaxe_weapon', label: 'DOUBLE AXE', source: 'forge_doubleaxe', slot: 'weapon', weapon: 1 },
+    { id: 'forge_maul_weapon', label: 'IRON MAUL', source: 'forge_maul', slot: 'weapon', weapon: 2, unlock: 'weapon:2' },
+    { id: 'forge_flangedmace_weapon', label: 'FLANGED MACE', source: 'forge_flangedmace', slot: 'weapon', weapon: 3, unlock: 'weapon:3' },
   ],
 };
 

@@ -77,11 +77,14 @@ try {
     const catalog = Object.values(L.HERO_PARTS).flat();
     const added = ['forge_bald_head', 'forge_eyepatch_head', 'forge_crownbraid_head', 'forge_silvercut_head', 'forge_leather_torso', 'forge_plate_torso', 'forge_kilt_pelvis', 'forge_tassets_pelvis', 'forge_leather_arm', 'forge_plate_arm', 'forge_sandals_leg', 'forge_greaves_leg', 'forge_warhammer_weapon'];
     added.push(...['orc', 'frost'].flatMap((source) => ['head', 'torso', 'pelvis', 'arm', 'leg'].map((slot) => `forge_${source}_${slot}`)), 'forge_sabre_weapon', 'forge_boneclub_weapon');
-    checks.push(['poolen har 44 valg og alle 25 forge-bilder', catalog.length === 44 && catalog.filter((p) => p.id.startsWith('forge_')).length === 25 && added.every((id) => catalog.some((p) => p.id === id && L.getOverride(p.source, p.slot)?.canvas.width > 0))]);
+    added.push(...['ash', 'warden'].flatMap((source) => ['head', 'torso', 'pelvis', 'arm', 'leg'].map((slot) => `forge_${source}_${slot}`)), ...['cleaver', 'doubleaxe', 'maul', 'flangedmace'].map((weapon) => `forge_${weapon}_weapon`));
+    checks.push(['poolen har 58 valg og alle 39 forge-bilder', catalog.length === 58 && catalog.filter((p) => p.id.startsWith('forge_')).length === 39 && added.every((id) => catalog.some((p) => p.id === id && L.getOverride(p.source, p.slot)?.canvas.width > 0))]);
     const part = (id) => catalog.find((p) => p.id === id);
     checks.push(['orkens kroppstype er kvinnelig og frostkrigerens mannlig', part('forge_orc_torso')?.body === 1 && part('forge_frost_torso')?.body === 0]);
     checks.push(['bare frostfigurens hudbærende deler krever skin:6', ['head', 'torso', 'arm', 'leg'].every((slot) => part(`forge_frost_${slot}`)?.unlock === 'skin:6') && !part('forge_frost_pelvis')?.unlock]);
     checks.push(['sabelen er et fritt sverdvalg og beinklubben følger klubbelåsen', part('forge_sabre_weapon')?.weapon === 0 && !part('forge_sabre_weapon')?.unlock && part('forge_boneclub_weapon')?.weapon === 3 && part('forge_boneclub_weapon')?.unlock === 'weapon:3']);
+    checks.push(['Ash er kvinnelig og Warden mannlig; bare Warden-hodet er låst', part('forge_ash_torso')?.body === 1 && part('forge_warden_torso')?.body === 0 && part('forge_warden_head')?.unlock === 'helmet:5' && added.filter((id) => /^forge_(ash|warden)_/.test(id) && id !== 'forge_warden_head').every((id) => !part(id)?.unlock)]);
+    checks.push(['de fire nye våpnene følger hver sin kampklasse og opplåsing', ['cleaver', 'doubleaxe', 'maul', 'flangedmace'].every((name, i) => part(`forge_${name}_weapon`)?.weapon === i && (part(`forge_${name}_weapon`)?.unlock ?? null) === (i < 2 ? null : `weapon:${i}`))]);
     const hammer = catalog.find((p) => p.id === 'forge_warhammer_weapon');
     checks.push(['krigshammeren er våpenklasse 2 og følger weapon:2-låsen', hammer?.weapon === 2 && hammer?.unlock === 'weapon:2']);
     checks.push(['alle katalogdeler har lastet bildefil', Object.entries(L.HERO_PARTS).every(([slot, options]) => options.every((p) => !!L.getOverride(p.source, slot)))]);
@@ -103,6 +106,12 @@ try {
     painted(L.withHeroParts(L.PRESETS.thrugg, {
       head: 'forge_frost_head', torso: 'forge_frost_torso', pelvis: 'forge_frost_pelvis', arm: 'forge_frost_arm', leg: 'forge_frost_leg', weapon: 'forge_boneclub_weapon',
     }), 49, 'Frostkriger med beinklubbe');
+    painted(L.withHeroParts(L.PRESETS.valkyra, {
+      head: 'forge_ash_head', torso: 'forge_ash_torso', pelvis: 'forge_ash_pelvis', arm: 'forge_ash_arm', leg: 'forge_ash_leg', weapon: 'forge_cleaver_weapon',
+    }), 50, 'Ash med huggert');
+    painted(L.withHeroParts(L.PRESETS.thrugg, {
+      head: 'forge_warden_head', torso: 'forge_warden_torso', pelvis: 'forge_warden_pelvis', arm: 'forge_warden_arm', leg: 'forge_warden_leg', weapon: 'forge_maul_weapon',
+    }), 51, 'Warden med maul');
     const changed = L.withHeroParts(mixed, { ...mixed.parts, head: 'thrugg_head' });
     checks.push(['endret del gir ny teksturnøkkel', L.buildHeroDef(mixed, 43).id !== L.buildHeroDef(changed, 43).id]);
     const original = JSON.stringify(L.PRESETS);
@@ -181,10 +190,102 @@ try {
     L.writeSave(s);
     const frostClub = L.loadSave().heroes[0];
     checks.push(['opplåst frostkriger med beinklubbe overlever lagring med riktige stats', frostClub.parts.head === 'forge_frost_head' && frostClub.parts.weapon === 'forge_boneclub_weapon' && frostClub.weapon === 3]);
+    s.unlocked = [];
+    s.heroes[0] = L.withHeroParts(L.PRESETS.thrugg, {
+      head: 'forge_warden_head', torso: 'forge_warden_torso', pelvis: 'forge_warden_pelvis', arm: 'forge_warden_arm', leg: 'forge_warden_leg', weapon: 'forge_maul_weapon',
+    });
+    L.writeSave(s);
+    const lockedWarden = L.loadSave().heroes[0];
+    checks.push(['lagret Warden beholder frie kroppsdeler og erstatter låst hjelm/maul', lockedWarden.parts.head === 'thrugg_head' && lockedWarden.parts.weapon === 'thrugg_weapon' && ['torso', 'pelvis', 'arm', 'leg'].every((slot) => lockedWarden.parts[slot] === `forge_warden_${slot}`)]);
+    s.unlocked = ['helmet:5', 'weapon:2'];
+    L.writeSave(s);
+    const unlockedWarden = L.loadSave().heroes[0];
+    checks.push(['opplåst Warden-hjelm og maul overlever lagring', unlockedWarden.parts.head === 'forge_warden_head' && unlockedWarden.parts.weapon === 'forge_maul_weapon' && unlockedWarden.weapon === 2]);
     localStorage.removeItem('loincloth-legends-save-v1');
     return checks;
   });
   for (const [name, ok] of compatibility) check(name, ok);
+
+  // Fiendene skal finnes i ekte brettbølger, angripe gjennom Stage.update og slippe bølgelåsen ved død.
+  for (const [level, kind, source, weapon] of [['scorch', 'ashraider', 'ash', 'doubleaxe'], ['tower', 'ironwarden', 'warden', 'maul']]) {
+    const runtime = await page.evaluate(({ level, kind, source, weapon }) => {
+      const g = window.__game, L = window.__lib, checks = [];
+      g.save = L.defaultSave();
+      g.twoP = false;
+      g.input.solo = true;
+      g.playLevel({ id: level, level, name: level, kind: 'level', biome: level, pos: [0, 0], requires: [], blurb: '' });
+      const st = g.scene.stage, hero = st.heroes[0], h = hero.f;
+      const waveIndex = st.level.waves.findIndex((wave) => wave.spawns.some((spawn) => spawn.foe === kind));
+      if (waveIndex < 0) {
+        checks.push([`${kind} finnes i den faktiske ${level}-bølgen`, false]);
+        g.goTitle();
+        return checks;
+      }
+      const wave = st.level.waves[waveIndex];
+      st.waveIdx = waveIndex;
+      st.camX = wave.at;
+      st.introT = 2;
+      h.pos.set(wave.at - 1.5, 0, 0);
+      h.invuln = 999;
+      h.noSever = true;
+      // Rydd andre bølgemedlemmer med det ordinære treff-/dødsløpet for å isolere den nye fiendens angrep.
+      const kill = (foe) => L.applyHit(h, foe.f, { ...L.HERO_ATK.slash1, dmg: foe.f.maxHp + 100, death: ['normal'] });
+      let target;
+      for (let frame = 0; frame < 600; frame++) {
+        st.update(1 / 60);
+        target ??= st.foes.find((foe) => foe.kind === kind);
+        for (const foe of st.foes) {
+          foe.cd = 999;
+          if (foe !== target && foe.f.alive) kill(foe);
+        }
+        if (target && st.queue.length === 0) break;
+      }
+      checks.push([`${kind} spawner gjennom ${level}-bølgens kø`, !!target && st.wave === wave && st.queue.length === 0]);
+      if (!target) { st.done = 'complete'; g.goTitle(); return checks; }
+      const groups = { head: ['head'], torso: ['torso'], pelvis: ['pelvis'], arm: ['armF', 'armB'], leg: ['legF', 'legB'], weapon: ['weapon'] };
+      checks.push([`${kind} bruker de seks nye delbildene i den faktiske fienderiggen`, Object.entries(groups).every(([slot, names]) => {
+        const canvas = L.getOverride(`forge_${slot === 'weapon' ? weapon : source}`, slot)?.canvas;
+        return !!canvas && names.every((name) => target.f.rig.g[name].children[0].material.map.image === canvas);
+      })]);
+      h.invuln = 0;
+      h.hp = h.maxHp;
+      h.setState('idle');
+      h.vel.set(0, 0, 0);
+      h.pos.set(st.camX, 0, 0);
+      target.f.pos.set(h.pos.x + target.def.range, 0, 0);
+      target.f.setState('idle');
+      target.f.vel.set(0, 0, 0);
+      target.cd = 0;
+      target.panicT = 0;
+      const beforeHp = h.hp;
+      let attacked = false;
+      for (let frame = 0; frame < 180 && h.hp === beforeHp; frame++) {
+        st.update(1 / 60);
+        attacked ||= target.f.atk?.id === target.def.attack.id;
+      }
+      const damage = beforeHp - h.hp;
+      const expected = target.def.attack.dmg * target.f.dmgMul * h.dmgTaken;
+      checks.push([`${kind} starter eget AI-angrep og påfører riktig skade`, attacked && damage > 0 && Math.abs(damage - expected) < 0.001]);
+      const before = { xp: L.W.stats.xp, kills: L.W.stats.kills, heroKills: hero.kills, coins: st.pickups.filter((p) => p.kind === 'coin').length };
+      const result = kill(target);
+      checks.push([`${kind} dør gjennom treffsystemet og gir XP, drap og myntdrops`, result.killed && !target.f.alive && L.W.stats.xp > before.xp && L.W.stats.kills === before.kills + 1 && hero.kills === before.heroKills + 1 && st.pickups.filter((p) => p.kind === 'coin').length - before.coins === target.def.gold]);
+      st.update(1 / 60);
+      const released = st.wave === null && st.lockX === null && st.queue.length === 0 && !st.tokens.has(target);
+      const next = st.level.waves[st.waveIdx];
+      const nextIndex = st.waveIdx;
+      if (next) {
+        st.camX = next.at;
+        h.pos.set(next.at - 1.5, 0, 0);
+        st.update(1 / 60);
+      }
+      checks.push([`${kind} etterlater ingen bølgelås; neste bølge kan starte`, released && (!next || st.waveIdx === nextIndex + 1 && st.wave === next)]);
+      // Hindrer forsinkede rytterinnslag fra den forrige scenen i å dukke opp etter testen.
+      st.done = 'complete';
+      g.goTitle();
+      return checks;
+    }, { level, kind, source, weapon });
+    for (const [name, ok] of runtime) check(name, ok);
+  }
 
   // Historien har forskjellig fullføring og avbrytelse: Cancel skal aldri starte introen.
   for (const twoP of [false, true]) {
@@ -258,6 +359,16 @@ try {
   const boneclubDisabled = await boneclubLock.getAttribute('aria-disabled') === 'true';
   await boneclubLock.evaluate((el) => el.click());
   check('beinklubben kan ikke utstyres før weapon:3 er låst opp', boneclubDisabled && (await config()).parts.weapon === 'thrugg_weapon');
+  const newLocks = [];
+  for (const [slot, id] of [['head', 'forge_warden_head'], ['weapon', 'forge_maul_weapon'], ['weapon', 'forge_flangedmace_weapon']]) {
+    await row(slot).locator('.k').click();
+    const before = (await config()).parts[slot];
+    const card = page.locator(`.cr-part[data-part="${id}"]`);
+    const disabled = await card.getAttribute('aria-disabled') === 'true';
+    await card.evaluate((el) => el.click());
+    newLocks.push(disabled && (await config()).parts[slot] === before);
+  }
+  check('Warden-hjelm, maul og flensklubbe avviser utstyring før opplåsing', newLocks.every(Boolean), newLocks);
   await selectPart('torso', 'valkyra_torso');
   await selectPart('weapon', 'valkyra_weapon');
   check('valgt øks gir samme kampstatistikk i UI og figur', await page.evaluate(() => {
@@ -299,7 +410,7 @@ try {
   await page.locator('.cr-cancel').click();
   await page.evaluate(() => {
     const g = window.__game;
-    g.save.unlocked.push('weapon:2', 'weapon:3', 'skin:6');
+    g.save.unlocked.push('weapon:2', 'weapon:3', 'skin:6', 'helmet:5');
     g.openCreator([0, 1], () => g.goTitle());
   });
   await selectPart('weapon', 'forge_warhammer_weapon');
@@ -307,16 +418,29 @@ try {
     const s = window.__game.scene, L = window.__lib;
     return s.cfgs[0].weapon === 2 && s.preview.weapon === L.WEAPONS[2] && s.preview.rig.g.weapon.children[0].material.map.image === L.getOverride('forge_warhammer', 'weapon').canvas;
   }));
+  for (const [weapon, kind] of ['cleaver', 'doubleaxe', 'maul', 'flangedmace'].map((name, i) => [name, i])) {
+    await selectPart('weapon', `forge_${weapon}_weapon`);
+    check(`${weapon}: UI utstyrer det faktiske våpenbildet med kampklasse ${kind}`, await page.evaluate(({ weapon, kind }) => {
+      const s = window.__game.scene, L = window.__lib;
+      return s.cfgs[0].weapon === kind && s.preview.weapon === L.WEAPONS[kind] && s.preview.rig.g.weapon.children[0].material.map.image === L.getOverride(`forge_${weapon}`, 'weapon').canvas;
+    }, { weapon, kind }));
+  }
 
   // Lag to forskjellige helter gjennom de samme kontrollene spilleren bruker.
-  const p1 = { head: 'forge_orc_head', torso: 'forge_orc_torso', arm: 'forge_orc_arm', pelvis: 'forge_orc_pelvis', leg: 'forge_orc_leg', weapon: 'forge_sabre_weapon' };
+  const orc = { head: 'forge_orc_head', torso: 'forge_orc_torso', arm: 'forge_orc_arm', pelvis: 'forge_orc_pelvis', leg: 'forge_orc_leg', weapon: 'forge_sabre_weapon' };
+  for (const [slot, id] of Object.entries(orc)) await selectPart(slot, id);
+  check('UI bruker hele orkens faktiske bildesett og sabel med riktige kampverdier', await previewUses(orc));
+  const p1 = { head: 'forge_ash_head', torso: 'forge_ash_torso', arm: 'forge_ash_arm', pelvis: 'forge_ash_pelvis', leg: 'forge_ash_leg', weapon: 'forge_cleaver_weapon' };
   for (const [slot, id] of Object.entries(p1)) await selectPart(slot, id);
-  check('UI bruker hele orkens faktiske bildesett og sabel med riktige kampverdier', await previewUses(p1));
+  check('UI bruker hele Ash-settet og huggerten fra de faktiske bildefilene', await previewUses(p1));
   await page.locator('#hero-name').fill('MIXED ONE');
   await page.locator('.cr-tabs [data-slot="1"]').click();
-  const p2 = { head: 'forge_frost_head', torso: 'forge_frost_torso', arm: 'forge_frost_arm', pelvis: 'forge_frost_pelvis', leg: 'forge_frost_leg', weapon: 'forge_boneclub_weapon' };
+  const frost = { head: 'forge_frost_head', torso: 'forge_frost_torso', arm: 'forge_frost_arm', pelvis: 'forge_frost_pelvis', leg: 'forge_frost_leg', weapon: 'forge_boneclub_weapon' };
+  for (const [slot, id] of Object.entries(frost)) await selectPart(slot, id);
+  check('UI bruker hele det opplåste frostsettet og beinklubben med riktige kampverdier', await previewUses(frost));
+  const p2 = { head: 'forge_warden_head', torso: 'forge_warden_torso', arm: 'forge_warden_arm', pelvis: 'forge_warden_pelvis', leg: 'forge_warden_leg', weapon: 'forge_maul_weapon' };
   for (const [slot, id] of Object.entries(p2)) await selectPart(slot, id);
-  check('UI bruker hele det opplåste frostsettet og beinklubben med riktige kampverdier', await previewUses(p2));
+  check('UI bruker hele det opplåste Warden-settet og maul fra bildefilene', await previewUses(p2));
   await page.locator('#hero-name').fill('MIXED TWO');
   check('spillerne har uavhengige deler', await page.evaluate(({ p1, p2 }) => {
     const cfgs = window.__game.scene.cfgs;
@@ -328,9 +452,9 @@ try {
   await page.setViewportSize({ width: 915, height: 412 });
   await shot(page, 'mobile-landscape');
   await page.setViewportSize({ width: 412, height: 915 });
-  await selectPart('head', 'forge_frost_head');
+  await selectPart('head', 'forge_warden_head');
   check('siste hodekort forblir synlig etter valg i mobilpoolen', await page.evaluate(() => {
-    const card = document.querySelector('.cr-part[data-part="forge_frost_head"]').getBoundingClientRect();
+    const card = document.querySelector('.cr-part[data-part="forge_warden_head"]').getBoundingClientRect();
     const pool = document.querySelector('.cr-part-grid').getBoundingClientRect();
     return card.left >= pool.left - 1 && card.right <= pool.right + 1;
   }));
@@ -350,7 +474,7 @@ try {
   check('begge spillernes seks deler og navn overlever full sidelasting', await page.evaluate(() => JSON.stringify(window.__game.save.heroes)) === saved);
   check('lagring bevarer valgt kroppstype og våpen', await page.evaluate(() => {
     const [a, b] = window.__game.save.heroes;
-    return a.body === 1 && a.weapon === 0 && a.name === 'MIXED ONE' && b.body === 0 && b.weapon === 3 && b.name === 'MIXED TWO';
+    return a.body === 1 && a.weapon === 0 && a.name === 'MIXED ONE' && b.body === 0 && b.weapon === 2 && b.name === 'MIXED TWO';
   }));
 
   // Manglende fil: bare den delen bruker reservetegningen. De andre fem er fortsatt malt.

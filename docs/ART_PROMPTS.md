@@ -177,7 +177,7 @@ Lim inn beskrivelsen, så templatet for delen du vil lage. Kolonnen "Deler" vise
 | `magmor` | `Character: MAGMOR THE MOLTEN, a lava golem boss made of black and dark grey rock chunks with glowing orange lava cracks, small blocky head with glowing yellow eyes and a lava mouth, flames on top of the head, huge rock fists. No weapon.` | head, torso, pelvis, arm, leg |
 | `vorthax` | `Character: VORTHAX THE MODERATELY EVIL, an old sorcerer villain. Purple robes with gold trim and dots, tall purple pointy hat with a small skull, long white beard, glowing red eyes, pale wrinkled skin, wide sleeves. Weapon: a crooked wooden staff with a glowing cyan orb.` | head, torso, pelvis, arm, leg, weapon |
 
-Hero Forge har en felles pool med 44 malte delvalg fra grunnpakken og 25 Forge-bilder. Den samlede kunstpakken har 168 bildefiler. Se `docs/HERO_FORGE_GRAFIKK.md` for filkart og videre utvidelser. Frie hårfrisyrer, hjelmer, skjegg og farger finnes foreløpig i CLASSIC BUILDER; egne bildelag er fortsatt planlagt.
+Hero Forge har en felles pool med 58 malte delvalg fra grunnpakken og 39 Forge-bilder. Den samlede kunstpakken har 182 bildefiler. Se `docs/HERO_FORGE_GRAFIKK.md` for filkart og videre utvidelser. Frie hårfrisyrer, hjelmer, skjegg og farger finnes foreløpig i CLASSIC BUILDER; egne bildelag er fortsatt planlagt.
 
 ### Valkyra og referansebildet
 
@@ -191,11 +191,13 @@ Spillet regner ut høyden på hver del fra figurens skjelett (se over), så de s
 
 ## Heltesmia (HERO FORGE)
 
-PAINTED PARTS lar spilleren kombinere ni hoder og sju overkropper, belter, armer, bein og våpen. Thrugg og Valkyra er startoppsett; ett bytte av del beholder resten av den malte helten. `docs/HERO_FORGE_GRAFIKK.md` beskriver begge tilleggene: de første 13 bildene og tolv deler til orc, frostkriger, sabel og beinklubbe.
+PAINTED PARTS lar spilleren kombinere elleve hoder, elleve våpen og ni overkropper, belter, armer og bein. Thrugg og Valkyra er startoppsett; ett bytte av del beholder resten av den malte helten. `docs/HERO_FORGE_GRAFIKK.md` beskriver tre tillegg på 13, 12 og 14 bilder. Det siste gir Ash Raider, Iron Warden og fire nye våpenutseender.
 
 - Stridshammeren heter `forge_warhammer_weapon.webp` og følger WARHAMMER-egenskapene og opplåsingen `weapon:2`. Den eldre bestillingen `warhammer_weapon.png` er erstattet av dette navnet.
 - Orc-delene er tilgjengelige fra start. Frosthode, -overkropp, -arm og -bein følger `skin:6` fra Frostjarl Kaldor; frostbeltet er fritt. Orc-overkroppen setter kvinnelig kroppstype, frost-overkroppen mannlig.
 - `forge_sabre_weapon.webp` bruker SWORD-egenskaper og er fritt. `forge_boneclub_weapon.webp` bruker SPIKED CLUB-egenskaper og følger `weapon:3` fra Bone Coliseum.
+- Ash-delene og fire Warden-kroppsdeler er frie. Warden-hjelmen følger `helmet:5`. Cleaver og doubleaxe er frie sverd-/øksevalg; maul følger `weapon:2`, flangedmace `weapon:3`. Fiendene `ashraider` og `ironwarden` bruker delene direkte i Scorchlands og Tower; de krever ingen egen bildekopi.
+- Nye versjoner av `hogmother_torso`, `imp_arm` og `gorthak_arm` erstatter de gamle filene. De teller ikke som ekstra Forge-bilder, og nye målte punkter må følge de nye bildene.
 - Hår, skjegg og hud er del av de malte bildene. CLASSIC BUILDER beholder de frie prosedyretegnede detaljvalgene. Magi kan byttes i begge byggere.
 - Valgene lagres separat for begge spillere og brukes i forhåndsvisning, brett, dueller og portretter.
 - Neve, skulder og våpengrep må passe. Claudes automatiske hånd- og grepberegning brukes også på de nye delene; et målt `hand` eller `anchor` i manifestet går foran.

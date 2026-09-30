@@ -559,17 +559,16 @@
       "shoulders": [
         [
           0.05,
-          0.21
+          0.19
         ],
         [
-          0.9,
+          0.97,
           0.22
         ]
       ],
       "neck": [
-        0.555,
-        0.12,
-        0.1
+        0.52,
+        0.12
       ]
     },
     {
@@ -1041,6 +1040,122 @@
       "char": "forge_sabre",
       "part": "weapon",
       "file": "forge_sabre_weapon.webp"
+    },
+    {
+      "char": "forge_ash",
+      "part": "arm",
+      "file": "forge_ash_arm.webp"
+    },
+    {
+      "char": "forge_ash",
+      "part": "head",
+      "file": "forge_ash_head.webp",
+      "height": 0.84
+    },
+    {
+      "char": "forge_ash",
+      "part": "leg",
+      "file": "forge_ash_leg.webp"
+    },
+    {
+      "char": "forge_ash",
+      "part": "torso",
+      "file": "forge_ash_torso.webp",
+      "anchor": [
+        0.55,
+        0.96
+      ],
+      "shoulders": [
+        [
+          0.1,
+          0.17
+        ],
+        [
+          0.94,
+          0.23
+        ]
+      ],
+      "neck": [
+        0.55,
+        0.18
+      ]
+    },
+    {
+      "char": "forge_cleaver",
+      "part": "weapon",
+      "file": "forge_cleaver_weapon.webp"
+    },
+    {
+      "char": "forge_doubleaxe",
+      "part": "weapon",
+      "file": "forge_doubleaxe_weapon.webp"
+    },
+    {
+      "char": "forge_flangedmace",
+      "part": "weapon",
+      "file": "forge_flangedmace_weapon.webp"
+    },
+    {
+      "char": "forge_maul",
+      "part": "weapon",
+      "file": "forge_maul_weapon.webp"
+    },
+    {
+      "char": "forge_warden",
+      "part": "arm",
+      "file": "forge_warden_arm.webp"
+    },
+    {
+      "char": "forge_warden",
+      "part": "head",
+      "file": "forge_warden_head.webp",
+      "height": 0.86
+    },
+    {
+      "char": "forge_warden",
+      "part": "leg",
+      "file": "forge_warden_leg.webp"
+    },
+    {
+      "char": "forge_warden",
+      "part": "torso",
+      "file": "forge_warden_torso.webp",
+      "anchor": [
+        0.55,
+        0.96
+      ],
+      "shoulders": [
+        [
+          0.1,
+          0.19
+        ],
+        [
+          0.94,
+          0.19
+        ]
+      ],
+      "neck": [
+        0.52,
+        0.12
+      ]
+    },
+    {
+      "char": "forge_ash",
+      "part": "pelvis",
+      "file": "forge_ash_pelvis.webp",
+      "anchor": [
+        0.52,
+        0.2
+      ]
+    },
+    {
+      "char": "forge_warden",
+      "part": "pelvis",
+      "file": "forge_warden_pelvis.webp",
+      "anchor": [
+        0.52,
+        0.2
+      ]
     }
   ],
   "textures": {
