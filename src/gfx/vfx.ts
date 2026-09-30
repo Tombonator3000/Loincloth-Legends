@@ -47,16 +47,19 @@ void main() {
   float size = mix(aS.x, aS.y, u);
   float kind = aC0.w;
   vec2 c = position.xy;
-  // Ringer (sjokkbølger) ligger flatt på bakken, alt annet vender mot kameraet
-  if (kind > 2.5 && kind < 3.5) p += vec3(c.x, 0.0, c.y) * size;
+  // Ringer (sjokkbølger) ligger flatt på bakken, alt annet vender mot kameraet. -c.y gir forsida opp mot kameraet
+  // (med +c.y vendte den ned og ble ikke tegnet)
+  if (kind > 2.5 && kind < 3.5) p += vec3(c.x, 0.0, -c.y) * size;
   vec4 mv = modelViewMatrix * vec4(p, 1.0);
   vec3 vv = (modelViewMatrix * vec4(vel, 0.0)).xyz;
   vec2 q = vec2(0.0);
   if (kind > 2.5 && kind < 3.5) {
     q = vec2(0.0);
   } else if (aS.z > 0.0 && dot(vv.xy, vv.xy) > 1e-6) {
+    // Strekk langs farten. n må stå til høyre for d (n = d dreid -90 grader), ellers blir firkanten speilvendt,
+    // vender baksida mot kameraet og tegnes ikke (slik var det fram til 30.09: blodråpene i lufta var usynlige)
     vec2 d = normalize(vv.xy);
-    vec2 n = vec2(-d.y, d.x);
+    vec2 n = vec2(d.y, -d.x);
     q = d * c.y * (size + length(vv.xy) * aS.z) + n * c.x * size;
   } else if (kind > 1.5 && kind < 2.5) {
     // Flammer peker opp og er litt høyere enn brede

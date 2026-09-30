@@ -1,5 +1,17 @@
 # todo.md
 
+## Plan: brettverksted, gørr, AI og teksturer (fra 2026-09-30 15:54, docs/PLAN_BRETT_GORR_AI.md)
+- [x] Blodråper i lufta, gnister og sjokkbølger var usynlige (speilvendte partikler i GLOW_VERT). Rettet, med ny test tools/tests/particles.mjs
+- [x] Plan med editor, lag, rekvisitter, Morbidium-animasjon, gørr, AI (moderne Golden Axe-kloner), teksturer og andre forbedringer
+- [ ] Tom: bestill teksturene i del 9.1 (kan kjøres gjennom process_art.py nå) og rekvisittene i del 9.2 (legg dem i art/inbox/venter/ til runde B)
+- [ ] Tom: si om rekkefølgen passer (A, B, C, D, E), eller om AI del 1 (D) skal før editoren (C)
+- [ ] Tom: si fra om blodmengden nå som dråpene synes (standard EXCESSIVE)
+- [ ] Runde A: beina løper etter todeling, pulserende sprut, kuttflater, blod på våpenet, treffstopp ved kutt; teksturer på palisade, telt, stolper, hytter og tak (med reserve i kode); spilltid i stedet for setTimeout (stage.ts 482 og 710, duel.ts)
+- [ ] Runde B: rekvisitter i lag (manifest `props`, kulisser med lys og skygge, vind, bildeserier, InstancedMesh), toning av FRONT, brettfiler i JSON med validering, faste frø for pynten, tools/export_layouts.mjs, `anim_`/`prop_`/`gore_` i process_art.py (ark_ruter fra Morbidium)
+- [ ] Runde C: STAGE FORGE (editor.html, bibliotek, tidslinje, angre, radmodus, lagring via Vite under npm run dev, PLAY FROM HERE, tools/tests/editor.mjs)
+- [ ] Runde D: AI del 1 (én plass per side, ytre ring, rettferdighet, felles varsling `tell`/`bark`, to spillere, målinger i ai.mjs)
+- [ ] Runde E: AI del 2 (tempostyring og budsjett, nye fiendetyper, grense for evige komboer, forsvar, sjefer i faser, vanskelighetsgrad, ridedyr)
+
 ## Hero Forge: felles pool av malte deler (2026-09-30)
 - [x] Finn årsaken til at malte deler forsvant ved endring av preset; kontroller alle 143 grunnfiler
 - [x] 44 uavhengige delvalg i katalogen, med miniatyrer, bakhår fra valgt hode og samme figur i forhåndsvisning og kamp

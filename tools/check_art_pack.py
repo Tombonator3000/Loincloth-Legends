@@ -1,4 +1,4 @@
-"""Kontroller grunnpakkens 143 filer og eventuelle ekstra forge_-figurdeler.
+"""Kontroller grunnpakkens 143 filer, eventuelle ekstra forge_-figurdeler og teksturene fra planen.
 
 Bruk: python3 tools/check_art_pack.py (krever Pillow).
 """
@@ -27,6 +27,8 @@ expected_textures = {f'{kind}_{biome}' for kind in ('ground', 'road')
 expected_textures |= {'wall_keep', 'wall_gate', 'wood', 'floor_tower', 'wall_tower', 'pillar_tower'}
 expected_textures |= {f'{kind}_arena-{theme}' for kind in ('floor', 'sand', 'wall', 'pillar')
                       for theme in ('pit', 'ice', 'bone')}
+# Teksturer fra docs/PLAN_BRETT_GORR_AI.md (del 9.1). De kan komme inn før koden bruker dem (runde A).
+planned_textures = {'bark', 'stake_tip', 'canvas', 'thatch', 'plank', 'roof_slate', 'obsidian', 'bone'}
 expected_sky = {'grass', 'swamp', 'frost', 'scorch', 'night',
                 'arena-pit', 'arena-ice', 'arena-bone'}
 
@@ -40,13 +42,16 @@ forge_parts = {(char, part) for char, part in extra_parts
                and part in six | {'hairback'}}
 assert not missing_parts, f'Mangler {missing_parts}'
 assert extra_parts == forge_parts, f'Ukjente ekstra figurdeler: {extra_parts - forge_parts}'
-assert set(manifest['textures']) == expected_textures
+actual_textures = set(manifest['textures'])
+extra_textures = actual_textures - expected_textures
+assert expected_textures <= actual_textures, f'Mangler teksturer: {expected_textures - actual_textures}'
+assert extra_textures <= planned_textures, f'Ukjente teksturer: {extra_textures - planned_textures}'
 assert set(manifest['sky']) == expected_sky
 assert manifest['map'] == 'map.webp'
 
 names = [p['file'] for p in parts] + list(manifest['textures'].values())
 names += list(manifest['sky'].values()) + [manifest['map']]
-assert len(names) == len(set(names)) == 143 + len(forge_parts), 'Feil antall eller doble filnavn'
+assert len(names) == len(set(names)) == 143 + len(forge_parts) + len(extra_textures), 'Feil antall eller doble filnavn'
 part_files = {p['file'] for p in parts}
 for name in names:
     path = ASSETS / name
@@ -65,5 +70,8 @@ for name in names:
             assert image.mode == 'RGBA', f'Mangler alfa: {name}'
 
 print('OK: 89 figurdeler, 12 ridedyrdeler, 5 kjaeledyr, 28 teksturer, 8 himler og kart (143 filer).')
+total = f'{len(names)} filer totalt'
 if forge_parts:
-    print(f'OK: {len(forge_parts)} ekstra Hero Forge-deler ({len(names)} filer totalt).')
+    print(f'OK: {len(forge_parts)} ekstra Hero Forge-deler' + ('.' if extra_textures else f' ({total}).'))
+if extra_textures:
+    print(f'OK: {len(extra_textures)} nye teksturer fra planen ({", ".join(sorted(extra_textures))}), {total}.')

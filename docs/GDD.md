@@ -215,3 +215,5 @@ Videre:
 7. **Online co-op** og Steam Deck.
 8. **Fra konseptbilde 4** (gjort): juvet, istapper, fyrfat som veltes, kjempen som kaster heltene og panikk. Videre: juv og fallende stein i andre biomer, og at en kastet helt kan velte fiender han treffer.
 9. **Flere kjemper**: en kjempe per land (sumpkjempe, lavakjempe) med egne bakkeslag.
+
+Planen for brettverkstedet (STAGE FORGE, lag og malte rekvisitter), mer gørr (beina som løper videre etter todeling), bedre AI og teksturer på brettene står i `docs/PLAN_BRETT_GORR_AI.md` (30. september 2026).

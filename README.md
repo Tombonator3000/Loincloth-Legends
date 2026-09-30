@@ -81,6 +81,7 @@ Tre knapper. Gå inn i en fiende for å gripe ham, og inn i et ledig ridedyr for
 - `docs/ARCHITECTURE.md` hvordan koden henger sammen, og oppskrifter for nytt innhold
 - `docs/ART_PROMPTS.md` grafikkliste med ferdige prompter til ChatGPT
 - `docs/CHATGPT_PROMPT.md` startprompt som lar ChatGPT styre hele grafikkjobben (sjekkliste, filnavn, kommandoer)
+- `docs/PLAN_BRETT_GORR_AI.md` plan for brettverkstedet (STAGE FORGE), gørr, bedre AI og teksturer på brettene, med bestilling til GPT
 - `tools/tests/README.md` Playwright-tester
 - `AGENTS.md` og `CLAUDE.md` regler for AI-agenter
 - `memory.md`, `todo.md`, `log.md` hukommelse, plan og historikk

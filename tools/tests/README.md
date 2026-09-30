@@ -15,6 +15,7 @@ node tools/tests/ai.mjs http://localhost:4173/                            # CPU 
 node tools/tests/lineup.mjs http://localhost:4173/ ./shots                # helter i alle rustninger (proporsjoner)
 node tools/tests/closeup.mjs http://localhost:4173/ ./shots '{"body":1}'  # nærbilde av en helt i fire poser
 node tools/tests/violence.mjs http://localhost:4173/ ./shots              # arm ryker, halshugging, hodet i skjermen, hodeløs kylling
+node tools/tests/particles.mjs http://localhost:4173/ [./shots]           # blodråper i fart, gnister, sjokkbølger og blod fra en arm som ryker synes på skjermen (teller piksler)
 node tools/tests/grab.mjs http://localhost:4173/ ./shots road             # grep, kne, kast, bowling og fare (road, swamp, frost, scorch, tower)
 node tools/tests/mounts.mjs http://localhost:4173/ ./shots                # ridedyr, fiende-ryttere, avkasting, sitte opp, stormløp
 node tools/tests/riders.mjs http://localhost:4173/                         # fiende-ryttere kan tas: en bot jager dem med låst kamera, de holder seg innen rekkevidde, rygger saktere enn helten og slås av og drepes

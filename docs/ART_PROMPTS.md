@@ -271,6 +271,8 @@ Confirm that you understand. Then wait for my texture requests.
 
 Isarenaen og beinarenaen bruker samme navn med `-ice` og `-bone` i stedet for `-pit` (for eksempel `floor_arena-ice`). Lag dem i blåhvit is og stein (ice) og i gammelt, gulnet bein og sandstein (bone).
 
+Nye teksturer til palisaden, teltene, stolpene, hyttene og takene (`bark`, `stake_tip`, `canvas`, `thatch`, `plank`, `roof_slate`, `obsidian`, `bone`) står med prompter i `docs/PLAN_BRETT_GORR_AI.md`, del 9.1. De kan bestilles og kjøres gjennom `tools/process_art.py` nå, og kobles inn i runde A. Malte rekvisitter til brettene (`prop_`, `anim_` og `gore_`) står i del 9.2 og venter til spillet kan lese dem (runde B).
+
 ---
 
 ## Bakgrunner
