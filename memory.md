@@ -9,6 +9,8 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - 80-talls fantasy-klisjeer spilt rett, med humor og mange parodier, og over-the-top gore
 
 ## Beslutninger
+- 2026-10-01: Vanskelighetsgraden (EASY, NORMAL, HARD) endrer bare reaksjonstid og aggresjon, aldri liv eller skade (planen 6.4 punkt 6). Bølgene bruker rang (vanlig 1, sterk 2, elite 4) i stedet for antall, og en regissør styrer tempoet med topp og pusterom.
+- 2026-10-01: Sjefene har faser ved 66 og 33 prosent (`phases` i `BossDef`) i stedet for én raserigrense. Sluttkampen i tårnet er vakter som reiser seg (skjelettvakter med dør som skjold), så Vorthax bak et skjold fra tre søyler, så faser, og til slutt Solhjertet. Runde E fortsetter med komboer og forsvar, tempostyring og nye fiendetyper.
 - 2026-10-01: Sumpen og frosten tas i valgfri rekkefølge etter jungelen, og begge må klares før Scorchlands. Brettnummeret følger rekkefølgen spilleren tar dem i (`MAIN_ROUTE` og `stageName()` i data/worldmap.ts), så `name` i LevelDef er bare reserven.
 - 2026-10-01: Jungelen er brett 2 (`jungle`, THE STEAMING JUNGLE). Vorthax har stjålet Solhjertet fra Soltempelet, men prinsessen er fortsatt målet; jungelen er omveien. Finalen er en duell mot dronning Zanthra (arena `temple`). Sumpen er STAGE 3, frosten STAGE 4 og Scorchlands STAGE 5.
 - 2026-10-01: Tom bestemte: prinsesse Amberly er fortsatt målet for historien (Solhjertet kan være grunnen til jungelen), sumpen og frosten får valgfri rekkefølge, og arbeidet tas i rekkefølgen bøy i albue og kne, grep som krever at tøffe fiender vakler, Vorthax på brett 1 til 4, jungelbrettet mellom brett 1 og sumpen, kartet, og sluttkampen i faser med runde E.

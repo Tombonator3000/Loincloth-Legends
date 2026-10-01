@@ -149,6 +149,35 @@ Brett 2 (`jungle` i `levels.ts`, biomet `gfx/env/jungle.ts`). Trærne er tre art
 - Låten er TEMPLE OF THE SUN (`jungle` i `METAL_TRACKS`), stemningen insekter, drypp, fugler, aper og frosker (`AMBIENCE` og `AMB_EVENTS` i `core/ambience.ts`).
 - Test: `tools/tests/jungle.mjs` (farene og søylene, og skjermbilder langs brettet).
 
+## Sjefer i faser og sluttkampen
+
+Runde E i `docs/PLAN_BRETT_GORR_AI.md` (del 6.4). Sjefene går gjennom faser ved 66 og 33 prosent (`phases` i `BossDef`) i stedet for én raserigrense. En fase har replikk, fart, nye trekk (`extra`) og sterkere utgaver av trekkene han har (`stronger`, slås sammen med trekket av samme slag). Livslinja får merker der fasene begynner (`hud.bossPhases`), og hodeskallen gløder i fasene.
+- **Sliten** (`tired` på et trekk): etter store trekk står sjefen og hiver etter pusten uten rustning (`BossCtl.tire`), så slagene rykker ham, og han tar 1,3 ganger skade. Teksten OPENING! viser vinduet.
+- **Røde trekk** (`red`): rødt blink og krigshorn før trekket, og slag kan ikke avbryte det. Det må unngås (gå ut av linja, hopp). Sjefene slås aldri over ende (`Fighter.kdImmune`), de rykkes.
+- **Nye trekk**: `feast` (Hogmother spiser et kyllinglår og får `heal` av livet tilbake, men slag for fem prosent av livet mens hun spiser, avbryter og gjør henne sliten), `dive` (Croakus går under bakken uten skygge, skyggen svømmer mot helten, og han kommer opp der den er, `DiveShadow`), `mirror` (Vorthax lager kopier av seg selv, `Fighter.illusion`, uten skygge; et slag på en kopi får den til å forsvinne, et slag på den ekte får alle til å forsvinne) og `beam` (solstrålen langs veien i høyden helten står i, med rød stripe som varsel, treffer hver helt én gang). `trail` på en fase gir lava i sporene (Magmor, `BossWorld.lava` og `LavaTrail`), som brenner det som går i den (glørne i `Stage.embers`). Figurer av lava brenner ikke.
+- **Sluttkampen** (`finale` i `BossDef`, `Stage.updateFinale`): Vorthax står på tronen bak skjoldet (`mode: 'throne'`, `Fighter.shielded`, alt preller av) mens vaktene reiser seg av gulvet bølge for bølge (`guards`, `Stage.spawnRising`, `Foe.rise`). Skjelettvaktene (`skelguard`) har en dør som skjold (`FoeDef.shield`, `Fighter.frontGuard`): vanlige slag forfra preller av, men tredje slag i komboen, hoppslag, stormløp, spinn, kast, magi og slag bakfra går gjennom. Når vaktene er slått, går han ned og slåss. Skjoldet holdes oppe av tre søyler med krystaller i tronsalen (`templePillar(..., 'tower')`, `Tippable.conduit`); de veltes som søylene i jungelen, og en søyle som faller over ham tar sju prosent av livet (`BossCtl.crushed`, skjoldet hjelper ikke). Når den siste faller, brister skjoldet, og han er sliten. Ved 33 prosent tar han Solhjertet (`heart` på fasen): hjertet flyr fra lysekronen til ham, han gløder, og rommet blir rødt (`GRADES.heart`). Når han dør, faller hjertet på gulvet og buret med prinsessen senkes (`FinaleFx` fra `gfx/env/tower.ts`).
+- Effektene står i `gfx/bossfx.ts`: skjoldet med stråler fra krystallene (`ShieldFx`), skyggen, lavaen, solstrålen, kyllinglåret og døra. Livslinja viser skjoldet (`hud.bossShield`).
+- Tester: `tools/tests/bossphases.mjs` (fasene, måltidet, røde trekk, sliten sjef, dykket, lavaen, speilbildene, solstrålen) og `tools/tests/finale.mjs` (tronen, vaktene, døra, søylene, skjoldet, Solhjertet og slutten).
+
+## Komboer og forsvar
+
+Runde E, del 6.4 punkt 3 og 4 i planen (`game/combo.ts`):
+- **Sjonglering**: `JUGGLE_LIMIT` treff i lufta (telles i `Stage.juggle`), så slås fienden i bakken (`spike`) og blir liggende. En liggende fiende kan ikke treffes før han er oppe (`canHit`).
+- **Kanten av bildet**: under en bølge (`Stage.lockX`) spretter en kropp som flyr mot kanten, tilbake (`wallBounce`, litt skade), høyst `WALL_BOUNCES` ganger per flytur. En kropp som er slått avgårde (ikke kastet, det er `bowl` i grab.ts), skader fiendene den treffer (`bodyHits`, `BODY_HIT`). Tellerne nullstilles når kroppen er nede (`grounded`).
+- **Lese helten** (`HabitReader`): eliter (`guard`, `poise` eller `shield` på `FoeDef`) og sjefer som tar `READ_AFTER` like slag på rad (samme slag uten trinnummer og våpen, `attackKind`), blokkerer i `READ_BLOCK` sekunder (`Foe.blockFor`, `BossCtl.blockFor`, staten `block`) og slår tilbake etterpå. Slag forfra preller av; løpeslaget har `guardBreak`, og slag bakfra går gjennom.
+- **Grepet**: den som holdes, river seg løs etter `BREAK_FREE` sekunder uten kne (`breakFree` i grab.ts) og skyver helten bakover.
+- **Prosjektiler**: fiender som ser et prosjektil fra heltene komme langs linja, går til side (`Foe.incoming`, sjansen fra vanskelighetsgraden).
+- Test: `tools/tests/combo.mjs`.
+
+## Tempo og vanskelighetsgrad
+
+Runde E, del 6.4 punkt 1 og 6 i planen:
+- **Regissøren** (`game/director.ts`, `Stage.director`): spenningen stiger med skaden heltene tar (andel av livet), drap og lite liv igjen, og synker over tid. Over `TENSION.peak` er det en topp; etter `peakTime` sekunder kommer et pusterom (`relaxTime`). `tokens()` gir angrepsplassene (`Stage.maxTokens`): én færre i pusterommet, én flere når det er rolig. `pace()` ganger nedkjølingene til fiendene (`FoeWorld.pace`, under 1 er lengre pauser).
+- **Bølgebudsjettet** (`foeRank` i `data/enemies.ts`, `Stage.waveCap` og `waveDebt`): en bølge har plass til `maxAlive` i rang (1,4 ganger med to spillere). En fiende kommer når rangen hans får plass (eller ingen lever); går en bølge over, trekkes det fra neste bølge. `rank` på `FoeDef` overstyrer.
+- **Vanskelighetsgraden** (`data/difficulty.ts`, `settings.difficulty`, OPTIONS): `wind` ganger opptrekket før fiendenes slag (`windUp` i foes.ts), `pace` tempoet, `dodge` unnamanøvrene, `tokens` angrepsplassene og `think` tenketiden til sjefene. Aldri liv eller skade.
+- Alt som påvirker spillet, går i spilltid (`W.gore.later`), også ryttere, rop og game over, så pause virker.
+- Test: `tools/tests/director.mjs`.
+
 ## Lys på figurene
 
 Figurdelene er flate tegninger, så `gfx/charlight.ts` lager et relieffkart per del når tegningen lages (`reliefTexture` i `rig.ts` og `beast.ts`): hver flate mellom blekkstrekene blir en pute (avstandsfelt til blekk og kontur), pluss en slak bue over hele delen. R og G er normalen, B er glansstyrke og A glanstype (matt stoff og lær, hud med olje, metall). Hud gjenkjennes fra `skin` på CharDef (hudfargene og mørkere nyanser av dem), stål og gull fra fargen.
@@ -259,15 +288,15 @@ Et brett er tre lag oppå hverandre: miljøbyggeren for biomet (`gfx/env/<biom>.
 1. Tegn figuren i `gfx/chars/wilds.ts` (eller ny fil) som en `CharDef` med delene leg, arm, pelvis, torso, head og eventuelt weapon. Legg den i eksportlista.
 2. Legg til en `FoeDef` i `data/enemies.ts` med `behavior`, `attack`, `range` og eventuelt `proj`.
 3. Bruk id-en i bølgene i `data/levels.ts`.
-Bare fargevariant? Bruk en eksisterende `char` og sett `tint` (se `frostskel`).
+Bare fargevariant? Bruk en eksisterende `char` og sett `tint` (se `frostskel`). Skjold? Sett `shield: true` (en dør foran kroppen, se `skelguard`).
 Fiende-AI (`game/foes.ts`): fiender holder avstand, men rygger på halv fart (`RETREAT`), og når de først har vært i bildet (`Foe.entered`), holder `Stage` dem innenfor det (tyver på flukt går fritt). Ridedyr med fiende på ryggen har det samme: `Mount.entered` og `Stage.mountBounds` holder dem i bildet når de har ridd inn (under en bølge også dyr uten rytter), og `Mount.ai()` holder standplassen `MOUNT_EDGE` innenfor kanten, rygger på halv fart og ser mot helten mens det rygger. Rytteren angriper ikke fra utenfor bildet, og ikke en helt som ligger nede eller reiser seg (`RIDER_GRACE`). `tools/tests/riders.mjs` jager ryttere med en spillerbot. Ønsket avstand for dem som kaster, begrenses av bredden på bildet. `Foe.panic(sek)` gir panikk (løper vekk i sikksakk, armene i været via `Fighter.panicking`, høyst `PANIC_SPEED`); `Stage` utløser den ved grufulle drap i nærheten, lite liv, brann og når METAL MODE starter.
 Kjempe? Lag en `CharDef` med stor `scale` som arver delene fra en vanlig figur (`inherit`, se `bigtroll` i `gfx/chars/wilds.ts`). Store figurer tegnes med flere piksler per enhet og like tynn strek på skjermen (`rig.ts`). Sett `poise` på `FoeDef` (han tar skade, men blir verken slått tilbake eller ned før han har tatt så stor andel av livet, da vakler han), og gi angrepet `quake` (bakken rister der slaget treffer). Kameraet trekker seg bakover mens en figur større enn 1.8 er i bildet (`Stage.camPull`, avstandene i `gfx/stagecam.ts`).
 
 ### Ny sjef
 1. Lag figuren (eller gjenbruk en med `scale` og `tint`).
-2. Legg til en `BossDef` i `data/bosses.ts`: velg trekk med vekt og nedkjøling, sett `enrage` og intro-replikker.
+2. Legg til en `BossDef` i `data/bosses.ts`: velg trekk med vekt og nedkjøling, sett `phases` (to faser, ved 0.66 og 0.33, med replikk, fart, nye trekk og `stronger`) og intro-replikker. Gi de store trekkene `tired` (vinduet etter trekket) og noen `red` (kan ikke avbrytes).
 3. Sett `finale: { type: 'boss', boss: '<id>' }` på et brett.
-Nytt trekk som ikke finnes: legg det til i `BossMoveKind` og i `exec()` i `game/boss.ts`.
+Nytt trekk som ikke finnes: legg det til i `BossMoveKind` og i `exec()` i `game/boss.ts`. En sluttkamp med vakter og skjold er `finale` på `BossDef` (se «Sjefer i faser og sluttkampen»); biomet må da gi `Env.finale` (tronen) og søyler med `conduit`.
 
 ### Nytt biom
 1. Lag `gfx/env/<biom>.ts` med en `build<Biom>(scene, gore, opts)` som returnerer `Env`. Bruk `stageBase` og hjelperne i `common.ts`.

@@ -26,6 +26,8 @@ Status øverst: hva som er gjort.
 
 ## Status
 
+**1. oktober 2026: runde E er i gang** (Tom: «sluttkampen i faser sammen med runde E»). Ferdig: sjefer i faser (6.4 punkt 5) med måltidet, dykket, lavasporet og speilbildene, vinduer etter store trekk og røde trekk, og sluttkampen i tårnet (vaktene med dører som skjold reiser seg, skjoldet fra søylene, Solhjertet). Grensen for evige komboer og forsvaret (punkt 3 og 4), tempostyringen med bølgebudsjett (punkt 1) og vanskelighetsgraden (punkt 6). Gjenstår: de nye fiendetypene (punkt 2) og ridedyrene (punkt 7). Detaljene står i `docs/ARCHITECTURE.md` under «Sjefer i faser og sluttkampen», «Komboer og forsvar» og «Tempo og vanskelighetsgrad». Runde D er ikke gjort; det runde E bygger på av den, tas med der det trengs.
+
 **30. september 2026, kveld: runde B og C er ferdige.** Brettene har malte kulisser i fire lag med animasjon og forgrunn som tones ut, brettfiler i JSON, faste frø for pynten, og brettverkstedet STAGE FORGE. Bruken står i `docs/STAGE_FORGE.md`, og skillene agentene bruker, i `docs/SKILLS.md`.
 
 Der det ble annerledes enn planen under:

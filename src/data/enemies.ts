@@ -35,6 +35,13 @@ export interface FoeDef {
    * helten skjøvet unna. Fiender med poise står uansett imot til de vakler.
    */
   guard?: boolean;
+  /**
+   * Bærer en dør som skjold (runde E): slag forfra preller av. Tredje slag i komboen, hoppslag, stormløp, kast, magi og
+   * slag bakfra går gjennom (se applyHit i game/combat.ts).
+   */
+  shield?: boolean;
+  /** Rang i bølgebudsjettet (runde E): vanlig 1, sterk 2, elite 4. Uten rang regnes den ut (foeRank). */
+  rank?: number;
   poseMod?: Partial<Pose>;
   barks: string[];
 }
@@ -128,6 +135,11 @@ export const FOES: Record<string, FoeDef> = {
     id: 'ashraider', char: 'ashraider', name: 'ASH RAIDER', hp: 42, speed: 3.05, gold: 4, behavior: 'melee', attack: ashSlash, range: 1.35,
     barks: ['THE HEAT IS INCLUDED!', 'TWO BLADES. NO REFUNDS.', 'I WORKED THROUGH MY LUNCH RAID!'],
   },
+  // Skjelettvaktene i tårnet (runde E): reiser seg av gulvet i tronsalen, med en dør som skjold
+  skelguard: {
+    id: 'skelguard', char: 'skeleton', name: 'SKELETON GUARD', hp: 34, speed: 2.3, gold: 4, behavior: 'melee', attack: ENEMY_ATK.skel, range: 1.45, shield: true,
+    tint: [0.86, 0.84, 0.98], barks: ['HALT! WHO GOES THERE?', 'THIS DOOR IS MY SHIELD NOW!', 'I GUARD. THAT IS ALL I DO.'],
+  },
   darkcultist: {
     id: 'darkcultist', char: 'cultist', name: 'DARK CULTIST', hp: 36, speed: 2.4, gold: 4, behavior: 'ranged', attack: ENEMY_ATK.stab, range: 6, proj: 'bolt', projCd: [2, 3],
     tint: [0.55, 0.45, 0.75], barks: ['THE MASTER SEES ALL!', 'I GOT PROMOTED!', 'SENIOR CULTIST, THANK YOU.'],
@@ -146,3 +158,15 @@ export const FOES: Record<string, FoeDef> = {
 export const PANIC_BARKS = ['AAAAAAAH!', 'NOPE! NOPE! NOPE!', 'MOMMY!', 'I QUIT!', 'THIS WAS NOT IN THE BROCHURE!', 'EVERY MAN FOR HIMSELF!', 'I LEFT THE OVEN ON!', 'TELL VORTHAX I WAS SICK!', 'I HAVE CHILDREN! PROBABLY!'];
 
 export const DEATH_BARKS = ['WORTH IT...', 'TELL MY WIFE... ACTUALLY DON\'T', 'I REGRET NOTHING... WAIT', 'MY SPLEEN!', 'NOT LIKE THIS!', 'I WAS TWO DAYS FROM RETIREMENT!'];
+
+/**
+ * Rangen en fiende har i bølgebudsjettet (runde E, docs/PLAN_BRETT_GORR_AI.md 6.4 punkt 1): tyver på flukt teller
+ * ikke, kjemper (poise) er elite (4), tøffe, skjoldbærere og de som griper er sterke (2), resten vanlige (1).
+ */
+export function foeRank(d: FoeDef) {
+  if (d.rank !== undefined) return d.rank;
+  if (d.behavior === 'runner') return 0;
+  if (d.poise) return 4;
+  if (d.guard || d.shield || d.grab || d.hp >= 60) return 2;
+  return 1;
+}

@@ -20,7 +20,14 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [ ] Utstyr som endrer handlingene, to eller tre ting som gjenbruker effekter vi har: oljeflaske (glør og brann), ring (tordenmagien), kastedolk (kultistenes dolk). Må passe på de tre knappene
 - [ ] Flere mannekropper blant fiender og rivaler (tung og hårete bryter, kompakt veteran med brukket nese, forfengelig arenahelt), se også kroppstypene under Neste
 - [ ] Kameraet trekker seg litt bakover når to spillere går fra hverandre (slik `Stage.camPull` gjør for kjemper)
-- [ ] Sluttkampen i faser (hæren, Vorthax med skjold og søyler, en siste desperat fase), sammen med runde E og skjelettvaktene fra Golden Axe
+- [x] Sluttkampen i faser: skjelettvakter med dør som skjold reiser seg av gulvet, Vorthax bak skjold fra tre søyler, faser, Solhjertet (tools/tests/finale.mjs)
+- [x] Sjefer i faser ved 66 og 33 prosent: måltidet (Hogmother), dykket (Croakus), lavasporet (Magmor), speilbildene og solstrålen (Vorthax), vinduer etter store trekk og røde trekk (tools/tests/bossphases.mjs)
+- [ ] Tom: spill sluttkampen og si fra om den er for lett eller for vond (skjoldet, søylene, solstrålen)
+- [ ] Tom: lag de nye replikkene for sjefene og sluttkampen i VoiceStudio (docs/STEMMER.md)
+- [x] Runde E: grense for evige komboer (SPIKED!, sprett mot kanten, kropper som treffer andre) og forsvar (eliter og sjefer som leser like slag, unnamanøvrer, grep som rives løs) (tools/tests/combo.mjs)
+- [x] Runde E: tempostyring (regissøren), bølgebudsjett med rang og vanskelighetsgrad i OPTIONS (tools/tests/director.mjs)
+- [ ] Runde E videre: nye fiendetyper (Goblin Archer, froskemann i bakhold, Grabber, Berserker, Coward Captain) og ridedyr (fiender som løper til ledige dyr, utholdenhet)
+- [ ] Tom: prøv EASY og HARD og si fra om forskjellen er stor nok (data/difficulty.ts)
 - [ ] Se på brett 1 om de nesten fotorealistiske figurene og de malte miljøbildene ser ut som samme spill
 
 ## Plan: brettverksted, gørr, AI og teksturer (fra 2026-09-30 15:54, docs/PLAN_BRETT_GORR_AI.md)

@@ -48,7 +48,7 @@ Lim beskrivelsen inn i feltet for stemmebeskrivelse (Voice Design) i VoiceStudio
 | MAGMOR THE MOLTEN | Sjef, vulkanen | `male, middle-aged, very low pitch` | Buldrende, og plutselig sårbar i den andre replikken. |
 | TROLL | Istrollet og kjempetrollet | `male, middle-aged, very low pitch` | Enkel trolltale, tungt og sakte. |
 | SKJELETT | Skjelettene (også de mosegrodde i jungelen) | `male, teenager, high pitch` | Nervøs praktikant. |
-| GRISEMANN | Hogman og Hog Guard | `male, middle-aged, low pitch` | Grynt og brøl mellom ordene. |
+| GRISEMANN | Hogman og Hog Guard (og replikkene når en elite leser helten eller river seg løs) | `male, middle-aged, low pitch` | Grynt og brøl mellom ordene. |
 | KULTIST | Kultistene og tempeltyvene | `male, young adult, moderate pitch, british accent` | Messende og litt flau. |
 | GNOME | Gnomene | `male, elderly, very high pitch` | Ren panikk. |
 | ZOMBIE | Zombiene | `male, middle-aged, very low pitch` | Stønnende og treg. |
@@ -135,6 +135,7 @@ Lim beskrivelsen inn i feltet for stemmebeskrivelse (Voice Design) i VoiceStudio
 | `v_she_is_not_wrong_you_do_look_suspicious.wav` | B | SHE IS NOT WRONG. YOU DO LOOK SUSPICIOUS. |
 | `v_the_amazons_bow_to_the_victor_then_they_show_you_the_iou.wav` | A | THE AMAZONS BOW TO THE VICTOR. THEN THEY SHOW YOU THE IOU. |
 | `v_the_sun_heart_is_in_vorthax_s_tower_so_is_the_princess_how_c.wav` | A | THE SUN HEART IS IN VORTHAX'S TOWER. SO IS THE PRINCESS. HOW CONVENIENT. |
+| `v_the_sun_heart_goes_back_to_the_jungle_queen_zanthra_sends_a.wav` | A | THE SUN HEART GOES BACK TO THE JUNGLE. QUEEN ZANTHRA SENDS A FRUIT BASKET. |
 
 ### THRUGG
 
@@ -193,6 +194,12 @@ Lim beskrivelsen inn i feltet for stemmebeskrivelse (Voice Design) i VoiceStudio
 | `v_prepare_to_be_moderately_destroyed.wav` | A | PREPARE TO BE MODERATELY DESTROYED! |
 | `v_behold_my_moderate_form.wav` | A | BEHOLD MY MODERATE FORM! |
 | `v_send_everyone_yes_even_kevin.wav` | A | SEND EVERYONE! YES, EVEN KEVIN! |
+| `v_which_one_is_the_real_me_only_i_know.wav` | A | WHICH ONE IS THE REAL ME? ONLY I KNOW! |
+| `v_the_sun_heart_i_was_saving_it_for_a_special_occasion.wav` | A | THE SUN HEART! I WAS SAVING IT FOR A SPECIAL OCCASION! |
+| `v_solar_flare.wav` | A | SOLAR FLARE! |
+| `v_rise_again_you_lazy_bones.wav` | A | RISE AGAIN, YOU LAZY BONES! |
+| `v_sky_zap.wav` | A | SKY ZAP! |
+| `v_minions_earn_your_salary.wav` | A | MINIONS! EARN YOUR SALARY! |
 
 Talene fra himmelen på brett 1 til 5 (LevelDef.vorthax, gfx/vision.ts). Litt romklang passer, som en stemme fra et trollspeil.
 
@@ -215,11 +222,23 @@ Talene fra himmelen på brett 1 til 5 (LevelDef.vorthax, gfx/vision.ts). Litt ro
 | `v_magmor_will_melt_you_he_is_very_lonely_do_not_hug_him.wav` | A | MAGMOR WILL MELT YOU. HE IS VERY LONELY. DO NOT HUG HIM. |
 | `v_my_tower_is_next_wipe_your_feet_the_carpet_is_new.wav` | A | MY TOWER IS NEXT. WIPE YOUR FEET. THE CARPET IS NEW. |
 
+Sluttkampen i tårnet (BossDef.finale): vaktene, skjoldet og søylene.
+
+| Fil | Prioritet | Replikk |
+|---|---|---|
+| `v_rise_my_guards_skeletal_but_loyal.wav` | A | RISE, MY GUARDS! SKELETAL, BUT LOYAL! |
+| `v_more_guards_the_expensive_ones.wav` | A | MORE GUARDS! THE EXPENSIVE ONES! |
+| `v_enough_if_you_want_evil_done_right_do_it_yourself.wav` | A | ENOUGH! IF YOU WANT EVIL DONE RIGHT, DO IT YOURSELF! |
+| `v_my_pillars_those_were_load_bearing.wav` | A | MY PILLARS! THOSE WERE LOAD-BEARING! |
+| `v_my_shield_that_was_under_warranty.wav` | A | MY SHIELD! THAT WAS UNDER WARRANTY! |
+| `v_ow_my_everything.wav` | A | OW! MY EVERYTHING! |
+
 ### PRINCESS AMBERLY
 
 | Fil | Prioritet | Replikk |
 |---|---|---|
 | `v_finally_can_somebody_please_do_something.wav` | A | FINALLY. CAN SOMEBODY PLEASE DO SOMETHING. |
+| `v_finally_i_have_been_bored_in_here_for_three_weeks.wav` | A | FINALLY. I HAVE BEEN BORED IN HERE FOR THREE WEEKS. |
 
 ### BIG MAMA HOGMOTHER
 
@@ -228,6 +247,13 @@ Talene fra himmelen på brett 1 til 5 (LevelDef.vorthax, gfx/vision.ts). Litt ro
 | `v_who_has_been_killing_my_babies.wav` | A | WHO HAS BEEN KILLING MY BABIES? |
 | `v_now_mama_is_angry.wav` | A | NOW MAMA IS ANGRY! |
 | `v_children_dinner_time.wav` | A | CHILDREN! DINNER TIME! |
+| `v_snack_time.wav` | A | SNACK TIME! |
+| `v_mama_has_had_it_with_all_of_you.wav` | A | MAMA HAS HAD IT WITH ALL OF YOU! |
+| `v_my_snack.wav` | B | MY SNACK! |
+| `v_it_went_down_the_wrong_pipe.wav` | B | IT WENT DOWN THE WRONG PIPE! |
+| `v_you_ruined_dinner.wav` | B | YOU RUINED DINNER! |
+| `v_come_to_mama.wav` | B | COME TO MAMA! |
+| `v_belly_flop.wav` | B | BELLY FLOP! |
 
 ### KING CROAKUS
 
@@ -237,6 +263,9 @@ Talene fra himmelen på brett 1 til 5 (LevelDef.vorthax, gfx/vision.ts). Litt ro
 | `v_i_will_eat_you_like_a_fly_a_big_sweaty_fly.wav` | A | I WILL EAT YOU LIKE A FLY. A BIG, SWEATY FLY. |
 | `v_you_will_croak_for_this.wav` | A | YOU WILL CROAK FOR THIS! |
 | `v_royal_guard.wav` | A | ROYAL GUARD! |
+| `v_royal_swim.wav` | A | ROYAL SWIM! |
+| `v_the_king_does_not_lose_the_king_takes_a_nap.wav` | A | THE KING DOES NOT LOSE! THE KING TAKES A NAP! |
+| `v_thlurp.wav` | C | THLURP! |
 
 ### QUEEN ZANTHRA
 
@@ -258,6 +287,9 @@ Finalen i jungelen (duellanten `zanthra`). Introen, så hånene hun roper under 
 | `v_i_am_the_mountain_i_am_the_fire.wav` | A | I AM THE MOUNTAIN. I AM THE FIRE. |
 | `v_i_am_also_very_lonely_nobody_will_hold_my_hand.wav` | A | I AM ALSO VERY LONELY. NOBODY WILL HOLD MY HAND. |
 | `v_i_am_getting_hotter.wav` | A | I AM GETTING HOTTER! |
+| `v_the_mountain_is_angry_the_mountain_is_also_sad.wav` | A | THE MOUNTAIN IS ANGRY! THE MOUNTAIN IS ALSO SAD! |
+| `v_erupt.wav` | B | ERUPT! |
+| `v_rain_of_fire.wav` | B | RAIN OF FIRE! |
 
 ### TROLL
 
@@ -295,6 +327,9 @@ Finalen i jungelen (duellanten `zanthra`). Introen, så hånene hun roper under 
 | `v_eight_hundred_years_on_guard_duty.wav` | C | EIGHT HUNDRED YEARS ON GUARD DUTY! |
 | `v_nobody_told_me_the_temple_was_robbed.wav` | C | NOBODY TOLD ME THE TEMPLE WAS ROBBED! |
 | `v_moss_is_a_lifestyle.wav` | C | MOSS IS A LIFESTYLE! |
+| `v_halt_who_goes_there.wav` | C | HALT! WHO GOES THERE? |
+| `v_this_door_is_my_shield_now.wav` | C | THIS DOOR IS MY SHIELD NOW! |
+| `v_i_guard_that_is_all_i_do.wav` | C | I GUARD. THAT IS ALL I DO. |
 
 ### GRISEMANN
 
@@ -307,6 +342,11 @@ Finalen i jungelen (duellanten `zanthra`). Introen, så hånene hun roper under 
 | `v_halt_papers_please.wav` | C | HALT! PAPERS, PLEASE! |
 | `v_no_barbarians_after_9pm.wav` | C | NO BARBARIANS AFTER 9PM! |
 | `v_oink_of_duty.wav` | C | OINK OF DUTY! |
+| `v_read_you_like_a_book.wav` | C | READ YOU LIKE A BOOK! |
+| `v_too_predictable.wav` | C | TOO PREDICTABLE! |
+| `v_same_move_really.wav` | C | SAME MOVE? REALLY? |
+| `v_i_have_seen_this_one.wav` | C | I HAVE SEEN THIS ONE! |
+| `v_let_go_of_me.wav` | C | LET GO OF ME! |
 
 ### KULTIST
 

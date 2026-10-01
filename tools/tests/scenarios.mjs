@@ -61,6 +61,18 @@ if (scenario === 'creator') {
     console.log(id, JSON.stringify(await st()));
     await shot(`21-${id}-finale`);
     const s1 = await st();
+    // Sluttkampen i tårnet (vaktene, tronen og skjoldet) testes i finale.mjs: her hoppes det rett til kampen
+    await ev(() => {
+      const s = window.__game.scene.stage;
+      if (!s?.finale || !s.boss) return;
+      for (const f of s.foes) if (f.f.alive) f.f.die('explode', 1, null);
+      s.finale = null;
+      s.boss.leaveThrone();
+      s.boss.f.shielded = false;
+      s.shieldFx?.dispose();
+      s.shieldFx = null;
+      s.hud.bossShield(null);
+    });
     if (s1.stage?.boss) {
       // Kjemp litt mot sjefen
       for (let r = 0; r < 8; r++) {

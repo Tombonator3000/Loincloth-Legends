@@ -140,7 +140,7 @@ export const HERO_ATK = {
   slash2: A({ id: 'slash2', startup: 0.06, active: 0.09, recovery: 0.16, dmg: 8, reach: 2.0, zr: 0.8, height: 'mid', push: 1.2, stun: 0.34, wind: P.backW, strike: P.backS, death: ['decap', 'bisect', 'dismember'], swoosh: 'under' }),
   chop: A({ id: 'chop', startup: 0.15, active: 0.1, recovery: 0.3, dmg: 16, reach: 2.15, zr: 0.9, height: 'high', kd: true, launch: 6.5, push: 5, stun: 0.6, heavy: true, lunge: 2.5, wind: P.chopW, strike: P.chopS, death: ['headsplode', 'bisect', 'explode', 'decap'], swoosh: 'over', word: ['CHOP!', 'THWACK!', 'KRUNCH!'] }),
   jump: A({ id: 'jump', startup: 0.05, active: 0.22, recovery: 0.08, dmg: 12, reach: 2.0, zr: 0.9, height: 'high', kd: true, launch: 4, push: 4, stun: 0.5, air: true, wind: P.jumpW, strike: P.jumpS, death: ['explode', 'headsplode', 'bisect'], swoosh: 'over', word: ['SPLAT!', 'SQUELCH!'] }),
-  dash: A({ id: 'dash', startup: 0.03, active: 0.3, recovery: 0.25, dmg: 10, reach: 1.3, back: 0.2, zr: 0.9, height: 'mid', kd: true, launch: 5, push: 7, stun: 0.5, lunge: 9, wind: P.dashS, strike: P.dashS, death: ['explode', 'dismember'], swoosh: 'none', word: ['BONK!', 'OOF!'] }),
+  dash: A({ id: 'dash', startup: 0.03, active: 0.3, recovery: 0.25, dmg: 10, reach: 1.3, back: 0.2, zr: 0.9, height: 'mid', kd: true, launch: 5, push: 7, stun: 0.5, lunge: 9, guardBreak: true, wind: P.dashS, strike: P.dashS, death: ['explode', 'dismember'], swoosh: 'none', word: ['BONK!', 'OOF!'] }),
   spin: A({ id: 'spin', startup: 0.08, active: 0.48, recovery: 0.25, dmg: 7, hits: 3, reach: 2.2, back: 2.2, zr: 1.0, height: 'mid', kd: true, launch: 5, push: 5, stun: 0.5, spin: true, hpCost: 6, wind: P.spin, strike: P.spin, death: ['dismember', 'bisect', 'decap'], swoosh: 'spin' }),
 };
 

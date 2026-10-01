@@ -74,14 +74,18 @@ Castle Crashers-inspirert 3D-kart over en øy. Heltene (og kjæledyrene) går la
 
 ## 6. Sjefer
 
-Sjefer er satt sammen av trekk med vekt og nedkjøling, og blir rasende ved halv HP (raskere og med nye trekk). De er urokkelige mot vanlige slag, men blir "staggered" etter nok skade. De kan ikke gripes, og de mister ikke armer.
+Sjefer er satt sammen av trekk med vekt og nedkjøling. De er urokkelige mot vanlige slag, men blir "staggered" etter nok skade. De kan ikke gripes, slås ikke over ende og mister ikke armer.
 
-| Sjef | Trekk | Rasende |
-|---|---|---|
-| Big Mama Hogmother | Kjøttøks, magestormløp, magaplask med sjokkbølger | Kaller inn hogmen og skjeletter |
-| King Croakus | Septer, tunge som drar deg inn (og biter), byks, giftbobler | Kaller inn frogmen og zombier |
-| Magmor the Molten | Lavanever, utbrudd med ildbølger, meteorregn, ildkuler | Tettere meteorregn |
-| Vorthax | Stav, teleport bak deg, magiske kuler, lynregn, kaller inn undersåtter | Lynregn og mer fart |
+**Faser** (runde E): ved 66 og 33 prosent liv går sjefen over i en ny fase med en replikk, mer fart, nye trekk og sterkere utgaver av de gamle. Etter de store trekkene er sjefen sliten et par sekunder (OPENING!), og da biter slagene. Noen trekk er røde: de blinker rødt før de kommer og kan ikke avbrytes, bare unngås. Livslinja har merker der fasene begynner.
+
+| Sjef | Trekk | Fase 2 (66 prosent) | Fase 3 (33 prosent) |
+|---|---|---|---|
+| Big Mama Hogmother | Kjøttøks, magestormløp, magaplask med sjokkbølger | Spiser et kyllinglår og får liv tilbake, om ingen slår henne mens hun spiser (CHOKED!). Kaller inn hogmen og skjeletter | Røde stormløp og magaplask |
+| King Croakus | Septer, tunge som drar deg inn (og biter), byks, giftbobler | Svømmer under bakken: bare skyggen synes, og han kommer opp der den er (rødt). Kaller inn frogmen og zombier | Flere giftbobler, rød tunge, dykker oftere |
+| Magmor the Molten | Lavanever, utbrudd med ildbølger, meteorregn, ildkuler | Lava renner i sporene hans og brenner den som går i dem | Tettere meteorregn, rødt utbrudd |
+| Vorthax | Stav, teleport bak deg, magiske kuler, lynregn, kaller inn undersåtter | Kopier av seg selv. Bare den ekte kaster skygge | Tar Solhjertet: rød solstråle langs veien, vaktene reiser seg igjen, tettere lynregn |
+
+**Sluttkampen i tårnet** er i faser, som hyllest til Death Adder i Golden Axe: Vorthax står på tronen bak et gyllent skjold mens skjelettvaktene reiser seg av gulvet, to bølger (vaktene bærer dører som skjold, så slagene må komme bakfra eller som tredje slag i komboen). Når vaktene er slått, går han ned og slåss selv. Skjoldet får lyset sitt fra Solhjertet gjennom tre søyler med krystaller. Søylene kan slås over ende, og en søyle som faller over ham gjør vondt. Når den siste ligger, brister skjoldet. Ved 33 prosent tar han Solhjertet selv. Når han faller, ruller hjertet over gulvet, og buret med prinsessen senkes (nytt skilt: FINALLY).
 
 ## 7. Dueller (Barbarian-stil)
 
@@ -150,7 +154,13 @@ CLASSIC BUILDER beholder de prosedyretegnede valgene nedenfor. Malt hår, hjelme
   - Cluckatrice (halvt hane, halvt øgle): halesvip som treffer begge sider
   - Magma Newt: ildpust som griller alt foran
 - Magi: blå potions fra gnomer, alle brukes på én gang (sterkere jo flere, og sterkere med MAG). Tre typer som i Golden Axe: meteorregn, forfedrenes skrik og tordenguden (lynet slår først ned i heltens våpen og så i hver fiende på skjermen, med flere nedslag rundt omkring fra tre krukker og fiolette lyn på fem og seks)
-- **Sjonglering** som i Castle Crashers: treff på en fiende som er i lufta telles (JUGGLE! x2, AIR RAID! x3, SKY BUFFET! x4 osv.) og fyller METAL-måleren
+- **Sjonglering** som i Castle Crashers: treff på en fiende som er i lufta telles (JUGGLE! x2, AIR RAID! x3, SKY BUFFET! x4 osv.) og fyller METAL-måleren. Etter sju treff i lufta slås han hardt i bakken (SPIKED!) og blir liggende, så ingen kombo varer evig
+- **Kanten av bildet** under en bølge: kropper som blir slått bakover, spretter tilbake fra kanten (WALL BOUNCE!), høyst tre ganger. En kropp som flyr, slår ned fiendene den treffer
+- **Fiender som leser deg**: eliter (tøffe fiender, kjemper og skjelettvakter) og sjefer blokkerer etter fire like slag på rad (TOO PREDICTABLE!). En hel kombo teller ikke som like slag. Løpeslaget bryter guarden, og slag bakfra går gjennom
+- **Grepet** varer ikke evig: en fiende som holdes uten å få kneet, river seg løs etter halvannet sekund og skyver helten bakover
+- Fiender går til side for prosjektiler fra heltene (dragens ildkuler)
+- **Tempo** (runde E): en liten regissør måler spenningen (skaden heltene tar, drap nær dem, livet som er igjen). Når det har vært travelt en stund, kommer et pusterom med færre som angriper og lengre pauser. Når det er rolig, øker trykket
+- **Bølgebudsjett**: fiendene har rang (vanlig 1, sterk 2, elite 4), og en bølge har plass til så mye rang samtidig. En kjempe tar plassen til flere småfolk. Med to spillere er det mer plass
 - Berserk-spinn uten potions, koster litt HP
 - Pickups: stekt kylling, halvspist skinke, potions, gull, egg fra kampkyllingen
 - Kameraet låses per bølge. GO-pil når bølgen er ryddet
@@ -174,7 +184,7 @@ CLASSIC BUILDER beholder de prosedyretegnede valgene nedenfor. Malt hår, hjelme
 
 ## 12. Innstillinger
 
-Gore (FAMILY, NORMAL, EXCESSIVE, PLEASE SEEK HELP), musikk, musikkstil (HEAVY METAL eller 8-BIT), lydeffekter, skjermristing, gamepad-rumble, berøringskontroller (auto, på, av) og fullskjerm. FAMILY gjør blod om til konfetti og gibs til gummiender.
+Gore (FAMILY, NORMAL, EXCESSIVE, PLEASE SEEK HELP), vanskelighetsgrad (EASY, NORMAL, HARD: endrer hvor fort fiendene reagerer og hvor ofte de angriper, aldri liv eller skade), musikk, musikkstil (HEAVY METAL eller 8-BIT), lydeffekter, skjermristing, gamepad-rumble, berøringskontroller (auto, på, av) og fullskjerm. FAMILY gjør blod om til konfetti og gibs til gummiender.
 
 ## 13. Humor
 

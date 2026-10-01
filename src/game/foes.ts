@@ -1,13 +1,15 @@
 // Fiende-AI for brettene. Oppførselen styres av FoeDef.behavior.
 import * as THREE from 'three';
 import { Fighter } from './fighter';
-import { ENEMY_ATK } from './attacks';
+import { ENEMY_ATK, type AttackDef } from './attacks';
 import { W } from './world';
 import type { Hero } from './hero';
 import type { Projectiles, ProjKind } from './projectiles';
 import { PANIC_BARKS, type FoeDef } from '../data/enemies';
 import { audio } from '../core/audio';
 import { screenFX } from '../gfx/screenfx';
+import { attachDoor } from '../gfx/bossfx';
+import { READ_BARKS } from './combo';
 import { rand, chance, pick } from '../core/math';
 
 export interface FoeWorld {
@@ -21,6 +23,26 @@ export interface FoeWorld {
   onScreen(x: number, margin: number): boolean;
   /** Et bakkeslag (AttackDef.quake): istapper løsner og fyrfat velter (Stage). */
   onQuake?(x: number, z: number, r: number): void;
+  /**
+   * Tempoet fra regissøren og vanskelighetsgraden (game/director.ts): pace ganger nedkjølingene (under 1 er lengre
+   * pauser), wind ganger opptrekket før slagene, dodge er sjansen for å gå til side for et prosjektil.
+   */
+  pace?: number;
+  wind?: number;
+  dodge?: number;
+}
+
+const windCache = new Map<string, AttackDef>();
+/** Angrepet med opptrekket ganget med k (vanskelighetsgraden), lagret så det samme objektet brukes igjen. */
+export function windUp(a: AttackDef, k: number) {
+  if (Math.abs(k - 1) < 0.01) return a;
+  const key = a.id + '~' + k.toFixed(2);
+  let w = windCache.get(key);
+  if (!w) {
+    w = { ...a, id: key, startup: a.startup * k };
+    windCache.set(key, w);
+  }
+  return w;
 }
 
 const PROJ_SPEC: Record<ProjKind, { speed: number; vy: number; grav: number; dmg: number }> = {
@@ -37,6 +59,10 @@ const PROJ_SPEC: Record<ProjKind, { speed: number; vy: number; grav: number; dmg
 
 /** Fart når en fiende rygger unna helten (andel av egen fart). */
 const RETREAT = 0.5;
+/** Hvor dypt under gulvet en vakt starter når han reiser seg. */
+const RISE_DEPTH = 2.2;
+/** Sjansen for at en fiende går til side når et prosjektil kommer (runde E, vanskelighetsgraden kan endre den). */
+const DODGE_CHANCE = 0.6;
 /** Høyeste fart i panikk. Helten går 3.85, så han tar dem alltid igjen. */
 const PANIC_SPEED = 3.3;
 
@@ -72,6 +98,16 @@ export class Foe {
   private screamT = 0;
   /** Kjempegrepet: sekunder til han kan gripe igjen. */
   grabCd = rand(2, 4);
+  /** Reiser seg av gulvet (vaktene i tårnet): sekunder igjen og hvor lang tid det tar. */
+  riseT = 0;
+  private riseDur = 1;
+  /** Har lest helten (fire like slag på rad, game/combo.ts): blokkerer så lenge, og hvem han ser på. */
+  blockT = 0;
+  private blockAt: Fighter | null = null;
+  /** Går til side for et prosjektil: sekunder igjen, retning i dybden og nedkjøling. */
+  private dodgeT = 0;
+  private dodgeDir = 1;
+  private dodgeCd = rand(0.5, 1.5);
 
   constructor(public def: FoeDef, x: number, z: number, hpMul = 1) {
     // Litt variasjon per fiende, etter oppskriftssystemet i Toms Morbidium: størrelse og en svak fargetone, så en bølge
@@ -85,6 +121,33 @@ export class Foe {
     this.f.guard = !!def.guard;
     this.f.pos.set(x, 0, z);
     if (def.poise) this.givePoise(def.poise);
+    // Døra som skjold (skjelettvaktene)
+    if (def.shield) {
+      this.f.frontGuard = true;
+      attachDoor(this.f.rig);
+    }
+  }
+
+  /** Han har lest helten: blokkerer forfra i sek sekunder, og slår tilbake etterpå. */
+  blockFor(sek: number, hero: Fighter) {
+    const f = this.f;
+    if (!f.alive || f.state === 'held' || f.state === 'down' || !f.onGround) return;
+    this.blockT = sek;
+    this.blockAt = hero;
+    f.atk = null;
+    f.setState('block');
+    f.blocking = 'high';
+    f.face(hero.pos.x - f.pos.x);
+    W.fx.text(f.headPoint().add(new THREE.Vector3(0, 0.9, 0)), pick(READ_BARKS), 'speech', 1.3);
+  }
+
+  /** Reis deg av gulvet på sek sekunder: står under gulvet og kan ikke treffes før han er oppe. */
+  rise(sek: number) {
+    this.riseT = this.riseDur = sek;
+    this.f.rising = true;
+    this.f.pos.y = -RISE_DEPTH;
+    this.f.onGround = true;
+    this.cd = Math.max(this.cd, 0.6);
   }
 
   /** Kjemper: slagene biter ikke før han har tatt poise av livet sitt i skade, da vakler han (som sjefene). */
@@ -150,16 +213,52 @@ export class Foe {
     }
     f.wantVX = f.wantVZ = 0;
     if (st.frozen) return;
+    // Reiser seg av gulvet: først armene, så resten, med støv og beinbiter rundt
+    if (this.riseT > 0) {
+      this.riseT -= dt;
+      const k = Math.max(0, this.riseT / this.riseDur);
+      f.pos.y = -RISE_DEPTH * k * k;
+      f.onGround = true;
+      if (Math.random() < dt * 14) W.gore.dust(new THREE.Vector3(f.pos.x + rand(-0.5, 0.5), 0.05, f.pos.z + rand(-0.3, 0.3)), 2);
+      if (this.riseT <= 0) {
+        f.pos.y = 0;
+        f.rising = false;
+        audio.bones();
+        W.gore.gibs(new THREE.Vector3(f.pos.x, 0.2, f.pos.z), 2, 'bone', 0.5);
+      }
+      return;
+    }
     // Rytter: dyret har egen AI (game/mounts.ts)
     if (f.mount) {
       if (this.token) st.releaseToken(this);
       return;
     }
-    this.cd -= dt;
-    this.projCd -= dt;
-    this.leapCd -= dt;
+    // Regissøren og vanskelighetsgraden styrer hvor fort nedkjølingene går
+    const pace = st.pace ?? 1;
+    this.cd -= dt * pace;
+    this.projCd -= dt * pace;
+    this.leapCd -= dt * pace;
     this.panicCd -= dt;
-    this.grabCd -= dt;
+    this.grabCd -= dt * pace;
+    this.dodgeCd -= dt;
+    // Blokkerer etter å ha lest helten: står med guarden oppe og ser på ham, og slår tilbake med en gang etterpå
+    // Slått ned, holdt eller guarden brutt: da er blokken over
+    if (this.blockT > 0 && (f.state === 'down' || f.state === 'held' || f.state === 'stunned' || f.state === 'hurt')) this.blockT = 0;
+    if (this.blockT > 0) {
+      this.blockT -= dt;
+      if (this.token) st.releaseToken(this);
+      const by = this.blockAt;
+      if (by) f.face(by.pos.x - f.pos.x);
+      if (f.state === 'idle' || f.state === 'walk') {
+        f.setState('block');
+        f.blocking = 'high';
+      }
+      if (this.blockT <= 0) {
+        if (f.state === 'block') f.setState('idle');
+        this.cd = 0;
+      }
+      return;
+    }
     if (this.token && f.state !== 'attack' && this.thrown) st.releaseToken(this);
     if (this.token && (f.state === 'hurt' || f.state === 'down' || f.state === 'held')) st.releaseToken(this);
 
@@ -197,6 +296,20 @@ export class Foe {
     }
     if (!f.canAct()) return;
     if (this.def.behavior === 'runner') return this.runner(st);
+    // Går til side for prosjektiler fra heltene (runde E): ser et komme langs linja og tar et steg opp eller ned
+    if (this.dodgeT > 0) {
+      this.dodgeT -= dt;
+      f.wantVZ = this.dodgeDir * f.speed * 1.2;
+      return;
+    }
+    if (this.dodgeCd <= 0 && this.incoming(st)) {
+      this.dodgeCd = rand(1.2, 2.2);
+      if (chance(st.dodge ?? DODGE_CHANCE)) {
+        this.dodgeT = 0.38;
+        this.dodgeDir = f.pos.z > 1.2 ? -1 : f.pos.z < -1.2 ? 1 : pick([-1, 1]);
+        return;
+      }
+    }
 
     const tgt = st.nearestHero(f.pos);
     if (!tgt) return;
@@ -210,7 +323,7 @@ export class Foe {
     if (this.def.proj && this.projCd <= 0 && adx > 3.2 && adx < 9 && Math.abs(dz) < 0.4 && st.onScreen(f.pos.x, 0.5)) {
       f.face(dx);
       this.thrown = false;
-      f.startAttack(ENEMY_ATK.throw);
+      f.startAttack(windUp(ENEMY_ATK.throw, st.wind ?? 1));
       const [a, b] = this.def.projCd ?? [2.5, 3.5];
       this.projCd = rand(a, b);
       return;
@@ -221,7 +334,7 @@ export class Foe {
         if (adx < 1.5 && Math.abs(dz) < 0.5 && this.cd <= 0) {
           f.face(dx);
           this.thrown = false;
-          f.startAttack(this.def.attack);
+          f.startAttack(windUp(this.def.attack, st.wind ?? 1));
           this.cd = rand(1.2, 2);
           return;
         }
@@ -234,7 +347,7 @@ export class Foe {
         if (adx < this.def.range + 0.2 && Math.abs(dz) < 0.4 && this.cd <= 0) {
           f.face(dx);
           this.thrown = false;
-          f.startAttack(this.def.attack);
+          f.startAttack(windUp(this.def.attack, st.wind ?? 1));
           this.cd = rand(1.4, 2.4);
           return;
         }
@@ -263,7 +376,7 @@ export class Foe {
         this.thrown = false;
         // Kjempen griper av og til i stedet for å slå
         const grab = !!this.def.grab && this.grabCd <= 0 && tf.state !== 'held' && !tf.mount && chance(0.45);
-        f.startAttack(grab ? this.def.grab! : this.def.attack);
+        f.startAttack(windUp(grab ? this.def.grab! : this.def.attack, st.wind ?? 1));
         if (grab) this.grabCd = rand(7, 11);
         this.cd = this.def.behavior === 'brute' ? rand(1.8, 3) : rand(1.1, 2.2);
         return;
@@ -274,6 +387,13 @@ export class Foe {
       this.moveTo(tf.pos.x + this.side * Math.min(this.hoverDx, st.halfW * 0.55), tf.pos.z + this.hoverDz, 0.6, tf.pos.x);
     }
     f.face(dx);
+  }
+
+  /** Kommer et prosjektil fra heltene langs linja hans, og snart? */
+  private incoming(st: FoeWorld) {
+    const f = this.f;
+    return st.proj.list.some((q) => q.alive && q.delay <= 0 && q.owner.team !== f.team && Math.abs(q.vel.x) > 2
+      && Math.abs(q.pos.z - f.pos.z) < 0.55 && (f.pos.x - q.pos.x) * Math.sign(q.vel.x) > 0 && Math.abs(f.pos.x - q.pos.x) < 4.5);
   }
 
   /** Gå mot et punkt. awayFrom er heltens x: rygger fienden unna ham, går han på halv fart, så helten tar ham igjen. */

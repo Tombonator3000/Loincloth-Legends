@@ -10,6 +10,7 @@ import { Screens, type Item, type ControlsPage } from '../ui/screens';
 import { TouchControls } from '../ui/touch';
 import { Splash, wantSplash } from '../ui/splash';
 import { settings, setSettings, onSettings, touchEnabled, GORE_NAMES, GORE_HINTS, QUALITY_SETTINGS, QUALITY_HINTS, type GoreLevel, type TouchMode, type QualitySetting } from '../core/settings';
+import { DIFFICULTY, DIFFICULTIES } from '../data/difficulty';
 import { PostFX, autoQuality, qualityRank, type Quality } from '../gfx/post';
 import { screenFX } from '../gfx/screenfx';
 import { QualityGovernor, PerfMeter, lighter } from './perf';
@@ -502,13 +503,21 @@ export class Game {
       setSettings({ gore: ((((settings.gore + d) % 4) + 4) % 4) as GoreLevel });
       again(0);
     };
+    // Vanskelighetsgraden (runde E): reaksjonstid og aggresjon, aldri liv eller skade. Gjelder fra neste brett
+    const diff = (d: number) => {
+      const i = DIFFICULTIES.indexOf(settings.difficulty);
+      setSettings({ difficulty: DIFFICULTIES[(((i + d) % 3) + 3) % 3] });
+      again(1);
+    };
+    const D = DIFFICULTY[settings.difficulty];
     const items: Item[] = [
       { label: 'GORE', value: GORE_NAMES[settings.gore], hint: GORE_HINTS[settings.gore], action: () => gore(1), adjust: gore },
-      { label: 'SOUND', more: true, hint: 'MUSIC, THE BAND AND THE CRUNCHES', action: () => this.showSettingsGroup('sound', () => again(1)) },
-      { label: 'SCREEN', more: true, hint: 'GRAPHICS, FULLSCREEN, SHAKE AND FLASHES', action: () => this.showSettingsGroup('screen', () => again(2)) },
-      { label: 'CONTROLS', more: true, hint: 'KEYS, MOVES, RUMBLE AND TOUCH', action: () => this.showControls(() => again(3)) },
+      { label: 'DIFFICULTY', value: D.name, hint: D.hint, action: () => diff(1), adjust: diff },
+      { label: 'SOUND', more: true, hint: 'MUSIC, THE BAND AND THE CRUNCHES', action: () => this.showSettingsGroup('sound', () => again(2)) },
+      { label: 'SCREEN', more: true, hint: 'GRAPHICS, FULLSCREEN, SHAKE AND FLASHES', action: () => this.showSettingsGroup('screen', () => again(3)) },
+      { label: 'CONTROLS', more: true, hint: 'KEYS, MOVES, RUMBLE AND TOUCH', action: () => this.showControls(() => again(4)) },
     ];
-    if (this.scene.name === 'title') items.push({ label: 'ERASE SAVE', hint: 'ALL PROGRESS AND HEROES. NO TAKEBACKS.', action: () => this.confirmReset(() => again(4)) });
+    if (this.scene.name === 'title') items.push({ label: 'ERASE SAVE', hint: 'ALL PROGRESS AND HEROES. NO TAKEBACKS.', action: () => this.confirmReset(() => again(5)) });
     items.push({ label: 'BACK', action: onBack });
     this.screens.custom(`<div class="panel settings"><h2>OPTIONS</h2><ul class="menu rows"></ul></div>`, items, sel, onBack);
   }
@@ -820,6 +829,7 @@ export class Game {
       this.screens.victory(W.stats, [
         ['VORTHAX', 'CURSES! DEFEATED BY A LOINCLOTH! ...I HAVE A SISTER, YOU KNOW.'],
         ['PRINCESS AMBERLY', `JUST SO YOU KNOW, ${s.heroes[0].name}, I AM NOT KISSING ANYONE.`],
+        ['NARRATOR', 'THE SUN HEART GOES BACK TO THE JUNGLE. QUEEN ZANTHRA SENDS A FRUIT BASKET.'],
         ['NARRATOR', 'THE HAM WAS NEVER SEEN AGAIN. THE END. (FOR NOW.)'],
       ], () => this.goMap());
       return;

@@ -165,6 +165,20 @@ export class Fighter {
   poseMod: Partial<Pose> | null = null;
   /** Sjefer og store fiender: ignorer vanlige treff i vindup. */
   armored = false;
+  /** Slås aldri over ende, bare rykkes (sjefene). */
+  kdImmune = false;
+  /** Et magisk skjold: alle slag preller av (Vorthax mens søylene i tronsalen står). */
+  shielded = false;
+  onShieldHit: ((from: Fighter) => void) | null = null;
+  /** En dør som skjold (FoeDef.shield): vanlige slag forfra preller av. */
+  frontGuard = false;
+  /** Et speilbilde (Vorthax): tar ingen skade, men forsvinner når det blir truffet. */
+  illusion = false;
+  /** Reiser seg av gulvet (Foe.rise): kan ikke treffes ennå. */
+  rising = false;
+  /** Ingen skygge (sjefen under bakken). */
+  hideShadow = false;
+  onIllusionHit: ((from: Fighter) => void) | null = null;
   /** Kan ikke miste armer (sjefer, ridedyr). */
   noSever = false;
   armsLost = 0;
@@ -918,7 +932,7 @@ export class Fighter {
     r.root.visible = !(this.invuln > 0 && this.alive && Math.floor(this.invuln * 16) % 2 === 1);
     const h = Math.max(0, this.pos.y);
     const ss = this.size * (this.def.id === 'hogman' ? 1.5 : 1.15) * Math.max(0.4, 1 - h * 0.18);
-    this.shadow.visible = !(this.state === 'dead' && (this.deathStyle === 'explode' || this.deathStyle === 'shatter' || this.sinkRate > 0 || this.envKill));
+    this.shadow.visible = !this.illusion && !this.hideShadow && !(this.state === 'dead' && (this.deathStyle === 'explode' || this.deathStyle === 'shatter' || this.sinkRate > 0 || this.envKill));
     this.shadow.scale.set(ss * 1.4, ss * 0.55, 1);
     this.shadow.position.set(this.pos.x, 0.02, this.pos.z);
   }

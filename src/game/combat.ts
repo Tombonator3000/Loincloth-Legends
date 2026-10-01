@@ -24,7 +24,7 @@ export interface HitOpts {
 const tmp = new THREE.Vector3();
 
 export function canHit(att: Fighter, tgt: Fighter, a: AttackDef, pvp = false) {
-  if (tgt === att || !tgt.alive || tgt.invuln > 0) return false;
+  if (tgt === att || !tgt.alive || tgt.invuln > 0 || tgt.rising) return false;
   if (!pvp && tgt.team === att.team) return false;
   const dx = (tgt.pos.x - att.pos.x) * att.facing;
   const reach = a.reach * (0.85 + 0.15 * att.size / 0.9);
@@ -90,6 +90,38 @@ export function applyHit(att: Fighter, tgt: Fighter, a: AttackDef, dmgOverride?:
   const facingAtt = Math.sign(att.pos.x - tgt.pos.x) === tgt.facing;
   const blocking = (tgt.state === 'block' || tgt.state === 'blockstun') && facingAtt;
   const col = bloodOf(tgt.def);
+
+  // Speilbildene til Vorthax: ingen skade, de forsvinner bare
+  if (tgt.illusion) {
+    res.blocked = true;
+    tgt.onIllusionHit?.(att);
+    return res;
+  }
+  // Et magisk skjold: alt preller av med gylne gnister
+  if (tgt.shielded) {
+    res.blocked = true;
+    W.gore.sparks(contact, 16, '#ffd35a', 7);
+    audio.clang();
+    att.vel.x = -dir * 3;
+    W.fx.stop(0.05);
+    W.fx.shake(0.15);
+    tgt.onShieldHit?.(att);
+    return res;
+  }
+  // Døra som skjold (skjelettvaktene): vanlige slag forfra preller av. Tunge slag (tredje i komboen), hoppslag,
+  // stormløp, spinn, kast og magi går gjennom, og det gjør slag bakfra
+  if (tgt.frontGuard && facingAtt && tgt.alive && tgt.onGround && !a.heavy && !a.kd && !a.spin && !a.guardBreak
+    && tgt.state !== 'down' && tgt.state !== 'held' && tgt.state !== 'stunned') {
+    res.blocked = true;
+    W.gore.sparks(contact, 8, '#d8b070', 4);
+    W.gore.dust(contact, 2, '#8a6a40');
+    audio.clang();
+    tgt.vel.x = dir * a.push * 0.9;
+    att.vel.x = -dir * 1.4;
+    W.fx.stop(0.04);
+    if (chance(0.35)) W.fx.text(contact.clone().add(new THREE.Vector3(0, 0.8, 0)), pick(['BLOCKED!', 'KNOCK KNOCK!', 'NOBODY HOME!']), 'word');
+    return res;
+  }
 
   // Blokk
   if (blocking && !a.guardBreak && blockCovers(tgt.blocking, a.height)) {
@@ -187,7 +219,7 @@ export function applyHit(att: Fighter, tgt: Fighter, a: AttackDef, dmgOverride?:
     tgt.onArmorHit?.(dmg, att);
     return res;
   }
-  if (!tgt.onGround || a.kd) {
+  if ((!tgt.onGround || a.kd) && !tgt.kdImmune) {
     tgt.knockdown(dir * a.push, a.launch ?? (tgt.onGround ? 5 : 4.5));
   } else {
     tgt.hurt(a.stun, dir * a.push);

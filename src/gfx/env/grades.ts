@@ -68,6 +68,11 @@ export const GRADES: Record<string, G> = {
     shadowTint: [0.92, 1.02, 0.95], highlightTint: [1.05, 1.02, 0.9], tint: 0.38, vignette: 0.46, grain: 0.3,
     bloom: 0.85, threshold: 1.0, knee: 0.5, dofFar: 0.72, dofNear: 0.35,
   },
+  // Den desperate fasen i tårnet: Vorthax har Solhjertet, rommet blir rødt og gyllent (legges oppå tower)
+  heart: {
+    exposure: 1.08, contrast: 1.12, saturation: 1.1, lift: [0.03, 0.0, 0.0], gain: [1.08, 0.98, 0.86],
+    shadowTint: [1.12, 0.86, 0.8], highlightTint: [1.12, 1.02, 0.8], tint: 0.55, bloom: 1.3, threshold: 0.85,
+  },
   // Verdenskartet sees ovenfra: lite dybdeskarphet, varm pergamentstemning
   map: {
     exposure: 1.02, contrast: 1.05, saturation: 1.06, vibrance: 0.15, lift: [0.015, 0.005, 0.02], gain: [1.03, 1.0, 0.95],

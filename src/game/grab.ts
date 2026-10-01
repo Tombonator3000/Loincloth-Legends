@@ -101,6 +101,7 @@ export function startHold(h: Fighter, t: Fighter) {
   h.data.holdT = 0;
   h.data.pummels = 0;
   h.data.pummelT = 0;
+  h.data.quietT = 0;
   t.setState('held');
   t.heldBy = h;
   t.atk = null;
@@ -111,10 +112,27 @@ export function startHold(h: Fighter, t: Fighter) {
   W.fx.text(t.headPoint().add(new THREE.Vector3(0, 0.8, 0)), pick(['GOTCHA!', 'COME HERE!', 'HUG TIME!']), 'word', 0.8);
 }
 
+/** Sekunder en fiende lar seg holde uten å bli slått før han river seg løs. */
+export const BREAK_FREE = 1.5;
+
+/** Den som holdes, river seg løs og skyver helten bakover. */
+export function breakFree(h: Fighter, t: Fighter) {
+  h.holding = null;
+  t.heldBy = null;
+  const dir = Math.sign(h.pos.x - t.pos.x) || -t.facing;
+  h.hurt(0.3, dir * 3.5);
+  t.setState('idle');
+  t.face(h.pos.x - t.pos.x);
+  t.invuln = 0.2;
+  audio.grunt(t.def.voice);
+  W.fx.text(t.headPoint().add(new THREE.Vector3(0, 0.8, 0)), pick(['LET GO OF ME!', 'SLIPPERY!', 'NOT TODAY!', 'I\'M OILED!']), 'speech', 1.2);
+}
+
 export function pummel(h: Fighter) {
   const t = h.holding;
   if (!t) return;
   h.data.pummelT = 0.16;
+  h.data.quietT = 0;
   h.data.pummels = ((h.data.pummels as number) ?? 0) + 1;
   applyHit(h, t, PUMMEL);
   audio.swish(1.2);
@@ -155,12 +173,11 @@ export function updateHold(h: Fighter, dt: number, ax: number, az: number, attac
     return false;
   }
   h.data.holdT = ((h.data.holdT as number) ?? 0) + dt;
+  h.data.quietT = ((h.data.quietT as number) ?? 0) + dt;
   h.data.pummelT = Math.max(0, ((h.data.pummelT as number) ?? 0) - dt);
-  if ((h.data.holdT as number) > 2.8) {
-    // Han vrir seg løs
-    h.setState('idle');
-    t.hurt(0.2, h.facing * 3);
-    W.fx.text(t.headPoint().add(new THREE.Vector3(0, 0.8, 0)), pick(['SLIPPERY!', 'NOT TODAY!', 'I\'M OILED!']), 'speech', 1.2);
+  // Han river seg løs etter BREAK_FREE sekunder uten slag (runde E), og uansett etter 2,8 sekunder
+  if ((h.data.quietT as number) > BREAK_FREE || (h.data.holdT as number) > 2.8) {
+    breakFree(h, t);
     return true;
   }
   if (toss) {

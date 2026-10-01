@@ -600,3 +600,27 @@ Femte punkt fra Tom: sumpen og frosten i valgfri rekkefølge på kartet.
 - Ny test `tools/tests/route.mjs` (16 av 16): hva som er åpent etter hvert steg, stiene, brettnumrene i begge rekkefølger, navnet når brettet starter (frosten først: STAGE 3, sumpen etterpå: STAGE 4), kartografen, og panelet på kartet. Sett på kartbildet.
 - Kjørt: route, story, progress, scenarios map, typecheck og build.
 - Dokumentasjon: GDD (kartet), ARCHITECTURE (Ny kartnode), tests/README.
+
+## 2026-10-01 09:14 (Europe/Oslo)
+Sjette punkt fra Tom: sluttkampen i faser sammen med runde E. Første del: sjefer i faser og selve sluttkampen.
+- Sjefene går gjennom faser ved 66 og 33 prosent (`phases` i `BossDef`, erstatter raserigrensen). Hver fase har replikk, fart, nye trekk og sterkere utgaver av de gamle. Livslinja har merker der fasene begynner, og hodeskallen gløder.
+- Etter store trekk er sjefen sliten et par sekunder (OPENING!): uten rustning, slagene rykker ham og gjør 1,3 ganger skade. Røde trekk blinker rødt med krigshorn og kan ikke avbrytes. Sjefene slås aldri over ende.
+- Nye trekk: Hogmother spiser et kyllinglår og får tolv prosent av livet tilbake hvis ingen slår henne (CHOKED!). Croakus svømmer under bakken uten skygge og kommer opp der skyggen er. Magmor legger lava i sporene, som brenner heltene (figurer av lava brenner ikke). Vorthax lager kopier av seg selv der bare den ekte har skygge, og i siste fase tar han Solhjertet og skyter en solstråle langs veien.
+- Sluttkampen i tårnet: Vorthax står på tronen bak et gyllent skjold mens skjelettvaktene reiser seg av gulvet i to bølger. Vaktene er en ny fiende (`skelguard`) med en dør som skjold: vanlige slag forfra preller av, men tredje slag i komboen, hoppslag, stormløp, kast og slag bakfra går gjennom. Så går han ned og slåss. Tre søyler med krystaller holder skjoldet oppe, med stråler fra Solhjertet, som henger over tronen som lysekrone. Søylene veltes som i jungelen, og en søyle over ham tar sju prosent av livet. Når den siste faller, brister skjoldet. Når han dør, faller Solhjertet på gulvet, og buret med prinsessen senkes (nytt skilt: FINALLY). Seiersskjermen har en ny linje om Solhjertet.
+- Tronsalen er bygget i `gfx/env/tower.ts` (trapp, trone, søyler, Solhjertet, buret), effektene i `gfx/bossfx.ts`. Søylen fra jungelen har fått et tårnutseende med krystall.
+- Feil funnet underveis: solstrålen traff helten hvert bilde (1738 i skade på to sekunder i testen). Nå én gang per stråle. Teksten HE IS WINDED! sto også over Hogmother; nå WINDED!. Solhjertet ble et stort hvitt lys over brystet hans; det sitter nå på toppen av staven og er mindre. Replikkene til sjefen i introen gikk på klokketid (setTimeout); nå spilltid.
+- Nye tester: `bossphases.mjs` (16 av 16) og `finale.mjs` (14 av 14). Sett på bildene: tronsalen med vaktene som reiser seg, skjoldet med strålene, søylene som ligger over gulvet, Solhjertet, prinsessen som slippes ned, seiersskjermen, måltidet, dykket, lavaen og solstrålen.
+- Dokumentasjon: ARCHITECTURE (Sjefer i faser og sluttkampen, Ny sjef, Ny fiende), GDD (Sjefer), PLAN_BRETT_GORR_AI (status), STEMMER (fasene, sluttkampen, vaktene, prinsessen), tests/README.
+
+## 2026-10-01 09:33 (Europe/Oslo)
+Runde E, andre og tredje del: grenser for evige komboer, forsvar, tempostyring, bølgebudsjett og vanskelighetsgrad.
+- Komboer (`game/combo.ts`): etter sju treff i lufta slås fienden i bakken (SPIKED!) og blir liggende. Under en bølge spretter kropper tilbake fra kanten av bildet, høyst tre ganger, og en kropp som er slått avgårde, slår ned fiendene den treffer.
+- Forsvar: eliter (tøffe fiender, kjemper, skjelettvakter) og sjefer blokkerer etter fire like slag på rad (TOO PREDICTABLE!). En hel kombo (hugg, bakhånd, tungt hugg) teller ikke. Løpeslaget bryter guarden nå. Fiender går til side for prosjektiler fra heltene. En fiende som holdes uten kne, river seg løs etter halvannet sekund.
+- Regissøren (`game/director.ts`): spenningen stiger med skaden heltene tar og drap, og faller over tid. Etter en topp kommer sju sekunder pusterom med én angrepsplass og lengre pauser. Når det er rolig, får én fiende til plass og tempoet øker.
+- Bølgebudsjettet: fiendene har rang (vanlig 1, sterk 2, elite 4), og en bølge har plass til maxAlive i rang (1,4 ganger med to spillere). Går en bølge over fordi en elite må inn, trekkes det fra neste.
+- Vanskelighetsgrad i OPTIONS (EASY, NORMAL, HARD): opptrekket før slagene, tempoet, unnamanøvrene, angrepsplassene og tenketiden til sjefene. Aldri liv eller skade.
+- Ryttere, rop, game over og armen som vokser ut igjen gikk på klokketid (setTimeout); nå spilltid. Brettverkstedet kjente ikke de nye farene i jungelen (planten og steinvekta) og ville ha avvist dem; rettet.
+- Feil funnet underveis: det lille slaget fra kanten nullstilte farten kroppen hadde, så den sprettet ikke tilbake. Nå kommer slaget først og farten etterpå.
+- Nye tester: `combo.mjs` (14 av 14, kjørt to ganger), `director.mjs` (10 av 10). `menus.mjs` kjenner raden DIFFICULTY. `scenarios.mjs` hopper over vaktene og skjoldet i tårnet (de testes i `finale.mjs`).
+- Kjørt: combo, director, menus, finale, bossphases, grab, guard, violence, jungle, riders, mounts, frostplay, ai, settings, scenarios (alle seks brettene), typecheck og build. Alt grønt.
+- Dokumentasjon: ARCHITECTURE (Komboer og forsvar, Tempo og vanskelighetsgrad), GDD (mekanikk og innstillinger), STEMMER (nye rop), tests/README.

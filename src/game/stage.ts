@@ -7,6 +7,11 @@ import { Pickup, Barrel } from './items';
 import { Projectiles } from './projectiles';
 import { Foe, type FoeWorld } from './foes';
 import { BossCtl, type BossWorld } from './boss';
+import type { BossPhase } from '../data/bosses';
+import { ShieldFx, LavaTrail } from '../gfx/bossfx';
+import { HabitReader, JUGGLE_LIMIT, READ_BLOCK, spike, landed, wallBounce, bodyHits, grounded } from './combo';
+import { Director } from './director';
+import { DIFFICULTY } from '../data/difficulty';
 import { Hero, type HeroWorld } from './hero';
 import { Hazard } from './hazards';
 import { findGrab, startHold, bowl, resistGrab, SLAM, AUTO_GRAB } from './grab';
@@ -25,7 +30,7 @@ import { Vision } from '../gfx/vision';
 import { layoutFor } from '../data/layouts';
 import type { PlayerInput } from '../core/input';
 import type { HeroConfig } from '../gfx/chars/hero';
-import { FOES, DEATH_BARKS } from '../data/enemies';
+import { FOES, DEATH_BARKS, foeRank } from '../data/enemies';
 import { BOSSES } from '../data/bosses';
 import type { LevelDef, SpawnDef, WaveDef } from '../data/levels';
 import { audio, type Surface } from '../core/audio';
@@ -51,6 +56,8 @@ const MAGIC_NAMES = { meteor: 'METEOR OF EXCESSIVE FORCE', scream: 'SCREAM OF TH
 const PILLAR_HIT: AttackDef = { ...HERO_ATK.chop, id: 'pillar', dmg: 24, kd: true, launch: 4, push: 3, heavy: true, death: ['explode'], word: ['CRUNCH!'] };
 /** Sekunder per replikk når Vorthax taler fra himmelen (LevelDef.vorthax). */
 const VISION_LINE = 3.0;
+/** En søyle i tronsalen som faller over Vorthax: så stor andel av livet hans (skjoldet hjelper ikke). */
+const PILLAR_BOSS = 0.07;
 
 export type StageResult = '' | 'complete' | 'duel' | 'gameover';
 
@@ -103,6 +110,16 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   metal = new MetalMode();
   /** Treff i lufta per fiende (sjonglering som i Castle Crashers). Nullstilles når fienden lander. */
   private juggle = new Map<Fighter, number>();
+  /** Eliter og sjefer som leser helten (like slag på rad, game/combo.ts). */
+  private habits = new HabitReader();
+  /** Regissøren (game/director.ts): spenning, angrepsplasser og tempo, med vanskelighetsgraden oppå. */
+  director = new Director(DIFFICULTY[settings.difficulty]);
+  pace = 1;
+  wind = DIFFICULTY[settings.difficulty].wind;
+  dodge = DIFFICULTY[settings.difficulty].dodge;
+  /** Bølgebudsjettet (rang): hvor mye som kan leve samtidig i denne bølgen, og det forrige bølge brukte for mye. */
+  private waveCap = 0;
+  private waveDebt = 0;
   /** Krukker hver tyvnisse har stjålet i nattleiren, og nedkjøling mellom tyveriene. */
   private stolen = new Map<Foe, { n: number; cd: number }>();
   /** Daggry i nattleiren (skjer bare én gang). */
@@ -114,6 +131,14 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   /** Intensiteten i musikken (core/conductor.ts), og hvor lenge det har vært roligere enn den (spilltid). */
   private mood: Level = 0;
   private calmT = 0;
+  /**
+   * Sluttkampen i tårnet (BossDef.finale): vaktene reiser seg mens sjefen står på tronen, så slåss han selv bak et
+   * skjold som søylene i salen (Tippable.conduit) holder oppe.
+   */
+  finale: { step: 'guards' | 'fight'; wave: number; t: number; pillars: number } | null = null;
+  private shieldFx: ShieldFx | null = null;
+  /** Lava i sporene etter Magmor (BossWorld.lava). */
+  private lavaFx: LavaTrail | null = null;
   /** Vorthax på himmelen (LevelDef.vorthax): projeksjonen, hvor lenge den har vart og hvor langt han er kommet i talen. */
   vision: Vision | null = null;
   visionDone = false;
@@ -226,6 +251,12 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   addsAlive() {
     return this.foes.filter((f) => f.f.alive && f.def.behavior !== 'runner').length;
   }
+  /** Summen av rangen til fiendene som lever (bølgebudsjettet). */
+  aliveRank() {
+    let n = 0;
+    for (const f of this.foes) if (f.f.alive) n += foeRank(f.def);
+    return n;
+  }
   say(who: string, text: string, dur = 2.4) {
     this.hud.say(who, text, dur);
   }
@@ -248,11 +279,62 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     }
     if (this.barkCd <= 0 && chance(0.45)) {
       this.barkCd = 2.5;
-      setTimeout(() => {
+      W.gore.later(0.7, () => {
         if (foe.f.alive && foe.f.rig.root.parent) this.bark(foe.f, pick(def.barks));
-      }, 700);
+      });
     }
     return foe;
+  }
+
+  /** En fiende som reiser seg av gulvet der han står (vaktene i tårnet, BossWorld.spawnRising). */
+  spawnRising(id: string, x: number, z: number): Foe | null {
+    const def = FOES[id];
+    if (!def) return null;
+    const foe = new Foe(def, x, z, this.twoP ? 1.2 : 1);
+    foe.f.allowHeadless = true;
+    foe.f.addTo(W.scene);
+    foe.f.onDeath = (_f, killer, style) => this.foeDied(foe, killer, style);
+    const h = this.nearestHero(foe.f.pos);
+    foe.f.face(h ? h.f.pos.x - x : -1);
+    foe.entered = true;
+    foe.rise(1.3);
+    this.foes.push(foe);
+    // Gulvet sprekker: støv, steinbiter og et dunk
+    W.gore.dust(new THREE.Vector3(x, 0.1, z), 18);
+    W.gore.gibs(new THREE.Vector3(x, 0.2, z), 3, 'bone', 0.7);
+    W.gore.stain(x, z, 0.8);
+    audio.thud(0.9);
+    audio.bones();
+    return foe;
+  }
+
+  /** Lava i sporet (Magmor): brenner den som står i den (glør i Stage.updateProps), og gløder på bakken. */
+  lava(x: number, z: number, sek: number) {
+    this.embers.push({ x, z, t: sek });
+    this.lavaFx ??= new LavaTrail(W.scene);
+    this.lavaFx.add(x, z, sek);
+    if (Math.random() < 0.3) audio.sizzle(0.25);
+  }
+
+  /** En ny fase hos sjefen. Den desperate fasen i tårnet: Vorthax tar Solhjertet. */
+  onPhase(b: BossCtl, ph: BossPhase, i: number) {
+    this.hud.bossPhase(i + 1);
+    if (!ph.heart) return;
+    const fin = W.env?.finale;
+    // Hjertet setter seg på toppen av staven hans
+    const tip = new THREE.Vector3();
+    if (fin) fin.heartTo(() => b.f.rig.weaponTip(tip).add(new THREE.Vector3(0, 0.15, 0.1)));
+    W.gore.later(1.1, () => {
+      if (!b.f.alive) return;
+      // Gyllent lys rundt ham og et rødt rom
+      b.f.rig.setTint([1.25, 1.05, 0.6]);
+      b.f.rig.setFlashColor(1, 0.85, 0.3);
+      b.f.flash(0.6);
+      W.fx.flash('#ffd35a', 0.5, 0.5);
+      screenFX.shock(b.f.torsoPoint(), 1.6, 0.9, 1.1);
+      W.post?.setGrade({ ...GRADES.tower, ...GRADES.heart }, false);
+      audio.boom(1.2);
+    });
   }
 
   /** En fiende som kommer ridende inn fra høyre. */
@@ -294,6 +376,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   foeDied(foe: Foe, killer: Fighter | null, style: string) {
     const f = foe.f;
     W.stats.kills++;
+    if (killer?.team === 'hero') this.director.kill();
     // Et grufullt drap (eller et miljødrap) skremmer de som står nær
     if (GORY.includes(style) || f.envKill) {
       for (const o of this.foes) {
@@ -525,10 +608,18 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
       if (!inStrip(f) || f.invuln > 0 || f.mount) continue;
       applyHit(this.nature, f, PILLAR_HIT);
     }
+    // Sjefen: skjoldet hjelper ikke mot en søyle
+    const b = this.boss;
+    if (b && b.f.alive && inStrip(b.f)) {
+      b.crushed(b.f.maxHp * PILLAR_BOSS);
+      if (b.def.finale) this.hud.say(b.def.name, b.def.finale.crushed, 1.8);
+    }
   }
 
   /** Sett fyr på en figur i sek sekunder. Fiender som tar fyr, får panikk. */
   private ignite(f: Fighter, sek: number) {
+    // Figurer av lava (Magmor, ildimpene) brenner ikke
+    if (f.def.blood === 'lava') return;
     const fresh = f.burnT <= 0;
     f.burnT = Math.max(f.burnT, sek);
     if (!fresh) return;
@@ -559,7 +650,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     // Kameraet dykker inn mot helten som falt, og en sjokkbølge går ut fra ham
     screenFX.dive(0.15, 1.2);
     screenFX.shock(h.f.torsoPoint(), 1.0, 0.8, 1.1);
-    if (this.heroes.every((x) => !x.f.alive && x.lives <= 0)) setTimeout(() => (this.done = 'gameover'), 2500);
+    if (this.heroes.every((x) => !x.f.alive && x.lives <= 0)) W.gore.later(2.5, () => (this.done = 'gameover'));
   }
 
   respawn(h: Hero) {
@@ -700,17 +791,92 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     const def = BOSSES[(this.level.finale as { boss: string }).boss];
     if (!def) return;
     this.lockX = this.bossLock;
-    this.boss = new BossCtl(def, this.bossLock + this.halfW + 3, 0, this.hpMul, this);
+    // Sluttkampen: han venter på tronen bak skjoldet mens vaktene reiser seg
+    const throne = def.finale ? W.env?.finale?.throne : undefined;
+    this.boss = new BossCtl(def, this.bossLock + this.halfW + 3, 0, this.hpMul, this, throne);
     const bf = this.boss.f;
     bf.addTo(W.scene);
     bf.onDeath = () => this.bossDied();
+    if (throne && def.finale) {
+      this.finale = { step: 'guards', wave: -1, t: 2.0 + def.intro.length * 2.3, pillars: this.conduits().length };
+      this.shieldFx = new ShieldFx(W.scene);
+    }
     this.hud.showBoss(def.name, def.title);
+    this.hud.bossPhases(def.phases.map((p) => p.at));
     this.hud.announce(def.name, 'boss', 2.6, def.title);
     // Sjefslåta kommer på en taktstrek minst 1,4 sekunder fram, med stuping, gong og stor akkord på første slag
     audio.bossArrives('duel');
     // Kameradykk mens sjefen gjør entré
     screenFX.dive(0.12, 2.4);
-    def.intro.forEach(([who, text], i) => setTimeout(() => this.hud.say(who, text, 2.2), 900 + i * 2300));
+    def.intro.forEach(([who, text], i) => W.gore.later(0.9 + i * 2.3, () => this.hud.say(who, text, 2.2)));
+  }
+
+  /** Søylene i tronsalen som mater skjoldet, og som fortsatt står. */
+  private conduits() {
+    return this.tippables.filter((t) => t.conduit && !t.tipped);
+  }
+
+  /**
+   * Sluttkampen: vaktene reiser seg bølge for bølge mens sjefen står på tronen. Når de er slått, går han ned og
+   * slåss. Skjoldet er oppe så lenge en søyle med krystall står (og alltid på tronen).
+   */
+  private updateFinale(dt: number) {
+    const fin = this.finale, b = this.boss;
+    if (!fin || !b || !b.def.finale) return;
+    const def = b.def.finale;
+    const standing = this.conduits();
+    if (fin.step === 'guards') {
+      fin.t -= dt;
+      const guards = this.foes.some((o) => o.f.alive && o.def.behavior !== 'runner');
+      if (!guards && fin.t <= 0) {
+        fin.wave++;
+        if (fin.wave < def.guards.length) {
+          const w = def.guards[fin.wave];
+          this.hud.say(b.def.name, w.line, 2.4);
+          // Vaktene reiser seg spredt rundt heltene, litt etter hverandre
+          const alive = this.heroes.filter((h) => h.f.alive);
+          w.foes.forEach((id, i) => W.gore.later(0.5 + i * 0.45, () => {
+            const h = alive.length ? alive[i % alive.length].f : null;
+            const side = i % 2 ? -1 : 1;
+            const x = Math.min(this.camX + this.halfW - 1.2, Math.max(this.camX - this.halfW + 1.2, (h?.pos.x ?? this.camX) + side * rand(2.2, 4.2)));
+            this.spawnRising(id, x, rand(Z_MIN + 0.4, Z_MAX - 0.4));
+          }));
+          fin.t = 0.5 + w.foes.length * 0.45 + 1.5;
+        } else {
+          fin.step = 'fight';
+          b.leaveThrone();
+          this.hud.say(b.def.name, def.rise, 2.6);
+        }
+      }
+    }
+    // Skjoldet: krystallene som står, mater det. En søyle som faller, får en replikk, og den siste knuser skjoldet
+    const shielded = b.mode === 'throne' || standing.length > 0;
+    if (standing.length < fin.pillars && b.f.alive) {
+      fin.pillars = standing.length;
+      if (standing.length > 0) this.hud.say(b.def.name, def.pillar, 2.0);
+      else if (b.mode !== 'throne') this.breakShield(b);
+    }
+    if (b.f.shielded && !shielded) this.breakShield(b);
+    b.f.shielded = shielded && b.f.alive;
+    const total = this.tippables.filter((t) => t.conduit).length || 1;
+    this.hud.bossShield(b.f.shielded ? Math.max(standing.length / total, b.mode === 'throne' ? 1 : 0) : null);
+    this.shieldFx?.update(dt, b.f.torsoPoint(), 1.35 * b.f.size, standing.map((t) => t.top!()), b.f.shielded);
+  }
+
+  /** Skjoldet brister: glimt, gnister og en replikk. */
+  private breakShield(b: BossCtl) {
+    if (!b.f.shielded) return;
+    b.f.shielded = false;
+    const tp = b.f.torsoPoint();
+    W.gore.sparks(tp, 60, '#ffd35a', 10);
+    W.fx.flash('#fff2c0', 0.4, 0.4);
+    screenFX.shock(tp, 1.4, 0.9, 1.2);
+    W.fx.shake(0.6);
+    audio.iceCrack(1.5);
+    audio.boom(0.8);
+    W.fx.text(b.f.headPoint().add(new THREE.Vector3(0, 1.2, 0)), 'SHIELD SHATTERED!', 'kill big', 1.8);
+    if (b.def.finale) this.hud.say(b.def.name, b.def.finale.broken, 2.4);
+    b.tire(2.2);
   }
 
   private bossDied() {
@@ -737,7 +903,19 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     this.hud.announce('BOSS SLAIN!', 'kill', 3, b.def.name);
     this.hud.say(b.def.name, b.def.death, 3);
     for (const fo of this.foes) if (fo.f.alive) fo.f.die('explode', 1, null);
-    this.finishT = 4.5;
+    b.cleanup();
+    this.shieldFx?.dispose();
+    this.shieldFx = null;
+    this.hud.bossShield(null);
+    const fin = this.finale ? W.env?.finale : undefined;
+    if (fin) {
+      // Solhjertet faller på gulvet, buret senkes, og prinsessen har et nytt skilt
+      fin.heartTo(null);
+      W.gore.later(1.4, () => fin.freePrincess());
+      W.gore.later(3.2, () => this.hud.say('PRINCESS AMBERLY', 'FINALLY. I HAVE BEEN BORED IN HERE FOR THREE WEEKS.', 2.6));
+      this.finale = null;
+    }
+    this.finishT = fin ? 6.5 : 4.5;
   }
 
   // ---------------------------------------------------------------- oppdatering
@@ -785,19 +963,26 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
         this.queue.push(...extra);
       }
       this.waveT = 0;
+      // Budsjettet (rang): maxAlive i rang, mer med to spillere, minus det forrige bølge brukte for mye
+      this.waveCap = Math.max(2, Math.round(this.wave.maxAlive * (this.twoP ? 1.4 : 1)) - this.waveDebt);
+      this.waveDebt = 0;
       if (this.wave.title) this.hud.announce(this.wave.title, 'wave', 1.6);
       const wi = this.waveIdx - 1;
-      for (const [idx, foeId, mountId] of this.level.riders ?? []) if (idx === wi) setTimeout(() => this.done === '' && this.spawnRider(foeId, mountId), 1200);
+      for (const [idx, foeId, mountId] of this.level.riders ?? []) if (idx === wi) W.gore.later(1.2, () => this.done === '' && this.spawnRider(foeId, mountId));
       if (this.wave.say) this.hud.say(this.wave.say[0], this.wave.say[1], 3.5);
       this.hud.go(false);
       this.goShown = false;
     }
     if (this.wave) {
       this.waveT += dt;
-      const aliveFoes = this.addsAlive();
+      // Rangen til dem som lever: en ny fiende kommer når den får plass i budsjettet (eller ingen lever). Går en
+      // bølge over budsjettet fordi en elite må inn, trekkes det fra neste bølge
+      const aliveRank = this.aliveRank();
       for (let i = 0; i < this.queue.length; i++) {
         const s = this.queue[i];
-        if (this.waveT >= s.delay && aliveFoes < this.wave.maxAlive + (this.twoP ? 1 : 0)) {
+        const r = FOES[s.foe] ? foeRank(FOES[s.foe]) : 1;
+        if (this.waveT >= s.delay && (aliveRank + r <= this.waveCap || aliveRank === 0)) {
+          if (aliveRank + r > this.waveCap) this.waveDebt += aliveRank + r - this.waveCap;
           this.spawnFoe(s.foe, s.side);
           this.queue.splice(i, 1);
           break;
@@ -827,10 +1012,16 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
       audio.crowd(0.5);
     }
 
+    // Regissøren: spenning, angrepsplasser og tempo (game/director.ts)
+    this.director.update(dt, this.heroes);
+    this.maxTokens = this.director.tokens(this.twoP ? 3 : 2);
+    this.pace = this.director.pace();
     // Aktører
     for (const h of this.heroes) h.update(dt, this);
     for (const fo of this.foes) fo.update(dt, this);
     this.boss?.update(dt);
+    this.updateFinale(dt);
+    this.lavaFx?.update(dt);
     if (this.magic) this.updateMagic(dt);
     for (const m of this.mounts) {
       const inside = Math.abs(m.pos.x - this.camX) < this.halfW - 0.8;
@@ -848,10 +1039,16 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
 
     const heroF = this.heroes.map((h) => h.f);
     const foeF = this.foes.map((f) => f.f);
-    if (this.boss) foeF.push(this.boss.f);
+    if (this.boss) foeF.push(this.boss.f, ...this.boss.copies);
     for (const h of this.heroes) {
       h.f.update(dt, this.bounds);
-      resolveAttack(h.f, foeF, { onHit: (_a, t, r) => this.onFoeHit(h, t, r.killed) });
+      resolveAttack(h.f, foeF, {
+        onHit: (_a, t, r) => {
+          // Den ekte Vorthax ble truffet: speilbildene forsvinner
+          if (this.boss && t === this.boss.f && !r.blocked) this.boss.dispel();
+          if (!t.illusion) this.onFoeHit(h, t, r.killed);
+        },
+      });
       this.hitBarrels(h.f);
     }
     const foeBounds: Bounds = { minX: this.camX - this.halfW - 3, maxX: this.camX + this.halfW + 3, minZ: Z_MIN, maxZ: Z_MAX };
@@ -860,15 +1057,26 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     const inView: Bounds = { minX: this.camX - this.halfW + 0.4, maxX: this.camX + this.halfW - 0.4, minZ: Z_MIN, maxZ: Z_MAX };
     for (const fo of this.foes) {
       if (!fo.entered && fo.f.pos.x > inView.minX && fo.f.pos.x < inView.maxX) fo.entered = true;
-      fo.f.update(dt, fo.entered && fo.def.behavior !== 'runner' && !fo.f.mount ? inView : foeBounds);
+      const kept = fo.entered && fo.def.behavior !== 'runner' && !fo.f.mount;
+      fo.f.update(dt, kept ? inView : foeBounds);
       resolveAttack(fo.f, heroF);
+      // Runde E: kropper spretter mot kanten av bildet under en bølge, og kropper som flyr, treffer andre fiender
+      const f = fo.f;
+      if (kept && this.lockX !== null) wallBounce(f, inView.minX, inView.maxX, f.lastHitBy);
+      bodyHits(f, foeF);
+      if (f.onGround) {
+        landed(f);
+        grounded(f);
+      }
     }
     if (this.boss) {
       const bf = this.boss.f;
-      const bb: Bounds = this.boss.mode === 'intro' ? foeBounds : { minX: this.camX - this.halfW + 1, maxX: this.camX + this.halfW - 1, minZ: Z_MIN, maxZ: Z_MAX };
+      // På tronen står han bak veikanten
+      const bb: Bounds = this.boss.mode === 'intro' ? foeBounds : { minX: this.camX - this.halfW + 1, maxX: this.camX + this.halfW - 1, minZ: this.boss.mode === 'throne' ? -4.5 : Z_MIN, maxZ: Z_MAX };
       bf.update(dt, bb);
       if (bf.alive) resolveAttack(bf, heroF);
       if (bf.alive) this.hud.updateBoss(bf.hp / bf.maxHp);
+      for (const c of this.boss.copies) c.update(dt, bb);
     }
     for (const fo of this.foes) if (fo.f.thrownBy) bowl(fo.f, foeF);
     this.updateHazards(dt);
@@ -1036,8 +1244,20 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
         W.fx.text(t.headPoint().add(new THREE.Vector3(0, 0.7, 0)), JUGGLE_WORDS[Math.min(n, JUGGLE_WORDS.length - 1)] + ' x' + n, 'word', 0.8);
         this.metal.add(0.01 * n);
       }
+      // Grensen for evige komboer (runde E): etter så mange treff i lufta slås han i bakken og blir liggende
+      if (n >= JUGGLE_LIMIT && t.alive && !killed) {
+        spike(t, h.f.facing);
+        this.juggle.delete(t);
+      }
     }
     const foe = this.foes.find((f) => f.f === t);
+    // Eliter (tøffe fiender og kjemper) og sjefer leser helten: fire like slag på rad, og de blokkerer en stund
+    const elite = !!foe && (!!foe.def.guard || !!foe.def.poise || !!foe.def.shield);
+    const boss = !!this.boss && t === this.boss.f;
+    if (!killed && t.alive && (elite || boss) && h.f.atk && this.habits.hit(h.f, t, h.f.atk.id, W.time)) {
+      if (boss) this.boss!.blockFor(READ_BLOCK, h.f);
+      else foe!.blockFor(READ_BLOCK, h.f);
+    }
     // Nesten død: av og til løper han i panikk
     if (foe && !killed && t.alive && t.hp < t.maxHp * 0.3 && chance(0.25)) foe.panic(rand(2.5, 4));
     // En tyv som blir truffet, mister alt han har stjålet
@@ -1082,7 +1302,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
         f.hp = Math.min(f.maxHp, f.hp + (p.kind === 'ham' ? 60 : 40));
         audio.pickup();
         W.fx.text(at, p.kind === 'ham' ? 'HALF-EATEN HAM! +60' : 'ROAST CHICKEN! +40', 'good');
-        if (f.regrowArms()) setTimeout(() => W.fx.text(f.headPoint().add(new THREE.Vector3(0, 0.9, 0)), 'MY ARM GREW BACK. DON\'T ASK.', 'speech', 2), 500);
+        if (f.regrowArms()) W.gore.later(0.5, () => W.fx.text(f.headPoint().add(new THREE.Vector3(0, 0.9, 0)), 'MY ARM GREW BACK. DON\'T ASK.', 'speech', 2));
         break;
       case 'egg':
         f.hp = Math.min(f.maxHp, f.hp + 30);
@@ -1160,7 +1380,10 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     for (const p of this.pets) p.remove();
     for (const h of this.heroes) h.f.remove();
     for (const f of this.foes) f.f.remove();
+    this.boss?.cleanup();
     this.boss?.f.remove();
+    this.shieldFx?.dispose();
+    this.lavaFx?.dispose();
     for (const p of this.pickups) p.dispose();
     this.proj.clear();
     this.icicles.clear();

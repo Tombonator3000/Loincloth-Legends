@@ -379,6 +379,13 @@ html, body {
 .b-name { font-family: var(--f-display); font-size: clamp(20px, 2.2vw, 30px); color: var(--blood-hi); text-shadow: 2px 2px 0 var(--ink); line-height: 1; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
 .b-name small { font-family: var(--f-body); font-size: 18px; color: var(--steel); text-shadow: none; }
 .announce.boss .a-main { background: linear-gradient(180deg, #ffd0a0, var(--blood-hi) 45%, #6d0010 55%, var(--blood) 100%); -webkit-background-clip: text; background-clip: text; font-size: clamp(38px, 6.5vw, 96px); }
+/* Runde E: faser og skjold på sjefens livslinje */
+.bossbar .bar .shield { background: repeating-linear-gradient(135deg, rgba(255, 214, 110, 0.85) 0 8px, rgba(255, 180, 40, 0.6) 8px 16px); width: 0; transition: width 0.25s; box-shadow: 0 0 10px rgba(255, 200, 80, 0.7); }
+.bossbar .bar .marks { position: absolute; inset: 0; pointer-events: none; }
+.bossbar .bar .marks b { position: absolute; top: -3px; bottom: -3px; width: 3px; margin-left: -1px; background: var(--ink); box-shadow: 0 0 0 1px var(--bone); }
+.bossbar.phase1 .b-skull { box-shadow: inset -12px 8px 0 -6px var(--ink), inset 12px 8px 0 -6px var(--ink), 0 0 12px #ff6a4a; }
+.bossbar.phase2 .b-skull { background: #ffd35a; box-shadow: inset -12px 8px 0 -6px var(--ink), inset 12px 8px 0 -6px var(--ink), 0 0 18px #ff2a00; animation: pulse 0.4s infinite alternate; }
+.bossbar.shielded .b-name::after { content: 'SHIELDED'; font-family: var(--f-body); font-size: 16px; color: #ffd35a; text-shadow: 1px 1px 0 var(--ink); }
 
 /* ---------------------------------------------------------------- skjermer */
 #screen {

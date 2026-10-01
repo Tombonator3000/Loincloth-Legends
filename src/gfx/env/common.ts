@@ -275,6 +275,20 @@ export interface Env {
   rain?: number;
   /** Generatorene miljøet brukte (satt av Stage og editoren etter bygging, se gen()). */
   generators?: string[];
+  /** Tronsalen i tårnet (sluttkampen): tronen, Solhjertet og buret med prinsessen. */
+  finale?: FinaleFx;
+}
+
+/** Det sluttkampen trenger fra tronsalen (gfx/env/tower.ts). */
+export interface FinaleFx {
+  /** Der Vorthax står foran tronen (på trappa) mens vaktene slåss. */
+  throne: THREE.Vector3;
+  /** Solhjertet der det henger over tronen (verdenspunkt). */
+  heart(): THREE.Vector3;
+  /** Solhjertet flyr til punktet target gir, og blir der (den desperate fasen). Tom target: det faller til gulvet. */
+  heartTo(target: (() => THREE.Vector3) | null): void;
+  /** Buret med prinsessen senkes og åpnes (Vorthax er død). */
+  freePrincess(): void;
 }
 
 /**
@@ -287,6 +301,9 @@ export interface Tippable {
   z: number;
   tipped: boolean;
   tip(dir?: number): { x: number; z: number; t: number; crush?: Crush } | null;
+  /** En søyle med en krystall som mater skjoldet til Vorthax (tronsalen). top er krystallen i verden. */
+  conduit?: boolean;
+  top?(): THREE.Vector3;
 }
 
 /** Linjestykket en søyle knuser når den lander (se Tippable). */
