@@ -25,7 +25,7 @@ import { Fighter } from '../game/fighter';
 import { DUEL_ATK } from '../game/attacks';
 import { buildHeroDef, cloneHero, HERO_OPTIONS } from '../gfx/chars/hero';
 import { registerChar } from '../gfx/chars';
-import { WEAPONS } from '../data/weapons';
+import { classAt, heroWeapon, abilityEffects } from '../data/classes';
 import { LEVELS } from '../data/levels';
 import { levelWithLayout } from '../data/layout';
 import { EditorScene } from './scenes/editor';
@@ -38,7 +38,7 @@ import type { Scene } from './scene';
 import { CreatorScene } from './scenes/creator';
 import { showCamp, showTraining } from './camp';
 import { addXp, defaultProgress, statEffects, XP_DUEL, XP_STAGE_FIRST, XP_STAGE_REPEAT, type HeroProgress } from '../data/progress';
-import { weaponWithStats } from '../game/hero';
+import { weaponWithStats, dressHero } from '../game/hero';
 import { MapScene } from './scenes/map';
 import { pick, rand } from '../core/math';
 
@@ -83,7 +83,8 @@ class TitleScene implements Scene {
     W.env = buildArena(W.scene, W.gore, 'pit');
     const s = game.save;
     const cfg = cloneHero(s.heroes[0]);
-    const a = new Fighter(registerChar(buildHeroDef(cfg, 0)), 'hero', { hp: 100, speed: 3, weapon: WEAPONS[cfg.weapon] });
+    const a = new Fighter(registerChar(buildHeroDef(cfg, 0)), 'hero', { hp: 100, speed: 3, weapon: heroWeapon(cfg) });
+    dressHero(a, classAt(cfg.cls), false);
     a.pos.set(-3.2, 0, 0.1);
     a.facing = 1;
     const b = new Fighter('gorthak', 'enemy', { hp: 100, speed: 3 });
@@ -653,9 +654,12 @@ export class Game {
     const cfg = cloneHero(this.save.heroes[slot]);
     const prog = this.progressOf(slot);
     const fx = statEffects(prog);
+    // Klassen og terningene (data/classes.ts) gjelder i duellen også, men evnene (piler, bakstikk) bare på brettene
+    const c = classAt(cfg.cls), ab = abilityEffects(cfg.abilities);
     return {
       cid: registerChar(buildHeroDef(cfg, slot)), name: cfg.name || 'NAMELESS', human, input: this.input.players[slot], player: slot,
-      hp: 100 + fx.hpBonus, speed: 2.95 * fx.speedMul, dmg: fx.dmgMul, dmgTaken: fx.dmgTaken, weapon: weaponWithStats(WEAPONS[cfg.weapon], prog),
+      hp: Math.round((100 + fx.hpBonus) * c.hp * ab.hp), speed: 2.95 * fx.speedMul * c.speed * ab.speed, dmg: fx.dmgMul * c.dmg * ab.dmg, dmgTaken: fx.dmgTaken,
+      weapon: weaponWithStats(heroWeapon(cfg), prog), dress: (f) => dressHero(f, c, false),
       taunts: ['BY CROM\'S COUSIN!', 'FOR THE HAM!', 'STEEL AND SWEAT!', 'NICE HAIR. SHAME ABOUT THE HEAD.'],
     };
   }
@@ -664,13 +668,16 @@ export class Game {
     let cid = d.char;
     let name = d.name;
     let weapon;
+    let dress: ((f: Fighter) => void) | undefined;
     if (d.char === '@player') {
       const cfg = cloneHero(this.save.heroes[0]);
       cid = registerChar(buildHeroDef(cfg, 7));
       name = 'DARK ' + cfg.name;
-      weapon = WEAPONS[cfg.weapon];
+      weapon = heroWeapon(cfg);
+      const c = classAt(cfg.cls);
+      dress = (f: Fighter) => dressHero(f, c, false);
     }
-    return { cid, name, human: false, hp: d.hp, speed: d.speed, dmg: d.dmg, tint: d.tint, scale: d.scale, weapon, skill: d.skill, aggression: d.aggression, taunts: d.taunts };
+    return { cid, name, human: false, hp: d.hp, speed: d.speed, dmg: d.dmg, tint: d.tint, scale: d.scale, weapon, dress, skill: d.skill, aggression: d.aggression, taunts: d.taunts };
   }
 
   private duelIntro(d: DuelistDef): [string, string][] {

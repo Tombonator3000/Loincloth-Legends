@@ -50,6 +50,8 @@ export interface CharDef {
    * stillingene sine.
    */
   bend?: boolean;
+  /** Kroppsformen: bredde og høyde på hele figuren (dvergen er lav og bred, alven slank). Bare utseendet. */
+  stretch?: [number, number];
 }
 
 export const HERO_J: Joints = { hipF: [0.07, 0], hipB: [-0.08, 0], neck: [0.03, 0.78], shF: [-0.15, 0.68], shB: [0.15, 0.66], hand: [0, -0.6] };

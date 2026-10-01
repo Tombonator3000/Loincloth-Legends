@@ -27,6 +27,8 @@ data/              Alt innhold som data (ingen Three.js her)
   progress.ts      Nivåkurve, STR/DEF/MAG/AGI-effekter, XP-regler og SHOP (butikkvarer)
   worldmap.ts      MAP_NODES og MAP_EDGES
   weapons.ts       WEAPONS og scaleAttack
+  spells.ts        SPELLS: magien (navn, tittel og beskrivelse), indeksen er HeroConfig.magic
+  classes.ts       CLASSES og GEAR: klassene i smia (våpen, magi, egenskaper, evner), ROLL 3D6 og spillederen
   unlocks.ts       PART_LOCKS: deler i heltebyggeren som låses opp
   hero-parts.ts    HERO_PARTS: malte kroppsdeler og våpen, inkludert redigerbare grunnhoder
   hero-appearance.ts        HERO_APPEARANCE: separate lag og fargevalg, normalisering og låser
@@ -47,11 +49,14 @@ game/              Spillogikk
   projectiles.ts   Prosjektiler og områdeskade
   stage.ts         Generisk brett bygget fra en LevelDef
   metalmode.ts     METAL MODE: måler som fylles av drap, så solo, skadebonus, lyn og brennende våpen
+  mayhem.ts        Teit vold: overkropper som kryper, hodet som ball, kebab, glatte pytter, blodregn med gnomen, ildimper som smeller
+  spells.ts        Magien: kastet, de sju trylleformlene, olja som blir liggende og brenner, hønene
+  classes.ts       Klassene på brettet: d20 på tunge slag (NATURAL 20, CRITICAL FUMBLE), prestens helbredelse, tyvens tyveri
   duel.ts          1v1 duell i Barbarian-stil, tag team, oppryddings-imp som sparker hodet i skjermen
   items.ts         Pickups (også egg) og tønner
   world.ts         Delte referanser (scene, gore, fx, kamera, statistikk, rumble)
 gfx/               Grafikk
-  chars/           Figurer: types, muscle (overdrevne kropper), classic, wilds, bosses, hero (heltebygger), beasts (ridedyr), index (register)
+  chars/           Figurer: types, muscle (overdrevne kropper), classic, wilds, bosses, hero (heltebygger), beasts (ridedyr), critters (høna fra POLYMORPH), index (register)
   env/             Miljø: common, grass, swamp, frost, scorch, tower, night (nattleiren), arena, worldmap, sprites, hazards, index (register)
                    sun (sol med skygger), grades (gradering per biom), trees (3D-trær), meadow (gress), leaffall (blader),
                    atmos (tåkelag og lyssøyler), textures (støyteksturer med normalkart, og bilder fra manifestet),
@@ -69,6 +74,9 @@ gfx/               Grafikk
   rig.ts           Cutout-rigg for mennesker (hver kroppsdel er et plan med pivot i leddet), restore og setTint
   charlight.ts     Lys på figurene: relieffkart (normal og glans) fra tegningene og figurskyggeleggeren
   beast.ts         Rigg for ridedyr (kropp, hode, hale, 2 eller 4 bein)
+  mayhemfx.ts      Grafikk til teit vold: paraplyen gnomen slår opp i blodregnet
+  spellfx.ts       Grafikk til magien: oljepytter (blank lakk og regnbuehinne), lysende piler, fjær, lysstråler
+  classfx.ts       Klassenes utstyr tegnet i koden (kølle, dolker, stav, bue, lutt) og tyvens andre dolk
   pets.ts          Sprites for kjæledyr
   gore.ts          Blod, gibs, flekker, fontener. Gore-nivå (FAMILY gir konfetti og gummiender). Sender gnister, ild og røyk til vfx
   blood.ts         Bloddråper på GPU (landing beregnet på forhånd) og flekker med våt glans, pytter som vokser
@@ -115,6 +123,8 @@ Avhengigheter går én vei: `app` bruker `game`, `gfx`, `data`, `ui`. `game` bru
 | `SHOP` | data/progress.ts | Butikken i hjemborgen |
 | `MAP_NODES` / `MAP_EDGES` | data/worldmap.ts | Kartet |
 | `WEAPONS` | data/weapons.ts | Heltebyggeren, helter, duellanter |
+| `SPELLS` | data/spells.ts | MAGIC-raden i heltebyggeren, `Hero.magic`, trylleformlene i game/spells.ts |
+| `CLASSES` / `GEAR` | data/classes.ts | CLASS-raden i heltebyggeren (`HeroConfig.cls`), `Hero.cls`, `heroWeapon` |
 | `PART_LOCKS` | data/unlocks.ts | Heltebyggeren, belønninger på kartet, butikken |
 | `LAYOUTS` | data/layouts/index.ts | Brettfilene, via `layoutFor(id)` i Stage og editoren |
 | Kulissekatalogen | gfx/props/catalog.ts | `prop` i brettfilene, biblioteket i editoren |
@@ -189,6 +199,44 @@ Runde E, del 6.4 punkt 2 og 7 i planen. Hver ny fiende har en vane spilleren må
 - **Ledige ridedyr**: fiender til fots (ikke kjemper, kapteiner, bueskyttere eller gripere) løper til et ledig dyr innen 7 og setter seg opp (`Stage.claimMount`, `Foe.toMount`, `Mount.ready`), også dyret en helt nettopp gikk av. Ett dyr per fiende, og ingen andre tar det samme.
 - **Utholdenhet**: spesialangrepet til dyret koster `STAMINA.cost` utholdenhet i stedet for liv og fylles opp igjen når dyret ikke angriper (`STAMINA.regen`, `game/mounts.ts`). Med for lite blir dyret andpustent (WINDED!) og puster damp. En linje over ryggen viser utholdenheten når en helt rir.
 - Test: `tools/tests/newfoes.mjs` (med skjermbilder av buen, grepet, hoppet ut av buskene, hornet, raseriet og linja over dyret).
+
+## Teit vold på brettene
+
+Tom valgte alle ti forslagene fra todo.md (2026-10-01). Det meste ligger i `game/mayhem.ts` (`Mayhem`, eid av `Stage` som `stage.mayhem`, med `MayhemWorld` som grensesnitt mot brettet). Alle tallene står i `MAYHEM` øverst i fila, og replikkene i `MAYHEM_LINES` (`data/quips.ts`).
+- **Overkroppen som kryper** (`maybeCrawl`, `crawl`): etter `die('bisect')` lagrer `Fighter` overkroppen som debris (`torsoDebris`, `crawlReady`). Når den har landet (`onRest`), tar `Mayhem` den over (`held`), legger den på magen (`orient`) og lar armene dra den mot nærmeste helt. Innvollene er en kjede av kjøttbiter (`MAYHEM.guts`) som henger etter som et tau (`drag`). Innen rekkevidde biter den (`BITE`, slått med `stage.nature` flyttet dit overkroppen er, så `applyHit` har en angriper). Et slag fra en helt tar den (`squash`), ellers blør den ut (`MAYHEM.crawlLife`). Sjansen følger gore-nivået (`MAYHEM.crawl`).
+- **Hodet som ball** (`addHead`, `bat`, `homeRun`): et hode som ble liggende etter `decap` eller `dismember` (`Fighter.headDebris`) kan slås. Slaget sender det i en bue mot nærmeste fiende foran (`MAYHEM.bat`), og treffer det, slås fienden med `HOME_RUN`.
+- **Kebab** (`dashHit`, `kebabTick`, `shakeKebab`): løpeslaget med et sverd (våpen-id som begynner med `sword`) spidder fiender på bladet (`Fighter.skewer`, høyst `MAYHEM.kebab.max`). De følger `Rig.bladePoint` (et punkt langs bladet) og henger slapt, `Foe.update` gjør ingenting med dem, og `Stage` skyver dem ikke fra hverandre. Helten går saktere (`kebabSlow` i `game/hero.ts`) og holder sverdet foran seg (`KEBAB_POSE` som `poseMod`). Neste slag rister dem av (`KEBAB_OFF`). De levende vrir seg løs etter en stund og likene sklir av (`MAYHEM.kebab.struggle` og `slide`), og alle faller av når helten blir truffet, slått ned, kaster magi eller ruller.
+- **Glatte pytter** (`addSlick`, `slip`): `W.gore.onPool` meldes for hver blodpytt, og de store (`MAYHEM.slick.min`) blir glatte til de tørker. En fiende som løper over (fart over `MAYHEM.slick.speed`), går på trynet.
+- **Blodregn** (`bloodRain`, `updateRain`, `spawnGnome`): når en sjef dør, og når en fiende med `bloodRain` på `FoeDef` sprenges (kjempetrollet, som også har `death: 'explode'` og alltid sprenges). Dråpene faller fra himmelen over hele bildet (`W.gore.drop` med færre flekker), `screenwet.bloodRain` legger blod på glasset, og en gnom (`gnome`, en vanlig `Fighter` utenfor bølgene) tusler inn med paraplyen fra `gfx/mayhemfx.ts`, slår den opp og går igjen når regnet stopper. `Stage.bossDied` venter litt lenger før brettet er ferdig, så han rekker det.
+- **Skjelettxylofonen**: beinene fra `die('shatter')` har `onBounce: audio.xyloTune()`, som spiller neste tone i en melodi (`XYLO_TUNES` i `core/audio.ts`) hver gang et bein spretter. Toner som kommer for tett, hoppes over uten at melodien går videre.
+- **Siste ord på glasset**: `hurlAtScreen` gir hodet en replikk (`GlassOpts.words`, standard `MAYHEM_LINES.lastWords`). Boblen (`div.ftext.speech.glass-words`) står over hodet mens det henger, og blir borte når det begynner å skli (`WORDS_SHOW`, `WORDS_FADE`).
+- **Tenner** (`W.gore.teeth`): et tungt slag høyt (`a.height === 'high'`) på en med hodet på kan slå ut ett til tre tenner (`TEETH_ODDS` i `game/combat.ts`, etter gore-nivået). De spretter med `audio.ping`.
+- **Kjøttbiter på glasset** (`W.fx.glassGibs`): en rød eksplosjon nærmere kameraet enn `GLASS_GIBS.near` og inne i bildet sender en til tre kjøttbiter mot glasset (`chunkImage` i `fx.ts`, tre malte varianter). De har `chunk` på seg, sier ingenting, teller ikke som et hode (`headOnGlass`) og sklir ned med samme spor.
+- **Ildimpene** (`impBurst`): `burst` på `FoeDef` (`fireimp`) gir en ildkule når de dør og setter fyr på fiender og helter innenfor radien (`Stage.ignite`, heltene høyst to sekunder).
+- `Rig.sync` lar deler som har falt av (`Rig.detached`) være i fred, ellers ville posen vri overkroppen tilbake hver frame.
+- Test: `tools/tests/mayhem.mjs` (31 kontroller, med skjermbilder av alle delene).
+
+## Magi
+
+Registeret er `SPELLS` i `data/spells.ts` (id, navnet på MAGIC-raden, tittelen som ropes ut, én linje til infoboksen i Hero Forge og en farge). Plassen i lista er `HeroConfig.magic`, så gamle lagringer (0 METEOR STORM, 1 ANCESTRAL SCREAM, 2 SKY THUNDER) gir det samme som før, og nye trylleformler legges til bakerst. `HERO_OPTIONS.magic` leses fra registeret, og `Hero.magic` er id-en (`spellAt(cfg.magic).id`).
+
+Selve trylleformlene ligger i `game/spells.ts`. `Stage` eier `Spells` (`stage.spells`) og implementerer `SpellWorld`. `Stage.castMagic(h)` kaller `begin`: helten bruker alle krukkene, tida stopper for alle andre (`frozen`), og tittelen ropes ut. `stage.magic` er kastet som pågår (`Cast`), og drap mens det pågår gis til helten. Hver trylleformel har en lading (`charge`, de første `SPELL.charge` sekundene) og en `run` som svarer når den er ferdig. Skaden er `(SPELL.dmg.base + SPELL.dmg.perLevel x krukker) x MAG`, og sjefen tar `SPELL.dmg.boss` av den.
+- **METEOR STORM**, **ANCESTRAL SCREAM** og **SKY THUNDER** er flyttet uendret fra `Stage` (`METEOR_ATK`, `SCREAM_ATK`, `THUNDER_ATK`). Meteorene og lynene tenner olje der de slår ned.
+- **MAGIC MISSILE OF ABSOLUTE CERTAINTY** (`missile`): pilene (`dartMesh` i `gfx/spellfx.ts`) skytes opp i en vifte og styrer mot målet, skarpere og skarpere (`SPELL.missile.turn`). Én har `miss`: den sikter over skulderen og `overshoot` forbi, og når den har passert, sier den MISS!, tar en vid sving og treffer likevel.
+- **TURN UNDEAD (AND EVERYONE ELSE)** (`turn`): `undead` på `FoeDef` (skjelettene og zombien). De udøde dør med akkurat nok skade (mer gir av og til en eksplosjon i `applyHit`): skjelettene knuses (og spiller xylofon), zombiene synker (`sinkRate`). De levende blir lamslått med `Fighter.blindT` (hendene for øynene i `Fighter.animate`), sjefen tar litt skade, og heltene får liv. Lysstrålene er `Beams`.
+- **GREASE OF THE OILY ONE** (`grease`): pytter (`oilPuddle`, `MeshPhysicalMaterial` med blank lakk og tynn hinne, så den speiler himmelen i regnbuefarger) over veien i bildet og under hver fiende. Olja lever videre etter kastet (`Spells.oil`, `updateOil`). Fiender som går eller løper i den, sklir (`slipIn`, `oilSlipT` i `Fighter.data`), heltene ikke. Den tar fyr av noe som brenner eller er av lava, glør, ildkuler, meteorer og lyn (`catchFire`), av `fireAt(x, z, r)` (meteorene, lynene og ildimpene som smeller, via `MayhemWorld.fireAt`), og av et våpen i METAL MODE. Brannen sprer seg til pytter som henger sammen, setter fyr på dem som står i den (`Stage.ignite`) og etterlater en svidd flekk.
+- **POLYMORPH: CHICKEN** (`chicken`): `Foe.polymorph(hen, sek)` bytter `foe.f` med en ny `Fighter` av figuren `chicken` (`gfx/chars/critters.ts`, vingene er armene, så panikkposen flakser), like stor som den han var, med 1 i liv og `fixedDeath: 'explode'`. Den egentlige figuren tas ut av scenen og ligger i `foe.chicken.orig`, og høna tar over `onDeath`, så `Stage.foeDied` virker som før. `Foe.cluck` er hønas hjerne (panikk, hopp, kakling). `Stage.foeDied` kaller `Spells.chickenPopped` (fjær, `Feathers`) og gir av og til en stekt kylling. Når tida er ute, gjør `Foe.unpolymorph` ham til seg selv igjen. Sjefen står imot (THE BOSS SAVED VS. POLYMORPH), og den som holdes, rir, er spiddet, gjemt eller reiser seg, blir ikke høne.
+- Test: `tools/tests/spells.mjs` (registeret og Hero Forge, de tre gamle, og alle fire nye, med skjermbilder).
+
+## Klasser
+
+`CLASSES` i `data/classes.ts` er registeret, og plassen i lista er `HeroConfig.cls` (uten feltet er helten FIGHTER, som alle var før klassene). En klasse har vanlige våpen den kan bruke (`weapons`, indekser i `WEAPONS`) eller eget utstyr (`gear`, med egenskaper i `GEAR`), magien den kan velge (`spells`, den første får den), gangetall for liv, fart, skade og magi, ekstra krukker, gangetall for METAL-måleren og evner (`backstab`, `steal`, `heal`, `ranged`, `stretch`).
+- **Reglene** står i `withClassRules` (`gfx/chars/hero.ts`): magi klassen ikke kan, blir klassens første, og et våpen den ikke kan bruke, byttes mot det første den kan (et malt våpen som er låst opp, eller indeksen i den klassiske byggeren). Lagringen (`validHero` i `app/save.ts`), smia og `randomHero` bruker dem. `Hero` sjekker magien igjen, så en helt aldri får magi klassen ikke kan.
+- **Smia** (`app/scenes/creator.ts`): CLASS-raden kommer etter EDIT (og NAME og BUILDER i den klassiske byggeren). WEAPON blar bare i det klassen kan bruke, og med eget utstyr viser raden utstyret og har ikke noe å velge. MAGIC blar bare i klassens magi. Infoboksen viser klassens gangetall og replikken (ELF IS A CLASS. DO NOT ASK.). ROLL 3D6 er en handlingsrad: `roll3d6()` gir seks tall i `HeroConfig.abilities`, `abilityEffects` gjør dem om til gangetall (STR skade, DEX fart, CON liv, INT magi, 4 prosent per poeng i tillegg fra `abilityMod`), og spillederen kommenterer (`GM_LINES`).
+- **Utseendet**: `buildHeroDef` bytter våpendelen med `gearPart` (`gfx/classfx.ts`) og setter `stretch` på `CharDef` (`Rig.setFacing` skalerer bredde og høyde). Med malte deler arver våpenet figur-id `gear_<id>`, så et bilde i manifestet tar over for den tegnede delen. `dressHero` (`game/hero.ts`) gir figuren tyvens andre dolk (`attachOffhand`), bakstikket og stillingen med staven og buen (`poseMod`). Klassen er med i `heroKey` når den endrer utseendet.
+- **På brettet**: `Hero` ganger klassen og terningene inn i `fx` (så METAL MODE og magien ser dem) og bruker `heroWeapon`. Tyven: `Fighter.backstab` i `applyHit` (målet ser bort fra angriperen) og `ClassPlay.onHit` (YOINK!). Alven: `Hero.atk` gjør slagene om til `shot1`, `shot2` og `shot3` (`HERO_ATK`, stillingene `bowW` og `bowS`), og midt i skuddet kaller `Hero` `Stage.shoot`, som skyter en pil (`ProjOpts.atk` gir pila angrepet fra skuddet). Presten: `ClassPlay.heal`. Barden: `MetalMode.gain`. Duellen bruker klassens egenskaper og våpen, men ikke evnene.
+- **Terningene** (`game/classes.ts`, `ClassPlay`): når et tungt slag starter (`Fighter.attacks` teller angrepene), rulles en d20. 20 setter `Fighter.critMul` (dobbel skade så lenge slaget varer), 1 slår helten over ende og koster `DICE.fumbleDmg` liv, og GAME MASTER sier noe (`HUD.say`). `ClassPlay.force` styrer neste kast i testene.
+- Test: `tools/tests/classes.mjs`.
 
 ## Lys på figurene
 
@@ -303,7 +351,7 @@ Et brett er tre lag oppå hverandre: miljøbyggeren for biomet (`gfx/env/<biom>.
 1. Tegn figuren i `gfx/chars/wilds.ts` (eller ny fil) som en `CharDef` med delene leg, arm, pelvis, torso, head og eventuelt weapon. Legg den i eksportlista.
 2. Legg til en `FoeDef` i `data/enemies.ts` med `behavior`, `attack`, `range` og eventuelt `proj`.
 3. Bruk id-en i bølgene i `data/levels.ts`.
-Bare fargevariant? Bruk en eksisterende `char` og sett `tint` (se `frostskel`). Skjold? Sett `shield: true` (en dør foran kroppen, se `skelguard`). Bakhold, grep som holder, raseri og horn er felt på `FoeDef` (`ambush`, `hold`, `berserk`, `horn`), og bueskytteren og kapteinen er egne `behavior` (se «Nye fiendetyper og ridedyr»). Et slag med `tell: 'red'` blinker rødt i opptrekket.
+Bare fargevariant? Bruk en eksisterende `char` og sett `tint` (se `frostskel`). Skjold? Sett `shield: true` (en dør foran kroppen, se `skelguard`). Bakhold, grep som holder, raseri og horn er felt på `FoeDef` (`ambush`, `hold`, `berserk`, `horn`), og bueskytteren og kapteinen er egne `behavior` (se «Nye fiendetyper og ridedyr»). Et slag med `tell: 'red'` blinker rødt i opptrekket. `death` gir en fast dødsmåte, `burst` en ildkule når den dør, og `bloodRain` blodregn når den sprenges (se «Teit vold på brettene»).
 Fiende-AI (`game/foes.ts`): fiender holder avstand, men rygger på halv fart (`RETREAT`), og når de først har vært i bildet (`Foe.entered`), holder `Stage` dem innenfor det (tyver på flukt går fritt). Ridedyr med fiende på ryggen har det samme: `Mount.entered` og `Stage.mountBounds` holder dem i bildet når de har ridd inn (under en bølge også dyr uten rytter), og `Mount.ai()` holder standplassen `MOUNT_EDGE` innenfor kanten, rygger på halv fart og ser mot helten mens det rygger. Rytteren angriper ikke fra utenfor bildet, og ikke en helt som ligger nede eller reiser seg (`RIDER_GRACE`). `tools/tests/riders.mjs` jager ryttere med en spillerbot. Ønsket avstand for dem som kaster, begrenses av bredden på bildet. `Foe.panic(sek)` gir panikk (løper vekk i sikksakk, armene i været via `Fighter.panicking`, høyst `PANIC_SPEED`); `Stage` utløser den ved grufulle drap i nærheten, lite liv, brann og når METAL MODE starter.
 Kjempe? Lag en `CharDef` med stor `scale` som arver delene fra en vanlig figur (`inherit`, se `bigtroll` i `gfx/chars/wilds.ts`). Store figurer tegnes med flere piksler per enhet og like tynn strek på skjermen (`rig.ts`). Sett `poise` på `FoeDef` (han tar skade, men blir verken slått tilbake eller ned før han har tatt så stor andel av livet, da vakler han), og gi angrepet `quake` (bakken rister der slaget treffer). Kameraet trekker seg bakover mens en figur større enn 1.8 er i bildet (`Stage.camPull`, avstandene i `gfx/stagecam.ts`).
 
@@ -358,6 +406,18 @@ Legg til en `MapNode` i `data/worldmap.ts` (posisjon, krav, belønning) og en ka
 
 ### Ny duellant
 Legg til en `DuelistDef` i `data/duelists.ts`. `char: '@player'` gir en ond tvilling av spillerens helt. `after` gir replikker etter seieren når duellen er finalen på et brett (`finale: { type: 'duel' }`).
+
+### Ny trylleformel
+1. Legg en `SpellDef` bakerst i `SPELLS` (`data/spells.ts`): id, navnet på MAGIC-raden, tittelen og én linje til Hero Forge. Ikke flytt de andre, plassen er det som lagres.
+2. Legg id-en til `SpellId`, og skriv `run` (og gjerne en egen glød i `charge`) i `Spells` i `game/spells.ts`. Svar `true` når den er ferdig, så slippes tida løs igjen. Tall i `SPELL`.
+3. Noe som skal leve videre etter kastet (som olja), oppdateres i `Spells.update` og ryddes i `dispose`.
+4. Utvid `tools/tests/spells.mjs`.
+
+### Ny klasse
+1. Legg en `ClassDef` bakerst i `CLASSES` (`data/classes.ts`). Ikke flytt de andre, plassen er det som lagres.
+2. Eget utstyr: legg det i `GearId` og `GEAR`, og tegn delen i `gfx/classfx.ts` (og en bestilling i ART_PROMPTS). Stilling i ro: `GEAR_POSE` i `game/hero.ts`.
+3. En ny evne: et felt på `ClassDef`, og koden i `ClassPlay` (`game/classes.ts`) eller der evnen hører hjemme.
+4. Utvid `tools/tests/classes.mjs`.
 
 ### Ny del i heltebyggeren
 Malte deler: legg inn bildet under støttet delnavn i `public/assets/manifest.json`, og legg et valg med stabil `id`, `source`, `slot` og `label` i `src/data/hero-parts.ts`. Våpen må angi indeks i `WEAPONS`, overkropper kroppstype, og låste deler en eksisterende opplåsingsnøkkel. Se `HERO_FORGE_GRAFIKK.md` for kunstkrav og kontrollverktøy før grunnpakken utvides.

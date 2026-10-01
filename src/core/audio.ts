@@ -53,6 +53,16 @@ export function voiceId(text: string) {
 export type Surface = 'gress' | 'stein' | 'vann' | 'sno';
 /** Musikknivået mens spillet står på pause. */
 const DIM = 0.4;
+/**
+ * Melodiene skjelettene spiller når beina spretter (skjelettxylofonen, MIDI-toner). Skrevet for spillet: E-moll
+ * pentaton opp og ned, en liten vals i A-moll, en brutt durakkord og halvtoner nedover til en punchline.
+ */
+const XYLO_TUNES = [
+  [76, 79, 81, 83, 86, 88, 86, 83, 81, 79, 76, 74, 76],
+  [81, 80, 81, 84, 83, 81, 79, 76, 77, 76, 74, 72, 69],
+  [72, 76, 79, 84, 88, 84, 79, 76, 72, 79, 84, 91],
+  [69, 72, 76, 75, 74, 73, 72, 71, 70, 69, 81, 69],
+];
 
 function rep<T>(arr: T[], n: number): T[] {
   const out: T[] = [];
@@ -753,6 +763,34 @@ export class AudioEngine {
     }
   }
 
+  /** Tre terninger som rulles over et bord (ROLL 3D6): tørre klikk som kommer tettere og tettere og stopper. */
+  dice() {
+    if (!this.ok('dice', 0.25) || !this.ctx) return;
+    const c = this.ctx;
+    const t = c.currentTime;
+    let tt = t;
+    for (let i = 0; i < 11; i++) {
+      tt += 0.11 * Math.pow(0.82, i) + rand(0, 0.02);
+      const n = this.noiseSrc(tt, 0.03);
+      const f = c.createBiquadFilter();
+      f.type = 'bandpass';
+      f.frequency.value = rand(2400, 4200);
+      f.Q.value = 4;
+      const g = c.createGain();
+      this.env(g, tt, 0.001, 0.22 * Math.pow(0.9, i), 0.025);
+      n.connect(f).connect(g).connect(this.sfx);
+      // Et lite tre-dunk under klikket
+      const o = c.createOscillator();
+      o.type = 'triangle';
+      o.frequency.value = rand(180, 260);
+      const g2 = c.createGain();
+      this.env(g2, tt, 0.001, 0.08 * Math.pow(0.88, i), 0.04);
+      o.connect(g2).connect(this.sfx);
+      o.start(tt);
+      o.stop(tt + 0.07);
+    }
+  }
+
   /** Mynt: en ekte mynt som faller, med chip-plinget under. */
   coin() {
     if (!this.ok('coin', 0.05)) return;
@@ -1010,12 +1048,14 @@ export class AudioEngine {
    * Våt klask mot skjermglasset: de innspilte splattene fra lydbanken (litt dypere, for et helt hode) oppå et dunk i
    * glasset. FAMILY: en snill "boink".
    */
-  glassSplat(family = false) {
+  glassSplat(family = false, size = 1) {
     if (!this.ok('glass', 0.1)) return;
     const c = this.ctx!;
     const t = c.currentTime;
+    // Små biter (kjøttbiter fra en eksplosjon) klasker lysere og svakere enn et helt hode
+    const k = clamp(size, 0.3, 1), up = 1 + (1 - k) * 0.7;
     // Uten opptakene (eller på FAMILY) står dunket og støyen alene for hele lyden
-    const out = family ? this.sfx : this.rec([['splat', 0.95, 0.8], ['gore', 0.75, 0.85, true], ['splat', 0.5, 1.15]], 0.6);
+    const out = family ? this.sfx : this.rec([['splat', 0.95 * k, 0.8 * up], ['gore', 0.75 * k, 0.85 * up, true], ['splat', 0.5 * k, 1.15 * up]], 0.6);
     const o = c.createOscillator();
     o.type = 'sine';
     if (family) {
@@ -1023,11 +1063,11 @@ export class AudioEngine {
       o.frequency.exponentialRampToValueAtTime(720, t + 0.08);
       o.frequency.exponentialRampToValueAtTime(240, t + 0.3);
     } else {
-      o.frequency.setValueAtTime(130, t);
-      o.frequency.exponentialRampToValueAtTime(42, t + 0.25);
+      o.frequency.setValueAtTime(130 * up, t);
+      o.frequency.exponentialRampToValueAtTime(42 * up, t + 0.25);
     }
     const g = c.createGain();
-    this.env(g, t, 0.003, 0.95, 0.3);
+    this.env(g, t, 0.003, 0.95 * k, 0.3);
     o.connect(g).connect(out);
     o.start(t);
     o.stop(t + 0.4);
@@ -1035,11 +1075,11 @@ export class AudioEngine {
       const n = this.noiseSrc(t, 0.35);
       const f = c.createBiquadFilter();
       f.type = 'lowpass';
-      f.frequency.setValueAtTime(1800, t);
-      f.frequency.exponentialRampToValueAtTime(260, t + 0.35);
+      f.frequency.setValueAtTime(1800 * up, t);
+      f.frequency.exponentialRampToValueAtTime(260 * up, t + 0.35);
       f.Q.value = 5;
       const g2 = c.createGain();
-      this.env(g2, t, 0.002, 0.8, 0.35);
+      this.env(g2, t, 0.002, 0.8 * k, 0.35);
       n.connect(f).connect(g2).connect(out);
     }
     for (const fr of [2630, 3950]) {
@@ -1135,6 +1175,164 @@ export class AudioEngine {
     lfo.start(t);
     o.stop(t + 0.45);
     lfo.stop(t + 0.45);
+  }
+
+  /**
+   * En tone på xylofonen (skjelettet som knuses: hvert bein som spretter, får en tone). En trestav har grunntonen og en
+   * overtone tre ganger så høy, kort klang, og et klikk fra køllen. Svarer om den spilte (sperren mot gjentak kan hoppe
+   * over den, så melodien ikke mister en tone).
+   */
+  xylo(midi: number, pan = 0): boolean {
+    if (!this.ok('xylo', 0.045)) return false;
+    const c = this.ctx!;
+    const t = c.currentTime;
+    const f0 = mtof(midi);
+    const p = c.createStereoPanner();
+    p.pan.value = clamp(pan, -0.7, 0.7);
+    p.connect(this.sfx);
+    for (const [k, a, d] of [[1, 0.3, 0.5], [3, 0.12, 0.16], [5.8, 0.04, 0.06]] as const) {
+      const o = c.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = f0 * k;
+      const g = c.createGain();
+      this.env(g, t, 0.002, a, d);
+      o.connect(g).connect(p);
+      o.start(t);
+      o.stop(t + d + 0.05);
+    }
+    const n = this.noiseSrc(t, 0.02);
+    const f = c.createBiquadFilter();
+    f.type = 'bandpass';
+    f.frequency.value = 3200;
+    f.Q.value = 1.5;
+    const g = c.createGain();
+    this.env(g, t, 0.001, 0.14, 0.02);
+    n.connect(f).connect(g).connect(p);
+    return true;
+  }
+
+  /** En liten melodi for ett skjelett: neste tone hver gang et bein spretter (XYLO_TUNES, se Fighter.die). */
+  xyloTune(): (pan?: number) => void {
+    const m = XYLO_TUNES[Math.floor(Math.random() * XYLO_TUNES.length)];
+    let i = 0;
+    return (pan = 0) => {
+      if (this.xylo(m[i % m.length], pan)) i++;
+    };
+  }
+
+  /** En tann som spretter på bakken: et lite pling (myntopptaket fra lydbanken, høyt og kort) med en ren tone under. */
+  ping() {
+    if (!this.ok('ping', 0.04)) return;
+    const out = this.rec([['tooth', 0.3, rand(1.6, 2)]], 0.45);
+    const c = this.ctx!;
+    const t = c.currentTime;
+    const fr = rand(3200, 4200);
+    for (const [k, a] of [[1, 0.14], [2.76, 0.05]] as const) {
+      const o = c.createOscillator();
+      o.type = 'sine';
+      o.frequency.value = fr * k;
+      const g = c.createGain();
+      this.env(g, t, 0.001, a, 0.12);
+      o.connect(g).connect(out);
+      o.start(t);
+      o.stop(t + 0.18);
+    }
+  }
+
+  /** Et hode som slås avgårde: et tørt smell, som tre mot lær, med et dunk under. */
+  bat() {
+    if (!this.ok('bat', 0.08)) return;
+    const out = this.rec([['hitHeavy', 0.55, 1.3]], 0.4);
+    const c = this.ctx!;
+    const t = c.currentTime;
+    const n = this.noiseSrc(t, 0.05);
+    const f = c.createBiquadFilter();
+    f.type = 'bandpass';
+    f.frequency.value = 2100;
+    f.Q.value = 3;
+    const g = c.createGain();
+    this.env(g, t, 0.001, 0.9, 0.05);
+    n.connect(f).connect(g).connect(out);
+    const o = c.createOscillator();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(420, t);
+    o.frequency.exponentialRampToValueAtTime(110, t + 0.09);
+    const g2 = c.createGain();
+    this.env(g2, t, 0.002, 0.5, 0.1);
+    o.connect(g2).connect(out);
+    o.start(t);
+    o.stop(t + 0.15);
+  }
+
+  /** En fiende som sklir i en blodpytt: et hvin fra foten mot det våte, og et plask når han lander. */
+  slip() {
+    if (!this.ok('slip', 0.12)) return;
+    const c = this.ctx!;
+    const t = c.currentTime;
+    const o = c.createOscillator();
+    o.type = 'triangle';
+    o.frequency.setValueAtTime(520, t);
+    o.frequency.exponentialRampToValueAtTime(1900, t + 0.16);
+    o.frequency.exponentialRampToValueAtTime(1400, t + 0.22);
+    const lfo = c.createOscillator();
+    lfo.frequency.value = 34;
+    const lg = c.createGain();
+    lg.gain.value = 60;
+    lfo.connect(lg).connect(o.frequency);
+    const g = c.createGain();
+    this.env(g, t, 0.01, 0.22, 0.22);
+    o.connect(g).connect(this.sfx);
+    o.start(t);
+    lfo.start(t);
+    o.stop(t + 0.3);
+    lfo.stop(t + 0.3);
+    this.splatSyn(0.8, this.rec([['splash', 0.35, 1.3]], 0.4));
+  }
+
+  /** En paraply som slås opp: et mykt dunk av stoff. */
+  whump() {
+    if (!this.ok('whump', 0.2)) return;
+    const c = this.ctx!;
+    const t = c.currentTime;
+    const n = this.noiseSrc(t, 0.2);
+    const f = c.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.setValueAtTime(1100, t);
+    f.frequency.exponentialRampToValueAtTime(180, t + 0.18);
+    const g = c.createGain();
+    this.env(g, t, 0.01, 0.55, 0.18);
+    n.connect(f).connect(g).connect(this.sfx);
+  }
+
+  /** Blodregn: tett og vått tikk over hele bildet i dur sekunder (en kjempe eller en sjef som er sprengt). */
+  drizzle(dur = 4) {
+    if (!this.ok('drizzle', 1)) return;
+    const c = this.ctx!;
+    const t = c.currentTime;
+    const n = this.noiseSrc(t, dur);
+    const f = c.createBiquadFilter();
+    f.type = 'bandpass';
+    f.frequency.value = 2400;
+    f.Q.value = 0.7;
+    const g = c.createGain();
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.13, t + 0.5);
+    g.gain.setValueAtTime(0.13, t + Math.max(0.6, dur - 0.9));
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    n.connect(f).connect(g).connect(this.sfx);
+    // Dråpene som treffer: korte, våte tikk spredt utover
+    for (let i = 0; i < dur * 16; i++) {
+      const tt = t + rand(0.1, dur - 0.1);
+      const o = c.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(rand(900, 2200), tt);
+      o.frequency.exponentialRampToValueAtTime(rand(300, 600), tt + 0.03);
+      const g2 = c.createGain();
+      this.env(g2, tt, 0.001, rand(0.02, 0.06), 0.03);
+      o.connect(g2).connect(this.sfx);
+      o.start(tt);
+      o.stop(tt + 0.05);
+    }
   }
 
   sizzle(dur = 1) {

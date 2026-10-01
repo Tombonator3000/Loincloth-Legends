@@ -7,6 +7,7 @@ import type { Hero } from './hero';
 import type { Projectiles, ProjKind } from './projectiles';
 import type { Mount } from './mounts';
 import { PANIC_BARKS, CAPTAIN, MOUNT_BARKS, type FoeDef } from '../data/enemies';
+import { SPELL_LINES } from '../data/quips';
 import { audio } from '../core/audio';
 import { screenFX } from '../gfx/screenfx';
 import { attachDoor, attachBow, attachHorn, keepBowUpright } from '../gfx/bossfx';
@@ -150,6 +151,11 @@ export class Foe {
   private bow: THREE.Object3D | null = null;
   /** Griperen har ropt på vennene for dette grepet. */
   private hugging = false;
+  /**
+   * POLYMORPH: CHICKEN (game/spells.ts): sekunder igjen som høne, og figuren han egentlig er (gjemt så lenge). Høna har
+   * tatt over f, onDeath og plassen hans.
+   */
+  chicken: { orig: Fighter; t: number } | null = null;
 
   constructor(public def: FoeDef, x: number, z: number, hpMul = 1) {
     // Litt variasjon per fiende, etter oppskriftssystemet i Toms Morbidium: størrelse og en svak fargetone, så en bølge
@@ -172,6 +178,7 @@ export class Foe {
     if (def.behavior === 'archer') this.bow = attachBow(this.f.rig);
     if (def.horn) this.horn = attachHorn(this.f.rig);
     if (def.hold) this.f.data.holds = true;
+    if (def.death) this.f.fixedDeath = def.death;
   }
 
   /** Gjem deg i buskene bak veien i sek sekunder, og hopp så ut mot nærmeste helt (bakhold, side 'B' i bølgene). */
@@ -426,7 +433,15 @@ export class Foe {
       return;
     }
     f.wantVX = f.wantVZ = 0;
+    // Spiddet på sverdet til en helt (kebab, game/mayhem.ts): han vrir seg, men gjør ingenting annet
+    if (f.skewer) {
+      if (this.token) st.releaseToken(this);
+      if (this.redT > 0) this.endTell();
+      return;
+    }
     if (st.frozen) return;
+    // En høne (POLYMORPH: CHICKEN) har sin egen lille hjerne
+    if (this.chicken) return this.cluck(dt, st);
     // Reiser seg av gulvet: først armene, så resten, med støv og beinbiter rundt
     if (this.riseT > 0) {
       this.riseT -= dt;
@@ -719,6 +734,83 @@ export class Foe {
     if (f.state === 'flee') f.state = 'idle';
     this.cd = rand(0.4, 1);
     this.panicCd = rand(6, 12);
+  }
+
+  /**
+   * Bli til høna hen i sek sekunder (POLYMORPH: CHICKEN, game/spells.ts). Høna tar plassen, retningen og onDeath, og
+   * den egentlige figuren tas ut av scenen til tida er ute (unpolymorph). Den som spør, sjekker at han kan.
+   */
+  polymorph(hen: Fighter, sek: number) {
+    const old = this.f;
+    if (this.redT > 0) this.endTell();
+    hen.pos.copy(old.pos);
+    hen.pos.y = Math.max(0, old.pos.y);
+    hen.onGround = hen.pos.y <= 0.01;
+    hen.face(old.facing);
+    hen.onDeath = old.onDeath;
+    hen.label = 'CHICKEN';
+    // Et fast dødsfall: ett slag, og hun sprenges i fjær (Stage.foeDied og Spells.chickenPopped)
+    hen.fixedDeath = 'explode';
+    old.panicking = false;
+    old.running = false;
+    old.atk = null;
+    old.remove();
+    hen.addTo(W.scene);
+    this.f = hen;
+    this.chicken = { orig: old, t: sek };
+    this.panicT = 0;
+    this.panicDir = 0;
+    this.blockT = 0;
+    this.dodgeT = 0;
+  }
+
+  /** Tida er ute: høna blir borte i en røyksky, og han står der han sto, like forvirret. */
+  unpolymorph() {
+    const c = this.chicken;
+    if (!c) return;
+    const hen = this.f, orig = c.orig;
+    this.chicken = null;
+    orig.pos.set(hen.pos.x, 0, hen.pos.z);
+    orig.vel.set(0, 0, 0);
+    orig.onGround = true;
+    orig.setState('idle');
+    orig.face(hen.facing);
+    orig.onDeath = hen.onDeath;
+    hen.remove();
+    orig.addTo(W.scene);
+    this.f = orig;
+    this.cd = rand(0.6, 1.2);
+    this.panicCd = rand(3, 6);
+    const p = orig.torsoPoint();
+    for (let i = 0; i < 6; i++) W.gore.vfx.puff(p.x, p.y, p.z, 0.8, 0.8, '#e8e2d8', 0.4, 1.4, 0.9);
+    audio.whump();
+    W.fx.text(orig.headPoint().add(new THREE.Vector3(0, 0.8, 0)), pick(SPELL_LINES.unchicken), 'speech', 1.6);
+  }
+
+  /** Høna: løper i panikk hit og dit med vingene i været, hopper og kakler, og snur ved kanten av bildet. */
+  private cluck(dt: number, st: FoeWorld) {
+    const f = this.f, c = this.chicken!;
+    if (this.token) st.releaseToken(this);
+    c.t -= dt;
+    if (c.t <= 0 && f.onGround && f.canAct()) return this.unpolymorph();
+    if (!f.canAct()) return;
+    const h = st.nearestHero(f.pos);
+    if (!this.panicDir || chance(dt * 0.7)) this.panicDir = h && chance(0.75) ? (f.pos.x >= h.f.pos.x ? 1 : -1) : pick([-1, 1]);
+    // Snur før kanten av bildet (Stage holder figurene et stykke innenfor), ellers blir hun stående og trippe der
+    const edge = st.camX + this.panicDir * (st.halfW - 1.8);
+    if (this.panicDir * (f.pos.x - edge) > 0) this.panicDir = -this.panicDir;
+    f.running = true;
+    f.panicking = true;
+    f.state = 'flee';
+    f.wantVX = this.panicDir * f.speed;
+    f.wantVZ = Math.sin(W.time * 5.5 + f.id * 2.3) * 2.6;
+    f.face(this.panicDir);
+    if (f.onGround && chance(dt * 0.9)) {
+      f.vel.y = 3.2;
+      f.onGround = false;
+    }
+    if (chance(dt * 1.4)) audio.cluck();
+    if (chance(dt * 2.5)) W.gore.ambient(f.pos.x, f.pos.y + 0.45 * f.size, f.pos.z, rand(-0.5, 0.5), rand(0.3, 0.9), '#f1e7cf', 0.07, 1.2, false, 0.3);
   }
 
   /** Panikkflukten: bort fra nærmeste helt, snur ved kanten av bildet, alltid saktere enn helten går. */

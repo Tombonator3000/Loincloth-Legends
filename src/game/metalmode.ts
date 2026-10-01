@@ -57,9 +57,12 @@ export class MetalMode {
     return this.left > 0;
   }
 
+  /** Ganges med alt som fyller måleren (barden fyller den dobbelt så fort, data/classes.ts). */
+  gain = 1;
+
   add(v: number) {
     if (this.on) return;
-    this.meter = Math.min(1, this.meter + v);
+    this.meter = Math.min(1, this.meter + v * this.gain);
   }
 
   /** Et drap gjort av en helt (eller heltens magi). */

@@ -21,6 +21,9 @@ import { Icicles, ICICLE_WARN } from './icicles';
 import { fadeFronts, type Tippable, type Crush } from '../gfx/env/common';
 import { Mount, type MountWorld } from './mounts';
 import { Pet, type PetWorld } from './pets';
+import { Mayhem, type MayhemWorld } from './mayhem';
+import { Spells, SPELL, type SpellWorld } from './spells';
+import { ClassPlay, type ClassWorld } from './classes';
 import { MOUNTS } from '../data/mounts';
 import { W } from './world';
 import { STAGE_BUILDERS } from '../gfx/env';
@@ -49,10 +52,6 @@ import { COOP_CAM, coopCameraFrame, stageCameraHalfWidth } from '../gfx/stagecam
 const GORY = ['decap', 'explode', 'bisect', 'headsplode', 'dismember', 'legsoff'];
 const Z_MIN = -2.6;
 const Z_MAX = 2.6;
-const MAGIC_ATK: AttackDef = { ...HERO_ATK.chop, id: 'magic', kd: true, launch: 8, push: 6, death: ['explode'], heavy: true, word: ['KABOOM!'] };
-const SCREAM_ATK: AttackDef = { ...HERO_ATK.chop, id: 'scream', kd: true, launch: 6, push: 8, death: ['headsplode'], heavy: true, word: ['AAAAAH!'] };
-const THUNDER_ATK: AttackDef = { ...HERO_ATK.chop, id: 'thunder', kd: true, launch: 5, push: 3, death: ['explode', 'headsplode'], heavy: true, word: ['KRAKOOM!', 'ZZZAP!'] };
-const MAGIC_NAMES = { meteor: 'METEOR OF EXCESSIVE FORCE', scream: 'SCREAM OF THE ANCESTORS', thunder: 'WRATH OF THE THUNDER GOD' };
 /** En søyle i jungelen som faller på en helt (Stage.crush): mye skade, og han veltes. */
 const PILLAR_HIT: AttackDef = { ...HERO_ATK.chop, id: 'pillar', dmg: 24, kd: true, launch: 4, push: 3, heavy: true, death: ['explode'], word: ['CRUNCH!'] };
 /** Sekunder per replikk når Vorthax taler fra himmelen (LevelDef.vorthax). */
@@ -62,7 +61,7 @@ const PILLAR_BOSS = 0.07;
 
 export type StageResult = '' | 'complete' | 'duel' | 'gameover';
 
-export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWorld {
+export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWorld, MayhemWorld, SpellWorld, ClassWorld {
   heroes: Hero[] = [];
   foes: Foe[] = [];
   pickups: Pickup[] = [];
@@ -96,12 +95,20 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   icicles: Icicles;
   tippables: Tippable[] = [];
   embers: { x: number; z: number; t: number }[] = [];
-  /** Skjult figur som «slår» med istapper og glør (applyHit trenger en angriper). */
-  private nature = new Fighter('skeleton', 'enemy', { hp: 1, speed: 0 });
+  /** Skjult figur som «slår» med istapper, glør og bitt fra overkropper (applyHit trenger en angriper). */
+  readonly nature = new Fighter('skeleton', 'enemy', { hp: 1, speed: 0 });
+  /**
+   * Teit vold (game/mayhem.ts): overkropper som kryper, hoder som slås som baller, fiender på sverdet, glatte pytter,
+   * blodregn med gnomen og paraplyen, og ildimper som smeller.
+   */
+  mayhem: Mayhem = new Mayhem(this);
   mounts: Mount[] = [];
   pets: Pet[] = [];
   private hazardCd = new Map<number, number>();
-  magic: { hero: Hero; level: number; t: number; targets: Fighter[]; hit: Set<number>; meteors: { x: number; z: number; t: number; hit: boolean; f: Fighter }[] } | null = null;
+  /** Magien (game/spells.ts): kastet som pågår, olja på veien, hønene og fjærene. */
+  spells: Spells = new Spells(this);
+  /** Klassene (game/classes.ts): terningene på tunge slag, prestens helbredelse og tyvens tyveri. */
+  classes: ClassPlay = new ClassPlay(this);
   introT = 0;
   bounds: Bounds = { minX: -3, maxX: 20, minZ: Z_MIN, maxZ: Z_MAX };
   readonly L: number;
@@ -167,6 +174,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     env.generators = usedGenerators();
     W.gore.bounds = { minX: -8, maxX: this.L + 5, minZ: -6, maxZ: 5 };
     W.gore.holes = holes;
+    // De store blodpyttene er glatte en stund
+    W.gore.onPool = (x, z, size, kind) => this.mayhem.addSlick(x, z, size, kind);
     withSeed(seed ^ 0x27d4eb2f, () => {
       for (const h of level.hazards ?? []) this.hazards.push(new Hazard(h, buildHazard(env.group, W.gore, h)));
     });
@@ -211,6 +220,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     for (const [x, drop] of level.barrels) this.barrels.push(new Barrel(x, rand(-1.8, 1.8), drop));
     for (const p of this.pets) p.addTo(W.scene);
     hud.showBrawler(this.heroes);
+    // Barden fyller METAL-måleren dobbelt så fort for alle (data/classes.ts)
+    this.metal.gain = Math.max(1, ...this.heroes.map((h) => h.cls.metal));
     hud.announce(level.name, 'stage', 2.4, level.subtitle);
     // Låta starter med en gang (fra menyen), rolig til første bølge, og den store akkorden lander på første slag
     audio.play(level.music);
@@ -524,7 +535,18 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
       W.fx.hurlAtScreen(d.obj, f.headImg(), 0.5, () => W.gore.removeDebris(d));
       W.fx.text(f.headPoint().add(new THREE.Vector3(0, 0.8, 0)), pick(['HEADS UP!', 'INCOMING!', 'LOOK OUT!']), 'kill big', 0.9);
     }
+    // Teit vold (game/mayhem.ts): hodet som ble liggende kan slås som en ball, overkroppen kan krype videre, ildimpene
+    // smeller, og en kjempe som sprenges, gir blodregn
+    if ((style === 'decap' || style === 'dismember') && f.headDebris && !f.headDebris.held) this.mayhem.addHead(f.headDebris);
+    if (style === 'bisect') this.mayhem.maybeCrawl(f);
+    if (foe.def.burst) this.mayhem.impBurst(f, foe.def.burst);
+    if (foe.def.bloodRain && style === 'explode') this.mayhem.bloodRain();
     const p = f.pos;
+    // En høne (POLYMORPH: CHICKEN, game/spells.ts) sprenges i fjær, og av og til ligger det en stekt kylling igjen
+    if (foe.chicken) {
+      this.spells.chickenPopped(foe);
+      if (chance(SPELL.chicken.drop)) this.pickups.push(new Pickup('chicken', p.x, 1, p.z, 30));
+    }
     for (let i = 0; i < foe.def.gold; i++) this.pickups.push(new Pickup('coin', p.x, 1, p.z, 10));
     if (f.envKill) {
       // Miljødrap gir bonus
@@ -730,7 +752,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   }
 
   /** Sett fyr på en figur i sek sekunder. Fiender som tar fyr, får panikk. */
-  private ignite(f: Fighter, sek: number) {
+  ignite(f: Fighter, sek: number) {
     // Figurer av lava (Magmor, ildimpene) brenner ikke
     if (f.def.blood === 'lava') return;
     const fresh = f.burnT <= 0;
@@ -781,122 +803,28 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     W.fx.text(nf.pos.clone().add(new THREE.Vector3(0, -3, 0)), 'BACK FROM VALHALLA!', 'word');
   }
 
+  /** Kastet som pågår (null ellers). Drap mens det pågår, gis til helten som kastet. */
+  get magic() {
+    return this.spells.cast;
+  }
+
   castMagic(h: Hero) {
+    this.spells.begin(h);
+  }
+
+  /** Alven skyter en pil langs linja (data/classes.ts). Pila tar skaden fra skuddet, også en naturlig tjuer. */
+  shoot(h: Hero, a: AttackDef) {
     const f = h.f;
-    const level = h.potions;
-    h.potions = 0;
-    f.setState('magic');
-    f.vel.set(0, 0, 0);
-    this.frozen = true;
-    const targets = this.foes.filter((x) => x.f.alive && !x.f.hidden && this.onScreen(x.f.pos.x, 0.5)).map((x) => x.f);
-    if (this.boss?.f.alive && this.onScreen(this.boss.f.pos.x, 1)) targets.push(this.boss.f);
-    this.magic = { hero: h, level, t: 0, targets, hit: new Set(), meteors: [] };
-    this.hud.announce(MAGIC_NAMES[h.magic], 'magic', 1.8, 'LEVEL ' + level);
-    audio.magic();
-    W.fx.flash('#1a0030', 0.55, 1.2);
+    this.proj.spawn({
+      kind: 'arrow', owner: f, x: f.pos.x + f.facing * 0.55 * f.size, y: f.pos.y + 1.22 * f.size, z: f.pos.z, vx: f.facing * 16,
+      dmg: a.dmg * f.dmgMul * f.critMul, life: 1.3, atk: a,
+    });
+    audio.swish(1.5);
   }
 
-  private updateMagic(dt: number) {
-    const m = this.magic!;
-    m.t += dt;
-    const hf = m.hero.f;
-    const dmg = (18 + 14 * m.level) * m.hero.fx.magicMul;
-    const bossDmg = (t: Fighter) => (this.boss && t === this.boss.f ? dmg * 0.6 : dmg);
-    if (m.t < 0.7) {
-      if (m.hero.magic === 'thunder') W.gore.sparks(hf.rig.weaponTip(), 2, '#bfe8ff', 4);
-      else W.gore.fire(hf.headPoint().add(new THREE.Vector3(0, 0.6, 0)), 2, 0.3, 3);
-      return;
-    }
-    if (m.hero.magic === 'thunder') {
-      // Tordenguden: lynet slår først ned i heltens våpen, så i hver fiende etter tur. Flere krukker gir
-      // flere og kraftigere lyn, og fra nivå 3 slår det ned rundt omkring også (maginivåene i Golden Axe)
-      const sky = (x: number, z: number) => new THREE.Vector3(x + rand(-2, 2), 15, z - 3);
-      if (!m.meteors.length) {
-        m.targets.forEach((f, i) => m.meteors.push({ x: f.pos.x, z: f.pos.z, t: -0.25 - i * 0.14, hit: false, f }));
-        for (let i = 0; i < Math.max(0, m.level - 2) * 2; i++) m.meteors.push({ x: hf.pos.x + rand(-8, 8), z: rand(-2.4, 2.4), t: -rand(0.2, 1.1), hit: false, f: hf });
-        W.gore.vfx.lightning(sky(hf.pos.x, hf.pos.z), hf.rig.weaponTip(), '#cfe8ff', 0.3);
-        audio.thunder(0.8);
-        W.fx.lightningFlash(0.4, 0.2);
-      }
-      let allDone = true;
-      for (const mt of m.meteors) {
-        if (mt.hit) continue;
-        allDone = false;
-        mt.t += dt;
-        if (mt.t < 0) continue;
-        mt.hit = true;
-        const onFoe = mt.f !== hf && mt.f.alive;
-        const x = onFoe ? mt.f.pos.x : mt.x, z = onFoe ? mt.f.pos.z : mt.z;
-        W.gore.vfx.lightning(sky(x, z), new THREE.Vector3(x, 0.05, z), m.level >= 5 ? '#e6d0ff' : '#9fd8ff', 0.2 + m.level * 0.03);
-        audio.thunder(0.5 + m.level * 0.08);
-        W.fx.shake(0.35 + m.level * 0.06);
-        W.fx.lightningFlash(0.15 + m.level * 0.02, 0.12);
-        if (onFoe) applyHit(hf, mt.f, THUNDER_ATK, bossDmg(mt.f));
-      }
-      if (allDone && m.t > 1.4) this.endMagic();
-    } else if (m.hero.magic === 'meteor') {
-      if (!m.meteors.length) {
-        m.targets.forEach((f, i) => m.meteors.push({ x: f.pos.x, z: f.pos.z, t: -i * 0.12, hit: false, f }));
-        if (!m.targets.length) m.meteors.push({ x: hf.pos.x + hf.facing * 4, z: hf.pos.z, t: 0, hit: false, f: hf });
-      }
-      let allDone = true;
-      for (const mt of m.meteors) {
-        mt.t += dt;
-        if (mt.t < 0) {
-          allDone = false;
-          continue;
-        }
-        const k = Math.min(1, mt.t / 0.4);
-        const pos = new THREE.Vector3(mt.x - 4 * (1 - k), 12 * (1 - k) + 0.8, mt.z);
-        if (!mt.hit) {
-          allDone = false;
-          W.gore.fire(pos, 3, 0.35, 0.5);
-          W.gore.flare(pos, 1.2, '#ffb02e', 0.05);
-          if (k >= 1) {
-            mt.hit = true;
-            W.gore.flare(pos, 3, '#ffd35a', 0.4);
-            W.gore.fire(pos, 30, 1.2, 5);
-            audio.boom(1);
-            W.fx.shake(0.7);
-            screenFX.boom(pos, 1.2);
-            screenFX.addHeat(pos.clone().setY(0.2), 1.8, 1, false, 2);
-            if (mt.f !== hf && mt.f.alive) applyHit(hf, mt.f, MAGIC_ATK, bossDmg(mt.f));
-          }
-        }
-      }
-      if (allDone && m.t > 1.2) this.endMagic();
-    } else {
-      const r = (m.t - 0.7) * 16;
-      if (m.t < 1.4) {
-        for (let i = 0; i < 12; i++) {
-          const a = rand(0, Math.PI * 2);
-          W.gore.flare(new THREE.Vector3(hf.pos.x + Math.cos(a) * r, 1 + Math.sin(a) * r * 0.25, hf.pos.z), 0.6, '#9fd8ff', 0.2);
-        }
-        if (m.t - dt < 0.7) {
-          audio.scream('heroine');
-          audio.boom(0.7);
-          W.fx.shake(0.6);
-          // Skriket sender en stor, langsom sjokkbølge ut fra helten
-          screenFX.shock(hf.headPoint(), 1.8, 1.1, 1.0);
-          screenFX.dive(0.08);
-        }
-      }
-      for (const f of m.targets) {
-        if (m.hit.has(f.id) || !f.alive) continue;
-        if (Math.abs(f.pos.x - hf.pos.x) < r) {
-          m.hit.add(f.id);
-          applyHit(hf, f, SCREAM_ATK, bossDmg(f));
-        }
-      }
-      if (m.t > 1.8) this.endMagic();
-    }
-  }
-
-  private endMagic() {
-    const m = this.magic!;
-    if (m.hero.f.alive) m.hero.f.setState('idle');
-    this.magic = null;
-    this.frozen = false;
+  /** Ild ved (x, z): olje der tar fyr (ildimpene som smeller, game/mayhem.ts). */
+  fireAt(x: number, z: number, r: number) {
+    this.spells.fireAt(x, z, r);
   }
 
   // ---------------------------------------------------------------- sjef
@@ -1028,7 +956,9 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
       W.gore.later(3.2, () => this.hud.say('PRINCESS AMBERLY', 'FINALLY. I HAVE BEEN BORED IN HERE FOR THREE WEEKS.', 2.6));
       this.finale = null;
     }
-    this.finishT = fin ? 6.5 : 4.5;
+    // Sjefen sprenges: det regner blod over hele bildet, og gnomen rekker å slå opp paraplyen før brettet er over
+    this.mayhem.bloodRain();
+    this.finishT = fin ? 8 : 6;
   }
 
   // ---------------------------------------------------------------- oppdatering
@@ -1143,13 +1073,14 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     this.pace = this.director.pace();
     // Aktører
     for (const h of this.heroes) h.update(dt, this);
+    this.classes.update(dt);
     // Ridedyr som er tatt av en fiende som er død eller sitter på et annet dyr, er ledige igjen
     for (const [m, o] of this.claims) if (!o.f.alive || o.f.mount || m.removeMe || !this.mounts.includes(m)) this.claims.delete(m);
     for (const fo of this.foes) fo.update(dt, this);
     this.boss?.update(dt);
     this.updateFinale(dt);
     this.lavaFx?.update(dt);
-    if (this.magic) this.updateMagic(dt);
+    this.spells.update(dt);
     for (const m of this.mounts) {
       const inside = Math.abs(m.pos.x - this.camX) < this.halfW - 0.8;
       if (inside && (m.rider?.team === 'enemy' || (!m.rider && this.lockX !== null))) m.entered = true;
@@ -1174,6 +1105,10 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
           // Den ekte Vorthax ble truffet: speilbildene forsvinner
           if (this.boss && t === this.boss.f && !r.blocked) this.boss.dispel();
           if (!t.illusion) this.onFoeHit(h, t, r.killed);
+          // Løpeslaget med sverd spidder fienden (kebab, game/mayhem.ts)
+          if (!r.blocked && !t.illusion) this.mayhem.dashHit(h, t);
+          // Tyven stjeler (game/classes.ts)
+          if (!t.illusion) this.classes.onHit(h, t, r.blocked);
         },
       });
       this.hitBarrels(h.f);
@@ -1212,6 +1147,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     this.updateProps(dt, heroF, foeF);
     this.updateFronts(dt);
     this.proj.update(dt, [...heroF, ...foeF]);
+    this.mayhem.update(dt);
     for (const o of this.others) o.update(dt, this.bounds);
     this.others = this.others.filter((o) => {
       if (o.removeMe) o.remove();
@@ -1227,7 +1163,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     for (let i = 0; i < this.foes.length; i++)
       for (let j = i + 1; j < this.foes.length; j++) {
         const a = this.foes[i].f, b = this.foes[j].f;
-        if (!a.alive || !b.alive) continue;
+        if (!a.alive || !b.alive || a.skewer || b.skewer) continue;
         const dx = b.pos.x - a.pos.x, dz = b.pos.z - a.pos.z;
         const d = Math.hypot(dx, dz * 1.6);
         if (d < 0.7 && d > 0.001) {
@@ -1521,6 +1457,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   dispose() {
     this.vision?.dispose();
     this.vision = null;
+    this.mayhem.dispose();
+    this.spells.dispose();
     this.scenery.dispose();
     this.metal.stop();
     audio.ambience(null);

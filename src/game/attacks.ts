@@ -38,6 +38,9 @@ export const P = {
   neckS: { armF: 1.6, weapon: -3.15, torso: -0.3, legF: 0.3, legB: -0.5, armB: -0.6, bodyX: 0.3 },
   throwW: { armF: 2.6, weapon: -0.2, torso: 0.25, armB: 0.8 },
   throwS: { armF: 1.2, weapon: -2.1, torso: -0.3, armB: -0.4 },
+  // Alven med buen (data/classes.ts): buen loddrett foran seg, strengen trekkes til brystet og slippes
+  bowW: { armF: 1.5, weapon: -1.5, armB: 1.35, elbowB: 2.0, elbowF: 0.05, torso: 0.08, head: 0.05, legF: 0.3, legB: -0.3 },
+  bowS: { armF: 1.58, weapon: -1.58, armB: 0.95, elbowB: 0.6, elbowF: 0.05, torso: -0.06, head: 0.0, legF: 0.35, legB: -0.35, bodyX: -0.05 },
   roll: { legF: 1.9, legB: 1.7, armF: 1.2, armB: 1.0, torso: -0.9, head: -0.4, weapon: -1.6 },
   stunned: { torso: 0.25, head: 0.4, armF: 0.2, armB: 0.2, weapon: -3.0, legF: 0.15, legB: -0.25 },
   drag: { torso: -0.5, armF: -0.9, armB: -0.9, weapon: -1.0, legF: 0.6, legB: -0.6 },
@@ -143,6 +146,10 @@ export const HERO_ATK = {
   chop: A({ id: 'chop', startup: 0.15, active: 0.1, recovery: 0.3, dmg: 16, reach: 2.15, zr: 0.9, height: 'high', kd: true, launch: 6.5, push: 5, stun: 0.6, heavy: true, lunge: 2.5, wind: P.chopW, strike: P.chopS, death: ['headsplode', 'bisect', 'explode', 'decap'], swoosh: 'over', word: ['CHOP!', 'THWACK!', 'KRUNCH!'] }),
   jump: A({ id: 'jump', startup: 0.05, active: 0.22, recovery: 0.08, dmg: 12, reach: 2.0, zr: 0.9, height: 'high', kd: true, launch: 4, push: 4, stun: 0.5, air: true, wind: P.jumpW, strike: P.jumpS, death: ['explode', 'headsplode', 'bisect'], swoosh: 'over', word: ['SPLAT!', 'SQUELCH!'] }),
   dash: A({ id: 'dash', startup: 0.03, active: 0.3, recovery: 0.25, dmg: 10, reach: 1.3, back: 0.2, zr: 0.9, height: 'mid', kd: true, launch: 5, push: 7, stun: 0.5, lunge: 9, guardBreak: true, wind: P.dashS, strike: P.dashS, death: ['explode', 'dismember'], swoosh: 'none', word: ['BONK!', 'OOF!'] }),
+  // Alvens piler (data/classes.ts): samme kombo som slagene, men Stage.shoot skyter en pil langs linja midt i skuddet
+  shot1: A({ id: 'shot1', startup: 0.13, active: 0.05, recovery: 0.16, dmg: 7, reach: 0, zr: 0, height: 'mid', push: 1.5, stun: 0.3, projectile: true, wind: P.bowW, strike: P.bowS, death: ['normal'], swoosh: 'none' }),
+  shot2: A({ id: 'shot2', startup: 0.12, active: 0.05, recovery: 0.16, dmg: 7, reach: 0, zr: 0, height: 'mid', push: 1.5, stun: 0.3, projectile: true, wind: P.bowW, strike: P.bowS, death: ['normal'], swoosh: 'none' }),
+  shot3: A({ id: 'shot3', startup: 0.22, active: 0.05, recovery: 0.3, dmg: 13, reach: 0, zr: 0, height: 'mid', kd: true, launch: 3, push: 4, stun: 0.5, heavy: true, projectile: true, wind: P.bowW, strike: P.bowS, death: ['normal', 'decap'], swoosh: 'none', word: ['THWIP!'] }),
   spin: A({ id: 'spin', startup: 0.08, active: 0.48, recovery: 0.25, dmg: 7, hits: 3, reach: 2.2, back: 2.2, zr: 1.0, height: 'mid', kd: true, launch: 5, push: 5, stun: 0.5, spin: true, hpCost: 6, wind: P.spin, strike: P.spin, death: ['dismember', 'bisect', 'decap'], swoosh: 'spin' }),
 };
 

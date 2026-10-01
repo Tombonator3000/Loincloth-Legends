@@ -22,6 +22,8 @@ export interface HitOpts {
 }
 
 const tmp = new THREE.Vector3();
+/** Sjansen for at et tungt slag i ansiktet slår ut tenner, per gore-nivå (FAMILY, NORMAL, EXCESSIVE, PLEASE SEEK HELP). */
+export const TEETH_ODDS = [0, 0.35, 0.55, 0.8];
 
 export function canHit(att: Fighter, tgt: Fighter, a: AttackDef, pvp = false) {
   if (tgt === att || !tgt.alive || tgt.invuln > 0 || tgt.rising || tgt.hidden) return false;
@@ -149,7 +151,12 @@ export function applyHit(att: Fighter, tgt: Fighter, a: AttackDef, dmgOverride?:
     return res;
   }
 
-  let dmg = (dmgOverride ?? a.dmg * att.dmgMul) * tgt.dmgTaken;
+  let dmg = (dmgOverride ?? a.dmg * att.dmgMul * att.critMul) * tgt.dmgTaken;
+  // Bakfra (tyven): målet ser den andre veien
+  if (att.backstab > 1 && dmgOverride === undefined && tgt.facing === Math.sign(tgt.pos.x - att.pos.x) && !tgt.mount) {
+    dmg *= att.backstab;
+    W.fx.text(contact.clone().add(new THREE.Vector3(0, 1.0, 0)), 'BACKSTAB!', 'kill big', 0.9);
+  }
   if (a.decap && tgt.pos.y < 1.2) {
     dmg = tgt.hp + 999;
     res.decap = true;
@@ -177,6 +184,10 @@ export function applyHit(att: Fighter, tgt: Fighter, a: AttackDef, dmgOverride?:
     audio.splat(0.5 + dmg * 0.03);
   }
   audio.hit(heavy);
+  // Tunge slag i ansiktet slår ut noen tenner, som sier pling når de spretter på bakken
+  if (heavy && a.height === 'high' && tgt.def.blood !== 'lava' && !tgt.rig.detached.has('head') && chance(TEETH_ODDS[settings.gore])) {
+    W.gore.teeth(tgt.headPoint(), dir, 1 + Math.floor(rand(0, 3)));
+  }
 
   if (tgt.hp <= 0) {
     res.killed = true;

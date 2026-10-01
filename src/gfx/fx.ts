@@ -3,11 +3,13 @@
 // Det flate 2D-blodet her er reserven på LOW, og FAMILY får konfetti i stedet.
 import * as THREE from 'three';
 import { plainCanvas } from './draw';
-import { rand, pick } from '../core/math';
+import { rand, pick, clamp, seeded } from '../core/math';
 import { settings } from '../core/settings';
 import { audio } from '../core/audio';
 import { CONFETTI } from './gore';
+import { makeGib } from './gibs';
 import { screenFX } from './screenfx';
+import { MAYHEM_LINES } from '../data/quips';
 
 function arcTexture() {
   const cv = plainCanvas(256, 256, (c) => {
@@ -42,8 +44,16 @@ function arcTexture() {
 interface Swoosh { mesh: THREE.Mesh; life: number; max: number }
 interface FloatText { el: HTMLDivElement; pos: THREE.Vector3; life: number; max: number; vy: number }
 interface ScreenDrop { x: number; y: number; r: number; vy: number; a: number; trail: number; col?: string }
-/** Et hode (eller annet) som flyr mot kameraet og klasker i skjermen. */
-interface Flyer { obj: THREE.Object3D; t: number; dur: number; spin: number; sx: number; sy: number; from: THREE.Vector3; img: HTMLCanvasElement; family: boolean; onArrive?: () => void }
+/**
+ * Et hode (eller annet) som flyr mot kameraet og klasker i skjermen. size er høyden på glasset (andel av skjermen),
+ * words det hodet sier før det sklir, og chunk er en kjøttbit fra en eksplosjon (ingen ord, mindre sprut).
+ */
+interface Flyer {
+  obj: THREE.Object3D; t: number; dur: number; spin: number; sx: number; sy: number; from: THREE.Vector3; img: HTMLCanvasElement; family: boolean;
+  size: number; words: string | null; chunk: boolean; onArrive?: () => void;
+}
+/** Valg for hurlAtScreen. words: false gir ingen replikk, uten words får et hode en tilfeldig av de siste ordene. */
+export interface GlassOpts { size?: number; words?: string | false; sx?: number; sy?: number; chunk?: boolean }
 /** En søyle (2 piksler bred) i blodsporet etter hodet: tetthet, farge, og hvor langt under starten den begynner. */
 interface TrailCol { a: number; col: string; off: number }
 /** En renne: blod som samler seg i kanten av sporet og renner ned for seg selv, med en dråpe i enden. */
@@ -56,11 +66,22 @@ interface GlassHead {
   img: HTMLCanvasElement; x: number; y: number; y0: number; size: number; rot: number; t: number; vy: number;
   stopSqueak: (() => void) | null; done: boolean; family: boolean; stickT: number; fade: number;
   head: number; blood: number; cols: TrailCol[]; trailY: number; phase: number; drips: Drip[];
+  /** Snakkeboblen med de siste ordene (bare hoder), og om dette er en kjøttbit. */
+  words: HTMLDivElement | null; chunk: boolean;
 }
 
-/** Hodet i glasset: hvor lenge det synes etter at det begynner å skli, og hvor lenge det tones ut (sekunder). */
-const HEAD_SHOW = 0.9;
+/**
+ * Hodet i glasset: hvor lenge det synes etter at det begynner å skli, og hvor lenge det tones ut (sekunder). Med siste
+ * ord henger det litt lenger før det sklir (WORDS_STICK), men er fortsatt borte innen tre sekunder.
+ */
+const HEAD_SHOW = 0.75;
 const HEAD_FADE = 1.1;
+const WORDS_STICK = [0.75, 0.85] as const;
+/** Hvor lenge snakkeboblen med de siste ordene synes, og hvor lenge den tones ut. */
+const WORDS_SHOW = 1.25;
+const WORDS_FADE = 0.25;
+/** Kjøttbiter på glasset: hvor nær kameraet eksplosjonen må være, og sjansen per gore-nivå (FAMILY har ingen). */
+export const GLASS_GIBS = { near: 10.6, odds: [0, 0.35, 0.6, 0.9] };
 /** Hvor langt (andel av skjermhøyden) blodet rekker før sporet tørker ut, og hvor fort sporet falmer etterpå. */
 const TRAIL_REACH = 0.38;
 const TRAIL_FADE = 0.45;
@@ -88,6 +109,132 @@ function trailProfile(width: number): TrailCol[] {
   return cols;
 }
 
+const chunkCache: HTMLCanvasElement[] = [];
+/**
+ * En kjøttbit malt for glasset (tre varianter): en ujevn klump av mørk muskel med bøyde fibre på skrå, fettklumper og
+ * fettårer, mørk kant, en våt hinne med blanke glimt langs kanten, og i én av dem en beinflis som stikker ut.
+ */
+function chunkImage() {
+  const i = Math.floor(Math.random() * 3);
+  return (chunkCache[i] ??= plainCanvas(160, 160, (c) => {
+    const r = seeded(7 + i * 31);
+    const cx = 80, cy = 82, pts: [number, number][] = [];
+    for (let k = 0; k < 18; k++) {
+      const a = (k / 18) * Math.PI * 2, rr = 44 + r() * 20 + (k % 4 === 0 ? 7 : 0);
+      pts.push([cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.8]);
+    }
+    const path = () => {
+      c.beginPath();
+      pts.forEach(([x, y], k) => {
+        const [nx, ny] = pts[(k + 1) % pts.length];
+        if (!k) c.moveTo((x + nx) / 2, (y + ny) / 2);
+        else c.quadraticCurveTo(x, y, (x + nx) / 2, (y + ny) / 2);
+      });
+      const [x0, y0] = pts[0], [x1, y1] = pts[1];
+      c.quadraticCurveTo(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2);
+      c.closePath();
+    };
+    if (i === 2) {
+      // Beinflisa ligger under kjøttet og stikker ut på siden
+      c.save();
+      c.translate(122, 48);
+      c.rotate(-0.6);
+      const bg = c.createLinearGradient(-8, 0, 8, 0);
+      bg.addColorStop(0, '#cbb894');
+      bg.addColorStop(0.5, '#f2e6cc');
+      bg.addColorStop(1, '#b8a47e');
+      c.fillStyle = bg;
+      c.beginPath();
+      c.roundRect(-8, -28, 16, 56, 7);
+      c.fill();
+      c.fillStyle = '#4a1008';
+      c.beginPath();
+      c.ellipse(0, -26, 4.5, 3, 0, 0, Math.PI * 2);
+      c.fill();
+      c.restore();
+    }
+    path();
+    const g = c.createRadialGradient(cx - 14, cy - 16, 4, cx, cy, 72);
+    g.addColorStop(0, '#b42432');
+    g.addColorStop(0.5, '#7a0c18');
+    g.addColorStop(1, '#3a040a');
+    c.fillStyle = g;
+    c.fill();
+    c.save();
+    path();
+    c.clip();
+    // Muskelfibre: tette, tynne streker på skrå som bøyer seg litt, ujevne i tykkelse og styrke
+    const fa = -0.5 + r() * 1.0, ca = Math.cos(fa), sa = Math.sin(fa);
+    for (let k = -90; k < 90; k += 3 + r() * 4) {
+      const bend = (r() - 0.5) * 22;
+      c.strokeStyle = `rgba(${40 + r() * 30 | 0},0,8,${0.18 + r() * 0.3})`;
+      c.lineWidth = 0.8 + r() * 1.4;
+      c.beginPath();
+      c.moveTo(cx - ca * 90 - sa * k, cy - sa * 90 + ca * k);
+      c.quadraticCurveTo(cx - sa * (k + bend), cy + ca * (k + bend), cx + ca * 90 - sa * k, cy + sa * 90 + ca * k);
+      c.stroke();
+    }
+    // Fettklumper og et par myke fettårer langs fibrene
+    for (let k = 0; k < 3; k++) {
+      const fx0 = 40 + r() * 80, fy0 = 40 + r() * 70, fr = 6 + r() * 10;
+      const fg = c.createRadialGradient(fx0, fy0, 0, fx0, fy0, fr);
+      fg.addColorStop(0, 'rgba(240,214,176,0.9)');
+      fg.addColorStop(0.7, 'rgba(222,184,146,0.55)');
+      fg.addColorStop(1, 'rgba(200,120,110,0)');
+      c.fillStyle = fg;
+      c.beginPath();
+      c.ellipse(fx0, fy0, fr * 1.5, fr, fa + (r() - 0.5) * 0.6, 0, Math.PI * 2);
+      c.fill();
+    }
+    for (let k = 0; k < 2; k++) {
+      const off = (r() - 0.5) * 70, bend = (r() - 0.5) * 30;
+      c.strokeStyle = 'rgba(232,200,168,0.45)';
+      c.lineWidth = 2 + r() * 2.5;
+      c.beginPath();
+      c.moveTo(cx - ca * 70 - sa * off, cy - sa * 70 + ca * off);
+      c.quadraticCurveTo(cx - sa * (off + bend), cy + ca * (off + bend), cx + ca * 70 - sa * off, cy + sa * 70 + ca * off);
+      c.stroke();
+    }
+    // Mørke levrer og en mørk kant nederst til høyre (skyggen i bildet kommer alltid fra samme kant)
+    c.fillStyle = 'rgba(40,0,6,0.55)';
+    for (let k = 0; k < 4; k++) {
+      c.beginPath();
+      c.ellipse(50 + r() * 70, 60 + r() * 50, 3 + r() * 6, 2 + r() * 4, r() * 3, 0, Math.PI * 2);
+      c.fill();
+    }
+    c.strokeStyle = 'rgba(30,0,4,0.75)';
+    c.lineWidth = 14;
+    c.translate(6, 7);
+    path();
+    c.stroke();
+    c.restore();
+    // Våt hinne: et blankt lag og glimt oppe til venstre
+    c.save();
+    path();
+    c.clip();
+    const sheen = c.createLinearGradient(30, 30, 110, 120);
+    sheen.addColorStop(0, 'rgba(255,220,220,0.28)');
+    sheen.addColorStop(0.5, 'rgba(255,220,220,0)');
+    c.fillStyle = sheen;
+    c.fillRect(0, 0, 160, 160);
+    c.restore();
+    // Glimtene følger kanten oppe til venstre, der lyset kommer fra: et par lange buer og en liten prikk
+    c.lineCap = 'round';
+    for (let k = 0; k < 2; k++) {
+      const a0 = Math.PI * (1.05 + k * 0.28 + r() * 0.08), rr = 34 + r() * 8 - k * 6;
+      c.strokeStyle = `rgba(255,236,236,${0.75 - k * 0.25})`;
+      c.lineWidth = 3 - k;
+      c.beginPath();
+      c.ellipse(cx - 4, cy - 2, rr, rr * 0.8, 0, a0, a0 + 0.35 + r() * 0.25);
+      c.stroke();
+    }
+    c.fillStyle = 'rgba(255,244,244,0.8)';
+    c.beginPath();
+    c.ellipse(cx - 18 + r() * 8, cy - 22 + r() * 6, 2.5, 1.6, -0.5, 0, Math.PI * 2);
+    c.fill();
+  }));
+}
+
 export class FX {
   shakeAmt = 0;
   hitstop = 0;
@@ -113,8 +260,11 @@ export class FX {
   /** Kalles når et hode treffer skjermen (brukes til tekst, publikum og tester). */
   onGlassHit: (() => void) | null = null;
   scene: THREE.Scene | null = null;
+  /** Kameraet fra forrige bilde (kjøttbitene sjekker hvor nær det eksplosjonen er). */
+  private cam: THREE.Camera | null = null;
+  private tmpV = new THREE.Vector3();
 
-  constructor(root: HTMLElement) {
+  constructor(private root: HTMLElement) {
     this.layer = document.createElement('div');
     this.layer.className = 'fx-layer';
     root.appendChild(this.layer);
@@ -257,21 +407,60 @@ export class FX {
    * Send et objekt (typisk et avkappet hode) mot kameraet. Når det kommer frem, klasker det i
    * "glasset" og sklir sakte nedover med sklilyd og en blodstripe. img er hodets tegning.
    */
-  hurlAtScreen(obj: THREE.Object3D, img: HTMLCanvasElement, dur = 0.55, onArrive?: () => void) {
-    const sx = rand(0.3, 0.7);
-    const sy = rand(0.28, 0.42);
-    this.flyers.push({ obj, t: 0, dur, spin: rand(8, 14) * (Math.random() < 0.5 ? -1 : 1), sx, sy, from: obj.position.clone(), img, family: settings.gore === 0, onArrive });
-    audio.swish(0.7, true);
+  hurlAtScreen(obj: THREE.Object3D, img: HTMLCanvasElement, dur = 0.55, onArrive?: () => void, opts: GlassOpts = {}) {
+    const chunk = !!opts.chunk;
+    const sx = opts.sx ?? rand(0.3, 0.7);
+    const sy = opts.sy ?? rand(0.28, 0.42);
+    // Et hode sier sine siste ord før det sklir (MAYHEM_LINES.lastWords), en kjøttbit sier ingenting
+    const words = opts.words === false || chunk ? null : opts.words ?? pick(MAYHEM_LINES.lastWords);
+    this.flyers.push({
+      obj, t: 0, dur, spin: rand(8, 14) * (Math.random() < 0.5 ? -1 : 1), sx, sy, from: obj.position.clone(), img, family: settings.gore === 0,
+      size: opts.size ?? 0.62, words, chunk, onArrive,
+    });
+    audio.swish(chunk ? 1.3 : 0.7, !chunk);
   }
 
+  /** Et hode på vei mot eller klistret på glasset (kjøttbitene teller ikke). */
   get headOnGlass() {
-    return this.glass.length > 0 || this.flyers.length > 0;
+    return this.glass.some((g) => !g.chunk) || this.flyers.some((f) => !f.chunk);
+  }
+
+  /**
+   * Kjøttbiter fra en eksplosjon nær kameraet: et par biter flyr mot glasset, klistrer seg fast og sklir ned med samme
+   * blodspor som hodet. Bare når det sprenges nær nok kameraet og inne i bildet, ikke på FAMILY. Svarer hvor mange.
+   */
+  glassGibs(pos: THREE.Vector3, chanceMul = 1) {
+    const cam = this.cam;
+    if (!cam || !this.scene || settings.gore === 0) return 0;
+    cam.updateMatrixWorld();
+    if (cam.getWorldPosition(this.tmpV).distanceTo(pos) > GLASS_GIBS.near) return 0;
+    const p = this.tmpV.copy(pos).project(cam);
+    if (p.z > 1 || Math.abs(p.x) > 0.95 || Math.abs(p.y) > 0.95) return 0;
+    if (Math.random() >= GLASS_GIBS.odds[settings.gore] * chanceMul) return 0;
+    const x0 = (p.x + 1) / 2, y0 = (1 - p.y) / 2;
+    const n = 1 + Math.floor(Math.random() * (settings.gore >= 3 ? 3 : 2));
+    for (let i = 0; i < n; i++) {
+      const g = makeGib('meat', rand(1.2, 1.7));
+      g.mesh.position.set(pos.x + rand(-0.3, 0.3), pos.y + rand(-0.2, 0.3), pos.z + rand(0, 0.2));
+      this.scene.add(g.mesh);
+      // Bitene lander rundt der eksplosjonen var, litt etter hverandre (splatt, splatt)
+      this.hurlAtScreen(g.mesh, chunkImage(), rand(0.3, 0.42) + i * 0.13, () => g.mesh.removeFromParent(), {
+        chunk: true, size: rand(0.13, 0.2), sx: clamp(x0 + rand(-0.22, 0.22), 0.08, 0.92), sy: clamp(y0 + rand(-0.32, 0.05), 0.08, 0.62),
+      });
+    }
+    return n;
   }
 
   clearGlass() {
-    for (const g of this.glass) g.stopSqueak?.();
+    for (const g of this.glass) {
+      g.stopSqueak?.();
+      g.words?.remove();
+    }
     this.glass.length = 0;
-    for (const f of this.flyers) f.obj.visible = true;
+    for (const f of this.flyers) {
+      if (f.chunk) f.obj.removeFromParent();
+      else f.obj.visible = true;
+    }
     this.flyers.length = 0;
     this.glassCtx.clearRect(0, 0, this.glassCv.width, this.glassCv.height);
     this.smearCtx.clearRect(0, 0, this.smearCv.width, this.smearCv.height);
@@ -279,17 +468,18 @@ export class FX {
 
   private splatGlass(f: Flyer) {
     const W = this.glassCv.width, H = this.glassCv.height;
-    const size = H * 0.62;
+    const size = H * f.size;
     const x = f.sx * W, y = f.sy * H;
     const g: GlassHead = {
       img: f.img, x, y, y0: y, size, rot: rand(-0.35, 0.35), t: 0, vy: 0, stopSqueak: null, done: false, family: f.family,
-      stickT: rand(0.4, 0.6), fade: 1, head: 1, blood: 1, cols: trailProfile(size * TRAIL_W), trailY: Math.floor(y + size * TRAIL_Y),
-      phase: rand(0, Math.PI * 2), drips: [],
+      stickT: f.words ? rand(WORDS_STICK[0], WORDS_STICK[1]) : f.chunk ? rand(0.25, 0.6) : rand(0.4, 0.6), fade: 1, head: 1, blood: 1,
+      cols: trailProfile(size * TRAIL_W), trailY: Math.floor(y + size * TRAIL_Y), phase: rand(0, Math.PI * 2), drips: [],
+      words: f.words ? this.lastWords(f.words) : null, chunk: f.chunk,
     };
     this.glass.push(g);
     // Blodet fra klatten der hodet traff, renner nedover glasset (synes når hodet er borte)
     if (!f.family) {
-      for (let i = 0, n = Math.floor(rand(4, 8)); i < n; i++) {
+      for (let i = 0, n = f.chunk ? Math.floor(rand(1, 4)) : Math.floor(rand(4, 8)); i < n; i++) {
         // Fra nedre del av klatten (radius 0,17 av hodet i spatter), aldri fra tomt glass
         const a = rand(0.15, Math.PI - 0.15), r = size * 0.17 * rand(0.55, 0.9);
         g.drips.push({ x: Math.round(x + Math.cos(a) * r), y: Math.round(y + Math.sin(a) * r * 0.9), len: 0, max: rand(60, 200), v: rand(28, 60), w: Math.round(rand(2, 5)), col: pick(GLASS_BLOOD) });
@@ -308,10 +498,37 @@ export class FX {
       }
     } else this.spatter(x, y, size);
     c.globalAlpha = 1;
-    if (!f.family) this.screenBlood(3);
-    audio.glassSplat(f.family);
-    this.shake(0.5);
-    this.onGlassHit?.();
+    if (!f.family && !f.chunk) this.screenBlood(3);
+    audio.glassSplat(f.family, f.chunk ? 0.45 : 1);
+    this.shake(f.chunk ? 0.15 : 0.5);
+    if (!f.chunk) this.onGlassHit?.();
+  }
+
+  /**
+   * Snakkeboblen med de siste ordene til hodet på glasset. Den ligger over glasset (som hodet) og følger hodet, og
+   * replikken leses inn når det finnes et opptak (audio.voice).
+   */
+  private lastWords(text: string) {
+    const el = document.createElement('div');
+    el.className = 'ftext speech glass-words';
+    el.textContent = text;
+    el.style.opacity = '0';
+    this.root.appendChild(el);
+    audio.voice(text);
+    return el;
+  }
+
+  /** Bobla følger hodet: kommer fort, står en stund og tones ut (WORDS_SHOW og WORDS_FADE). */
+  private placeWords(g: GlassHead) {
+    const el = g.words!;
+    const a = g.t < 0.1 ? g.t / 0.1 : g.t < WORDS_SHOW ? 1 : 1 - (g.t - WORDS_SHOW) / WORDS_FADE;
+    if (a <= 0 || g.done) {
+      el.remove();
+      g.words = null;
+      return;
+    }
+    el.style.opacity = a.toFixed(3);
+    el.style.transform = `translate(-50%,-100%) translate(${(g.x + g.size * 0.08).toFixed(1)}px,${(g.y - g.size * 0.36).toFixed(1)}px)`;
   }
 
   /**
@@ -508,7 +725,8 @@ export class FX {
       g.t += dt;
       const sliding = g.t > g.stickT && !g.done;
       if (sliding) {
-        if (!g.stopSqueak) g.stopSqueak = audio.squeak(5.5);
+        // Hodet hviner mot glasset, en kjøttbit sklir stille
+        if (!g.stopSqueak && !g.chunk) g.stopSqueak = audio.squeak(5.5);
         // Stick-slip: ujevn fart, som hud mot glass
         const slip = Math.sin(g.t * 17) + Math.sin(g.t * 5.3) > 0.1 ? 1 : 0.12;
         const bottom = g.y > H * 0.9;
@@ -534,6 +752,7 @@ export class FX {
       if (!g.family) this.drips(g, dt);
       if (g.done) g.fade -= dt * TRAIL_FADE;
       smearA = Math.max(smearA, Math.min(1, g.fade));
+      if (g.words) this.placeWords(g);
     }
     // Blodsporet tegnes én gang (felles for alle hodene), så hodene oppå
     c.clearRect(0, 0, W, H);
@@ -555,7 +774,11 @@ export class FX {
       c.restore();
     }
     c.globalAlpha = 1;
-    this.glass = this.glass.filter((g) => g.fade > 0);
+    this.glass = this.glass.filter((g) => {
+      if (g.fade > 0) return true;
+      g.words?.remove();
+      return false;
+    });
     if (!this.glass.length) {
       this.smearCtx.clearRect(0, 0, W, H);
       c.clearRect(0, 0, W, H);
@@ -565,6 +788,7 @@ export class FX {
   /** Skjermeffekter bruker realDt; teksten hører til verdenen og får samme simDt som figurene. */
   update(realDt: number, camera: THREE.Camera, width: number, height: number, simDt = realDt) {
     this.camX = camera.position.x;
+    this.cam = camera;
     this.updateGlass(realDt, camera);
     // Tidsskala
     if (this.slowTimer > 0) {

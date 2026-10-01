@@ -588,7 +588,8 @@ export class Rig {
 
   setFacing(f: number) {
     this.facing = f < 0 ? -1 : 1;
-    this.root.scale.set(this.facing * this.scale, this.scale, this.scale);
+    const [sx, sy] = this.def.stretch ?? [1, 1];
+    this.root.scale.set(this.facing * this.scale * sx, this.scale * sy, this.scale);
   }
 
   set flash(v: number) {
@@ -632,12 +633,15 @@ export class Rig {
   sync() {
     const p = this.pose;
     const g = this.g;
-    g.torso.rotation.z = p.torso;
-    g.head.rotation.z = p.head;
-    g.armF.rotation.z = p.armF;
-    g.armB.rotation.z = p.armB;
-    g.legF.rotation.z = p.legF;
-    g.legB.rotation.z = p.legB;
+    const off = this.detached;
+    // Løse deler (kappet av, sprengt eller skjult) beholder vinkelen de hadde, så noe annet kan styre dem: overkroppen
+    // som kryper (game/mayhem.ts) styrer selv overkroppen, armene og hodet sitt mens beina løper videre
+    if (!off.has('torso')) g.torso.rotation.z = p.torso;
+    if (!off.has('head')) g.head.rotation.z = p.head;
+    if (!off.has('armF')) g.armF.rotation.z = p.armF;
+    if (!off.has('armB')) g.armB.rotation.z = p.armB;
+    if (!off.has('legF')) g.legF.rotation.z = p.legF;
+    if (!off.has('legB')) g.legB.rotation.z = p.legB;
     for (const [limb, k] of FLEX) this.bendLimb(limb, p[k]);
     if (g.weapon && !this.detached.has('weapon')) {
       // Våpenet sitter i neven, som flyttes med underarmen når albuen bøyes. Bladet beholder retningen fra stillingen.
@@ -661,8 +665,13 @@ export class Rig {
 
   /** Tupp av våpenet (for treffeffekter og sverd-spor). */
   weaponTip(out = new THREE.Vector3()) {
+    return this.bladePoint(0.85, out);
+  }
+
+  /** Et punkt langs bladet: 0 er neven, 1 er tuppen (fiendene på sverdet etter løpeslaget, game/mayhem.ts). */
+  bladePoint(frac: number, out = new THREE.Vector3()) {
     if (!this.g.weapon || this.detached.has('weapon')) return this.worldPoint('armF', 0, -0.6, out);
-    return this.worldPoint('weapon', 0, (this.def.weapon!.h - this.def.weapon!.oy) * 0.85, out);
+    return this.worldPoint('weapon', 0, (this.def.weapon!.h - this.def.weapon!.oy) * frac, out);
   }
 
   /** Løsne en del (med barn) og legg den i verden, sentrert rundt delens midtpunkt. */

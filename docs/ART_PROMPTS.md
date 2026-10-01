@@ -217,6 +217,28 @@ Forslagene nedenfor er idéer til senere ferdige oppsett, ikke manglende filer i
 | `zugga` | FEMALE, ORC GREEN, UNHINGED, MOHAWK, BLOOD RED, BEAST SKULL, LEATHER, BATTLE SKIRT, FUR BOOTS, SPIKED CLUB | `Character: ZUGGA THE UNREASONABLE, a wild orc warrior woman with green skin, small tusks, a blood-red mohawk under a beast skull helmet, studded leather armour, a battle skirt of leather strips and fur boots; clearly an adult, never nude.` |
 | `gromm` | MALE, FROST BLUE, EYEPATCH, PONYTAIL, WHITE, FULL BEARD, CROWN, LEATHER, KILT, RED BOOTS, AXE | `Character: GROMM THE FROSTBITTEN, an old frost-blue barbarian king with an eyepatch, a white ponytail and a full white beard, a dented iron crown, a leather jerkin, a woollen kilt and bright red boots.` |
 
+### Klassene: alven, dvergen, utstyret og høna (Tom 2026-10-01)
+
+CLASS-raden i smia (`data/classes.ts`) setter våpen, magi og egenskaper. Utseendet er fritt, men to av klassene trenger egne bilder for å se ut som det de er, og utstyret og høna fra POLYMORPH: CHICKEN er tegnet i koden til bildene kommer. Bruk STIL-BLOKKEN, og malene for delene over (HEAD, TORSO, PELVIS, ARM, LEG, WEAPON).
+
+**Alven** (`forge_elf_m_head`, `forge_elf_f_head`, `forge_elf_torso`, `forge_elf_pelvis`, `forge_elf_arm`, `forge_elf_leg`). I dag har ELF bare en slankere kropp (`stretch` i `data/classes.ts`) og buen. Med egne bilder kan `stretch` tas bort.
+`Character: ELF RANGER, a tall, slender, smug elf archer, near-real caricature. Long pointed ears that stick out sideways, high cheekbones, narrow arrogant eyes, long straight silver-blond hair, a thin superior smile. Lean but wiry muscles, green and brown leather armour with leaf-shaped plates, a dark green hooded cloak pushed back, bracers with carved leaves, a quiver strap across the chest, a tiny leather loincloth over green leggings, soft knee-high boots. Clearly an adult, never nude. Same pose and lighting as the other heroes.` (kvinnelig variant: samme beskrivelse med `an elf woman`)
+
+**Dvergen** (`forge_dwarf_head`, `forge_dwarf_torso`, `forge_dwarf_pelvis`, `forge_dwarf_arm`, `forge_dwarf_leg`). I dag klemmes helten lav og bred (`stretch: [1.18, 0.8]`); med egne bilder tegnes proporsjonene inn og `stretch` tas bort.
+`Character: DWARF WARRIOR, a short, enormously wide dwarf, near-real caricature. A huge red-brown beard in three thick braids with iron rings reaching the belt, a big bulbous red nose, bushy eyebrows, small angry eyes, a dented iron helmet with two short horns. Barrel chest and belly, short thick arms with giant hands, short stout legs in heavy iron-capped boots. Chainmail shirt under a leather jerkin with iron studs, a wide belt with a big square brass buckle, a tiny leather kilt. Grumpy expression.`
+
+**Klasseutstyret** (våpenmalen, men les merknaden). Manifest: `{ "char": "gear_<id>", "part": "weapon", "file": "..." }`, så tar bildet over for den tegnede delen i `gfx/classfx.ts` for helter med malte deler.
+| id | Fil | Beskrivelse (lim inn) |
+|---|---|---|
+| `gear_mace` | `forge_holymace_weapon.png` | `Asset: a cleric's holy mace. A short wooden haft wrapped in leather, a heavy brass flanged head shaped like a sunburst with a small white enamel sun in the middle, a short spike on top.` |
+| `gear_daggers` | `forge_dagger_weapon.png` | `Asset: a thief's dagger. A narrow, slightly curved steel blade, a small brass crossguard, a black leather grip, a round brass pommel. Mean and practical.` (tyven får samme dolk i den andre neven) |
+| `gear_staff` | `forge_staff_weapon.png` | `Asset: a magic-user's quarterstaff. A tall, crooked staff of dark gnarled wood, two leather grips, the top split into wooden claws holding a glowing pale blue crystal.` |
+| `gear_bow` | `forge_longbow_weapon.png` | `Asset: an elven longbow, drawn VERTICAL with the grip in the MIDDLE of the image (not near the bottom). Pale carved wood with leaf patterns, a leather-wrapped grip, a thin string on the left side, the curve bulging to the right.` |
+| `gear_lute` | `forge_lute_weapon.png` | `Asset: a battered lute used as a club. Held by the neck: the tuning pegs at the BOTTOM of the image where the hand grips, the long neck going up, the round pear-shaped wooden body at the TOP with a carved rosette sound hole and a dent from hitting someone.` |
+
+**Høna** fra POLYMORPH: CHICKEN (`chicken`, delene head, torso, pelvis, arm, leg). Vingene er armene i riggen, så de tegnes som armer som henger ned fra skulderen. I dag tegnet i `gfx/chars/critters.ts`.
+`Character: CHICKEN, a plump white farm hen, near-real, in profile facing right. A red comb and wattle, a yellow beak, wide panicked eyes, fluffy white feathers with a few brown specks, a short upturned tail of white and grey feathers, thin yellow scaly legs with three toes. The wing is a separate part (ARM): a folded white wing hanging down from the shoulder. No weapon.`
+
 ### Separate utseendelag
 
 Den leverte pakken har sju hårbilder (seks frisyrer, LONG har eget bakstykke), tre skjegg, fire hodeplagg og to irisvarianter. Navnene er `appearance_hair_<stil>.png`, `appearance_beard_<stil>.png`, `appearance_headgear_<type>.png` og `appearance_eye_<type>.png`. NONE er fravær av laget og trenger ingen fil. Full filoversikt står i `docs/HERO_FORGE_GRAFIKK.md`.

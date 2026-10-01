@@ -66,9 +66,12 @@ check('til slutt faller beina om', after.down, after);
 
 // Kuttet i to: munnen flyr med overkroppen, så ingen dødsreplikk (den havnet over beina, oppå ordet deres). Beina får
 // ordet sitt (LEGS_WORDS i game/fighter.ts). Replikken kommer ellers i ett av fem drap, så tolv drap fanger den nesten alltid.
+// Overkroppen som kryper videre etter at den har landet (game/mayhem.ts), snakker med vilje, og helten den biter, svarer.
+// De replikkene (MAYHEM_LINES) teller ikke.
 const talk = await page.evaluate(() => {
-  const g = window.__game, s = g.scene.stage, h = s.heroes[0].f, fx = g.fx;
+  const g = window.__game, s = g.scene.stage, h = s.heroes[0].f, fx = g.fx, M = window.__lib.MAYHEM_LINES;
   const LEGS = ['LEGS DAY!', 'HALF-TIME!', 'THE LEGS DID NOT GET THE MEMO!', 'RUN, LEGS, RUN!'];
+  const CRAWL = [...M.crawl, ...M.bite, ...M.bitten, ...M.squash, ...M.bledOut];
   const said = [];
   const orig = fx.text;
   fx.text = function (p, t, kind, ...rest) { said.push([t, kind]); return orig.call(this, p, t, kind, ...rest); };
@@ -83,7 +86,8 @@ const talk = await page.evaluate(() => {
   }
   window.__run(0.1);
   fx.text = orig;
-  return { speech: said.filter((x) => x[1] === 'speech').map((x) => x[0]), legs: said.filter((x) => LEGS.includes(x[0])).length };
+  const speech = said.filter((x) => x[1] === 'speech').map((x) => x[0]);
+  return { speech: speech.filter((t) => !CRAWL.includes(t)), crawler: speech.filter((t) => CRAWL.includes(t)).length, legs: said.filter((x) => LEGS.includes(x[0])).length };
 });
 check('kuttet i to: ingen dødsreplikk fra munnen som fløy av, men beina får ordet sitt', talk.speech.length === 0 && talk.legs >= 10, talk);
 

@@ -2,8 +2,11 @@
 import { Pen, INK, shade, blobPath, polyPath } from '../draw';
 import { HERO_BIG_J, HERO_HIP_Y, HEAD_SCALE, TORSO_Y, skinD, type CharDef, type PartDef } from './types';
 import { maleChest, femChest, maleTorsoPath, muscleArm, muscleLeg, tinyLoins, scalePart, stretchY, type TopKind, type Shoulder, type Footwear, type Loins } from './muscle';
-import { HERO_PART_SLOTS, defaultHeroParts, findHeroPart, sanitizeHeroParts, type HeroParts } from '../../data/hero-parts';
+import { HERO_PARTS, HERO_PART_SLOTS, defaultHeroParts, findHeroPart, sanitizeHeroParts, type HeroParts } from '../../data/hero-parts';
 import { HERO_APPEARANCE_KEYS, sanitizeHeroAppearance, type HeroAppearance } from '../../data/hero-appearance';
+import { SPELLS, spellAt, spellIndex } from '../../data/spells';
+import { CLASSES, classAt, validAbilities } from '../../data/classes';
+import { gearPart } from '../classfx';
 
 export interface HeroConfig {
   name: string;
@@ -19,8 +22,12 @@ export interface HeroConfig {
   boots: number;
   weapon: number;
   cloth: number;
-  /** 0 = Meteor of Excessive Force, 1 = Scream of the Ancestors. Påvirker ikke grafikken. */
+  /** Plassen i SPELLS (data/spells.ts): 0 METEOR STORM, 1 ANCESTRAL SCREAM, 2 SKY THUNDER osv. Påvirker ikke grafikken. */
   magic: number;
+  /** Plassen i CLASSES (data/classes.ts). Uten feltet er helten FIGHTER, som alle var før klassene. */
+  cls?: number;
+  /** ROLL 3D6: STR, INT, WIS, DEX, CON og CHA (3 til 18). Uten feltet er alt middels. */
+  abilities?: number[];
   /** Malte deler fra den felles katalogen. Uten feltet brukes den gamle tegnebyggeren. */
   parts?: HeroParts;
   /** Uavhengige lag og maskefarger. Gamle helter uten feltet beholder bildene urørt. */
@@ -32,7 +39,7 @@ export const HAIRS = ['#2a1a12', '#6b3e1f', '#e8c65a', '#e0661f', '#e8e4dc', '#b
 export const CLOTHS = ['#7a4b28', '#8e1b1b', '#3a6fc0', '#3f6b2a', '#5b2a86', '#2a2a30', '#c8962a'];
 
 /** Navn på alle valg, i samme rekkefølge som indeksene. Brukes av skaper-UI. */
-export const HERO_OPTIONS: Record<Exclude<keyof HeroConfig, 'name' | 'parts' | 'appearance'>, string[]> = {
+export const HERO_OPTIONS: Record<Exclude<keyof HeroConfig, 'name' | 'parts' | 'appearance' | 'abilities'>, string[]> = {
   body: ['MALE', 'FEMALE'],
   skin: ['PEACH', 'TAN', 'BRONZE', 'UMBER', 'DEEP', 'ORC GREEN', 'FROST BLUE'],
   face: ['GRIM', 'BATTLE CRY', 'UNHINGED', 'EYEPATCH', 'SMUG'],
@@ -45,13 +52,14 @@ export const HERO_OPTIONS: Record<Exclude<keyof HeroConfig, 'name' | 'parts' | '
   boots: ['FUR BOOTS', 'LEATHER BOOTS', 'GREAVES', 'SANDALS', 'RED BOOTS'],
   weapon: ['SWORD', 'AXE', 'WARHAMMER', 'SPIKED CLUB'],
   cloth: ['BROWN', 'CRIMSON', 'ROYAL BLUE', 'FOREST', 'PURPLE', 'BLACK', 'GOLD'],
-  magic: ['METEOR STORM', 'ANCESTRAL SCREAM', 'SKY THUNDER'],
+  magic: SPELLS.map((s) => s.label),
+  cls: CLASSES.map((c) => c.label),
 };
 
 export const PRESETS: Record<string, HeroConfig> = {
-  thrugg: { name: 'THRUGG', body: 0, skin: 1, face: 0, hair: 1, hairColor: 0, beard: 1, helmet: 1, torso: 1, pelvis: 0, boots: 0, weapon: 0, cloth: 0, magic: 0, parts: defaultHeroParts(0) },
+  thrugg: { name: 'THRUGG', body: 0, skin: 1, face: 0, hair: 1, hairColor: 0, beard: 1, helmet: 1, torso: 1, pelvis: 0, boots: 0, weapon: 0, cloth: 0, magic: 0, cls: 0, parts: defaultHeroParts(0) },
   // Etter Toms referansebilde: vilt kobberrødt krøllhår, selvgodt blikk, rusten ringbrynjebikini, pelsstøvler og stor øks
-  valkyra: { name: 'VALKYRA', body: 1, skin: 0, face: 4, hair: 7, hairColor: 3, beard: 0, helmet: 0, torso: 3, pelvis: 4, boots: 0, weapon: 1, cloth: 0, magic: 1, parts: defaultHeroParts(1) },
+  valkyra: { name: 'VALKYRA', body: 1, skin: 0, face: 4, hair: 7, hairColor: 3, beard: 0, helmet: 0, torso: 3, pelvis: 4, boots: 0, weapon: 1, cloth: 0, magic: 1, cls: 0, parts: defaultHeroParts(1) },
 };
 
 /** Kopier konfigurasjonen uten å dele valgene med et preset eller en annen spiller. */
@@ -78,6 +86,27 @@ export function withHeroParts(cfg: HeroConfig, parts: HeroParts): HeroConfig {
 export function withHeroAppearance(cfg: HeroConfig, appearance: HeroAppearance): HeroConfig {
   const out = cloneHero(cfg);
   if (out.parts) out.appearance = sanitizeHeroAppearance(appearance);
+  return out;
+}
+
+/**
+ * Hold våpen og magi innenfor det klassen kan bruke (data/classes.ts). Magi klassen ikke kan, blir klassens første.
+ * Et våpen klassen ikke kan bruke, byttes mot det første den kan (et malt våpen som canUse godtar, ellers indeksen).
+ * Klasser med eget utstyr beholder det malte våpenet urørt: det vises ikke, men er der hvis klassen byttes tilbake.
+ */
+export function withClassRules(cfg: HeroConfig, canUse: (key: string) => boolean = () => true): HeroConfig {
+  let out = cloneHero(cfg);
+  const c = classAt(out.cls);
+  if (!c.spells.includes(spellAt(out.magic).id)) out.magic = spellIndex(c.spells[0]);
+  if (!c.gear && !c.weapons.includes(out.weapon)) {
+    if (out.parts) {
+      const part = HERO_PARTS.weapon.find((p) => p.weapon !== undefined && c.weapons.includes(p.weapon) && (!p.unlock || canUse(p.unlock)));
+      if (part) out = withHeroParts(out, { ...out.parts, weapon: part.id });
+    } else out.weapon = c.weapons.find((w) => canUse('weapon:' + w)) ?? c.weapons[0];
+  }
+  const ab = validAbilities(out.abilities);
+  if (ab) out.abilities = ab;
+  else delete out.abilities;
   return out;
 }
 
@@ -507,8 +536,11 @@ function legacyHeroKey(cfg: HeroConfig) {
 export function heroKey(cfg: HeroConfig) {
   const c = cloneHero(cfg);
   const parts = c.parts;
+  // Klassen kan bytte våpenet med eget utstyr og endre kroppsformen (FIGHTER gir samme nøkkel som før klassene)
+  const cls = classAt(c.cls);
   return legacyHeroKey(c) + (parts ? ':' + HERO_PART_SLOTS.map((slot) => parts[slot]).join('.') : '')
-    + (c.appearance ? ':appearance:' + HERO_APPEARANCE_KEYS.map((key) => c.appearance![key]).join('.') : '');
+    + (c.appearance ? ':appearance:' + HERO_APPEARANCE_KEYS.map((key) => c.appearance![key]).join('.') : '')
+    + (cls.gear || cls.stretch ? ':class:' + cls.id : '');
 }
 
 export function buildHeroDef(cfg: HeroConfig, slot: number): CharDef {
@@ -516,9 +548,13 @@ export function buildHeroDef(cfg: HeroConfig, slot: number): CharDef {
   const fem = cfg.body === 1;
   // Lagringsleseren migrerer gamle presets. Uten parts er CLASSIC et uttrykkelig valg.
   const parts = cfg.parts;
+  const cls = classAt(cfg.cls);
   const inherit: CharDef['inherit'] = parts ? {} : undefined;
   if (parts && inherit) {
     for (const part of HERO_PART_SLOTS) inherit[part] = findHeroPart(part, parts[part])!.source;
+    // Klassens eget utstyr er tegnet i koden (gfx/classfx.ts) til det kommer et malt bilde med figur-id gear_<id> i
+    // manifestet (docs/ART_PROMPTS.md), og skal ikke byttes med det malte våpenet fra delpoolen
+    if (cls.gear) inherit.weapon = 'gear_' + cls.gear;
   }
   return {
     inherit,
@@ -533,7 +569,8 @@ export function buildHeroDef(cfg: HeroConfig, slot: number): CharDef {
     pelvis: pelvisPart(cfg),
     torso: stretchY(torsoPart(cfg), TORSO_Y),
     head: scalePart(headPart(cfg), HEAD_SCALE),
-    weapon: weaponPart(cfg.weapon),
+    weapon: cls.gear ? gearPart(cls.gear) : weaponPart(cfg.weapon),
+    ...(cls.stretch ? { stretch: cls.stretch } : {}),
     blood: 'red',
     voice: fem ? 'heroine' : 'hero',
     color: CLOTHS[cfg.cloth] ?? CLOTHS[0],
@@ -557,5 +594,5 @@ export function randomHero(allowed: (key: string, i: number) => boolean = () => 
     cfg[k] = i;
   }
   if (cfg.body === 1 && Math.random() < 0.85) cfg.beard = 0;
-  return cfg;
+  return withClassRules(cfg, (key) => allowed(key.split(':')[0], +key.split(':')[1]));
 }
