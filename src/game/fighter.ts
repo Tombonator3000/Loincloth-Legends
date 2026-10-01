@@ -63,9 +63,9 @@ export const bloodOf = (d: CharDef): BloodKind => (d.blood === 'green' ? 'green'
 export const GRAVITY = 26;
 const dripTmp = new THREE.Vector3();
 
-/** Replikker når armen ryker. Den første i spillet er alltid den klassiske. */
 /** Når underkroppen løper videre etter å ha blitt kuttet i to (die('bisect')). */
 export const LEGS_WORDS = ['LEGS DAY!', 'HALF-TIME!', 'THE LEGS DID NOT GET THE MEMO!', 'RUN, LEGS, RUN!'];
+/** Replikker når armen ryker. Den første i spillet er alltid den klassiske. */
 export const FLESH_WOUND = ['IT\'S JUST A FLESH WOUND!', 'JUST A FLESH WOUND!', 'I WASN\'T USING THAT ONE!', 'I HAVE ANOTHER ONE!', 'COME BACK HERE, ARM!', 'THAT\'LL BUFF OUT!', 'IT\'S JUST A FLESH WOUND!'];
 export const NO_ARMS = ['I\'LL KICK YOU TO DEATH THEN!', 'MY LEGS STILL WORK!', 'STILL UNDEFEATED!', 'I\'VE HAD WORSE! PROBABLY!', 'IT\'S JUST A FLESH WOUND! AGAIN!'];
 let saidFleshWound = false;
@@ -663,7 +663,9 @@ export class Fighter {
       this.vel.set(0, 0, 0);
       this.wantVX = this.wantVZ = 0;
     }
-    if (!this.onGround && !(this.sinkRate > 0)) {
+    // Under hitstop står tiden stille (dt = 0), og da lander ingen. Den som nettopp ble slått ned fra bakken, står
+    // fortsatt på y 0 med farten oppover og ville mistet hele løftet
+    if (!this.onGround && !(this.sinkRate > 0) && dt > 0) {
       this.vel.y -= GRAVITY * dt;
       this.pos.y += this.vel.y * dt;
       if (this.pos.y <= 0) this.land();

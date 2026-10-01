@@ -112,7 +112,7 @@ Etter halshugging kommer Cleanup Imp og **sparker hodet rett mot kameraet**. Det
 - **Hodet i skjermen**: i duellene hver gang, og av og til på brettene når en fiende halshugges.
 - **"It's just a flesh wound"**: tunge slag kan kutte av en arm uten å drepe. Armen spretter avgårde som en ball (med fjærlyd), blodet spruter fra skulderen, og figuren roper at det bare er et kjøttsår. Mister han våpenarmen også, blir det bare spark ("I'LL KICK YOU TO DEATH THEN!"). Heltene mister bare bakarmen på brettene, og den gror ut igjen når de spiser kylling.
 - **Hodeløs kylling**: noen halshuggede fiender løper rundt og spruter blod en stund før kroppen skjønner det.
-- **Beina har ikke fått beskjed**: når en fiende kuttes i to, flyr overkroppen, og underkroppen løper rundt og spruter blod fra midjen (LEGS DAY!, HALF-TIME!) før den faller. Begge etterlater et blodspor på bakken.
+- **Beina har ikke fått beskjed**: når en fiende kuttes i to, flyr overkroppen, og underkroppen løper rundt og spruter blod fra midjen (LEGS DAY!, HALF-TIME!) før den faller. Begge etterlater et blodspor på bakken. Munnen fløy med overkroppen, så det blir ingen dødsreplikk.
 - **Miljødrap**: spiddet på staker, sugd ned i myra, frosset i råken, forkullet i lava, piggfelle i gulvet. Gir bonusgull og XP.
 
 ## 9. Hero Forge (heltebygger)

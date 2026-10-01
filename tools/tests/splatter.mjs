@@ -1,5 +1,6 @@
 // Over the top-gørr (Tom 2026-10-01):
-// 1) Kuttet i to: underkroppen løper rundt, spruter blod fra midjen og etterlater et blodspor på bakken.
+// 1) Kuttet i to: underkroppen løper rundt, spruter blod fra midjen og etterlater et blodspor på bakken. Ingen dødsreplikk
+//    (munnen fløy av med overkroppen), men beina får ordet sitt.
 // 2) Hodet i skjermen: et vått splatt fra lydbanken når det klasker i glasset, hodet synes mens det henger, tones ut
 //    mens det sklir sakte ned (borte etter under tre sekunder), og sporet etter det falmer bort. Sporet er stripete og
 //    ujevnt, ikke en jevn stolpe.
@@ -62,6 +63,29 @@ check('og etterlater blod på bakken', legs.splats >= 6, legs);
 await shot('s1-legs-running');
 const after = await page.evaluate(() => { window.__run(2.5); const o = window.__legs; return { down: o.f.headlessT <= 0, state: o.f.state }; });
 check('til slutt faller beina om', after.down, after);
+
+// Kuttet i to: munnen flyr med overkroppen, så ingen dødsreplikk (den havnet over beina, oppå ordet deres). Beina får
+// ordet sitt (LEGS_WORDS i game/fighter.ts). Replikken kommer ellers i ett av fem drap, så tolv drap fanger den nesten alltid.
+const talk = await page.evaluate(() => {
+  const g = window.__game, s = g.scene.stage, h = s.heroes[0].f, fx = g.fx;
+  const LEGS = ['LEGS DAY!', 'HALF-TIME!', 'THE LEGS DID NOT GET THE MEMO!', 'RUN, LEGS, RUN!'];
+  const said = [];
+  const orig = fx.text;
+  fx.text = function (p, t, kind, ...rest) { said.push([t, kind]); return orig.call(this, p, t, kind, ...rest); };
+  for (let i = 0; i < 12; i++) {
+    s.barkCd = 0;
+    const o = s.spawnFoe('hogman', 'R');
+    o.f.pos.set(h.pos.x + 2.5, 0, 0.3); o.entered = true;
+    window.__run(0.1);
+    o.f.die('bisect', 1, h);
+    window.__run(0.6, () => { h.hp = 9999; });
+    o.f.rig.root.visible = false; o.f.removeMe = true;
+  }
+  window.__run(0.1);
+  fx.text = orig;
+  return { speech: said.filter((x) => x[1] === 'speech').map((x) => x[0]), legs: said.filter((x) => LEGS.includes(x[0])).length };
+});
+check('kuttet i to: ingen dødsreplikk fra munnen som fløy av, men beina får ordet sitt', talk.speech.length === 0 && talk.legs >= 10, talk);
 
 // 2) Hodet i skjermen
 const glass = await page.evaluate(() => {

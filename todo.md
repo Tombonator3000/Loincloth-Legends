@@ -16,8 +16,8 @@
 - [ ] Forslag: ildimper som smeller i en liten ildkule når de dør og setter fyr på dem som står nær
 
 ## Forgrunnen som dekker bildet (Tom 2026-10-01, skjermbilde fra mobil)
-- [x] Trær foran veien (brett 1, nattleiren, frostpasset) tones ut når de dekker en figur, og kulissene i FRONT tones like mye (tools/tests/foreground.mjs)
-- [ ] Tom: spill nattleiren og brett 1 på mobilen når PR #6 er slått sammen, og si fra om noe fortsatt dekker for mye
+- [x] Trær foran veien tones ut når de dekker en figur (i dag furuene i frostpasset), og kulissene i FRONT tones like mye (tools/tests/foreground.mjs). De store trærne på brett 1 og i nattleiren står bak kampbeltet etter PR #7
+- [ ] Tom: spill nattleiren, brett 1 og frostpasset på mobilen når endringene er i main, og si fra om noe fortsatt dekker for mye
 
 ## autoharness: skills som lærer av øktene (2026-10-01, docs/SKILLS.md)
 - [x] Slått på for prosjektet i `.claude/settings.json`, tilstanden i `.gitignore`, regler i AGENTS.md og docs/SKILLS.md

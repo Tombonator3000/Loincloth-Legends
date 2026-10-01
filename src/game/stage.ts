@@ -504,11 +504,14 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     }
     if (chance(0.1)) this.pickups.push(new Pickup('chicken', p.x, 1, p.z, 30));
     if (chance(0.06)) this.pickups.push(new Pickup('potion', p.x, 1, p.z));
+    // Ingen dødsreplikk når munnen er borte: sprengt, knust, eller kuttet i to (da flyr munnen med overkroppen, og
+    // beina har sin egen replikk, LEGS_WORDS i fighter.ts)
+    const mouth = style !== 'explode' && style !== 'shatter' && style !== 'bisect';
     if (foe.def.behavior === 'runner') {
       W.stats.gnomeCrimes++;
       W.fx.text(f.headPoint().add(new THREE.Vector3(0, 1.4, 0)), 'YOU MONSTER!', 'kill big');
       for (let i = 0; i < 2; i++) this.pickups.push(new Pickup('potion', p.x, 1, p.z));
-    } else if (this.barkCd <= 0 && chance(0.2) && style !== 'explode' && style !== 'shatter') {
+    } else if (this.barkCd <= 0 && chance(0.2) && mouth) {
       this.barkCd = 2;
       this.bark(f, pick(DEATH_BARKS));
     }

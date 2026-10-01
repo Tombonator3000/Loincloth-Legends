@@ -31,6 +31,9 @@ await page.evaluate(() => {
     for (const f of s.foes) { f.f.alive && f.f.die('normal', 1, null); f.f.rig.root.visible = false; f.f.removeMe = true; }
     for (let i = 0; i < 2; i++) window.__game.tick(1 / 60, false);
     h.hp = h.maxHp = 9999; h.pos.set(x, 0, 0); h.state = 'idle'; h.face(1); h.holding = null; h.running = false;
+    // Pausen etter at en tøff fiende skjøv helten unna (grabPause, 1,1 sekund) skal ikke henge igjen inn i neste steg.
+    // Var det mer enn 0,42 sekunder igjen av den, gikk helten forbi fienden i steg 5 uten å gripe
+    s.heroes[0].grabCd = 0;
     s.camX = x; window.__game.camera.position.x = x;
     // Litt tid uten taster, ellers blir neste trykk på D et dobbelttrykk og helten løper (løpende helter griper ikke)
     for (let i = 0; i < 30; i++) { window.__game.tick(1 / 60, false); h.pos.set(x, 0, 0); }
