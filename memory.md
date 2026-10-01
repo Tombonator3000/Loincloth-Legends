@@ -202,3 +202,7 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - Sju kulissedeler er lagt i JSON-layoutene: portblader på road, alter/steinblokk/stokk i jungle, stang/duk i frost. Ingen nye bilder eller manifestendringer; antallet er fortsatt 254.
 
 - Co-op og kameradykk: `Stage.coopZoom` kjøres etter `screenFX.update` og begrenser bare tegnet zoom fra faktisk projisert kroppsramme når to helter ellers klippes. Den ønskede effekten lagres uendret. Opptak som kaller `startAt` etter at StageScene er konstruert, må også synkronisere kameraet slik produksjonskonstruktøren gjør.
+
+- Sluttkontroll for todo-runden: Actions 36851983556 på `9a42757` besto HUD (20), kamera (26), tekstklokke (7), credits (42), kulisser (4) og spillbilder (28 kontrollpunkter i seks bilder). 320 x 568 har nå egen kompakt plassering uten overlapp; uavhengig bildevurdering bekreftet tydelige felt. Credits og begge heltene er synlige også i stående format. Evidens i `docs/review/todo-quality-2026-10-01.json`.
+
+- Eksisterende miljø- og lydregresjoner er også grønne på samme kodecommit: Actions 36851983543, åtte suiter og før/etter-opptak. Tidligere avbrutte mellomversjoner er ikke sluttbevis.

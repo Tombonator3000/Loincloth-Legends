@@ -68,7 +68,7 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 ## Todo-runde: spillbarhet og gjenbruk (2026-10-01)
 - [x] Gjennomgå siste main etter PR #7 og rydde gammel Runde E-dobbeltføring og utdatert nattleirbeskrivelse
 - [x] Implementere mobil-HUD, fortellerkontrast, co-op-kamera, spilltidsstyrt tekst, credits og sju eksisterende kulissedeler
-- [ ] Samlet nettleser- og bildekontroll i GitHub Actions for denne runden (todo-quality.yml); lokale bygg og statisk kulissekontroll er bestått
+- [x] Samlet nettleser- og bildekontroll bestått i GitHub Actions 36851983556 på kodecommit 9a42757: fem suiter, 20 HUD-kontroller og seks spillbilder. Mobil-HUD, credits, co-op og kulisser er visuelt kontrollert; målinger i docs/review/todo-quality-2026-10-01.json
 - [ ] Tom: prøv lesbarhet og co-op-kamera på fysisk telefon og med to spillere
 
 ## Hero Forge: felles pool av malte deler (2026-09-30)
