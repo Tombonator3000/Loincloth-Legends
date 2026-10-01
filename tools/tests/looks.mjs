@@ -37,7 +37,7 @@ const shot = async (n) => {
 };
 const ev = (fn, arg) => page.evaluate(fn, arg);
 
-const ids = only && only !== 'all' ? only.split(',') : ['road', 'swamp', 'frost', 'scorch', 'tower', 'duel', 'title'];
+const ids = only && only !== 'all' ? only.split(',') : ['road', 'jungle', 'swamp', 'frost', 'scorch', 'tower', 'duel', 'title'];
 for (const id of ids) {
   if (id === 'duel') {
     await ev(() => { const g = window.__game; g.save.heroMade = [true, true]; g.pvpDuel(); });
@@ -76,7 +76,7 @@ for (const id of ids) {
   await run(2.5);
   // Tre fiender foran helten (tittelen er borte nå)
   await ev((id) => {
-    const FOES = { road: ['skeleton', 'hogman', 'skeleton'], swamp: ['zombie', 'frogman', 'zombie'], frost: ['frostskel', 'troll', 'frostskel'], scorch: ['emberskel', 'fireimp', 'emberskel'], tower: ['darkcultist', 'hogguard', 'skeleton'] };
+    const FOES = { road: ['skeleton', 'hogman', 'skeleton'], jungle: ['mossskel', 'templethief', 'mossskel'], swamp: ['zombie', 'frogman', 'zombie'], frost: ['frostskel', 'troll', 'frostskel'], scorch: ['emberskel', 'fireimp', 'emberskel'], tower: ['darkcultist', 'hogguard', 'skeleton'] };
     const s = window.__game.scene.stage; const h = s.heroes[0].f; h.hp = 9999;
     for (const f of s.foes) f.f.alive && f.f.die('normal', 1, null);
     (FOES[id] ?? FOES.road).forEach((fid, i) => { const foe = s.spawnFoe(fid, 'R'); if (foe) { foe.f.pos.x = h.pos.x + 2.4 + i * 1.6; foe.f.pos.z = [-0.8, 0.6, -0.2][i]; foe.f.facing = -1; } });

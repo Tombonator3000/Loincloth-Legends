@@ -83,8 +83,30 @@ export const LEVELS: Record<string, LevelDef> = {
     riders: [[2, 'skeleton', 'warhog'], [3, 'hogman', 'warhog']],
     finale: { type: 'boss', boss: 'hogmother' }, bossSign: 'MAMA\'S KITCHEN',
   },
+  // Jungelen rundt Soltempelet (Tom 2026-10-01): mellom brett 1 og sumpen. Vorthax har stjålet Solhjertet herfra.
+  // Fire farer: kjøttetende planter (kast fiendene inn i dem) og steinvekter som faller på den som står under dem.
+  // Søylene langs veien kan veltes over fiendene (gfx/env/jungle.ts). Finalen er en duell mot dronningen over tempelet.
+  jungle: {
+    id: 'jungle', name: 'STAGE 2', subtitle: 'THE STEAMING JUNGLE', biome: 'jungle', length: 130, music: 'jungle',
+    intro: 'SO HUMID THAT EVEN THE SWEAT IS SWEATING.',
+    waves: [
+      w(8, 4, 'mossskel:R:0.2 mossskel:R:0.7 frogman:L:1.4 mossskel:R:2.2', { title: 'TEMPLE GUARDS!', say: ['NARRATOR', 'THE OLD GUARDS OF THE SUN TEMPLE. NOBODY TOLD THEM TO STOP.'] }),
+      w(34, 5, 'templethief:R:0.3 hogman:L:0.9 templethief:R:1.6 gnome:L:2.0 mossskel:R:2.6', { title: 'TEMPLE THIEVES!', say: ['NARRATOR', 'VORTHAX\'S LOOTERS. CARRYING GOLD. AND A RECEIPT.'] }),
+      w(64, 5, 'frogman:R:0.3 frogman:L:0.8 hogman:R:1.4 templethief:L:2.0 mossskel:R:2.6 frogman:R:3.2', { say: ['NARRATOR', 'THE PLANTS ARE HUNGRY. FEED THEM SOMETHING THAT IS NOT YOU.'] }),
+      w(94, 6, 'hogman:R:0.3 templethief:R:0.8 mossskel:L:1.2 hogguard:L:1.8 templethief:R:2.4 frogman:L:3.0', { title: 'THE LOOTING TRAIN!' }),
+    ],
+    vorthax: { at: 21, lines: [
+      'OH. YOU FOUND THE SUN TEMPLE. AND ITS EMPTY PEDESTAL.',
+      'THE SUN HEART? I BORROWED IT. MY TOWER NEEDED BETTER LIGHTING.',
+      'THE PRINCESS SAYS THE JUNGLE IS TOO HUMID. FOR ONCE, WE AGREE.',
+    ] },
+    barrels: [[18, 'chicken'], [44, 'potion'], [78, 'gold'], [108, 'ham']],
+    hazards: [hz('maneater', 23, -1.7, 2.4, 1.5), hz('deadfall', 50, 0.2, 2.0, 1.5), hz('maneater', 74, -1.7, 2.4, 1.5), hz('deadfall', 101, -0.4, 2.0, 1.5)],
+    riders: [[2, 'frogman', 'cluckatrice']],
+    finale: { type: 'duel', duelist: 'zanthra' }, gateTitle: 'THE SUN TEMPLE >>>', gateSub: 'THE QUEEN AWAITS. KNEEL OR BLEED.',
+  },
   swamp: {
-    id: 'swamp', name: 'STAGE 2', subtitle: 'THE SWAMP OF MOIST REGRET', biome: 'swamp', length: 125, music: 'swamp',
+    id: 'swamp', name: 'STAGE 3', subtitle: 'THE SWAMP OF MOIST REGRET', biome: 'swamp', length: 125, music: 'swamp',
     intro: 'IT SMELLS LIKE A WET DOG ATE ANOTHER WET DOG.',
     waves: [
       w(8, 4, 'zombie:R:0.2 zombie:R:0.9 zombie:L:1.5 frogman:R:2.6', { title: 'ZOMBIES!', say: ['NARRATOR', 'SLOW, STUPID, AND STICKY. LIKE A MONDAY.'] }),
@@ -103,7 +125,7 @@ export const LEVELS: Record<string, LevelDef> = {
     finale: { type: 'boss', boss: 'croakus' }, bossSign: 'ROYAL POND',
   },
   frost: {
-    id: 'frost', name: 'STAGE 3', subtitle: 'FROSTBITE PASS', biome: 'frost', length: 125, music: 'frost',
+    id: 'frost', name: 'STAGE 4', subtitle: 'FROSTBITE PASS', biome: 'frost', length: 125, music: 'frost',
     intro: 'SO COLD THAT EVEN THE LOINCLOTHS WEAR LOINCLOTHS.',
     waves: [
       w(8, 4, 'frostskel:R:0.2 frostskel:L:0.8 frostskel:R:1.4 frostskel:R:2.2', { title: 'FROST SKELETONS!', say: ['NARRATOR', 'THEY ARE BLUE. THAT IS THE ONLY DIFFERENCE.'] }),
@@ -123,7 +145,7 @@ export const LEVELS: Record<string, LevelDef> = {
     finale: { type: 'duel', duelist: 'kaldor' }, gateTitle: 'THE FROZEN PIT >>>', gateSub: 'KALDOR AWAITS. BRING A SCARF.',
   },
   scorch: {
-    id: 'scorch', name: 'STAGE 4', subtitle: 'THE SCORCHLANDS', biome: 'scorch', length: 130, music: 'scorch',
+    id: 'scorch', name: 'STAGE 5', subtitle: 'THE SCORCHLANDS', biome: 'scorch', length: 130, music: 'scorch',
     intro: 'THE FLOOR IS LAVA. THIS IS NOT A GAME. WELL, IT IS A GAME.',
     waves: [
       w(8, 4, 'emberskel:R:0.2 emberskel:L:0.8 fireimp:R:1.4 emberskel:R:2.2', { title: 'FIRE IMPS!', say: ['NARRATOR', 'SMALL, RED AND THROWING FIRE. LIKE A TODDLER WITH A TORCH.'] }),

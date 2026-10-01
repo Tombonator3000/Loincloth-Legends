@@ -1,7 +1,8 @@
-// Tegning av farer i brettene: piggrop, myr, råk i isen, lavapøl og piggfelle.
+// Tegning av farer i brettene: piggrop, myr, råk i isen, lavapøl, piggfelle, juv, og i jungelen en kjøttetende plante
+// og en steinvekt som henger over veien.
 import * as THREE from 'three';
 import { plainCanvas } from '../draw';
-import { lit, toon, canvasTex, mergeStatic, applyShadows } from './common';
+import { lit, toon, canvasTex, mergeStatic, applyShadows, stoneTex, woodTex } from './common';
 import { icicles, ropeFence } from './props';
 import { valueNoise3, fbm3 } from '../noise';
 import { rand } from '../../core/math';
@@ -14,6 +15,12 @@ export interface HazardVisual {
   update(dt: number, t: number): void;
   /** Piggfelle: 0 = nede, 1 = oppe. */
   setSpikes?(k: number): void;
+  /** Planten: hvile, varsel (rister og gaper) eller glefs, og hvor langt i den (0 til 1). */
+  setPlant?(phase: 'idle' | 'warn' | 'snap', k: number): void;
+  /** Planten har nettopp spist noe: et ekstra glefs. */
+  chomp?(): void;
+  /** Steinvekta: høyden (1 oppe, 0 på veien) og knirket før den faller (0 til 1). */
+  setDrop?(k: number, creak: number): void;
 }
 
 const texCache = new Map<string, THREE.Texture>();
@@ -164,6 +171,222 @@ function chasm(grp: THREE.Group, h: HazardDef) {
   };
 }
 
+let plantTex: THREE.Texture | null = null;
+
+/**
+ * Kjøttetende plante ved veikanten: blader ved roten, en tykk stilk og et hode med to kjever og tenner. Den svaier
+ * når den hviler, trekker hodet bakover og gaper når den varsler, og glefser ned over farefeltet på veien.
+ * Roten står bak feltet (eller foran, om feltet ligger foran midten), og stilken er ledd som legges langs en kurve.
+ */
+function maneater(grp: THREE.Group, gore: Gore, h: HazardDef): HazardVisual {
+  plantTex ??= canvasTex(plainCanvas(128, 128, (c) => {
+    c.fillStyle = '#3e6a22';
+    c.fillRect(0, 0, 128, 128);
+    for (let i = 0; i < 60; i++) {
+      c.fillStyle = Math.random() < 0.5 ? 'rgba(140,30,60,0.55)' : 'rgba(210,190,60,0.35)';
+      c.beginPath();
+      c.arc(Math.random() * 128, Math.random() * 128, 2 + Math.random() * 7, 0, Math.PI * 2);
+      c.fill();
+    }
+  }), true);
+  const side = h.z > 0.4 ? 1 : -1;
+  const base = new THREE.Vector3(h.x, 0, h.z + side * (h.d / 2 + 0.55));
+  const rest = new THREE.Vector3(h.x, 2.1, base.z - side * 0.5);
+  const skin = lit({ map: plantTex, roughness: 0.6 });
+  const inner = toon('#7a1020');
+  const toothM = toon('#efe6c8');
+  // Blader ved roten
+  for (let i = 0; i < 6; i++) {
+    const a = (i / 6) * Math.PI * 2 + rand(-0.2, 0.2);
+    const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 6), skin);
+    leaf.scale.set(1.2, 0.12, 0.45);
+    leaf.position.set(base.x + Math.cos(a) * 0.75, 0.12, base.z + Math.sin(a) * 0.6);
+    leaf.rotation.y = -a;
+    leaf.rotation.z = 0.25;
+    grp.add(leaf);
+  }
+  // Stilken: ledd langs en kurve fra roten til hodet
+  const SEG = 9;
+  const stemGeo = new THREE.CylinderGeometry(0.13, 0.17, 1, 7);
+  stemGeo.translate(0, 0.5, 0);
+  const segs = Array.from({ length: SEG }, () => {
+    const m = new THREE.Mesh(stemGeo, skin);
+    grp.add(m);
+    return m;
+  });
+  // Hodet: to halvkuler som kjever med hengsel bak, røde innsider og tenner langs kanten
+  const head = new THREE.Group();
+  const mkJaw = (up: boolean) => {
+    const jaw = new THREE.Group();
+    const shell = new THREE.Mesh(new THREE.SphereGeometry(0.55, 16, 8, 0, Math.PI * 2, up ? 0 : Math.PI / 2, Math.PI / 2), skin);
+    shell.scale.set(0.9, 0.62, 1.1);
+    const mouth = new THREE.Mesh(new THREE.CircleGeometry(0.5, 16), inner);
+    mouth.rotation.x = up ? Math.PI / 2 : -Math.PI / 2;
+    mouth.scale.set(0.9, 1.1, 1);
+    mouth.position.y = up ? -0.01 : 0.01;
+    shell.position.z = 0.5;
+    mouth.position.z = 0.5;
+    jaw.add(shell, mouth);
+    for (let i = 0; i < 9; i++) {
+      const a = (i / 8) * Math.PI - Math.PI / 2;
+      const t = new THREE.Mesh(new THREE.ConeGeometry(0.045, 0.2, 5), toothM);
+      t.position.set(Math.sin(a) * 0.44, up ? -0.06 : 0.06, 0.5 + Math.cos(a) * 0.52);
+      t.rotation.x = up ? Math.PI : 0;
+      jaw.add(t);
+    }
+    head.add(jaw);
+    return jaw;
+  };
+  const upper = mkJaw(true), lower = mkJaw(false);
+  grp.add(head);
+  applyShadows(grp);
+  // Rødlig skjær på bakken der den glefser, sterkere når den varsler
+  const mark = new THREE.Mesh(new THREE.CircleGeometry(0.5, 24), new THREE.MeshBasicMaterial({ color: '#5a0a10', transparent: true, opacity: 0, depthWrite: false }));
+  mark.rotation.x = -Math.PI / 2;
+  mark.scale.set(h.w, h.d, 1);
+  mark.position.set(h.x, 0.02, h.z);
+  grp.add(mark);
+
+  const target = new THREE.Vector3(h.x, 0.75, h.z);
+  const pos = new THREE.Vector3(), aim = new THREE.Vector3();
+  let phase: 'idle' | 'warn' | 'snap' = 'idle', k = 0, chompT = 0, t = 0;
+  const p0 = new THREE.Vector3(), p1 = new THREE.Vector3(), p2 = new THREE.Vector3(), a = new THREE.Vector3(), b = new THREE.Vector3();
+  const curve = (u: number, out: THREE.Vector3) => {
+    // Kvadratisk Bézier: roten, et punkt rett over roten og hodet
+    const v = 1 - u;
+    return out.set(0, 0, 0).addScaledVector(p0, v * v).addScaledVector(p1, 2 * v * u).addScaledVector(p2, u * u);
+  };
+  const up = new THREE.Vector3(0, 1, 0), q = new THREE.Quaternion();
+  return {
+    group: grp,
+    setPlant(p, kk) {
+      phase = p;
+      k = kk;
+    },
+    chomp() {
+      chompT = 0.45;
+    },
+    update(dt) {
+      t += dt;
+      chompT = Math.max(0, chompT - dt);
+      let open = 0.15 + Math.sin(t * 2.2) * 0.06;
+      pos.copy(rest);
+      pos.x += Math.sin(t * 0.9) * 0.15;
+      pos.y += Math.sin(t * 1.3) * 0.08;
+      aim.copy(target);
+      if (phase === 'warn') {
+        // Trekker hodet bakover og opp, snur gapet ut mot veien (og kameraet), rister og gaper
+        pos.z += side * 0.45 * k;
+        pos.y += 0.6 * k;
+        pos.x += Math.sin(t * 38) * 0.06 * k;
+        aim.y += 1.4 * k;
+        aim.z -= side * 1.2 * k;
+        open = 0.2 + 1.0 * k;
+      } else if (phase === 'snap') {
+        // Glefser ned over feltet og lukker kjevene
+        const s = Math.sin(Math.min(1, k) * Math.PI);
+        pos.lerp(target, s);
+        open = 1.05 * (1 - Math.min(1, k * 2.2));
+      }
+      if (chompT > 0) {
+        const s = Math.sin((chompT / 0.45) * Math.PI);
+        pos.lerp(target, s * 0.85);
+        open = Math.abs(Math.sin(chompT * 30)) * 0.8;
+      }
+      head.position.copy(pos);
+      head.lookAt(aim);
+      upper.rotation.x = -open * 0.6;
+      lower.rotation.x = open * 0.35;
+      (mark.material as THREE.MeshBasicMaterial).opacity = phase === 'warn' ? 0.15 + 0.3 * k : phase === 'snap' ? 0.4 : 0.06;
+      // Stilken følger kurven fra roten til bak hodet
+      p0.copy(base);
+      p1.set(base.x, pos.y * 0.9 + 0.4, base.z);
+      p2.copy(pos).addScaledVector(head.getWorldDirection(aim).multiplyScalar(1), -0.35);
+      for (let i = 0; i < SEG; i++) {
+        curve(i / SEG, a);
+        curve((i + 1) / SEG, b);
+        const m = segs[i];
+        m.position.copy(a);
+        const d = b.clone().sub(a);
+        const len = d.length();
+        q.setFromUnitVectors(up, d.normalize());
+        m.quaternion.copy(q);
+        const r = 1 - i / SEG * 0.45;
+        m.scale.set(r, len, r);
+      }
+    },
+  };
+}
+
+/**
+ * Steinvekt over veien: en tykk stokk står bak veien med en gren som går ut over feltet, og en stor stein henger i et
+ * tau fra grenen. Den knirker og rister før den faller (og en skygge mørkner på veien), ligger litt, og heises opp.
+ */
+function deadfall(grp: THREE.Group, gore: Gore, h: HazardDef): HazardVisual {
+  const postZ = Math.min(h.z - 3.2, -3.6);
+  const beamY = 5.8;
+  const wood = lit({ map: woodTex(), color: '#7a6a52' });
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.42, beamY + 0.6, 8), wood);
+  post.position.set(h.x - 0.9, (beamY + 0.6) / 2, postZ);
+  const beamLen = h.z - postZ + 0.6;
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.26, beamLen, 7), wood);
+  beam.rotation.x = Math.PI / 2;
+  beam.rotation.z = 0.35;
+  beam.position.set(h.x - 0.45, beamY, postZ + beamLen / 2 - 0.2);
+  // Lianer rundt stokken
+  for (let i = 0; i < 3; i++) {
+    const v = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.04, 5, 12), toon('#3e6a2a'));
+    v.position.set(h.x - 0.9, 1.4 + i * 1.6, postZ);
+    v.rotation.set(Math.PI / 2 + rand(-0.3, 0.3), 0, rand(-0.3, 0.3));
+    grp.add(v);
+  }
+  const stone = lit({ map: stoneTex('#7c7a6a', '#4a4a3e', 48, 32), color: '#c8c8b0' });
+  const block = new THREE.Group();
+  const rock = new THREE.Mesh(new THREE.BoxGeometry(1.7, 1.05, 1.25), stone);
+  rock.position.y = 0.525;
+  block.add(rock);
+  // Mose på toppen og et tau rundt
+  const moss = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.08, 1.05), toon('#4a6a2a'));
+  moss.position.y = 1.07;
+  block.add(moss);
+  for (const dx of [-0.45, 0.45]) {
+    const band = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.1, 1.3), toon('#8a7048'));
+    band.position.set(dx, 0.525, 0);
+    block.add(band);
+  }
+  const rope = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 1, 5), toon('#9a8058'));
+  grp.add(post, beam, block, rope);
+  applyShadows(grp);
+  const shadow = new THREE.Mesh(new THREE.CircleGeometry(0.5, 24), new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.1, depthWrite: false }));
+  shadow.rotation.x = -Math.PI / 2;
+  shadow.scale.set(h.w * 1.1, h.d * 1.1, 1);
+  shadow.position.set(h.x, 0.025, h.z);
+  grp.add(shadow);
+  let y = 1, creak = 0, t = 0;
+  const place = () => {
+    const by = 0.02 + y * 3.9;
+    block.position.set(h.x + (creak > 0 ? Math.sin(t * 47) * 0.04 * creak : 0), by, h.z);
+    block.rotation.z = creak > 0 ? Math.sin(t * 31) * 0.05 * creak : Math.sin(t * 0.8) * 0.02;
+    const top = by + 1.05;
+    rope.scale.y = Math.max(0.05, beamY - top);
+    rope.position.set(h.x, top + (beamY - top) / 2, h.z);
+    (shadow.material as THREE.MeshBasicMaterial).opacity = 0.12 + 0.35 * creak + (y < 0.05 ? 0.25 : 0);
+  };
+  place();
+  return {
+    group: grp,
+    setDrop(k, c) {
+      y = k;
+      creak = c;
+    },
+    update(dt) {
+      t += dt;
+      place();
+      if (creak > 0 && Math.random() < dt * 12) gore.ambient(h.x + rand(-0.6, 0.6), 0.02 + y * 3.9, h.z + rand(-0.4, 0.4), 0, -1, '#b8a888', rand(0.03, 0.06), 1.2, false, 6);
+    },
+  };
+}
+
 export function buildHazard(g: THREE.Group, gore: Gore, h: HazardDef): HazardVisual {
   const grp = new THREE.Group();
   g.add(grp);
@@ -171,6 +394,8 @@ export function buildHazard(g: THREE.Group, gore: Gore, h: HazardDef): HazardVis
     const update = chasm(grp, h);
     return { group: grp, update };
   }
+  if (h.kind === 'maneater') return maneater(grp, gore, h);
+  if (h.kind === 'deadfall') return deadfall(grp, gore, h);
   const inside = (fx: number, fz: number) => (fx * fx) / 0.25 + (fz * fz) / 0.25 <= 0.85;
   switch (h.kind) {
     case 'spikes': {

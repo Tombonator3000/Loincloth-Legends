@@ -42,7 +42,7 @@ if (scenario === 'creator') {
   await run(0.1, [], ['KeyD']); await run(2);
   await shot('11-map-road');
   console.log(await st());
-  await ev(() => { const g = window.__game; g.save.completed = ['road', 'pit', 'swamp', 'mirror', 'frost']; g.goMap(); });
+  await ev(() => { const g = window.__game; g.save.completed = ['road', 'pit', 'jungle', 'swamp', 'mirror', 'frost']; g.goMap(); });
   await run(1);
   await shot('12-map-progress');
 } else if (scenario === 'levels') {

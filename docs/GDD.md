@@ -45,14 +45,17 @@ Castle Crashers-inspirert 3D-kart over en øy. Heltene (og kjæledyrene) går la
 | The Keep of Beginnings | Hjem | Gress | | Hero Forge, butikk, trening | |
 | The Road of Mild Peril | Brett | Gress | | Sjef: Big Mama Hogmother | Warhammer |
 | The Pit of Unfair Judgement | Arena (valgfri) | Gress | Road | Duell: Gorthak | Beast Skull-hjelm |
-| The Swamp of Moist Regret | Brett | Sump | Road | Sjef: King Croakus | Krone |
+| The Steaming Jungle | Brett | Jungel | Road | **Duell i stedet for sjef**: Queen Zanthra | Gull |
+| The Swamp of Moist Regret | Brett | Sump | Jungle | Sjef: King Croakus | Krone |
 | The Mirror Pool | Arena (valgfri) | Sump | Swamp | Duell: Dark You (ond tvilling) | Wizard Blue hårfarge |
-| The Night Camp | Brett (valgfritt) | Natt | Swamp | Overlev til daggry (tyvnisser) | Gull, krukker til neste brett |
+| The Night Camp | Brett (valgfritt) | Natt | Jungle | Overlev til daggry (tyvnisser) | Gull, krukker til neste brett |
 | Frostbite Pass | Brett | Frost | Swamp | **Duell i stedet for sjef**: Frostjarl Kaldor | Great Helm, Frost Blue hud |
 | The Trough of Honour | Arena (valgfri) | Frost | Frost | Duell: Sir Oinksalot | Gull |
 | The Scorchlands | Brett | Vulkan | Frost | Sjef: Magmor the Molten | Gull |
 | The Bone Coliseum | Arena (valgfri) | Vulkan | Scorch | Duell: Bonejangles | Spiked Club |
 | Tower of Moderate Evil | Brett | Tårn | Scorch | Sjef: Vorthax | Slutten |
+
+**Jungelen** (brett 2) ligger mellom brett 1 og sumpen. Prinsessen er fortsatt målet. Jungelen gir en grunn til å gå omveien: Vorthax har stjålet Solhjertet fra Soltempelet, og amazonene tror heltene er tyvene. Brettet ender i en duell mot dronning Zanthra over tempelet. Etter seieren viser amazonene heltene lappen Vorthax la igjen på sokkelen (IOU), og fortelleren knytter det til tårnet: Solhjertet er der, og prinsessen også.
 
 **Nattleiren** er en hyllest til leiren mellom brettene i Golden Axe. Heltene sover ved bålet med to ekstra krukker hver. Tyvnisser løper forbi og napper krukker (YOINK!, høyst to hver), og et slag får dem til å miste alt de har tatt (GIVE THAT BACK!). Når siste nisse er borte, gryr det (DAWN BREAKS), og krukkene heltene har igjen blir forsyninger til neste brett (to krukker per forsyning). Egen låt: NIGHT WATCH, en seig metal-ballade.
 
@@ -61,6 +64,7 @@ Castle Crashers-inspirert 3D-kart over en øy. Heltene (og kjæledyrene) går la
 | Biom | Stemning | Fiender | Fare | Ryttere |
 |---|---|---|---|---|
 | Gress (solnedgang) | Palisader, telt, bål, hodeskaller på stokker | Skeletons, Hogmen, Cultists, Potion Gnomes | Piggroper med blodige staker | Skjelett og hogman på krigsvillsvin |
+| Jungel (Soltempelet) | Høye jungeltrær med kronen langt oppe, palmer og bananplanter, lianer, mosegrodde steinguder og et halvt begravd steinhode, en trappepyramide med gullsol i disen, lysstråler, pollen og ildfluer | Mossy Skeletons, Temple Thieves (kaster dolker), Frogmen, Hogmen | Kjøttetende planter ved veikanten (varsler, glefser, spiser fiender som kastes inn) og steinvekter som faller når noen står under. Søyler langs veien kan slås over ende og knuser alt de lander på | Frogman på kakatrisse |
 | Sump | Tåke, råtne trær, siv, lysende sopp, ildfluer | Bog Zombies, Frogmen | Myr som suger ned | Frogman og zombie på kakatrisse |
 | Frost | Blåtimen i et fjellpass (konseptbilde 4): klippevegger med snø, fossefall, taubro, ruiner, fyrfat med ild, fillete krigsbannere med hornet hodeskalle, runesteiner, istapper, taugjerde og tett snøfall | Frost Skeletons, Ice Trolls, Avalanche Troll (kjempe midtveis) | Råk i isen | Frostskjeletter på villsvin og kakatrisse |
 | Vulkan | Lavaelv, obsidianpigger, brennende trær | Fire Imps, Ember Skeletons | Lavapøler | Ildimp og glødeskjelett på magma-salamander |
@@ -79,7 +83,7 @@ Sjefer er satt sammen av trekk med vekt og nedkjøling, og blir rasende ved halv
 
 ## 7. Dueller (Barbarian-stil)
 
-Brukes som finale i stedet for sjef (Frostbite Pass) og som valgfrie arena-noder på kartet.
+Brukes som finale i stedet for sjef (jungelen og Frostbite Pass) og som valgfrie arena-noder på kartet.
 
 | Input | Trekk | Høyde | Kommentar |
 |---|---|---|---|

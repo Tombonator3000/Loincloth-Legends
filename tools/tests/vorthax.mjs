@@ -1,4 +1,4 @@
-// Vorthax merkes før tårnet (LevelDef.vorthax, gfx/vision.ts): på brett 1 til 4 viser han seg som et kjempehode av
+// Vorthax merkes før tårnet (LevelDef.vorthax, gfx/vision.ts): på alle brettene før tårnet viser han seg som et kjempehode av
 // lilla lys på himmelen mellom bølgene og holder en tale, én replikk om gangen i HUD-en, og hodet toner ut igjen og
 // kommer ikke tilbake. Brettene har også replikker om ordrene hans i bølgene. Alt går i spilltid.
 // Bruk: node tools/tests/vorthax.mjs http://localhost:4173/ [./shots] [brett]
@@ -23,7 +23,7 @@ await page.evaluate(() => { window.requestAnimationFrame = () => 0; localStorage
 // Dataene: alle brettene før tårnet har en tale, og Vorthax nevnes i bølgene
 const data = await page.evaluate(() => {
   const L = window.__lib.LEVELS;
-  return ['road', 'swamp', 'frost', 'scorch'].map((id) => ({
+  return ['road', 'jungle', 'swamp', 'frost', 'scorch'].map((id) => ({
     id, lines: L[id].vorthax?.lines.length ?? 0, at: L[id].vorthax?.at ?? -1,
     waves: L[id].waves.map((w) => w.at), mention: L[id].waves.some((w) => /VORTHAX|SIGNED, V\./.test(w.say?.[1] ?? '')),
   }));
@@ -33,7 +33,7 @@ for (const d of data) {
   check(`${d.id}: tale med replikker mellom bølgene, og ordrene hans nevnes`, d.lines >= 2 && d.waves[0] < d.at && d.at < d.waves[1] && d.mention, d);
 }
 
-const levels = only ? only.split(',') : ['road', 'swamp', 'frost', 'scorch'];
+const levels = only ? only.split(',') : ['road', 'jungle', 'swamp', 'frost', 'scorch'];
 for (const id of levels) {
   const r = await page.evaluate((id) => {
     const g = window.__game, L = window.__lib;
@@ -85,6 +85,6 @@ if (out) {
   await page.screenshot({ path: `${out}/vorthax-vision.png` });
 }
 if (logs.length) console.log('LOGS:\n' + logs.join('\n'));
-console.log(fails.length ? `FEIL: ${fails.length} (${fails.join(', ')})` : 'OK: Vorthax merkes på brett 1 til 4');
+console.log(fails.length ? `FEIL: ${fails.length} (${fails.join(', ')})` : 'OK: Vorthax merkes på brettene før tårnet');
 await browser.close();
 process.exit(fails.length ? 1 : 0);

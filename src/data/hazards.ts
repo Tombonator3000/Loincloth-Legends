@@ -2,7 +2,7 @@
 // Heltene tar skade og spretter ut igjen. Nye farer: legg til en type her, tegning i gfx/env/hazards.ts
 // og effekt i game/hazards.ts.
 
-export type HazardKind = 'spikes' | 'bog' | 'icehole' | 'lava' | 'spiketrap' | 'chasm';
+export type HazardKind = 'spikes' | 'bog' | 'icehole' | 'lava' | 'spiketrap' | 'chasm' | 'maneater' | 'deadfall';
 
 export interface HazardDef {
   kind: HazardKind;
@@ -36,7 +36,16 @@ export const HAZARDS: Record<HazardKind, HazardInfo> = {
   lava: { name: 'LAVA POOL', heroDmg: 22, words: ['EXTRA CRISPY!', 'WELL DONE!', 'FLAMBE!'], ouch: ['HOT HOT HOT!', 'MY LOINCLOTH IS ON FIRE!'], foesAvoid: true },
   spiketrap: { name: 'SPIKE TRAP', heroDmg: 18, words: ['IMPALED!', 'SPIKED!', 'FLOOR SPIKES OF DOOM!'], ouch: ['WHO PUTS SPIKES IN A FLOOR?!', 'OUCH!'], foesAvoid: false },
   chasm: { name: 'THE GORGE', heroDmg: 0, words: ['SEE YOU NEVER!', 'LONG WAY DOWN!', 'GRAVITY WINS!', 'MIND THE GAP!'], ouch: [], foesAvoid: true, blocks: true },
+  // Jungelen: en kjøttetende plante ved veikanten som varsler (rister og gaper) før den glefser, og som spiser det
+  // som kastes inn i den. Og en steinvekt som henger over veien og faller når noen står under den.
+  maneater: { name: 'MAN-EATING PLANT', heroDmg: 18, words: ['NOM!', 'DIGESTED!', 'PLANT FOOD!', 'EATEN ALIVE!'], ouch: ['IT BIT MY BUNS!', 'BAD PLANT! BAD!'], foesAvoid: true },
+  deadfall: { name: 'DEADFALL', heroDmg: 26, words: ['SQUASHED!', 'FLATTENED!', 'PANCAKE!'], ouch: ['MY GLORIOUS HEAD!', 'WHO HANGS ROCKS OVER A ROAD?!'], foesAvoid: false },
 };
+
+/** Planten: hvor lang en runde er (sekunder), og når den varsler og glefser i runden. */
+export const MANEATER = { cycle: 4.4, warn: 3.4, snap: 4.15, done: 4.4 };
+/** Steinvekta: knirk før den faller, fallet, hvor lenge den ligger, og hvor lenge den heises opp igjen. */
+export const DEADFALL = { creak: 0.75, fall: 0.22, rest: 2.2, lift: 1.8, top: 3.9 };
 
 /**
  * Juvet langs bakkanten av veien: hullet går fra forkanten (z + d/2) og bakover forbi veikanten til CHASM_BACK.

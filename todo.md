@@ -9,9 +9,13 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [ ] Bøy på fiendene også: sjekk stillingene for skjelett, kultist, grisemann osv. og sett `bend: true` på dem som tåler det
 - [ ] Mål albue og kne på Forge-delene (de bruker standardpunktene: midt på armen, 40 prosent ned på beinet)
 - [x] Tøffe fiender (guard) må vakle før de kan gripes, småfolk gripes som før (tools/tests/guard.mjs)
-- [x] Vorthax på brett 1 til 4: kjempehode på himmelen med tale mellom bølgene, og replikker om ordrene hans (fangevogna på brett 1) (tools/tests/vorthax.mjs)
+- [x] Vorthax på brettene før tårnet (nå også jungelen): kjempehode på himmelen med tale mellom bølgene, og replikker om ordrene hans (fangevogna på brett 1) (tools/tests/vorthax.mjs)
 - [ ] Tom: lag talene til Vorthax i VoiceStudio (docs/STEMMER.md, prioritet A)
-- [ ] Jungelbrett mellom brett 1 og sumpen (skillen new-level): tempelgård, elv med ruinby, soltempel. Grep: hengende steinvekt (som istappene), søyle som velter og blir bro (som fyrfatet), kjøttetende plante som varsler før den glefser (ny fare). Teksturer og kulisser bestilles med KULISSE-BLOKKEN først
+- [x] Jungelbrett mellom brett 1 og sumpen (`jungle`, STAGE 2): kjøttetende plante, steinvekt, søyler som veltes over fiendene, Soltempelet, duell mot dronning Zanthra, låten TEMPLE OF THE SUN (tools/tests/jungle.mjs)
+- [ ] Tom: se på jungelen (plantene, steinvekta, søylene, tempelet i disen, palmene og duellen) og si fra om noe skal endres
+- [ ] Tom: lag replikkene for jungelen i VoiceStudio (fortelleren, Vorthax, dronning Zanthra, docs/STEMMER.md)
+- [ ] Jungelen: bestill bakke- og veitekstur (`ground_jungle`, `road_jungle`) og kulisser (tempelruiner, steinguder, slyngplanter) etter ART_PROMPTS og skillen prop-art. Zanthra er satt sammen av Forge-deler og kan få egne bilder
+- [ ] Jungelen: elv med ruinby, og søyler som blir bro over elva (fra idélista), er ikke laget
 - [ ] Utstyr som endrer handlingene, to eller tre ting som gjenbruker effekter vi har: oljeflaske (glør og brann), ring (tordenmagien), kastedolk (kultistenes dolk). Må passe på de tre knappene
 - [ ] Flere mannekropper blant fiender og rivaler (tung og hårete bryter, kompakt veteran med brukket nese, forfengelig arenahelt), se også kroppstypene under Neste
 - [ ] Kameraet trekker seg litt bakover når to spillere går fra hverandre (slik `Stage.camPull` gjør for kjemper)

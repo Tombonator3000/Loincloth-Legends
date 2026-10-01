@@ -19,7 +19,7 @@ node tools/tests/particles.mjs http://localhost:4173/ [./shots]           # blod
 node tools/tests/grab.mjs http://localhost:4173/ ./shots road             # grep, kne, kast, bowling og fare (road, swamp, frost, scorch, tower)
 node tools/tests/guard.mjs http://localhost:4173/ [./shots]               # tøffe fiender (guard) står imot grep til de vakler: skjelett gripes, grisemannen skyver helten unna, etter et slag eller med lite liv gripes han
 node tools/tests/bend.mjs http://localhost:4173/ [./shots] [stillinger] [stiff]  # albuer og knær på Thrugg: våpenet i neven, bladet beholder retningen, skjelettet bøyer ikke, løs arm beholder bøyen, føttene, og bilder av stillingene (stiff = også uten bøy)
-node tools/tests/vorthax.mjs http://localhost:4173/ [./shots] [brett]     # Vorthax på himmelen på brett 1 til 4: tale mellom bølgene, alle replikkene, toner ut og kommer ikke igjen
+node tools/tests/vorthax.mjs http://localhost:4173/ [./shots] [brett]     # Vorthax på himmelen på brettene før tårnet: tale mellom bølgene, alle replikkene, toner ut og kommer ikke igjen
 node tools/tests/mounts.mjs http://localhost:4173/ ./shots                # ridedyr, fiende-ryttere, avkasting, sitte opp, stormløp
 node tools/tests/riders.mjs http://localhost:4173/                         # fiende-ryttere kan tas: en bot jager dem med låst kamera, de holder seg innen rekkevidde, rygger saktere enn helten og slås av og drepes
 node tools/tests/mouse.mjs http://localhost:4173/                          # venstre museknapp slår på brett og i duell, ikke på kartet eller i pausen
@@ -51,6 +51,7 @@ node tools/tests/screenfx.mjs http://localhost:4173/ ./shots              # skje
 node tools/tests/giant.mjs http://localhost:4173/ [./shots]               # kjempetrollet: størrelse, rustning til han vakler, bakkeslag, kameraet trekker seg bakover og inn igjen
 node tools/tests/frostsound.mjs http://localhost:4173/                    # lydene fra frostpasset: snøtrinn, horn og brøl, kjempetrinn, fossesus, ulv, vindkast, isknak, klang, publikum og innleste replikker
 node tools/tests/frostplay.mjs http://localhost:4173/ [./shots]           # spillet i frostpasset: fiender som rygger tas igjen, panikk, kast i juvet, istapper, fyrfat og glør, kjempen som kaster helten, ridedyr stopper ved juvet
+node tools/tests/jungle.mjs http://localhost:4173/ [./shots]              # jungelen: planten spiser kastede fiender og biter helten bare når den glefser, steinvekta faller på den som står under, søylen faller bort fra slaget og knuser fiendene, skjermbilder langs brettet
 node tools/tests/editor.mjs http://localhost:4173/ [./shots]              # STAGE FORGE: biblioteket, legge ut, dra med musa, angre, slette, rad, slå av generert pynt, tidslinja, lagre (nedlasting), PNG inn, PLAY FROM HERE og tilbake
 node tools/tests/prop-images.mjs http://localhost:4173/                   # bilder som tar over for plassholderne: rutenett fra bildet, lys, flammer og bevegelse fra plassholderen
 node tools/tests/prop-anim.mjs http://localhost:4173/ [./shots]           # deler (følger animasjon, flytting, skala og speilvending, sletting og duplisering), wave, pulse, drift, react (TEST, kråka flykter fra helten, treff ved skiltet), ledd med klikk i bildet, varianter og SAVE AS SET. Bruker testbrettet fixtures/road-placeholders.json (det gamle brett 1)

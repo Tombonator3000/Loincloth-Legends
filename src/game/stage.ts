@@ -13,7 +13,7 @@ import { findGrab, startHold, bowl, resistGrab, SLAM, AUTO_GRAB } from './grab';
 import { buildHazard } from '../gfx/env/hazards';
 import { chasmHole } from '../data/hazards';
 import { Icicles, ICICLE_WARN } from './icicles';
-import type { Tippable } from '../gfx/env/common';
+import type { Tippable, Crush } from '../gfx/env/common';
 import { Mount, type MountWorld } from './mounts';
 import { Pet, type PetWorld } from './pets';
 import { MOUNTS } from '../data/mounts';
@@ -47,6 +47,8 @@ const MAGIC_ATK: AttackDef = { ...HERO_ATK.chop, id: 'magic', kd: true, launch: 
 const SCREAM_ATK: AttackDef = { ...HERO_ATK.chop, id: 'scream', kd: true, launch: 6, push: 8, death: ['headsplode'], heavy: true, word: ['AAAAAH!'] };
 const THUNDER_ATK: AttackDef = { ...HERO_ATK.chop, id: 'thunder', kd: true, launch: 5, push: 3, death: ['explode', 'headsplode'], heavy: true, word: ['KRAKOOM!', 'ZZZAP!'] };
 const MAGIC_NAMES = { meteor: 'METEOR OF EXCESSIVE FORCE', scream: 'SCREAM OF THE ANCESTORS', thunder: 'WRATH OF THE THUNDER GOD' };
+/** En søyle i jungelen som faller på en helt (Stage.crush): mye skade, og han veltes. */
+const PILLAR_HIT: AttackDef = { ...HERO_ATK.chop, id: 'pillar', dmg: 24, kd: true, launch: 4, push: 3, heavy: true, death: ['explode'], word: ['CRUNCH!'] };
 /** Sekunder per replikk når Vorthax taler fra himmelen (LevelDef.vorthax). */
 const VISION_LINE = 3.0;
 
@@ -407,6 +409,11 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   private updateHazards(dt: number) {
     for (const hz of this.hazards) {
       const near = this.onScreen(hz.def.x, 3);
+      // Steinvekta faller når noen står under den (fiender som lokkes inn, eller en helt som ikke passer på)
+      if (near && hz.def.kind === 'deadfall' && hz.drop === 'up') {
+        const under = [...this.foes.map((o) => o.f), ...this.heroes.map((h) => h.f)].some((f) => f.alive && f.pos.y < 0.5 && f.state !== 'held' && hz.contains(f.pos.x, f.pos.z));
+        if (under) hz.trigger();
+      }
       hz.update(dt, W.time, near);
       if (!near) continue;
       for (const fo of this.foes) {
@@ -416,7 +423,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
         const inside = hz.contains(f.pos.x, f.pos.z);
         if (!inside && !hz.stops(f.pos.x, f.pos.z)) continue;
         const helpless = f.state === 'down' || f.state === 'hurt' || f.state === 'stunned' || !!f.thrownBy;
-        if (inside && hz.armed && (helpless || hz.def.kind === 'spiketrap')) hz.kill(f, f.lastHitBy);
+        if (inside && hz.armed && (helpless || hz.killsAll)) hz.kill(f, f.lastHitBy);
         else if (hz.info.foesAvoid && f.onGround && (inside || !helpless)) hz.pushOut(f);
       }
       for (const h of this.heroes) {
@@ -428,7 +435,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
         }
         if (!f.alive || f.pos.y > 0.25 || f.invuln > 0 || f.state === 'held' || f.mount) continue;
         if ((this.hazardCd.get(f.id) ?? 0) > 0) continue;
-        if (hz.armed && hz.contains(f.pos.x, f.pos.z, -0.15)) {
+        if (hz.bites && hz.contains(f.pos.x, f.pos.z, -0.15)) {
           this.hazardCd.set(f.id, 1.2);
           hz.hurtHero(f);
         }
@@ -448,10 +455,11 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     this.icicles.update(dt, !!this.wave || this.addsAlive() > 0, all, this.camX, this.halfW);
     for (const tp of this.tippables) {
       if (tp.tipped || Math.abs(tp.x - this.camX) > this.halfW + 2) continue;
-      // Et slag fra en helt som når fram, eller en fiende som flyr inn i det
-      const hit = heroF.some((f) => f.state === 'attack' && f.phase() === 'active' && Math.abs(tp.x - (f.pos.x + f.facing * 1.1)) < 1.3 && Math.abs(tp.z - f.pos.z) < 1.9)
-        || foeF.some((f) => (!!f.thrownBy || f.state === 'down') && !f.onGround && Math.abs(tp.x - f.pos.x) < 0.9 && Math.abs(tp.z - f.pos.z) < 1.4);
-      if (hit) this.tip(tp);
+      // Et slag fra en helt som når fram, eller en fiende som flyr inn i det. Det faller bort fra slaget
+      const hero = heroF.find((f) => f.state === 'attack' && f.phase() === 'active' && Math.abs(tp.x - (f.pos.x + f.facing * 1.1)) < 1.3 && Math.abs(tp.z - f.pos.z) < 1.9);
+      const flying = hero ? undefined : foeF.find((f) => (!!f.thrownBy || f.state === 'down') && !f.onGround && Math.abs(tp.x - f.pos.x) < 0.9 && Math.abs(tp.z - f.pos.z) < 1.4);
+      if (hero) this.tip(tp, hero.facing);
+      else if (flying) this.tip(tp, flying.vel.x < 0 ? -1 : 1);
     }
     for (const e of this.embers) {
       e.t -= dt;
@@ -479,13 +487,44 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     }
   }
 
-  /** Velt et fyrfat: glørne renner ut og brenner på bakken. */
-  private tip(tp: Tippable) {
-    const spill = tp.tip();
+  /**
+   * Velt noe: et fyrfat (glørne renner ut og brenner på bakken) eller en søyle i jungelen, som knuser alt i stripen den
+   * lander på: fiendene dør, heltene tar skade og veltes.
+   */
+  private tip(tp: Tippable, dir: number) {
+    const spill = tp.tip(dir);
     if (!spill) return;
     // Glørne brenner først når kurven har truffet bakken (omtrent 0,7 sekunder)
-    W.gore.later(0.7, () => this.embers.push({ x: spill.x, z: spill.z, t: spill.t - 0.7 }));
-    W.fx.text(new THREE.Vector3(tp.x, 3.2, tp.z), pick(['TIMBER!', 'HOT COALS!', 'OOPS!']), 'word', 1.1);
+    if (spill.t > 0) W.gore.later(0.7, () => this.embers.push({ x: spill.x, z: spill.z, t: spill.t - 0.7 }));
+    const c = spill.crush;
+    if (c) W.gore.later(c.delay, () => this.crush(c));
+    W.fx.text(new THREE.Vector3(tp.x, 3.2, tp.z), pick(c ? ['TIMBER!', 'LOOK OUT BELOW!', 'ANCIENT ARCHITECTURE!'] : ['TIMBER!', 'HOT COALS!', 'OOPS!']), 'word', 1.1);
+  }
+
+  /** En søyle lander: alt den lander på, knuses. */
+  private crush(c: Crush) {
+    if (this.done) return;
+    W.fx.shake(0.55);
+    // Avstanden fra figuren til linjestykket søylen ligger langs
+    const dx = c.bx - c.ax, dz = c.bz - c.az, len2 = dx * dx + dz * dz || 1;
+    const inStrip = (f: Fighter) => {
+      if (!f.alive || f.pos.y > 1.2) return false;
+      const u = Math.max(0, Math.min(1, ((f.pos.x - c.ax) * dx + (f.pos.z - c.az) * dz) / len2));
+      return Math.hypot(f.pos.x - (c.ax + dx * u), f.pos.z - (c.az + dz * u)) < c.r;
+    };
+    for (const o of this.foes) {
+      const f = o.f;
+      if (!inStrip(f) || f.state === 'held') continue;
+      f.envKill = 'PILLAR';
+      f.die('explode', 1, this.nature);
+      W.stats.gibs += 2;
+      W.fx.text(f.headPoint().add(new THREE.Vector3(0, 1, 0)), pick(['FLATTENED!', 'CRUSHED!', 'SQUASHED!']), 'kill big', 1.3);
+    }
+    for (const h of this.heroes) {
+      const f = h.f;
+      if (!inStrip(f) || f.invuln > 0 || f.mount) continue;
+      applyHit(this.nature, f, PILLAR_HIT);
+    }
   }
 
   /** Sett fyr på en figur i sek sekunder. Fiender som tar fyr, får panikk. */
@@ -508,7 +547,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
       const n = 2 + Math.floor(Math.random() * 2);
       for (let i = 0; i < n; i++) this.icicles.drop(x + rand(-3.5, 3.5), rand(-2.3, 2.3), ICICLE_WARN * rand(0.7, 1.1) + i * 0.2);
     }
-    for (const tp of this.tippables) if (!tp.tipped && Math.abs(tp.x - x) < r + 1.5) this.tip(tp);
+    for (const tp of this.tippables) if (!tp.tipped && Math.abs(tp.x - x) < r + 1.5) this.tip(tp, tp.x < x ? -1 : 1);
   }
 
   // ---------------------------------------------------------------- HeroWorld

@@ -208,6 +208,24 @@ export const METAL_TRACKS: Record<string, MetalTrack> = {
     crash: [0, 48, 64, 112],
     tom: [60, 61, 62, 63],
   }),
+  // TEMPLE OF THE SUN: tribal metal for jungelen. Riffet og tammene går i 3-3-2 (0, 3, 6, 8, 11, 14),
+  // først bare tammer, stortromme og gitar, så full takt med hihat og en lead i E-moll pentaton
+  jungle: track({
+    bpm: 132,
+    steps: 128,
+    scale: E_MINOR,
+    riff: [
+      ...riff(0, 'e..e..e.e..e..G- e..e..e.e..e..A- e..e..e.e..e..G- D---C---D---E---', R),
+      ...riff(64, 'eeE-eeE-eeG-eeA- eeE-eeE-eeD-eeC- eeE-eeE-eeG-eeA- B-------B---b-bb', R),
+    ],
+    lead: melody(64, 'E5:2 G5:2 A5:4 B5:2 A5:2 G5:4 E5:2 D5:2 E5:4 G5:4 A5:4 B5:2 D6:2 E6:4 D6:2 B5:2 A5:4 G5:2 A5:2 B5:4 D#6:4/F#6 E6:4'),
+    twin: 2,
+    kick: [...steps(64, (i) => i % 8 === 0), ...steps(64, (i) => i % 4 === 0 || i % 16 === 10).map((i) => i + 64)],
+    snare: [...steps(64, (i) => i % 16 === 12), ...steps(64, (i) => i % 8 === 4).map((i) => i + 64)],
+    hat: steps(64, (i) => i % 2 === 0).map((i) => i + 64),
+    crash: [0, 32, 64, 96, 112],
+    tom: [...steps(64, (i) => [3, 6, 11, 14].includes(i % 16)), ...steps(60, (i) => [3, 6, 11].includes(i % 16)).map((i) => i + 64), 124, 125, 126, 127],
+  }),
   // STEEL AGAINST STEEL: dueller, sjefer og tårnet. Sekstendelschug, dobbel stortromme, spansk frygisk
   duel: track({
     bpm: 168,

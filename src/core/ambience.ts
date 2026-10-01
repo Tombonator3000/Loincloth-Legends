@@ -5,8 +5,8 @@
 // - Et nytt biom glir over i det neste (lag som finnes i begge, blir liggende).
 // - Bålknitring blir sterkere og flytter seg til siden når kameraet går forbi et bål (Env.fires, satt fra Stage).
 //   Fossesus gjør det samme ved fossene (Env.waters).
-// - Av og til en kråke over gresset, en ugle ved nattleiren, en frosk i myra, eller ulv, vindkast og is som knaker i
-//   frostpasset (spilltid, så pause virker).
+// - Av og til en kråke over gresset, en ugle ved nattleiren, en frosk i myra, fugler, aper og frosker i jungelen,
+//   eller ulv, vindkast og is som knaker i frostpasset (spilltid, så pause virker).
 import type { SoundBank, Voice } from './soundbank';
 import type { Layer, LayerPlayer } from './layers';
 
@@ -34,6 +34,7 @@ export interface AmbLayer {
 /** Lagene per biom (LevelDef.biome) og for arenaene. */
 export const AMBIENCE: Record<string, AmbLayer[]> = {
   grass: [{ file: 'amb_vind', v: 0.5, syn: 'wind', sv: 0.25, lp: 3000 }],
+  jungle: [{ file: 'amb_natt', v: 0.3, syn: 'crickets', sv: 0.28, lp: 7000 }, { file: 'amb_drypp', v: 0.28, syn: 'drips', sv: 0.12 }],
   swamp: [{ file: 'amb_drypp', v: 0.5, syn: 'drips', sv: 0.18 }, { file: 'amb_drone', v: 0.3, syn: 'drone', sv: 0.1, lp: 1800 }, { file: 'amb_natt', v: 0.1, lp: 5000 }],
   frost: [{ file: 'amb_vind', v: 0.9, syn: 'wind', sv: 0.45 }],
   scorch: [{ file: 'amb_baal', v: 0.45, syn: 'fire', sv: 0.45 }, { syn: 'rumble', v: 0.35 }],
@@ -63,7 +64,24 @@ const FROG: Layer[] = [
   { w: 'sawtooth', f: 150, d: 0.16, pd: 0.25, v: 0.05, lp: [900, 300], vib: [28, 300] },
   { w: 'sawtooth', f: 140, d: 0.2, pd: 0.3, v: 0.05, lp: [900, 280], vib: [26, 300], at: 0.22 },
 ];
+// Jungelfugl: to fløyter opp og ned, gjentatt. Apen: tre hoo som stiger.
+const BIRD: Layer[] = [
+  { w: 'sine', f: 1700, d: 0.09, pd: -0.4, v: 0.045 },
+  { w: 'sine', f: 2400, d: 0.12, pd: 0.35, v: 0.045, at: 0.11 },
+  { w: 'sine', f: 1700, d: 0.09, pd: -0.4, v: 0.045, at: 0.32 },
+  { w: 'sine', f: 2400, d: 0.2, pd: 0.5, v: 0.045, at: 0.43 },
+];
+const MONKEY: Layer[] = [
+  { w: 'sawtooth', f: 480, d: 0.14, pd: -0.3, v: 0.035, lp: [1500, 800] },
+  { w: 'sawtooth', f: 530, d: 0.14, pd: -0.3, v: 0.035, lp: [1500, 800], at: 0.2 },
+  { w: 'sawtooth', f: 600, d: 0.24, pd: -0.25, v: 0.04, lp: [1800, 900], vib: [9, 40], at: 0.4 },
+];
 export const AMB_EVENTS: Record<string, AmbEvent[]> = {
+  jungle: [
+    { g: 'jungelfugl', v: 0, every: [5, 12], syn: BIRD },
+    { g: 'ape', v: 0, every: [14, 30], syn: MONKEY },
+    { g: 'frosk', v: 0, every: [9, 20], syn: FROG },
+  ],
   grass: [{ g: 'kraake', v: 0.22, lp: 3500, every: [9, 20], syn: CROW }],
   night: [{ g: 'ugle', v: 0.3, lp: 3500, every: [12, 26], syn: OWL }],
   swamp: [{ g: 'frosk', v: 0, every: [7, 16], syn: FROG }],

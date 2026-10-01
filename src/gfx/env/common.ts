@@ -277,12 +277,26 @@ export interface Env {
   generators?: string[];
 }
 
-/** Noe som kan veltes (et fyrfat). tip() gir hvor glørne havner og hvor lenge de brenner, eller null om det alt er veltet. */
+/**
+ * Noe som kan veltes (et fyrfat, en søyle i jungelen). dir er retningen slaget eller kastet kom fra (1 = mot høyre).
+ * tip() gir hvor glørne havner og hvor lenge de brenner (t 0: ingen glør), eller null om det alt er veltet.
+ * crush er der en søyle lander: fra (ax, az) til (bx, bz) med radius r, delay sekunder etter at den begynte å falle.
+ */
 export interface Tippable {
   x: number;
   z: number;
   tipped: boolean;
-  tip(): { x: number; z: number; t: number } | null;
+  tip(dir?: number): { x: number; z: number; t: number; crush?: Crush } | null;
+}
+
+/** Linjestykket en søyle knuser når den lander (se Tippable). */
+export interface Crush {
+  ax: number;
+  az: number;
+  bx: number;
+  bz: number;
+  r: number;
+  delay: number;
 }
 
 export interface Look {
@@ -510,7 +524,7 @@ export function finishEnv(g: THREE.Group, updates: ((dt: number, t: number, camX
 }
 
 // ---------------------------------------------------------------- forgrunn
-export type FgProp = 'spikes' | 'skull' | 'cross' | 'rock' | 'bones';
+export type FgProp = 'spikes' | 'skull' | 'cross' | 'rock' | 'bones' | 'fern';
 
 /**
  * Mørke silhuetter helt fremme i bildet, nederst (pigger, hodeskaller på stake, kors, steiner), som i
@@ -551,6 +565,14 @@ export function foreground(g: THREE.Group, length: number, kinds: FgProp[] = ['s
       case 'bones':
         for (let i = 0; i < 4; i++) put(box, x + rand(-0.6, 0.6), 0.08, z + rand(-0.3, 0.3), 0, rand(0, 3), rand(-0.2, 0.2), rand(0.5, 0.8), 0.07, 0.07);
         put(ball, x, 0.16, z, 0, 0, 0, 0.18, 0.18, 0.18);
+        break;
+      case 'fern':
+        // Bregne: lange, flate blader i vifte fra roten (jungelen)
+        for (let i = 0; i < 7; i++) {
+          const a = -1.25 + (i / 6) * 2.5 + rand(-0.12, 0.12);
+          const len = rand(1.1, 1.7);
+          put(cone, x + Math.sin(a) * len * 0.45, Math.cos(a) * len * 0.45, z + rand(-0.2, 0.2), 0, 0, -a, rand(0.1, 0.16), len, 0.02);
+        }
         break;
       default:
         put(rockG, x, 0.15, z, rand(0, 3), rand(0, 3), 0, rand(0.5, 0.9), rand(0.35, 0.6), rand(0.4, 0.7));

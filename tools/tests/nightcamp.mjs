@@ -25,9 +25,9 @@ const st = () => page.evaluate(() => {
   return { scene: g.scene.name, camX: s.camX.toFixed(1), wave: s.waveIdx, pots: s.heroes.map((h) => h.potions), state: s.heroes[0].f.state,
     gnomes: s.foes.filter((f) => f.f.alive && f.def.behavior === 'runner').length, stolen: [...s.stolen.values()].reduce((a, v) => a + v.n, 0), done: s.done, finishT: s.finishT.toFixed(1) };
 });
-// Kartnoden finnes og krever sumpen
+// Kartnoden finnes og krever jungelen
 const node = await page.evaluate(() => { const n = window.__game.constructor && window.__lib; return null; });
-await page.evaluate(() => { const g = window.__game; g.save.heroMade = [true, true]; g.save.completed = ['road', 'swamp']; g.twoP = false; g.input.solo = true; });
+await page.evaluate(() => { const g = window.__game; g.save.heroMade = [true, true]; g.save.completed = ['road', 'jungle']; g.twoP = false; g.input.solo = true; });
 await page.evaluate(() => { const g = window.__game; g.playLevel({ id: 'nightcamp', name: 'THE NIGHT CAMP', kind: 'level', level: 'nightcamp', biome: 'grass', pos: [0, 0], requires: [], blurb: '' }); });
 await run(0.2);
 console.log('start', JSON.stringify(await st()));

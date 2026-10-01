@@ -753,7 +753,8 @@ export class Game {
     if (this.twoP) intro.push(['ANNOUNCER', 'TAG TEAM RULES: THE BARBARIANS TAKE TURNS!']);
     this.goDuel({ a: this.heroRoster(), b: this.duelistSide(d), intro, roundsToWin: 2, arena: d.arena }, (w) => {
       if (w === 0) W.stats.xp += XP_DUEL;
-      if (w === 0) this.nodeComplete(n);
+      // Finalen på et brett kan ha replikker etterpå (jungelen: amazonene viser heltene lappen fra Vorthax)
+      if (w === 0) this.nodeComplete(n, finale ? d.after ?? [] : []);
       else this.gameOver(() => this.playDuelNode(n, d, finale), d.name + ' REMAINS UNDEFEATED. FOR NOW.');
     });
   }

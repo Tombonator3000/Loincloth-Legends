@@ -115,6 +115,15 @@ export const FOES: Record<string, FoeDef> = {
     id: 'emberskel', char: 'skeleton', name: 'EMBER SKELETON', hp: 28, speed: 2.7, gold: 3, behavior: 'melee', attack: emberSlash, range: 1.45,
     tint: [1.4, 0.72, 0.5], barks: ['SMELLS LIKE BURNT BARBARIAN!', 'I\'M TOASTY!', 'EXTRA CRISPY!'],
   },
+  // Jungelen: gamle tempelvakter grodd til med mose, og tyver som plyndrer Soltempelet for Vorthax
+  mossskel: {
+    id: 'mossskel', char: 'skeleton', name: 'MOSSY SKELETON', hp: 26, speed: 2.6, gold: 3, behavior: 'melee', attack: ENEMY_ATK.skel, range: 1.45,
+    tint: [0.72, 0.95, 0.6], barks: ['EIGHT HUNDRED YEARS ON GUARD DUTY!', 'NOBODY TOLD ME THE TEMPLE WAS ROBBED!', 'MOSS IS A LIFESTYLE!'],
+  },
+  templethief: {
+    id: 'templethief', char: 'cultist', name: 'TEMPLE THIEF', hp: 32, speed: 2.5, gold: 5, behavior: 'ranged', attack: ENEMY_ATK.stab, range: 5.4, proj: 'dagger', projCd: [2.2, 3.2],
+    tint: [1.15, 0.98, 0.6], barks: ['THIS GOLD IS FOR VORTHAX! MOSTLY!', 'I HAVE A RECEIPT!', 'FINDERS KEEPERS!'],
+  },
   ashraider: {
     id: 'ashraider', char: 'ashraider', name: 'ASH RAIDER', hp: 42, speed: 3.05, gold: 4, behavior: 'melee', attack: ashSlash, range: 1.35,
     barks: ['THE HEAT IS INCLUDED!', 'TWO BLADES. NO REFUNDS.', 'I WORKED THROUGH MY LUNCH RAID!'],

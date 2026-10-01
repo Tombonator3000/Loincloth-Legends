@@ -137,7 +137,17 @@ Helten griper ved å gå inn i en fiende (`AUTO_GRAB`). Tøffe fiender (`guard: 
 
 ## Vorthax på veien
 
-`vorthax: { at, lines }` i en `LevelDef` får Vorthax til å vise seg som et kjempehode av lilla lys over brettet (`gfx/vision.ts`, hodet til figuren `vorthax`) og holde en tale, én replikk om gangen i HUD-en (`Stage.updateVision`, spilltid). Han viser seg bare mellom bølgene og bare én gang. Brett 1 til 4 har en tale, og noen bølger har replikker om ordrene hans. Test: `tools/tests/vorthax.mjs`.
+`vorthax: { at, lines }` i en `LevelDef` får Vorthax til å vise seg som et kjempehode av lilla lys over brettet (`gfx/vision.ts`, hodet til figuren `vorthax`) og holde en tale, én replikk om gangen i HUD-en (`Stage.updateVision`, spilltid). Han viser seg bare mellom bølgene og bare én gang. Alle brettene før tårnet har en tale, og noen bølger har replikker om ordrene hans. Test: `tools/tests/vorthax.mjs`.
+
+## Jungelen
+
+Brett 2 (`jungle` i `levels.ts`, biomet `gfx/env/jungle.ts`). Trærne er tre arter med store blad (`broad` i `LeafKind`): jungelkjempen (`SPECIES.jungle`), palmen og bananplanten. Skogen åpner seg foran Soltempelet (`TEMPLE_X`), så pyramiden synes fra veien.
+- **Planten** (`maneater`): syklusen står i `MANEATER` (`data/hazards.ts`). Den hviler, varsler (rister og snur gapet mot veien) og glefser. En fiende som kastes eller slås inn i den, blir spist med en gang (`armed` er alltid sant), mens en helt bare blir bitt når den glefser (`Hazard.bites`). Fiendene går rundt den.
+- **Steinvekta** (`deadfall`): faller når noen står under den (`Hazard.trigger()` fra `Stage.updateHazards`), knirker først (`DEADFALL.creak`), treffer i ett bilde (`impact`) og heises opp igjen. Den dreper alle fiender under seg (`killsAll`), og en helt tar skade.
+- **Søylene** (`templePillar` i `env/props.ts`, plassene i `JUNGLE_PILLARS`) er `Tippable` som fyrfatene. `tip(dir)` får retningen slaget kom fra, så søylen faller på skrå bort fra helten, og `Crush` er linjestykket den lander langs. `Stage.crush` dreper fiendene som står der og slår helter over ende (`PILLAR_HIT`).
+- **Finalen** er en duell mot dronning Zanthra (`zanthra` i `duelists.ts`, figuren i `gfx/chars/raiders.ts`) i arenaen `temple`. `after` på duellanten gir replikker etter seieren når duellen er finalen på et brett.
+- Låten er TEMPLE OF THE SUN (`jungle` i `METAL_TRACKS`), stemningen insekter, drypp, fugler, aper og frosker (`AMBIENCE` og `AMB_EVENTS` i `core/ambience.ts`).
+- Test: `tools/tests/jungle.mjs` (farene og søylene, og skjermbilder langs brettet).
 
 ## Lys på figurene
 
@@ -206,7 +216,7 @@ Portet og forbedret fra Morbidium (Toms eget spill): dråpene fra `src/43_vaatt.
 - Nye effekter i sluttpasset legges i COMPOSITE i `post.ts` med en uniform som `screenFX.writeUniforms()` fyller. Sjekk med `tools/tests/screenfx.mjs`.
 
 ### Nytt tre eller ny art
-Legg en `Species` i `SPECIES` (`env/trees.ts`): lengde, radius, seksjoner, barn, vinkler, knudrethet og blader per nivå. Bruk den med `new Forest(art).add(x, z, skala)` og `forest.build()` i biomet.
+Legg en `Species` i `SPECIES` (`env/trees.ts`): lengde, radius, seksjoner, barn, vinkler, knudrethet og blader per nivå. Bruk den med `new Forest(art).add(x, z, skala)` og `forest.build()` i biomet. Bladtypene (`LeafKind`) er bladkort tegnet i `leafTexture()`; `broad` er noen få store blad i vifte (jungelen). En palme er bare stamme og ett nivå blad som henger (`start` nær 1, høy `droop`).
 
 ## Menyer
 
@@ -264,7 +274,7 @@ Nytt trekk som ikke finnes: legg det til i `BossMoveKind` og i `exec()` i `game/
 2. Registrer den i `STAGE_BUILDERS` i `gfx/env/index.ts`.
 3. Bruk biom-id-en i en `LevelDef`.
 Juv: en fare med `kind: 'chasm'` langs bakkanten (data/hazards.ts). `Stage` gir hullene til miljøet (`StageEnvOpts.holes`), `stageBase` lager bakken og veien rundt dem (`Look.holes`), `gore.holes` hindrer blod og kroppsdeler i å bli liggende i lufta, og farevisningen tegner veggene ned i dypet med taugjerde. `blocks` på faren: ingen går utfor, bare kastede og slåtte fiender faller.
-Istapper (`game/icicles.ts`) og fyrfat som veltes (`Env.tippables`, `Tippable` i common.ts) styres av `Stage.updateProps`, som også håndterer glør på bakken og `Fighter.burnT` (brann). Bakkeslag melder fra via `FoeWorld.onQuake`. Skade fra omgivelsene går gjennom `applyHit` med en skjult figur som angriper (`Stage.nature`).
+Istapper (`game/icicles.ts`) og fyrfat og søyler som veltes (`Env.tippables`, `Tippable` i common.ts, `tip(dir)` med retningen slaget kom fra) styres av `Stage.updateProps`, som også håndterer glør på bakken og `Fighter.burnT` (brann). Bakkeslag melder fra via `FoeWorld.onQuake`. Skade fra omgivelsene går gjennom `applyHit` med en skjult figur som angriper (`Stage.nature`).
 Rekvisittene i `env/props.ts` kan brukes i alle biomer: `brazier()` gir ild, lys, varmeflimmer og knitring (returnerer punktet flammene skal komme fra), `warBanner()` bølger i vinden, `cliff()` returnerer høyden på toppen så ruiner, bro og fossefall kan settes der. Sett `gore.dustColor` hvis støvet fra bakken ikke er sand (snø i frosten).
 
 ### Nytt brett
@@ -284,7 +294,7 @@ Legg til en `LevelDef` i `data/levels.ts`. Kulissene legges i `data/layouts/<id>
 ### Ny fare
 1. Legg typen til i `HazardKind` og `HAZARDS` (`data/hazards.ts`).
 2. Tegn den i `buildHazard()` (`gfx/env/hazards.ts`).
-3. Lag dødsmåten i `Hazard.kill()` og eventuelt syklusen i `Hazard.update()` (`game/hazards.ts`).
+3. Lag dødsmåten i `Hazard.kill()` og eventuelt syklusen i `Hazard.update()` (`game/hazards.ts`). `armed` sier om den dreper fiender akkurat nå, `bites` om den skader en helt, og `killsAll` om den dreper fiender som står oppreist (ellers bare dem som er slått ned eller kastet).
 
 ### Nytt ridedyr
 1. Tegn dyret som en `BeastDef` i `gfx/chars/beasts.ts` (kropp, hode, hale, bein, ledd, sal).
@@ -303,7 +313,7 @@ Legg en `ShopItem` i `SHOP` (`data/progress.ts`). Nye typer (`ShopKind`) trenger
 Legg til en `MapNode` i `data/worldmap.ts` (posisjon, krav, belønning) og en kant i `MAP_EDGES`. Arena-noder peker på en duellant.
 
 ### Ny duellant
-Legg til en `DuelistDef` i `data/duelists.ts`. `char: '@player'` gir en ond tvilling av spillerens helt.
+Legg til en `DuelistDef` i `data/duelists.ts`. `char: '@player'` gir en ond tvilling av spillerens helt. `after` gir replikker etter seieren når duellen er finalen på et brett (`finale: { type: 'duel' }`).
 
 ### Ny del i heltebyggeren
 Malte deler: legg inn bildet under støttet delnavn i `public/assets/manifest.json`, og legg et valg med stabil `id`, `source`, `slot` og `label` i `src/data/hero-parts.ts`. Våpen må angi indeks i `WEAPONS`, overkropper kroppstype, og låste deler en eksisterende opplåsingsnøkkel. Se `HERO_FORGE_GRAFIKK.md` for kunstkrav og kontrollverktøy før grunnpakken utvides.
