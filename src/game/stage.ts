@@ -43,6 +43,7 @@ import { MetalMode, METAL } from './metalmode';
 import { HERO_QUIPS, HEROINE_QUIPS, JUGGLE_WORDS, QUIP_STREAKS } from '../data/quips';
 import { GRADES } from '../gfx/env/grades';
 import { screenFX } from '../gfx/screenfx';
+import { COOP_CAM, coopCameraFrame, stageCameraHalfWidth } from '../gfx/stagecam';
 
 /** Dødsmåter som skremmer fiendene rundt (panikk, game/foes.ts). */
 const GORY = ['decap', 'explode', 'bisect', 'headsplode', 'dismember', 'legsoff'];
@@ -71,8 +72,9 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   bossDone = false;
   camX = 0;
   halfW = 9;
-  /** 0..1: kameraet trekker seg bakover og opp når en kjempe er i bildet, så hodet hans får plass (app/game.ts). */
+  /** 0..1: felles, begrenset uttrekk for kjemper og to levende helter som sprer seg (app/game.ts). */
   camPull = 0;
+  private cameraProbe = new THREE.Vector3();
   lockX: number | null = null;
   waveIdx = 0;
   wave: WaveDef | null = null;
@@ -250,6 +252,33 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   onScreen(x: number, margin: number) {
     return x > this.camX - this.halfW - margin && x < this.camX + this.halfW + margin;
   }
+
+  /**
+   * Siste kamerakontroll etter screenFX.update: et nytt kameradykk kan komme etter bevegelsesgrensene ble satt.
+   * Behold ønsket dykk i screenFX, men bruk bare den delen som fortsatt lar begge levende heltene være i bildet.
+   * Figurenes posisjoner og vanlige spillergrenser endres ikke av en filmatisk zoomeffekt.
+   */
+  coopZoom(requested: number) {
+    const alive = this.heroes.filter((h) => h.f.alive);
+    if (alive.length < 2) return requested;
+    const cam = W.camera;
+    cam.updateMatrixWorld();
+    let extent = 0;
+    // FX.update demper ristingen etter dette kallet. Nåværende amplitude er derfor en trygg øvre grense.
+    const shake = Math.min(1.2, Math.max(0, W.fx.shakeAmt)) ** 2 * 0.6;
+    for (const h of alive) {
+      const f = h.f;
+      const half = COOP_CAM.bodyHalf * f.size + shake;
+      for (const dx of [-half, half]) for (const y of [-shake, COOP_CAM.headY * f.size + shake]) {
+        this.cameraProbe.set(f.pos.x + dx, f.pos.y + y, f.pos.z).project(cam);
+        extent = Math.max(extent, Math.abs(this.cameraProbe.x), Math.abs(this.cameraProbe.y));
+      }
+    }
+    // Projeksjonen ovenfor inneholder forrige frames zoom. Ta den ut før neste frames zoom begrenses.
+    const fit = extent > 0 ? COOP_CAM.zoomEdge * cam.zoom / extent : requested;
+    return Math.min(requested, Math.max(1, fit));
+  }
+
   addsAlive() {
     return this.foes.filter((f) => f.f.alive && f.def.behavior !== 'runner').length;
   }
@@ -1019,18 +1048,30 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     const dist = cam.position.z;
     this.halfW = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)) * dist * cam.aspect * 0.93;
     const alive = this.heroes.filter((h) => h.f.alive);
+    const coop = alive.length > 1;
+    const left = coop ? Math.min(...alive.map((h) => h.f.pos.x)) : 0;
+    const right = coop ? Math.max(...alive.map((h) => h.f.pos.x)) : 0;
+    const framing = coop ? coopCameraFrame(cam.fov, cam.aspect, right - left) : { pull: 0, lead: 1.5 };
+    const giant = this.foes.some((f) => f.f.alive && f.f.size > 1.8 && this.onScreen(f.f.pos.x, 3)) || (!!this.boss?.f.alive && this.boss.f.size > 1.7);
+    const pullTarget = Math.max(giant ? 1 : 0, framing.pull);
+    // Åpne før spillerne møter kanten, trekk saktere inn igjen. Kjemper alene beholder den gamle farten.
+    const pullSpeed = coop && pullTarget > this.camPull ? 3 : 1.2;
+    this.camPull += (pullTarget - this.camPull) * Math.min(1, dt * pullSpeed);
+    if (coop) this.halfW = stageCameraHalfWidth(cam.fov, cam.aspect, this.camPull);
     if (alive.length) {
       const avg = alive.reduce((s, h) => s + h.f.pos.x, 0) / alive.length;
-      let target = Math.max(this.camX, avg + 1.5);
+      let target = Math.max(this.camX, avg + framing.lead);
+      // Den bakerste helten får beholde plassen sin selv om den fremste løper videre. Bølgene er fortsatt låst.
+      if (coop) target = Math.min(target, left + this.halfW - COOP_CAM.bodyPad);
       if (this.lockX !== null) target = Math.min(target, this.lockX);
       target = Math.min(target, this.L - this.halfW + 1);
+      if (coop) target = Math.max(-1, target);
       this.camX += (target - this.camX) * Math.min(1, dt * 4);
     }
     if (this.introT < 1.2) this.camX = Math.max(this.camX, -1);
-    const giant = this.foes.some((f) => f.f.alive && f.f.size > 1.8 && this.onScreen(f.f.pos.x, 3)) || (!!this.boss?.f.alive && this.boss.f.size > 1.7);
-    this.camPull += ((giant ? 1 : 0) - this.camPull) * Math.min(1, dt * 1.2);
-    this.bounds.minX = this.camX - this.halfW + 0.7;
-    this.bounds.maxX = Math.min(this.camX + this.halfW - 0.7, this.L - 1);
+    // Den tegnede kamerax-en følger litt etter. To spillere holdes innenfor både den og neste kameramål.
+    this.bounds.minX = coop ? Math.max(-8, Math.max(this.camX, cam.position.x) - this.halfW + COOP_CAM.bodyPad) : this.camX - this.halfW + 0.7;
+    this.bounds.maxX = Math.min((coop ? Math.min(this.camX, cam.position.x) : this.camX) + this.halfW - (coop ? COOP_CAM.bodyPad : 0.7), this.L - 1);
 
     // Bølger
     const waves = this.level.waves;

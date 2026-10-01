@@ -348,7 +348,8 @@ export class FX {
     }
   }
 
-  update(realDt: number, camera: THREE.Camera, width: number, height: number) {
+  /** Skjermeffekter bruker realDt; teksten hører til verdenen og får samme simDt som figurene. */
+  update(realDt: number, camera: THREE.Camera, width: number, height: number, simDt = realDt) {
     this.camX = camera.position.x;
     this.updateGlass(realDt, camera);
     // Tidsskala
@@ -379,9 +380,9 @@ export class FX {
     const v = new THREE.Vector3();
     for (let i = this.texts.length - 1; i >= 0; i--) {
       const t = this.texts[i];
-      t.life -= realDt;
-      t.pos.y += t.vy * realDt;
-      t.vy *= Math.exp(-realDt * 2);
+      t.life -= simDt;
+      t.pos.y += t.vy * simDt;
+      t.vy *= Math.exp(-simDt * 2);
       v.copy(t.pos).project(camera);
       const x = (v.x * 0.5 + 0.5) * width;
       const y = (-v.y * 0.5 + 0.5) * height;

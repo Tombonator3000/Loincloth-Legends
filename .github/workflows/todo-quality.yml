@@ -1,0 +1,85 @@
+name: Spillbarhet og mobilkontroll
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'public/assets/**'
+      - 'tools/**'
+      - 'package*.json'
+      - '.github/workflows/todo-quality.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: todo-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  playability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Avhengigheter for kontroller
+        run: |
+          npm ci
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+          python -m pip install Pillow
+      - name: Begge bygg og kunstpakken
+        run: |
+          npm run typecheck
+          npm run build
+          npm run build:single
+          python tools/check_art_pack.py
+          python -m unittest discover -s tools/tests -p 'test_process_art.py'
+          node tools/tests/projectile-resources.mjs
+      - name: Start testserver
+        id: server
+        run: |
+          mkdir -p test-results/todo-quality
+          npm run dev -- --host 127.0.0.1 --port 4173 > test-results/todo-quality/dev.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/ > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - name: Mobil, kamera, spilltid, kreditering og kulisser
+        run: |
+          status=0
+          for suite in hud-layout co-op-camera caption-time credits scenery-reuse; do
+            mkdir -p "test-results/todo-quality/$suite"
+            args=(http://127.0.0.1:4173/)
+            case "$suite" in
+              hud-layout) args+=("test-results/todo-quality/$suite") ;;
+              credits) args+=("test-results/todo-quality/$suite" "file://$GITHUB_WORKSPACE/dist-single/index.html") ;;
+              scenery-reuse) args=() ;;
+            esac
+            if ! timeout 300 node "tools/tests/$suite.mjs" "${args[@]}" > "test-results/todo-quality/$suite.log" 2>&1; then status=1; fi
+            cat "test-results/todo-quality/$suite.log"
+          done
+          exit "$status"
+      - name: Spillbilder med en og to spillere
+        if: always() && steps.server.outcome == 'success'
+        run: |
+          status=0
+          timeout 480 node tools/tests/todo-visuals.mjs http://127.0.0.1:4173/ test-results/todo-quality/visuals > test-results/todo-quality/visuals.log 2>&1 || status=$?
+          cat test-results/todo-quality/visuals.log
+          exit "$status"
+      - name: Bevar logger og skjermbilder
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: todo-quality-${{ github.sha }}
+          path: test-results/todo-quality/
+          retention-days: 14

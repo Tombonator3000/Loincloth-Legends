@@ -1,6 +1,10 @@
 {
   "version": 1,
   "level": "jungle",
-  "props": [],
+  "props": [
+    {"id":"p1","prop":"env_altar","layer":"back","x":80.6,"z":-4.35,"scale":1.15,"tint":"#d5dab8"},
+    {"id":"p2","prop":"env_boulder","layer":"back","x":84.3,"z":-4.45,"scale":0.75,"tint":"#bbc39d"},
+    {"id":"p3","prop":"env_fallen_log","layer":"back","x":77.2,"z":-4.4,"scale":0.7,"flip":true,"tint":"#c4cba2"}
+  ],
   "runs": []
 }

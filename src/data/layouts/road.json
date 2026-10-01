@@ -58,7 +58,9 @@
     {"id":"p53","prop":"fg_tall_grass","layer":"front","x":18,"z":6.6},
     {"id":"p54","prop":"fg_tree_trunk","layer":"front","x":43,"z":6,"scale":0.85},
     {"id":"p55","prop":"fg_rocks","layer":"front","x":66,"z":6.8,"flip":true},
-    {"id":"p56","prop":"fg_roots","layer":"front","x":97,"z":6.6}
+    {"id":"p56","prop":"fg_roots","layer":"front","x":97,"z":6.6},
+    {"id":"p57","prop":"env_palisade_gate","layer":"back","x":33.17,"z":-7.25,"yaw":18},
+    {"id":"p58","prop":"env_palisade_gate","layer":"back","x":35.98,"z":-7.25,"flip":true,"yaw":-18}
   ],
   "runs": [
     {"id":"row1","prop":"env_palisade_straight","layer":"back","x0":4,"x1":110,"z":-7.2,"step":3.6,"jitter":0.05,"zJitter":0.1,"flipRandom":true,"gaps":[[30,38.5],[70.5,77.5]]}

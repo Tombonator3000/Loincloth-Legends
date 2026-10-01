@@ -78,10 +78,11 @@ export class HUD {
     this.metalEl.innerHTML = '<div class="mm-label">METAL</div><div class="bar mm-bar"><i class="fill"></i></div>';
     this.metalFill = this.metalEl.querySelector('.fill')!;
     this.root.append(this.top, this.ann, this.sayEl, this.goEl, this.streakEl, this.bossEl, this.metalEl);
-    setInterval(() => this.tick(0.1), 100);
   }
 
-  private tick(dt: number) {
+  /** Tekst over spillverdenen følger spilltid, inkludert pause, treffstopp og slowmo. Menyer eier sin egen klokke. */
+  update(dt: number) {
+    if (dt <= 0) return;
     if (this.annT > 0) {
       this.annT -= dt;
       if (this.annT <= 0) this.ann.classList.remove('show');
@@ -109,6 +110,10 @@ export class HUD {
     this.metalEl.classList.remove('show', 'on');
     this.metalOn = false;
     this.annT = this.sayT = this.streakT = 0;
+    // En overgang kan slå HUD-en på igjen før CSS-uttoningen er ferdig. Ikke vis forrige scenes tekst da.
+    this.ann.replaceChildren();
+    this.sayEl.replaceChildren();
+    this.streakEl.replaceChildren();
   }
 
   /** METAL MODE-måleren øverst på midten. v fra 0 til 1, on mens det brenner. */

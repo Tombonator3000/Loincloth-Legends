@@ -1,0 +1,508 @@
+{
+  "dato": "2026-10-01",
+  "kodecommit": "9a4275759d418809d49eb9c3b1eb1000eb40189f",
+  "pr": "https://github.com/Tombonator3000/Loincloth-Legends/pull/8",
+  "fokusert_kjoring": "https://github.com/Tombonator3000/Loincloth-Legends/actions/runs/36851983556",
+  "fokusert_status": "success",
+  "miljo_kjoring": "https://github.com/Tombonator3000/Loincloth-Legends/actions/runs/36851983543",
+  "miljo_status": "success",
+  "bestatte_kontroller": {
+    "hud": 20,
+    "kamera": 26,
+    "tekstklokke": 7,
+    "credits": 42,
+    "kulisser": 4,
+    "spillbilder": 28
+  },
+  "kunstfiler": 254,
+  "lydkilder_i_credits": 137,
+  "hud_feil": [],
+  "spillbilde_feil": [],
+  "nettleserfeil": [],
+  "bilder": [
+    {
+      "id": "hud-landscape-1p",
+      "viewport": [
+        844,
+        390
+      ],
+      "heroes": [
+        {
+          "name": "THRUGG",
+          "feet": {
+            "x": 346.3098419165559,
+            "y": 287.44560083941406,
+            "depth": 0.9826516188663863
+          },
+          "head": {
+            "x": 340.6463392744309,
+            "y": 180.71488881517695,
+            "depth": 0.9821198160840038
+          },
+          "alive": true
+        }
+      ],
+      "panels": [
+        {
+          "x": 12,
+          "y": 12,
+          "width": 256.796875,
+          "height": 87.796875,
+          "right": 268.796875,
+          "bottom": 99.796875
+        }
+      ],
+      "meter": {
+        "x": 305.671875,
+        "y": 107.796875,
+        "width": 232.640625,
+        "height": 38.1875,
+        "right": 538.3125,
+        "bottom": 145.984375
+      },
+      "pause": {
+        "x": 786,
+        "y": 124,
+        "width": 46,
+        "height": 46,
+        "right": 832,
+        "bottom": 170
+      },
+      "props": [
+        {
+          "key": "p57",
+          "missing": false,
+          "visible": true,
+          "width": 48.61520001300829,
+          "height": 70.58409753922291,
+          "center": {
+            "x": 333.7736688886633,
+            "y": 180.97000892463615,
+            "depth": 0.9898397041323825
+          },
+          "imageReady": true
+        },
+        {
+          "key": "p58",
+          "missing": false,
+          "visible": true,
+          "width": 45.688922134096345,
+          "height": 70.58409753922291,
+          "center": {
+            "x": 418.38693996321757,
+            "y": 180.97000892463615,
+            "depth": 0.9898397041323825
+          },
+          "imageReady": true
+        }
+      ],
+      "calls": 197,
+      "triangles": 716903,
+      "textures": 75,
+      "overflow": false
+    },
+    {
+      "id": "hud-landscape-2p",
+      "viewport": [
+        844,
+        390
+      ],
+      "heroes": [
+        {
+          "name": "THRUGG",
+          "feet": {
+            "x": 119.7831656747089,
+            "y": 299.9853273078064,
+            "depth": 0.986806773362038
+          },
+          "head": {
+            "x": 117.0175570571322,
+            "y": 218.44975726140163,
+            "depth": 0.9865691798564901
+          },
+          "alive": true
+        },
+        {
+          "name": "VALKYRA",
+          "feet": {
+            "x": 653.6735397693595,
+            "y": 286.89854145174957,
+            "depth": 0.9878356920118705
+          },
+          "head": {
+            "x": 651.3289712253825,
+            "y": 213.4394783425054,
+            "depth": 0.9876382622244337
+          },
+          "alive": true
+        }
+      ],
+      "panels": [
+        {
+          "x": 12,
+          "y": 12,
+          "width": 256.796875,
+          "height": 87.796875,
+          "right": 268.796875,
+          "bottom": 99.796875
+        },
+        {
+          "x": 575.203125,
+          "y": 12,
+          "width": 256.796875,
+          "height": 87.796875,
+          "right": 832,
+          "bottom": 99.796875
+        }
+      ],
+      "meter": {
+        "x": 305.671875,
+        "y": 107.796875,
+        "width": 232.640625,
+        "height": 38.1875,
+        "right": 538.3125,
+        "bottom": 145.984375
+      },
+      "pause": {
+        "x": 786,
+        "y": 124,
+        "width": 46,
+        "height": 46,
+        "right": 832,
+        "bottom": 170
+      },
+      "props": [],
+      "calls": 218,
+      "triangles": 691163,
+      "textures": 102,
+      "overflow": false
+    },
+    {
+      "id": "hud-portrait-1p",
+      "viewport": [
+        412,
+        915
+      ],
+      "heroes": [
+        {
+          "name": "THRUGG",
+          "feet": {
+            "x": 110.4252877901794,
+            "y": 573.3979215078552,
+            "depth": 0.9868875733667801
+          },
+          "head": {
+            "x": 103.29713759956297,
+            "y": 438.23975564661123,
+            "depth": 0.9866562180677028
+          },
+          "alive": true
+        }
+      ],
+      "panels": [
+        {
+          "x": 12,
+          "y": 12,
+          "width": 330,
+          "height": 87.796875,
+          "right": 342,
+          "bottom": 99.796875
+        }
+      ],
+      "meter": {
+        "x": 107.1875,
+        "y": 107.796875,
+        "width": 197.609375,
+        "height": 38.1875,
+        "right": 304.796875,
+        "bottom": 145.984375
+      },
+      "pause": {
+        "x": 354,
+        "y": 649,
+        "width": 46,
+        "height": 46,
+        "right": 400,
+        "bottom": 695
+      },
+      "props": [],
+      "calls": 149,
+      "triangles": 586273,
+      "textures": 105,
+      "overflow": false
+    },
+    {
+      "id": "hud-portrait-2p",
+      "viewport": [
+        412,
+        915
+      ],
+      "heroes": [
+        {
+          "name": "THRUGG",
+          "feet": {
+            "x": 78.01725899674555,
+            "y": 597.3405317178748,
+            "depth": 0.9894541921135609
+          },
+          "head": {
+            "x": 80.82050385845942,
+            "y": 488.0415113920575,
+            "depth": 0.9893313514239332
+          },
+          "alive": true
+        },
+        {
+          "name": "VALKYRA",
+          "feet": {
+            "x": 325.8519677170233,
+            "y": 583.0413449142778,
+            "depth": 0.9901346987871315
+          },
+          "head": {
+            "x": 318.0676105742659,
+            "y": 483.25055781610905,
+            "depth": 0.990029602066474
+          },
+          "alive": true
+        }
+      ],
+      "panels": [
+        {
+          "x": 12,
+          "y": 12,
+          "width": 190,
+          "height": 121.796875,
+          "right": 202,
+          "bottom": 133.796875
+        },
+        {
+          "x": 210,
+          "y": 12,
+          "width": 190,
+          "height": 121.796875,
+          "right": 400,
+          "bottom": 133.796875
+        }
+      ],
+      "meter": {
+        "x": 107.1875,
+        "y": 141.796875,
+        "width": 197.609375,
+        "height": 38.1875,
+        "right": 304.796875,
+        "bottom": 179.984375
+      },
+      "pause": {
+        "x": 354,
+        "y": 649,
+        "width": 46,
+        "height": 46,
+        "right": 400,
+        "bottom": 695
+      },
+      "props": [],
+      "calls": 168,
+      "triangles": 585887,
+      "textures": 108,
+      "overflow": false
+    },
+    {
+      "id": "scenery-jungle",
+      "viewport": [
+        1280,
+        720
+      ],
+      "heroes": [
+        {
+          "name": "THRUGG",
+          "feet": {
+            "x": 500.2643235382564,
+            "y": 530.6688015496875,
+            "depth": 0.9826516188663863
+          },
+          "head": {
+            "x": 485.75542059589674,
+            "y": 333.92519083154383,
+            "depth": 0.9821206381083556
+          },
+          "alive": true
+        }
+      ],
+      "panels": [
+        {
+          "x": 18,
+          "y": 12,
+          "width": 348,
+          "height": 92.390625,
+          "right": 366,
+          "bottom": 104.390625
+        }
+      ],
+      "meter": {
+        "x": 488.796875,
+        "y": 18,
+        "width": 302.40625,
+        "height": 38.1875,
+        "right": 791.203125,
+        "bottom": 56.1875
+      },
+      "pause": {
+        "x": 1222,
+        "y": 96,
+        "width": 46,
+        "height": 46,
+        "right": 1268,
+        "bottom": 142
+      },
+      "props": [
+        {
+          "key": "p1",
+          "missing": false,
+          "visible": true,
+          "width": 188.78634413219436,
+          "height": 79.98237663737842,
+          "center": {
+            "x": 542.1269057773451,
+            "y": 392.3614484213209,
+            "depth": 0.9879916104937292
+          },
+          "imageReady": true
+        },
+        {
+          "key": "p2",
+          "missing": false,
+          "visible": true,
+          "width": 123.0498298644203,
+          "height": 70.76128059804898,
+          "center": {
+            "x": 782.5776859763579,
+            "y": 395.3893513467165,
+            "depth": 0.9880760790757729
+          },
+          "imageReady": true
+        },
+        {
+          "key": "p3",
+          "missing": false,
+          "visible": true,
+          "width": 149.2815958496808,
+          "height": 74.84810769349457,
+          "center": {
+            "x": 321.37679379005806,
+            "y": 394.1261960983061,
+            "depth": 0.9880344521197492
+          },
+          "imageReady": true
+        }
+      ],
+      "calls": 275,
+      "triangles": 268647,
+      "textures": 127,
+      "overflow": false
+    },
+    {
+      "id": "scenery-frost",
+      "viewport": [
+        1280,
+        720
+      ],
+      "heroes": [
+        {
+          "name": "THRUGG",
+          "feet": {
+            "x": 500.2643235382564,
+            "y": 530.6688015496875,
+            "depth": 0.9826516188663863
+          },
+          "head": {
+            "x": 487.06625692429355,
+            "y": 333.8259069443769,
+            "depth": 0.9821203639641348
+          },
+          "alive": true
+        }
+      ],
+      "panels": [
+        {
+          "x": 18,
+          "y": 12,
+          "width": 348,
+          "height": 92.390625,
+          "right": 366,
+          "bottom": 104.390625
+        }
+      ],
+      "meter": {
+        "x": 488.796875,
+        "y": 18,
+        "width": 302.40625,
+        "height": 38.1875,
+        "right": 791.203125,
+        "bottom": 56.1875
+      },
+      "pause": {
+        "x": 1222,
+        "y": 96,
+        "width": 46,
+        "height": 46,
+        "right": 1268,
+        "bottom": 142
+      },
+      "props": [
+        {
+          "key": "p21",
+          "missing": false,
+          "visible": true,
+          "width": 30.102329503132864,
+          "height": 231.61834388417668,
+          "center": {
+            "x": 553.9922133091926,
+            "y": 299.8543120270274,
+            "depth": 0.9889172030990065
+          },
+          "imageReady": true
+        },
+        {
+          "key": "p22",
+          "missing": false,
+          "visible": true,
+          "width": 107.57994541254743,
+          "height": 85.53498413559299,
+          "center": {
+            "x": 613.0784334080449,
+            "y": 265.5240368805188,
+            "depth": 0.9888726122814688
+          },
+          "imageReady": true
+        }
+      ],
+      "calls": 212,
+      "triangles": 454564,
+      "textures": 155,
+      "overflow": false
+    }
+  ],
+  "visuell_vurdering": [
+    "320 x 568: hele navn, liv, gull, METAL, replikk og berøringsknapper har separate felt etter rettingen.",
+    "412 x 915 og 844 x 390: begge heltene vises tydelig fra hverandre. Fotavstand omtrent 248 og 534 piksler.",
+    "Credits i stående og liggende format har synlig navigering og rullbar lisenstekst. Roteringsrådet lukkes med et ekte trykk.",
+    "Portblader, jungelalter, steinblokk, fallen stokk og frostbanner er synlige og står bak kampfeltet.",
+    "Det faktiske stående co-op-opptaket traff fortellerpanelets CSS-inntoning. Ferdig vist panel er kontrollert i HUD-opptakene og de andre spillbildene."
+  ],
+  "begrensninger": [
+    "SwiftShader-bilder er visuell kontroll, ikke FPS-måling på fysisk GPU.",
+    "Lytting på ekte høyttalere, fysisk mobil/gamepad og balanse med mennesker gjenstår.",
+    "Ingen ny grafikkpakke: dagens kulisser gjenbruker eksisterende bilder."
+  ],
+  "miljo_suiter": [
+    "post-quality",
+    "audio-depth",
+    "atmosphere",
+    "lifecycle",
+    "soundbank",
+    "particles",
+    "jungle",
+    "finale"
+  ]
+}
