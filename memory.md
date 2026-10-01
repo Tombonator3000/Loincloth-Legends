@@ -70,6 +70,7 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - Duellen går på en linje (Z = +-0.12 for å unngå at delene fletter seg).
 - Global hitstop og slowmo ligger i FX (src/gfx/fx.ts). Spilltid = sanntid x timeScale, 0 under hitstop.
 - Under hitstop kalles brettet fortsatt, med dt = 0. Fysikk som sjekker bakken, må hoppe over dt = 0: en figur som slås ned fra bakken etter at den selv er oppdatert i bildet, står på y 0 med farten oppover, og landet før den lettet (rettet i `Fighter.update` 2026-10-01).
+- CI på PR-er: stifiltrene i `world-quality.yml` og `todo-quality.yml` gjelder hele PR-diffen, ikke bare siste commit. Hver push til en PR med kodeendringer kjører derfor alle jobbene på nytt, og quality avbryter kjøringen som pågår (`cancel-in-progress`, omtrent 10 til 25 minutter). Legg logg og dokumentasjon i samme push som koden, eller vent til CI er grønn. En PR som bare endrer dokumentasjon, kjører bare build.
 - window.__game er eksponert for testing. game.tick(dt, false) simulerer uten rendering (brukes av Playwright-testene).
 - Input: tastetrykk som slippes før neste frame fanges via InputManager.tapped.
 - CPU i duellen: ferdighet øker per runde. Runde 1 er bevisst litt treg.

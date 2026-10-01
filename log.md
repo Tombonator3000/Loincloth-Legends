@@ -743,3 +743,9 @@ Tom: «Ta alt på main hvis det ikke er det, squash and merge isåfall».
 - Lokalt etter flettingen: typecheck, build, build:single, co-op-camera, caption-time, credits (også enkeltfil-bygget), scenery-reuse, todo-visuals, splatter, foreground, combo, guard, newfoes og scenarios road (sjefen død). Alt grønt.
 - hud-layout.mjs feiler lokalt på landscape-2p (berøringsknappene har plass), også på en ren kopi av main i en egen worktree, så det kommer ikke fra PR #9. Nettleseren i skymiljøet får ikke hentet skriften fra Google Fonts (`ERR_CERT_AUTHORITY_INVALID`), så reserveskriften brukes: THRUGG THE UNREASONABLE brekker midt i ordet over tre linjer, og panelet til spiller 2 blir høyere og berører pauseknappen. I CI, der skriften lastes, er den grønn (playability). Ført i todo.md, siden det samme kan skje på en telefon uten nett.
 - CI på PR #9 da dette ble skrevet: build og playability grønne, quality kjører. Codex-gjennomgangen fant ingenting.
+
+## 2026-10-01 14:26 (Europe/Oslo)
+- PR #9 er slått sammen med squash som ea87113, slik Tom ba om. Main har nå nøyaktig samme innhold som grenen (samme tre-hash): autoharness, toningen av forgrunnen, gørret, nedslag under hitstop og testrettingene.
+- CI på siste commit i PR #9 var grønn: build, playability og quality. Codex-gjennomgangen fant ingenting. Bygg og publiser på main (Pages) var grønt kl. 14:25, så endringene er ute på mobilen.
+- Loggføringen 14:11 ble pushet mens quality kjørte. Fordi stifiltrene gjelder hele PR-diffen, startet pushen alle jobbene på nytt og avbrøt quality på forrige commit, så CI tok ti minutter ekstra. Ført i memory.md.
+- Grenen er startet på nytt fra main for denne loggføringen (PR-en for den endrer bare log.md og memory.md, så bare build kjører).
