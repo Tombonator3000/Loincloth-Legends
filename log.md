@@ -665,7 +665,8 @@ Tom, med skjermbilde fra mobilen (liggende): «Objekter i forgrunnen må fade bo
 - Treet tones ned til `FRONT_FADE` (20 prosent) og kommer mykt tilbake. Kulissene i FRONT tones nå like mye (før 40 prosent), så alt i forgrunnen oppfører seg likt.
 - Ny test `tools/tests/foreground.mjs` (9 av 9, kjørt to ganger) i liggende mobilformat: trærne finnes, tones ut når helten står bak dem, og er helt igjen langt unna. Bilder med og uten toning, sett på: på brett 1 dekker høsttreet helten til venstre og er borte til høyre, i nattleiren dekker eika hele bildet uten toning og leiren synes med. Forskjellen rundt helten er 36 (brett 1) og 26 (nattleiren).
 - Rettelsen kommer på mobilen når PR #6 er slått sammen (GitHub Pages bygges fra `main`).
-- Dokumentasjon: ARCHITECTURE (Toningen foran, Trær i forgrunnen), tests/README, memory.md og todo.md. Regresjon kjører (nightcamp, frostplay, prop-anim, editor, looks road, scenarios road og frost).
+- Dokumentasjon: ARCHITECTURE (Toningen foran, Trær i forgrunnen), tests/README, memory.md og todo.md.
+- Regresjon etter commit 860acd2: foreground, nightcamp, frostplay, prop-anim, editor, looks (road: 194 tegnekall) og scenarios (road til sjefen er død, frost til duellen). Alt grønt.
 
 ## 2026-10-01 11:53 (Europe/Oslo)
 
