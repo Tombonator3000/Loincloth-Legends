@@ -1,5 +1,20 @@
 # todo.md
 
+## Teit vold: mer over the top (Tom 2026-10-01)
+- [x] Underkroppen løper rundt og spruter blod fra midjen når en fiende kuttes i to, og legger blodspor (tools/tests/splatter.mjs)
+- [x] Hodet i skjermen: vått splatt fra lydbanken, tones ut mens det sklir (borte under tre sekunder), naturlig spor med sprut, smøremerke og renner
+- [ ] Tom: velg hvilke av forslagene under som skal lages
+- [ ] Forslag: overkroppen kryper videre på armene mot helten og prøver å bite ham i ankelen («I CAN STILL BITE!»), med innvoller på slep
+- [ ] Forslag: hodet som baseball: et hode som spretter på bakken, kan slås mot de andre fiendene (HOME RUN!), med samme bowling som kastede fiender
+- [ ] Forslag: kebab-spyd: løpeslaget spidder to eller tre fiender på sverdet, og neste slag rister dem av (SHISH KEBAB!)
+- [ ] Forslag: blodregn når en kjempe eller sjef sprenges: dråper på glasset og flekker over hele bildet, og en gnom slår opp en paraply (I CAME PREPARED)
+- [ ] Forslag: glatte blodpytter: fiender som løper over en stor pytt, sklir og går på trynet (SLIP!)
+- [ ] Forslag: skjelettxylofon: når et skjelett knuses, gir hvert bein en tone når det treffer bakken, i en skala
+- [ ] Forslag: siste ord på glasset: hodet i skjermen sier én replikk før det sklir («TELL MY MOTHER...», «WORTH IT»)
+- [ ] Forslag: tenner som flyr ved tunge slag i ansiktet, med et lite pling når de spretter
+- [ ] Forslag: kjøttbiter fra en eksplosjon som klistrer seg på glasset og sklir ned sammen med blodet
+- [ ] Forslag: ildimper som smeller i en liten ildkule når de dør og setter fyr på dem som står nær
+
 ## Forgrunnen som dekker bildet (Tom 2026-10-01, skjermbilde fra mobil)
 - [x] Trær foran veien (brett 1, nattleiren, frostpasset) tones ut når de dekker en figur, og kulissene i FRONT tones like mye (tools/tests/foreground.mjs)
 - [ ] Tom: spill nattleiren og brett 1 på mobilen når PR #6 er slått sammen, og si fra om noe fortsatt dekker for mye

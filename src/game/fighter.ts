@@ -64,6 +64,8 @@ export const GRAVITY = 26;
 const dripTmp = new THREE.Vector3();
 
 /** Replikker når armen ryker. Den første i spillet er alltid den klassiske. */
+/** Når underkroppen løper videre etter å ha blitt kuttet i to (die('bisect')). */
+export const LEGS_WORDS = ['LEGS DAY!', 'HALF-TIME!', 'THE LEGS DID NOT GET THE MEMO!', 'RUN, LEGS, RUN!'];
 export const FLESH_WOUND = ['IT\'S JUST A FLESH WOUND!', 'JUST A FLESH WOUND!', 'I WASN\'T USING THAT ONE!', 'I HAVE ANOTHER ONE!', 'COME BACK HERE, ARM!', 'THAT\'LL BUFF OUT!', 'IT\'S JUST A FLESH WOUND!'];
 export const NO_ARMS = ['I\'LL KICK YOU TO DEATH THEN!', 'MY LEGS STILL WORK!', 'STILL UNDEFEATED!', 'I\'VE HAD WORSE! PROBABLY!', 'IT\'S JUST A FLESH WOUND! AGAIN!'];
 let saidFleshWound = false;
@@ -357,9 +359,9 @@ export class Fighter {
       saidFleshWound = true;
     } else line = pick(NO_ARMS);
     W.fx.text(at.clone().add(new THREE.Vector3(0, 0.5, 0)), 'DISARMED!', 'word');
-    setTimeout(() => {
+    W.gore.later(0.35, () => {
       if (this.rig.root.parent) W.fx.text(this.headPoint().add(new THREE.Vector3(0, 0.9, 0)), line, 'speech', 2.4);
-    }, 350);
+    });
     return true;
   }
 
@@ -420,9 +422,9 @@ export class Fighter {
           this.headlessDir = chance(0.5) ? 1 : -1;
           this.collapseT = this.headlessT + 0.25;
           g.fountain(this.rig.g.torso, J.neck[0], J.neck[1], 0.15, 1, this.headlessT, 1.1, col);
-          setTimeout(() => {
+          g.later(0.45, () => {
             if (this.rig.root.parent) W.fx.text(this.torsoPoint().add(new THREE.Vector3(0, 1.2, 0)), 'HEADLESS CHICKEN MODE!', 'word', 1.4);
-          }, 450);
+          });
         }
         break;
       }
@@ -434,6 +436,16 @@ export class Fighter {
         this.vel.set(dir * 0.6, 0, 0);
         this.onGround = true;
         W.stats.gibs += 3;
+        // Beina har ikke fått beskjed: underkroppen løper rundt og spruter blod fra midjen før den skjønner det
+        if (this.allowHeadless && this.pos.y < 0.3) {
+          this.headlessT = rand(1.8, 2.8);
+          this.headlessDir = chance(0.5) ? 1 : -1;
+          this.collapseT = this.headlessT + 0.25;
+          g.fountain(this.rig.body, 0, 0.15, 0.12, 1, this.headlessT, 1.35, col);
+          g.later(0.4, () => {
+            if (this.rig.root.parent) W.fx.text(this.pos.clone().add(new THREE.Vector3(0, 1.6 * this.size, 0)), pick(LEGS_WORDS), 'word', 1.4);
+          });
+        }
         break;
       }
       case 'explode':
@@ -627,6 +639,10 @@ export class Fighter {
           this.walkPh += dt * 14;
           if (chance(dt * 1.2)) this.headlessDir *= -1;
           if (this.headlessT <= 0) this.vel.set(this.headlessDir * 1.5, 0, 0);
+          // Et spor av blod på bakken etter den som løper uten hode eller overkropp
+          if (this.def.blood !== 'bone' && !W.gore.family && chance(dt * 9)) {
+            W.gore.splat(this.pos.x + rand(-0.15, 0.15), this.pos.z + rand(-0.1, 0.1), rand(0.1, 0.24), bloodOf(this.def));
+          }
         }
         // Når liket ligger stille vokser en blodpytt fram under overkroppen
         if (!this.pooled && this.st > this.collapseT + 0.3 && !(this.headlessT > 0) && this.onGround && !(this.sinkRate > 0) && this.corpseLife > 2) {

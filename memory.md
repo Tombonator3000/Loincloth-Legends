@@ -9,6 +9,7 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - 80-talls fantasy-klisjeer spilt rett, med humor og mange parodier, og over-the-top gore
 
 ## Beslutninger
+- 2026-10-01: Gørr som dekker skjermen skal ikke bli hengende (Tom): hodet i skjermen er borte etter under tre sekunder, og sporet falmer etter noen få til. Når en fiende kuttes i to, løper underkroppen videre, som den hodeløse kyllingen.
 - 2026-10-01: Alt som står mellom veien og kameraet og kan dekke en figur, skal tones ut når det gjør det (Tom: «Ser ingenting innimellom», en eik i nattleiren fylte hele bildet på mobil). Trær foran veien legges inn med `Forest.addFront` og havner i `Env.fronts`; kulissene i FRONT-laget gjør det samme. Begge tones ned til `FRONT_FADE` (20 prosent).
 - 2026-10-01: Tom vil bruke autoharness (Claude Code-tillegg fra Tigerless Labs, MIT) som lærer skills av øktene. Slått på for prosjektet i `.claude/settings.json`. Lærte skills i `.claude/skills/` (de med `.ledger.jsonl`) commites etter gjennomsyn, siden containeren i skymiljøet forsvinner; `.claude/autoharness/` er tilstand og står i `.gitignore`. Tillegget endrer aldri våre egne skills.
 - 2026-10-01: Runde E er ferdig. De nye fiendene er data i `FoeDef` (`ambush`, `hold`, `berserk`, `horn`, `behavior: 'archer' | 'captain'`), og `side: 'B'` i bølgene er bakhold fra baklaget. Røde blink før et slag er `tell: 'red'` på `AttackDef`. Spesialangrepet til ridedyrene koster utholdenhet, ikke liv. Askeraiderne og berserkerne er kvinner (heltinnekroppen); skriv nøytralt eller «hun» om dem.
