@@ -18,7 +18,7 @@ import { findGrab, startHold, bowl, resistGrab, SLAM, AUTO_GRAB } from './grab';
 import { buildHazard } from '../gfx/env/hazards';
 import { chasmHole } from '../data/hazards';
 import { Icicles, ICICLE_WARN } from './icicles';
-import type { Tippable, Crush } from '../gfx/env/common';
+import { fadeFronts, type Tippable, type Crush } from '../gfx/env/common';
 import { Mount, type MountWorld } from './mounts';
 import { Pet, type PetWorld } from './pets';
 import { MOUNTS } from '../data/mounts';
@@ -1166,6 +1166,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     for (const fo of this.foes) if (fo.f.thrownBy) bowl(fo.f, foeF);
     this.updateHazards(dt);
     this.updateProps(dt, heroF, foeF);
+    this.updateFronts(dt);
     this.proj.update(dt, [...heroF, ...foeF]);
     for (const o of this.others) o.update(dt, this.bounds);
     this.others = this.others.filter((o) => {
@@ -1413,6 +1414,24 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   }
 
   /** Figurene som bokser (forgrunnen tones ut når de står bak den, se gfx/scenery.ts). */
+  /**
+   * Trær i forgrunnen som dekker en figur, tones ut (Env.fronts, fadeFronts i gfx/env/common.ts). Samme punkter på
+   * figurene som forgrunnen fra brettverkstedet bruker (føttene, brystet, hodet og sidene).
+   */
+  private updateFronts(dt: number) {
+    const fronts = W.env?.fronts;
+    if (!fronts?.length) return;
+    let n = 0;
+    for (const b of this.fighterBoxes()) {
+      for (const dy of [0.12, 0.45, 0.8]) for (const dx of [-0.3, 0, 0.3]) {
+        const p = (this.frontPts[n++] ??= new THREE.Vector3());
+        p.set(b.x + dx * b.w, b.y + dy * b.h, b.z);
+      }
+    }
+    fadeFronts(fronts, W.camera.position, this.frontPts.slice(0, n), dt);
+  }
+  private frontPts: THREE.Vector3[] = [];
+
   private fighterBoxes(): FighterBox[] {
     const out: FighterBox[] = [];
     const add = (f: Fighter) => {

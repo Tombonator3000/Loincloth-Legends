@@ -1,5 +1,9 @@
 # todo.md
 
+## Forgrunnen som dekker bildet (Tom 2026-10-01, skjermbilde fra mobil)
+- [x] Trær foran veien (brett 1, nattleiren, frostpasset) tones ut når de dekker en figur, og kulissene i FRONT tones like mye (tools/tests/foreground.mjs)
+- [ ] Tom: spill nattleiren og brett 1 på mobilen når PR #6 er slått sammen, og si fra om noe fortsatt dekker for mye
+
 ## autoharness: skills som lærer av øktene (2026-10-01, docs/SKILLS.md)
 - [x] Slått på for prosjektet i `.claude/settings.json`, tilstanden i `.gitignore`, regler i AGENTS.md og docs/SKILLS.md
 - [ ] Tom: legg `claude plugin marketplace add tigerless-labs/autoharness` og `claude plugin install autoharness@autoharness` i oppstartsskriptet til skymiljøet (miljøinnstillingene), så tillegget er med fra start i hver økt

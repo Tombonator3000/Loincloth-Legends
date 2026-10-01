@@ -8,7 +8,7 @@ import { windUniforms, WIND_GLSL } from './wind';
 import { screenFX } from './screenfx';
 import type { Gore } from './gore';
 import type { LightSource } from './vfx';
-import { applyShadows, type Env, type Tippable } from './env/common';
+import { applyShadows, FRONT_FADE, type Env, type Tippable } from './env/common';
 import { propKind, type PropKind } from './props/catalog';
 import { seeded, hashSeed } from '../core/math';
 import {
@@ -732,9 +732,9 @@ export class Scenery {
           for (const f of it.fireAt) this.gore.fire(tmpV.copy(f).applyMatrix4(it.pivot.matrixWorld), 1, 0.06, 1.2);
         }
       }
-      // Forgrunnen tones ut når en figur står bak den
+      // Forgrunnen tones ut når en figur står bak den (like mye som trærne i forgrunnen, FRONT_FADE)
       if (it.fades) {
-        const goal = fighters && this.covers(it, fighters) ? 0.4 : 1;
+        const goal = fighters && this.covers(it, fighters) ? FRONT_FADE : 1;
         it.fade += (goal - it.fade) * (1 - Math.exp(-dt * 10));
         u.uFade.value = this.editor ? 1 : it.fade;
       }

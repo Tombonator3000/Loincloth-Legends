@@ -14,6 +14,7 @@ import { random } from '../../core/math';
 import { plainCanvas } from '../draw';
 import { windifyTree, sunUniforms } from '../wind';
 import { qualityRank } from '../post';
+import type { FrontFade } from './common';
 
 // ---------------------------------------------------------------- tilfeldighet med frø
 class Rng {
@@ -573,6 +574,43 @@ function leafFrag(shader: THREE.WebGLProgramParametersWithUniforms) {
   }`);
 }
 
+/**
+ * Toning for trær i forgrunnen: dithering som forgrunnen fra brettverkstedet (gfx/scenery.ts), så dybden og
+ * kantutjevningen virker som før. fade er uniformen Stage endrer (fadeFronts i env/common.ts).
+ */
+function fadeFrag(fade: { value: number }) {
+  return (shader: THREE.WebGLProgramParametersWithUniforms) => {
+    shader.uniforms.uFade = fade;
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform float uFade;')
+      .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+  if (uFade < 0.999) {
+    float dth = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+    if (dth > uFade) discard;
+  }`);
+  };
+}
+
+/** Egne materialer for ett tre i forgrunnen (de vanlige deles av alle trærne av samme art). Skyggene er de samme. */
+function frontMaterials(proto: TreeProto, fade: { value: number }) {
+  const base = materials(proto);
+  const b0 = base.bark as THREE.MeshStandardMaterial;
+  const bark = new THREE.MeshStandardMaterial({ color: b0.color, map: b0.map, roughness: b0.roughness });
+  windifyTree(bark, proto.height, 'barkFade', fadeFrag(fade));
+  let leaf: THREE.Material | null = null;
+  if (base.leaf) {
+    const l0 = base.leaf as THREE.MeshStandardMaterial;
+    const lm = new THREE.MeshStandardMaterial({ map: l0.map, vertexColors: true, alphaTest: 0.5, side: THREE.DoubleSide, roughness: l0.roughness, alphaToCoverage: true });
+    const ff = fadeFrag(fade);
+    windifyTree(lm, proto.height, 'leafFade', (shader) => {
+      leafFrag(shader);
+      ff(shader);
+    });
+    leaf = lm;
+  }
+  return { bark, barkDepth: base.barkDepth, leaf, leafDepth: base.leafDepth };
+}
+
 function materials(proto: TreeProto) {
   const sp = proto.species;
   const key = sp.name + ':' + proto.height.toFixed(2);
@@ -613,7 +651,7 @@ export function treeProto(sp: Species, variant: number) {
   return p;
 }
 
-interface Placed { proto: number; x: number; z: number; s: number; r: number; shadow: boolean }
+interface Placed { proto: number; x: number; z: number; s: number; r: number; shadow: boolean; front?: boolean }
 
 /**
  * En skog av instansierte trær. Trærne deles i biter langs x så bitene utenfor kameraet ikke tegnes.
@@ -621,6 +659,8 @@ interface Placed { proto: number; x: number; z: number; s: number; r: number; sh
  */
 export class Forest {
   readonly group = new THREE.Group();
+  /** Trærne i forgrunnen etter build(), med boks og toning (legg dem i g.userData.fronts, se Env.fronts). */
+  readonly fronts: FrontFade[] = [];
   private protos: TreeProto[];
   private placed: Placed[] = [];
 
@@ -632,10 +672,19 @@ export class Forest {
     this.placed.push({ proto: Math.floor(random() * this.protos.length), x, z, s: scale, r: rotY, shadow: castShadow });
   }
 
+  /**
+   * Et tre mellom veien og kameraet. Det bygges for seg med egne materialer, så det kan tones ut når det dekker en
+   * figur (fronts). Trekker tilfeldige tall i samme rekkefølge som add(), så brettet ser likt ut som før.
+   */
+  addFront(x: number, z: number, scale = 1, rotY = random() * Math.PI * 2) {
+    this.placed.push({ proto: Math.floor(random() * this.protos.length), x, z, s: scale, r: rotY, shadow: true, front: true });
+  }
+
   /** Bygg instansene. chunk = bredden på hver bit langs x. */
   build(chunk = 28) {
     const groups = new Map<string, Placed[]>();
     for (const p of this.placed) {
+      if (p.front) continue;
       const k = p.proto + ':' + Math.floor(p.x / chunk) + ':' + (p.shadow ? 1 : 0);
       (groups.get(k) ?? groups.set(k, []).get(k)!).push(p);
     }
@@ -666,6 +715,34 @@ export class Forest {
         im.userData.noCast = !shadow;
         this.group.add(im);
       }
+    }
+    // Trærne i forgrunnen: ett om gangen, med egne materialer og en boks rundt hele treet
+    for (const p of this.placed) {
+      if (!p.front) continue;
+      const proto = this.protos[p.proto];
+      const fade = { value: 1 };
+      const mats = frontMaterials(proto, fade);
+      q.setFromAxisAngle(Y, p.r);
+      m.compose(pos.set(p.x, 0, p.z), q, scl.setScalar(p.s));
+      const box = new THREE.Box3();
+      const parts: [THREE.BufferGeometry, THREE.Material, THREE.Material][] = [[proto.bark, mats.bark, mats.barkDepth]];
+      if (proto.leaves && mats.leaf && mats.leafDepth) parts.push([proto.leaves, mats.leaf, mats.leafDepth]);
+      for (const [geo, mat, depth] of parts) {
+        const im = new THREE.InstancedMesh(geo, mat, 1);
+        im.setMatrixAt(0, m);
+        im.instanceMatrix.needsUpdate = true;
+        im.computeBoundingSphere();
+        if (im.boundingSphere) im.boundingSphere.radius += proto.height * 0.25;
+        im.customDepthMaterial = depth;
+        im.castShadow = true;
+        im.receiveShadow = true;
+        this.group.add(im);
+        if (!geo.boundingBox) geo.computeBoundingBox();
+        box.union(geo.boundingBox!.clone().applyMatrix4(m));
+      }
+      // Vinden flytter kronen litt
+      box.expandByScalar(proto.height * p.s * 0.06);
+      this.fronts.push({ box, fade });
     }
     return this.group;
   }

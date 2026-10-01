@@ -658,6 +658,15 @@ Tom: «https://github.com/tigerless-labs/autoharness bruk dette».
 - `.claude/autoharness/` (tellere, forslag i kø, kjøringer, øyeblikksbilder) står i `.gitignore`. Lærte skills i `.claude/skills/` skal i git etter gjennomsyn, ellers forsvinner de med containeren. Skills tillegget legger i det globale laget (`~/.claude/skills/`), forsvinner i skymiljøet.
 - Dokumentasjon: docs/SKILLS.md (ny del om autoharness: hvordan det virker, hvor det havner, regler, kostnad, hvordan det slås av), AGENTS.md (punkt 6), memory.md og todo.md (oppstartsskriptet i skymiljøet er Toms jobb).
 
+## 2026-10-01 11:46 (Europe/Oslo)
+Tom, med skjermbilde fra mobilen (liggende): «Objekter i forgrunnen må fade bort når den dekker spiller.. Ser ingenting innimellom». Bildet var helt dekket av mørkegrønne, uskarpe blader.
+- Årsaken: trærne som står mellom veien og kameraet (`z` 8,4 til 10, kameraet står på 11,4), eikene i nattleiren og høsttrærne på brett 1, var en del av de vanlige skogene og ble aldri tonet ut. Bare kulissene i FRONT-laget fra brettverkstedet gjorde det. Testen gjenskaper bildet til Tom: i nattleiren dekker en eik hele skjermen når kameraet står bak den.
+- Rettet: `Forest.addFront` (env/trees.ts) bygger hvert tre i forgrunnen for seg med egne materialer som tones ut med dithering, som kulissene. Trekker tilfeldige tall i samme rekkefølge som `add`, så brettene ser like ut som før. Miljøet legger dem i `Env.fronts`, og `Stage.updateFronts` sjekker hver frame om linja fra kameraet til punktene på figurene (føttene, brystet, hodet og sidene) går gjennom boksen rundt treet (`fadeFronts` i env/common.ts). Brukt på brett 1, i nattleiren og på småfuruene foran i frostpasset.
+- Treet tones ned til `FRONT_FADE` (20 prosent) og kommer mykt tilbake. Kulissene i FRONT tones nå like mye (før 40 prosent), så alt i forgrunnen oppfører seg likt.
+- Ny test `tools/tests/foreground.mjs` (9 av 9, kjørt to ganger) i liggende mobilformat: trærne finnes, tones ut når helten står bak dem, og er helt igjen langt unna. Bilder med og uten toning, sett på: på brett 1 dekker høsttreet helten til venstre og er borte til høyre, i nattleiren dekker eika hele bildet uten toning og leiren synes med. Forskjellen rundt helten er 36 (brett 1) og 26 (nattleiren).
+- Rettelsen kommer på mobilen når PR #6 er slått sammen (GitHub Pages bygges fra `main`).
+- Dokumentasjon: ARCHITECTURE (Toningen foran, Trær i forgrunnen), tests/README, memory.md og todo.md. Regresjon kjører (nightcamp, frostplay, prop-anim, editor, looks road, scenarios road og frost).
+
 ## 2026-10-01 11:53 (Europe/Oslo)
 
 Tom ba ChatGPT Work hjelpe Claude med partikler, atmosfære, lyd, etterbehandling, manglende grafikk og opprydding. Denne arbeidsrunden bygger på `5eded08`. Overlevering og detaljert kontrollstatus står i `docs/WORK_POLISH.md`.

@@ -277,6 +277,50 @@ export interface Env {
   generators?: string[];
   /** Tronsalen i tårnet (sluttkampen): tronen, Solhjertet og buret med prinsessen. */
   finale?: FinaleFx;
+  /** Det som står mellom veien og kameraet (trær i forgrunnen) og tones ut når det dekker en figur (fadeFronts). */
+  fronts?: FrontFade[];
+}
+
+/**
+ * Noe mellom veien og kameraet som tones ut når det dekker en figur, som forgrunnen fra brettverkstedet
+ * (gfx/scenery.ts). box er der det står i verden, fade er uniformen i skyggeleggeren (1 er synlig, mindre er
+ * dithering). Trær i forgrunnen lages med Forest.addFront (env/trees.ts).
+ */
+export interface FrontFade {
+  box: THREE.Box3;
+  fade: { value: number };
+}
+
+/** Hvor mye som er igjen av noe i forgrunnen som dekker en figur. */
+export const FRONT_FADE = 0.2;
+
+const frontRay = new THREE.Ray();
+const frontHit = new THREE.Vector3();
+const frontDir = new THREE.Vector3();
+
+/**
+ * Tone ut det i forgrunnen som dekker en figur: linja fra kameraet til et punkt på figuren (føttene, brystet,
+ * hodet og sidene) går gjennom boksen før den når figuren. Glir mykt inn og ut, så det ikke blinker.
+ */
+export function fadeFronts(fronts: FrontFade[], cam: THREE.Vector3, points: THREE.Vector3[], dt: number) {
+  const k = 1 - Math.exp(-dt * 8);
+  for (const fr of fronts) {
+    let covered = false;
+    // Bare det som er nær kameraet sidelengs, kan dekke noe
+    if (fr.box.max.x > cam.x - 14 && fr.box.min.x < cam.x + 14) {
+      for (const p of points) {
+        const d = p.distanceTo(cam);
+        frontRay.set(cam, frontDir.subVectors(p, cam).divideScalar(Math.max(1e-4, d)));
+        if (frontRay.intersectBox(fr.box, frontHit) && frontHit.distanceTo(cam) < d) {
+          covered = true;
+          break;
+        }
+      }
+    }
+    const goal = covered ? FRONT_FADE : 1;
+    fr.fade.value += (goal - fr.fade.value) * k;
+    if (Math.abs(fr.fade.value - goal) < 0.002) fr.fade.value = goal;
+  }
 }
 
 /** Det sluttkampen trenger fra tronsalen (gfx/env/tower.ts). */
@@ -534,6 +578,7 @@ export function finishEnv(g: THREE.Group, updates: ((dt: number, t: number, camX
     fires: g.userData.fires as THREE.Vector3[] | undefined,
     waters: g.userData.waters as THREE.Vector3[] | undefined,
     tippables: g.userData.tippables as Tippable[] | undefined,
+    fronts: g.userData.fronts as FrontFade[] | undefined,
     update(dt, t, camX) {
       for (const u of updates) u(dt, t, camX);
     },
