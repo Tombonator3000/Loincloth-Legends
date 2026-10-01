@@ -1214,7 +1214,9 @@
     "wall_gate": "tex_wall_gate.webp",
     "wall_keep": "tex_wall_keep.webp",
     "wall_tower": "tex_wall_tower.webp",
-    "wood": "tex_wood.webp"
+    "wood": "tex_wood.webp",
+    "ground_jungle": "tex_ground_jungle.webp",
+    "road_jungle": "tex_road_jungle.webp"
   },
   "map": "map.webp",
   "sky": {

@@ -1,7 +1,7 @@
 // Blader som faller fra kronene og driver med vinden, og løv som ligger på bakken.
 // Bladene simuleres på CPU (få nok til at det er billig) og tegnes som én instansert mesh.
 import * as THREE from 'three';
-import { random } from '../../core/math';
+import { random, seeded } from '../../core/math';
 import { wind } from '../wind';
 import { singleLeafTexture } from './trees';
 import { qualityRank } from '../post';
@@ -15,6 +15,7 @@ interface Leaf {
   phase: number;
   size: number;
   life: number;
+  age: number;
   landed: number;
   col: number;
 }
@@ -40,6 +41,7 @@ export class LeafFall {
   readonly group = new THREE.Group();
   private mesh: THREE.InstancedMesh;
   private leaves: Leaf[] = [];
+  private free: Leaf[] = [];
   private max: number;
   private m = new THREE.Matrix4();
   private q = new THREE.Quaternion();
@@ -48,6 +50,9 @@ export class LeafFall {
   private cols: THREE.Color[];
   private acc = 0;
   private e = new THREE.Euler(0, 0, 0, 'YXZ');
+  private initialized = false;
+  private lastCamX = 0;
+  private rng = seeded(Math.floor(random() * 0x100000000));
 
   constructor(private o: LeafFallOpts) {
     this.max = QCOUNT[qualityRank()];
@@ -58,8 +63,14 @@ export class LeafFall {
     this.mesh.count = 0;
     this.mesh.receiveShadow = true;
     this.mesh.userData.noCast = true;
+    this.mesh.name = 'falling-leaves';
     this.mesh.setColorAt(0, this.cols[0]);
     this.group.add(this.mesh);
+    // Vektorer og partikler gjenbrukes hele brettets levetid, også etter kamerahopp i editoren.
+    for (let i = 0; i < this.max; i++) this.free.push({
+      p: new THREE.Vector3(), v: new THREE.Vector3(), axis: new THREE.Vector3(),
+      ang: 0, spin: 0, phase: 0, size: 0, life: 0, age: 0, landed: 0, col: 0,
+    });
     if (o.litter && o.length) this.group.add(this.litter(o.litter, o.length));
   }
 
@@ -87,56 +98,73 @@ export class LeafFall {
     return im;
   }
 
-  private spawn(camX: number) {
+  private spawn(camX: number, warm = false) {
+    const f = this.free.pop();
+    if (!f) return;
     const [y0, y1, z0, z1] = this.o.area;
-    const phase = Math.random() * Math.PI * 2;
-    this.leaves.push({
-      p: new THREE.Vector3(camX + (Math.random() - 0.5) * 34, y0 + Math.random() * (y1 - y0), z0 + Math.random() * (z1 - z0)),
-      v: new THREE.Vector3(0, -0.4, 0),
-      axis: new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5).normalize(),
-      ang: Math.random() * 6.28,
-      spin: (1.5 + Math.random() * 3) * (Math.random() < 0.5 ? -1 : 1),
-      phase,
-      size: (this.o.size ?? 0.2) * (0.8 + Math.random() * 0.5),
-      life: 14,
-      landed: 0,
-      col: Math.floor(Math.random() * this.cols.length),
-    });
+    const r = this.rng;
+    f.p.set(camX + (r() - 0.5) * 34, warm ? 0.3 + r() * (y1 - 0.3) : y0 + r() * (y1 - y0), z0 + r() * (z1 - z0));
+    f.v.set(0, -0.4, 0);
+    f.axis.set(r() - 0.5, r() - 0.5, r() - 0.5).normalize();
+    f.ang = r() * Math.PI * 2;
+    f.spin = (1.5 + r() * 3) * (r() < 0.5 ? -1 : 1);
+    f.phase = r() * Math.PI * 2;
+    f.size = (this.o.size ?? 0.2) * (0.8 + r() * 0.5);
+    f.life = warm ? 6 + r() * 8 : 14;
+    f.age = warm ? 1 : 0;
+    f.landed = 0;
+    f.col = Math.floor(r() * this.cols.length);
+    this.leaves.push(f);
   }
 
   update(dt: number, camX: number) {
+    if (dt <= 0) return;
+    if (!this.initialized || Math.abs(camX - this.lastCamX) > 24) {
+      while (this.leaves.length) this.free.push(this.leaves.pop()!);
+      this.acc = 0;
+      // Lufta er allerede i bevegelse ved ankomst. Ingen venting på at alle bladene faller fra tretoppene.
+      for (let i = 0; i < Math.round(this.max * 0.4); i++) this.spawn(camX, true);
+      this.initialized = true;
+    }
+    this.lastCamX = camX;
     const target = this.max;
     this.acc += dt * target * 0.12;
-    while (this.acc > 1 && this.leaves.length < target) {
-      this.acc -= 1;
-      this.spawn(camX);
-    }
+    const births = Math.floor(this.acc);
+    // En full pool sparer ikke utslipp til senere. Ellers blir kamerahopp og lang spilletid til partikkelbyger.
+    this.acc -= births;
+    const budget = Math.min(births, this.free.length);
+    for (let i = 0; i < budget; i++) this.spawn(camX);
     let n = 0;
     const L = this.leaves;
     let w = 0;
     for (let i = 0; i < L.length; i++) {
       const f = L[i];
       f.life -= dt;
-      if (f.life <= 0 || Math.abs(f.p.x - camX) > 30) continue;
+      f.age += dt;
+      if (f.life <= 0 || Math.abs(f.p.x - camX) > 30 || f.landed > 6) {
+        this.free.push(f);
+        continue;
+      }
       if (f.landed > 0) {
         f.landed += dt;
-        if (f.landed > 6) continue;
       } else {
         wind.velocity(f.p.x, f.p.z, this.w);
         // Flagring: bladet glir fram og tilbake mens det faller
         const sway = Math.sin(f.life * 2.3 + f.phase);
-        f.v.x += (this.w.x * 0.6 + sway * 0.9 - f.v.x) * Math.min(1, dt * 2);
-        f.v.z += (this.w.z * 0.6 + Math.cos(f.life * 1.7 + f.phase) * 0.4 - f.v.z) * Math.min(1, dt * 2);
-        f.v.y += (-0.55 - Math.abs(sway) * 0.35 - f.v.y) * Math.min(1, dt * 3);
+        const drift = 1 - Math.exp(-dt * 2);
+        f.v.x += (this.w.x * 0.6 + sway * 0.9 - f.v.x) * drift;
+        f.v.z += (this.w.z * 0.6 + Math.cos(f.life * 1.7 + f.phase) * 0.4 - f.v.z) * drift;
+        f.v.y += (-0.55 - Math.abs(sway) * 0.35 - f.v.y) * (1 - Math.exp(-dt * 3));
         f.p.addScaledVector(f.v, dt);
-        f.ang += f.spin * dt;
+        f.ang += f.spin * dt * (0.7 + wind.strength * 0.3);
         if (f.p.y <= 0.02) {
           f.p.y = 0.02;
           f.landed = 0.001;
         }
       }
       L[w++] = f;
-      const k = f.landed > 0 ? Math.max(0, 1 - Math.max(0, f.landed - 4.5) / 1.5) : 1;
+      const k = Math.min(1, f.age / 0.45, Math.max(0, f.life / 0.8)) *
+        (f.landed > 0 ? Math.max(0, 1 - Math.max(0, f.landed - 4.5) / 1.5) : 1);
       if (f.landed > 0) this.q.setFromEuler(this.e.set(-Math.PI / 2, f.ang, 0, 'YXZ'));
       else this.q.setFromAxisAngle(f.axis, f.ang);
       const s = f.size * k;

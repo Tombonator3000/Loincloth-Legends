@@ -80,14 +80,16 @@ def fjern_magenta(im):
     return im
 
 
-def fjern_bakgrunn(im, grense=34):
+def fjern_bakgrunn(im, grense=34, *, bevar_alfa=True):
     """Gjør bakgrunnsfargen gjennomsiktig hvis bildet ikke har gjennomsiktighet fra før. Flomfyll fra kantene, så bare
-    sammenhengende bakgrunn forsvinner og ikke lignende farger inni figuren."""
+    sammenhengende bakgrunn forsvinner og ikke lignende farger inni figuren. Ekte alfa er fasiten uansett hvor liten
+    del av bildet som er gjennomsiktig. bevar_alfa=False brukes bare når alfa kom fra fjernede hjelpelinjer."""
     a = im.getchannel('A')
-    if a.getextrema()[0] < 250 and sum(1 for v in piksler(a) if v < 20) > im.size[0] * im.size[1] * .2:
+    if bevar_alfa and a.getextrema()[0] < 255:
         return im  # har allerede gjennomsiktig bakgrunn
     px = im.load(); w, h = im.size
-    hj = [px[2, 2], px[w - 3, 2], px[2, h - 3], px[w - 3, h - 3]]
+    dx, dy = min(2, (w - 1) // 2), min(2, (h - 1) // 2)
+    hj = [px[dx, dy], px[w - 1 - dx, dy], px[dx, h - 1 - dy], px[w - 1 - dx, h - 1 - dy]]
     bg = tuple(sorted(c[i] for c in hj)[1] for i in range(3))
     nær = lambda c: c[3] == 0 or abs(c[0] - bg[0]) + abs(c[1] - bg[1]) + abs(c[2] - bg[2]) < grense * 3
     seen = bytearray(w * h)
@@ -482,12 +484,14 @@ def klipp(sti):
     """Ark til (nøkkel, bilde)-par. Vanlige bilder gir seg selv."""
     navn = sti.stem.lower()
     im = Image.open(sti).convert('RGBA')
+    # Hjelpelinjene får alfa av fjern_magenta. Bare alfa som var i originalen, skal hindre bakgrunnsfjerning.
+    hadde_alfa = im.getchannel('A').getextrema()[0] < 255
     if navn.startswith('figur_'):
         figur = navn[6:]
-        im = fjern_bakgrunn(fjern_magenta(im), 33)
+        im = fjern_bakgrunn(fjern_magenta(im), 33, bevar_alfa=hadde_alfa)
         return [(f'{figur}_{FIGURARK[j][i]}', c) for i, j, c in ruter(im, 3, 2, 40)]
     if navn.startswith('ark__'):
-        im = fjern_bakgrunn(fjern_magenta(im), 33)
+        im = fjern_bakgrunn(fjern_magenta(im), 33, bevar_alfa=hadde_alfa)
         return [(k, c) for (i, j, c), k in zip(ruter(im, 3, 3, 0), navn[5:].split('__')) if k != '_']
     return [(navn, im)]
 

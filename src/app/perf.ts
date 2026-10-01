@@ -28,6 +28,8 @@ export class QualityGovernor {
   /** Etter scenebytte eller nytt nivå: vent litt før neste måling. */
   reset(settle = 2) {
     this.t = this.n = 0;
+    this.low = 0;
+    this.lastFps = 0;
     this.settle = settle;
   }
 
@@ -36,8 +38,9 @@ export class QualityGovernor {
    * duell, ikke pause eller meny). Returnerer nivået det bør gå ned til, eller null.
    */
   sample(raw: number, active: boolean, q: Quality): Quality | null {
-    if (!active || raw > 5 || raw <= 0) {
+    if (!active || !Number.isFinite(raw) || raw > 5 || raw <= 0) {
       this.t = this.n = 0;
+      this.low = 0;
       return null;
     }
     if (this.settle > 0) {

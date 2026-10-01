@@ -1,0 +1,87 @@
+name: Miljo og lydkontroll
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'public/assets/**'
+      - 'tools/**'
+      - 'package*.json'
+      - '.github/workflows/world-quality.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: world-quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Avhengigheter for kontroller
+        run: |
+          npm ci
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+          python -m pip install Pillow
+      - name: Bygg og bildekontroll
+        run: |
+          npm run typecheck
+          npm run build
+          npm run build:single
+          python tools/check_art_pack.py
+          python -m unittest discover -s tools/tests -p 'test_process_art.py'
+          node tools/tests/projectile-resources.mjs
+      - name: Start testservere
+        id: servers
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          mkdir -p test-results/world-quality/baseline test-results/world-quality/after
+          if [ -z "$BASE_SHA" ]; then BASE_SHA=$(git rev-parse origin/main); fi
+          git worktree add --detach ../quality-baseline "$BASE_SHA"
+          ln -s "$GITHUB_WORKSPACE/node_modules" ../quality-baseline/node_modules
+          npm run dev -- --host 127.0.0.1 --port 4173 > test-results/world-quality/dev.log 2>&1 &
+          (cd ../quality-baseline; npm run dev -- --host 127.0.0.1 --port 4174) > test-results/world-quality/baseline.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/ > /dev/null && curl -fsS http://127.0.0.1:4174/ > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - name: Funksjon, lyd og effekter
+        run: |
+          status=0
+          for suite in post-quality audio-depth atmosphere lifecycle soundbank particles jungle finale; do
+            mkdir -p "test-results/world-quality/$suite"
+            args=(http://127.0.0.1:4173/)
+            if [ "$suite" != soundbank ]; then args+=("test-results/world-quality/$suite"); fi
+            if ! timeout 240 node "tools/tests/$suite.mjs" "${args[@]}" > "test-results/world-quality/$suite.log" 2>&1; then status=1; fi
+            cat "test-results/world-quality/$suite.log"
+          done
+          exit "$status"
+      - name: Samme kamerabilder for og etter
+        if: always() && steps.servers.outcome == 'success'
+        run: |
+          node tools/tests/polish-visuals.mjs http://127.0.0.1:4174/ test-results/world-quality/baseline baseline
+          node tools/tests/polish-visuals.mjs http://127.0.0.1:4173/ test-results/world-quality/after after
+      - name: Bevar logger og skjermbilder
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: world-quality-${{ github.sha }}
+          path: test-results/world-quality/
+          retention-days: 14

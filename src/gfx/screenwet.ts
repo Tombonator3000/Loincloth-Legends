@@ -113,12 +113,27 @@ export class ScreenWet {
     if (this.cv && W === this.W && H === this.H) return;
     if (this.W && this.H) {
       const sx = W / this.W, sy = H / this.H;
+      const sk = Math.min(W, H) / Math.min(this.W, this.H);
       for (const d of this.drops) {
         d.x *= sx;
         d.y *= sy;
+        d.py *= sy;
+        d.r *= sk;
+        d.vx *= sx;
+        d.vj *= sx;
+        d.vy *= sy;
       }
-      this.trails = [];
-      for (const d of this.drops) d.trail = null;
+      // Behold også sporet til en dråpe som renner. Å slette det lot sliding være true
+      // med trail=null, og neste physics() krasjet når telefonen ble snudd.
+      const trails = new Set(this.trails);
+      for (const d of this.drops) if (d.trail) trails.add(d.trail);
+      for (const trail of trails) {
+        for (let i = 0; i < trail.p.length; i += 4) {
+          trail.p[i] *= sx;
+          trail.p[i + 1] *= sy;
+          trail.p[i + 2] *= sk;
+        }
+      }
     }
     this.W = W;
     this.H = H;

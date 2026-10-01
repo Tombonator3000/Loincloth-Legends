@@ -1,0 +1,147 @@
+{
+  "run": "https://github.com/Tombonator3000/Loincloth-Legends/actions/runs/36846244498",
+  "code_commit": "57f755e200053d56d68b0f71727243f21281220c",
+  "baseline_commit": "5eded08a791f548b8ef9f6009e21c1c3d10cda4c",
+  "conclusion": "success",
+  "browser_suites": {
+    "post-quality": "passed",
+    "audio-depth": "passed",
+    "atmosphere": "passed",
+    "lifecycle": "passed",
+    "soundbank": "passed",
+    "particles": "passed",
+    "jungle": "passed",
+    "finale": "passed"
+  },
+  "recordings_decoded": 137,
+  "baseline": {
+    "revision": "baseline",
+    "captures": [
+      {
+        "id": "road",
+        "x": 55,
+        "calls": 261,
+        "triangles": 663763,
+        "textures": 99,
+        "geometries": 130,
+        "jungleTextures": [],
+        "canvas": [
+          1280,
+          720
+        ]
+      },
+      {
+        "id": "nightcamp",
+        "x": 34.5,
+        "calls": 122,
+        "triangles": 582201,
+        "textures": 119,
+        "geometries": 141,
+        "jungleTextures": [],
+        "canvas": [
+          1280,
+          720
+        ]
+      },
+      {
+        "id": "jungle",
+        "x": 72,
+        "calls": 280,
+        "triangles": 266177,
+        "textures": 131,
+        "geometries": 261,
+        "jungleTextures": [],
+        "canvas": [
+          1280,
+          720
+        ]
+      },
+      {
+        "id": "scorch",
+        "x": 35,
+        "calls": 194,
+        "triangles": 107377,
+        "textures": 182,
+        "geometries": 339,
+        "jungleTextures": [],
+        "canvas": [
+          1280,
+          720
+        ]
+      }
+    ],
+    "errors": []
+  },
+  "after": {
+    "revision": "after",
+    "captures": [
+      {
+        "id": "road",
+        "x": 55,
+        "calls": 261,
+        "triangles": 663867,
+        "textures": 99,
+        "geometries": 130,
+        "jungleTextures": [
+          "ground_jungle",
+          "road_jungle"
+        ],
+        "canvas": [
+          1280,
+          720
+        ]
+      },
+      {
+        "id": "nightcamp",
+        "x": 34.5,
+        "calls": 120,
+        "triangles": 550041,
+        "textures": 119,
+        "geometries": 141,
+        "jungleTextures": [
+          "ground_jungle",
+          "road_jungle"
+        ],
+        "canvas": [
+          1280,
+          720
+        ]
+      },
+      {
+        "id": "jungle",
+        "x": 72,
+        "calls": 280,
+        "triangles": 266281,
+        "textures": 131,
+        "geometries": 261,
+        "jungleTextures": [
+          "ground_jungle",
+          "road_jungle"
+        ],
+        "canvas": [
+          1280,
+          720
+        ]
+      },
+      {
+        "id": "scorch",
+        "x": 35,
+        "calls": 193,
+        "triangles": 107375,
+        "textures": 181,
+        "geometries": 338,
+        "jungleTextures": [
+          "ground_jungle",
+          "road_jungle"
+        ],
+        "canvas": [
+          1280,
+          720
+        ]
+      }
+    ],
+    "errors": []
+  },
+  "visual_review": "Ti bilder åpnet. Ingen nye lesbarhetsregresjoner funnet. Trær blokkerer ikke lenger road/nightcamp. Eksisterende mobil-HUD-overlapp og svak kontrast på fortellertekst står i todo.md.",
+  "limits": "SwiftShader, fire kamerasteder. Ingen fysisk telefon/GPU-måling eller lytting på ekte høyttalere."
+}

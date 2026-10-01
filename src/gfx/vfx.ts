@@ -12,7 +12,7 @@ import { screenFX } from './screenfx';
 const STRIDE = 24;
 
 /** Former i glødpoolen. */
-export const K = { GLOW: 0, SPARK: 1, FLAME: 2, RING: 3, DOT: 4 } as const;
+export const K = { GLOW: 0, SPARK: 1, FLAME: 2, RING: 3, DOT: 4, MOTE: 5, FLAKE: 6, IMPACT: 7 } as const;
 
 export const GLOW_VERT = /* glsl */ `
 #include <common>
@@ -41,11 +41,22 @@ void main() {
   float dtk = k > 0.0001 ? (1.0 - exp(-k * age)) / k : age;
   vec3 p = aP + aV * dtk + 0.5 * aA * age * age + uWindV * aC1.w * age;
   vec3 vel = aV * exp(-k * age) + aA * age + uWindV * aC1.w;
+  float kind = aC0.w;
+  float phase = aT.w * 6.283185;
+  // Ildfluer/pollen vandrer, snø og aske flagrer. Buer begynner i null ved fødsel og bruker bare spilltid.
+  // Treff, blod og stigende glør beholder ballistikken sin.
+  if (kind > 4.5 && kind < 6.5) {
+    float mote = kind < 5.5 ? 1.0 : 0.0;
+    float rate = mix(2.1, 1.35, mote) + aT.w;
+    float amp = mix(0.12, 0.24, mote);
+    p.x += (sin(age * rate + phase) - sin(phase)) * amp;
+    p.z += (cos(age * rate * 0.73 + phase) - cos(phase)) * amp * 0.65;
+    p.y += (sin(age * rate * 0.61 + phase) - sin(phase)) * amp * 0.4;
+  }
   // Det som faller gjennom gulvet blir liggende på det og tones ut
   vSink = smoothstep(-0.35, 0.0, p.y);
   p.y = max(p.y, 0.02);
   float size = mix(aS.x, aS.y, u);
-  float kind = aC0.w;
   vec2 c = position.xy;
   // Ringer (sjokkbølger) ligger flatt på bakken, alt annet vender mot kameraet. -c.y gir forsida opp mot kameraet
   // (med +c.y vendte den ned og ble ikke tegnet)
@@ -116,11 +127,19 @@ void main() {
   } else if (vKind < 3.5) {
     float d = length(c);
     a = smoothstep(0.62, 0.9, d) * (1.0 - smoothstep(0.9, 1.0, d));
+  } else if (vKind > 6.5) {
+    // Et kort, kompakt treffglimt: kjernen lyser før gnistene rekker å spre seg.
+    a = exp(-dot(c, c) * 7.0) + 0.12 * exp(-dot(c * vec2(0.7, 4.0), c * vec2(0.7, 4.0)) * 3.0);
   } else {
     float d = length(c);
     a = pow(max(0.0, 1.0 - d), 3.0);
+    if (vKind > 4.5 && vKind < 5.5) {
+      float pulse = 0.66 + 0.34 * sin(uTime * (2.2 + vSeed) + vSeed * 29.0);
+      a = (a + 0.09 * exp(-d * d * 4.5)) * pulse;
+    }
   }
   float fade = smoothstep(0.0, 0.06, vU) * (1.0 - smoothstep(0.62, 1.0, vU)) * vSink;
+  if (vKind > 6.5) fade = (1.0 - vU) * (1.0 - vU) * vSink;
   gl_FragColor = vec4(vCol * a * fade, 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -146,8 +165,11 @@ void main() {
   float a;
   vec3 col = vCol;
   if (vKind > 0.5) {
-    // Snøfnugg og aske: små, harde prikker
-    a = 1.0 - smoothstep(0.55, 1.0, d);
+    // Flak har ujevn silhuett og skifter synlig flate når de tumler, uten nye teksturer eller tegnekall.
+    float edge = d;
+    if (vKind > 5.5) edge *= 1.0 + 0.13 * sin(atan(c.y, c.x) * 5.0 + vSeed * 19.0);
+    a = 1.0 - smoothstep(0.5, 1.0, edge);
+    if (vKind > 5.5) a *= 0.7 + 0.3 * sin(uTime * (2.0 + vSeed) + vSeed * 17.0);
   } else {
     float n = fbm(c * 1.7 + vSeed * 9.0 + vec2(0.0, -uTime * 0.15));
     // Kantene i smoothstep må stå i stigende rekkefølge (ellers udefinert i GLSL)
@@ -499,6 +521,7 @@ export class VFX {
   private bolts: Bolt[] = [];
   private cam: THREE.Camera | null = null;
   private camPos = new THREE.Vector3();
+  private ambientPhase = 0;
 
   constructor() {
     this.glow = new Pool(7000, GLOW_FRAG, { blending: THREE.AdditiveBlending, fog: false });
@@ -549,7 +572,7 @@ export class VFX {
         0.25 + Math.random() * 0.35, 2.2, 0.05, 0.02, 0.035,
         c.r * 9, c.g * 7, c.b * 5, K.SPARK, 1.4, 0.25, 0.05, 0);
     }
-    this.glow.emit(pos.x, pos.y, pos.z + 0.12, 0, 0, 0, 0, 0, 0, 0.12, 0, 0.5, 1.4, 0, c.r * 5, c.g * 5, c.b * 5, K.GLOW, c.r, c.g * 0.6, c.b * 0.3, 0);
+    this.glow.emit(pos.x, pos.y, pos.z + 0.12, 0, 0, 0, 0, 0, 0, 0.1, 0, 0.6, 0.9, 0, c.r * 5, c.g * 5, c.b * 5, K.IMPACT, c.r, c.g * 0.6, c.b * 0.3, 0);
     if (count >= 5) this.lights.flash(pos, color, 6, 6, 0.1);
   }
 
@@ -581,11 +604,16 @@ export class VFX {
 
   /** Stemningspartikler (glør, ildfluer, gnister). glow = additiv, ellers mørke flak (aske, snø). */
   ambient(x: number, y: number, z: number, vx: number, vy: number, color: string, size: number, life: number, glow = false, grav = 0) {
+    // Lavdiskrepans-sekvens: jevn reduksjon på LOW/MEDIUM uten at annenhver kilde alltid blir valgt bort.
+    // En vanlig 0,5-kvote ville for eksempel bare beholdt snøen når snø og ildfluer veksler.
+    this.ambientPhase = (this.ambientPhase + 0.618033988749895) % 1;
+    if (this.ambientPhase >= Math.min(1, this.q)) return;
     const c = tmpC.set(color);
     if (glow) {
-      this.glow.emit(x, y, z, vx, vy, 0, 0, -grav, 0, life, 0, size * 0.9, size * 0.5, 0, c.r * 3.5, c.g * 3.5, c.b * 3.5, K.DOT, c.r * 1.5, c.g * 1.5, c.b * 1.5, 0.4);
+      const mote = Math.abs(vy) < 0.6 && grav === 0;
+      this.glow.emit(x, y, z, vx, vy, 0, 0, -grav, 0, life, 0, size * 0.9, size * 0.5, 0, c.r * 3.5, c.g * 3.5, c.b * 3.5, mote ? K.MOTE : K.DOT, c.r * 1.5, c.g * 1.5, c.b * 1.5, mote ? 0.16 : 0.4);
     } else {
-      this.smoke.emit(x, y, z, vx, vy, 0, 0, -grav, 0, life, 0, size * 1.2, size, 0, c.r, c.g, c.b, 1, c.r, c.g, c.b, 0.8);
+      this.smoke.emit(x, y, z, vx, vy, 0, 0, -grav, 0, life, 0, size * 1.2, size, 0, c.r, c.g, c.b, Math.abs(grav) < 0.5 ? K.FLAKE : K.SPARK, c.r, c.g, c.b, 0.8);
     }
   }
 
@@ -736,10 +764,10 @@ export class VFX {
     this.glow.clear();
     this.smoke.clear();
     this.lights.clear();
+    this.ambientPhase = 0;
     for (const b of this.bolts) {
       b.mesh.visible = false;
       b.t = 99;
     }
   }
 }
-

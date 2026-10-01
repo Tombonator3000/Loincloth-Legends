@@ -15,7 +15,8 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [x] Jungelbrett mellom brett 1 og sumpen (`jungle`, STAGE 2): kjøttetende plante, steinvekt, søyler som veltes over fiendene, Soltempelet, duell mot dronning Zanthra, låten TEMPLE OF THE SUN (tools/tests/jungle.mjs)
 - [ ] Tom: se på jungelen (plantene, steinvekta, søylene, tempelet i disen, palmene og duellen) og si fra om noe skal endres
 - [ ] Tom: lag replikkene for jungelen i VoiceStudio (fortelleren, Vorthax, dronning Zanthra, docs/STEMMER.md)
-- [ ] Jungelen: bestill bakke- og veitekstur (`ground_jungle`, `road_jungle`) og kulisser (tempelruiner, steinguder, slyngplanter) etter ART_PROMPTS og skillen prop-art. Zanthra er satt sammen av Forge-deler og kan få egne bilder
+- [x] Jungelen: bakke- og veitekstur (`ground_jungle`, `road_jungle`) levert som 1024 x 1024 WebP og registrert i manifestet (2026-10-01, docs/WORK_POLISH.md). Visuelt kontrollert i spillet fra Actions-kjøring 36846244498
+- [ ] Jungelen: kulisser (tempelruiner, steinguder, slyngplanter) etter ART_PROMPTS og skillen prop-art. Zanthra er satt sammen av Forge-deler og kan få egne bilder
 - [ ] Jungelen: elv med ruinby, og søyler som blir bro over elva (fra idélista), er ikke laget
 - [ ] Utstyr som endrer handlingene, to eller tre ting som gjenbruker effekter vi har: oljeflaske (glør og brann), ring (tordenmagien), kastedolk (kultistenes dolk). Må passe på de tre knappene
 - [ ] Flere mannekropper blant fiender og rivaler (tung og hårete bryter, kompakt veteran med brukket nese, forfengelig arenahelt), se også kroppstypene under Neste
@@ -43,11 +44,11 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [x] Spillet henter bare kulissebildene brettene bruker (28 av 52 på brett 1), editoren resten (`loadPropImages`)
 - [x] Murene og gravene på de andre brettene (Tom 2026-09-30): gravplass i sumpen (også ute i vannet), steinmur, gravplass, borgruin og borgmur fram til porten i frosten, nedbrente teglmurer og borgruin i Scorchlands, ras og krypt i tårnet, liten gravplass i nattleiren. Farge per brett med tint
 - [ ] Porten (`env_palisade_gate`), alteret, steinblokka og den falne stokken er ikke brukt på noe brett ennå
-- [ ] Generert eik rett foran kameraet dekker hele bildet i nattleiren ved daggry (x 34,5) og rundt x 55 på brett 1 (skoggeneratorene i env/night.ts og env/grass.ts). Foreslått som egen oppgave
-- [ ] Rett alfagjenkjenningen varig i process_art.py: ekte RGBA skal ikke miste mørke detaljer når mindre enn 20 prosent av flaten er gjennomsiktig. Portens importkopi er foreløpig klargjort med 48 piksler gjennomsiktig marg på hver side; original og skript er uendret
+- [x] Genererte eiker som dekket kameraet i nattleiren (x 34,5) og på brett 1 (x 55), flyttet bak kampbeltet i env/night.ts og env/grass.ts (2026-10-01). Før/etter-bildene er visuelt kontrollert
+- [x] Varig alfagjenkjenning i process_art.py: eksisterende alfa bevares uten prosentgrense; hjelpelinjer behandles separat. Seks Python-regresjoner bestått (2026-10-01)
 - [ ] Tom: si om rekkefølgen passer (A, B, C, D, E), eller om AI del 1 (D) skal før editoren (C)
 - [ ] Tom: si fra om blodmengden nå som dråpene synes (standard EXCESSIVE)
-- [ ] Runde A: beina løper etter todeling, pulserende sprut, kuttflater, blod på våpenet, treffstopp ved kutt; teksturer på palisade, telt, stolper, hytter og tak (med reserve i kode); spilltid i stedet for setTimeout (stage.ts 482 og 710, duel.ts)
+- [ ] Runde A: beina løper etter todeling, pulserende sprut, kuttflater, blod på våpenet, treffstopp ved kutt; teksturer på palisade, telt, stolper, hytter og tak (med reserve i kode). Tidskøene i stage.ts er tatt tidligere; duellens setTimeout er erstattet med spilltid i Work-runden 2026-10-01
 - [x] Runde B: kulisser i lag (manifest `props`, figurlyset, skygge, vind, bildeserier, spor), toning av FRONT etter punkter og alfa, brettfiler i JSON med validering, faste frø og generatorbrytere for pynten, `prop_` og `anim_` i process_art.py (ark_ruter og behandle_ark fra Morbidium)
 - [x] Runde C: STAGE FORGE som scene i spillet (`?editor=road`): bibliotek, tidslinje, angre (60), rader, generatorer, bølger, tønner og farer, lagring via Vite under npm run dev, bilder dratt inn, PLAY FROM HERE og tilbake. Tester: editor.mjs, forge-save.mjs, prop-images.mjs
 - [x] Skills for agentene i .claude/skills/ (stage-forge, prop-art, new-level, game-tests) og docs/SKILLS.md
@@ -125,8 +126,23 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [x] Automatisk grafikkvalitet, gjenoppretting av WebGL, ?perf, lyspool uten blinking, sårede drypper blod, SSAO lar lava lyse
 - [x] Bildeverktøy og maler for ChatGPT, fiendevariasjon, kreditering (README, public/LICENSES, THIRD_PARTY_LICENSES.md)
 - [ ] Tom: lytt på musikken og lydene på ekte høyttalere og si hva som skal justeres
-- [ ] Senere fra rapporten: ro (musikken trekker seg tilbake), seierslåt som slutter, lyder fra riktig side, lava som flyter, varsel på bakken før angrep, fugleflokker, mose på steiner, Playwright i CI (fottrinn per underlag, sverdklang, publikum, ulv, krigshorn, snø på steiner og stemmemanus er gjort)
+- [x] Ro mellom bølgene: musikken trekker seg tilbake og miljølyden kommer fram. Miljølag, bål/foss og dyrelyder har stereo/avstandsfilter, og pause demper miljøet (2026-10-01). Nettleserkontroll og lytting gjenstår
+- [ ] Senere fra rapporten: seierslåt som slutter, romplassering av øvrige kamplyder, lava som flyter, varsel på bakken før angrep, fugleflokker og mose på steiner (fottrinn per underlag, sverdklang, publikum, ulv, krigshorn, snø på steiner og stemmemanus er gjort)
 - [ ] CREDITS-skjerm i spillet (src/data/credits.ts), så også enkeltfil-bygget bærer krediteringen
+
+## Work-runde: miljø, lyd og opprydding (2026-10-01)
+- [x] Implementert vandrende ildfluer/pollen, flagrende snø/aske og kompakt treffglimt i eksisterende GPU-pooler, med jevn kvalitetsreduksjon
+- [x] Løv med fast pool, utfylt luft ved ankomst, rolig oppstart etter kamerahopp og uten oppsamlede utslipp; dis følger vindretning og lysstråler brytes mykt opp
+- [x] Pikselbudsjett på store skjermer, bloom normalisert mellom kvalitetsnivåer, beholdte dråpespor ved skjermrotasjon og ny måleperiode etter pause/scenebytte
+- [x] Gamle editor- og fullskjermsvar kan ikke hente tilbake forlatte scener/menyer; forsyninger, tittelhån og duellreplikker/posering følger spilltid
+- [x] Egne prosjektilgeometrier og materialer ryddes uten å slippe delte sprite-materialer; post-prosessering slipper sine mål/materialer; ferdige lyder kobler fra egne noder
+- [x] Nye regresjonstester og arbeidsflyten .github/workflows/world-quality.yml for nettleserkontroll og før/etter-bilder, dokumentert i docs/WORK_POLISH.md
+- [x] Lokalt: typecheck, build, build:single, kunstkontroll av 254 bildefiler, seks alfa-tester og prosjektilressurstestene
+- [x] Åtte nettlesersuiter bestått og logger lest i GitHub Actions 36846244498. Lokal Chromium ble avvist; runtimekontrollen er fra GitHub-runneren
+- [x] Ti før/etter-bilder vurdert: fri sikt på road/nightcamp, nye jungelteksturer og lesbare figurer i Scorchlands. Ingen ny lesbarhetsregresjon funnet
+- [ ] Lytt på ro/kamp og miljødybde på ekte høyttalere; mål ytelsen på ekte telefon/GPU
+- [ ] Rett eksisterende mobil-HUD: METAL overlapper heltenavnet i smalt stående format
+- [ ] Gi fortellerteksten bedre kontrast mot forgrunnsgress, særlig i jungelen
 
 ## Pågår: nesten ekte karikatur (Toms Valkyra-bilde, fra 2026-09-29 17:05)
 - [x] Ny tegneinstruks i docs/ART_PROMPTS.md: stil-blokk for nesten ekte karikatur, helfigur først, delene med helfiguren som referanse, HAIRBACK for langt hår, nye Thrugg- og Valkyra-prompter
@@ -208,7 +224,7 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [x] Rekvisittpakke med 52 PNG-originaler levert og importert som WebP med alfa til editorbiblioteket (docs/ENVIRONMENT_PACK.md)
 - [ ] Ikoner som PNG
 - [ ] Vis tittelbilde og sjef-VS-kort fra assets
-- [ ] Rydd opp geometri/materialer når scener byttes (liten minnelekkasje ved mange omstarter)
+- [ ] Kartlegg og rydd gjenværende miljø-/riggressurser ved mange scenebytter, med tydelig eierskap for delte geometrier/materialer. Prosjektiler og post-prosessering har egen opprydding fra Work-runden 2026-10-01; alle lekkasjer er ikke kartlagt
 - [ ] Flere rekvisitter inn i staticGroup (telt, bannere, bål, tårnets møbler) for enda færre tegnekall
 - [ ] Taleboblene og kunngjøringer bruker sanntid, ikke spilltid (merkes bare i slowmo)
 - [ ] Flere kroppstyper i heltebyggeren (dverg, halvtroll, sint gnome)

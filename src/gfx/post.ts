@@ -659,7 +659,9 @@ export class PostFX {
     const dev = window.devicePixelRatio || 1;
     const px = Math.max(1, this.cssW * this.cssH);
     const budget = Math.sqrt(t.budget / px);
-    return Math.max(Math.min(1, dev), Math.min(t.maxDpr, dev, budget));
+    // Budsjettet gjelder også store skjermer. Et gulv på 1 gjorde at 4K tegnet 8,3 millioner
+    // piksler selv på LOW, så automatisk nedtrapping aldri kunne avlaste fyllearbeidet.
+    return Math.min(t.maxDpr, dev, budget);
   }
 
   setSize(cssW: number, cssH: number) {
@@ -671,7 +673,7 @@ export class PostFX {
     this.rebuild();
   }
 
-  private rebuild() {
+  private releaseTargets() {
     this.scene?.dispose();
     for (const m of this.mips) m.dispose();
     this.dofA?.dispose();
@@ -682,6 +684,16 @@ export class PostFX {
     this.scene = this.dofA = this.dofB = this.aoA = this.aoB = null;
     this.ssao = null;
     this.mips = [];
+    // Uniformene må også slippe referansene når LOW velges eller pipelinen avsluttes.
+    for (const m of [this.prefilter, this.down, this.up, this.dofDown, this.dofBlur, this.aoBlur, this.comp]) {
+      for (const key of ['tSrc', 'tDepth', 'tScene', 'tBloom', 'tDof', 'tAO']) {
+        if (m.uniforms[key]) m.uniforms[key].value = null;
+      }
+    }
+  }
+
+  private rebuild() {
+    this.releaseTargets();
     if (!this.enabled) return;
     const t = TIERS[this.quality];
     const size = this.renderer.getDrawingBufferSize(new THREE.Vector2());
@@ -855,7 +867,9 @@ export class PostFX {
     u.aoAmt.value = useAO ? g.ao : 0;
     u.showAO.value = useAO && this.debug.aoView ? 1 : 0;
     u.time.value = this.time;
-    u.bloomStrength.value = g.bloom / Math.max(1, this.mips.length - 1);
+    // Første mip inneholder allerede ett bidrag. Normaliser hele summen, ellers blir
+    // samme glød lysere på MEDIUM enn på HIGH/ULTRA, og vanlige høylys vaskes ut.
+    u.bloomStrength.value = g.bloom / Math.max(1, this.mips.length);
     u.exposure.value = g.exposure;
     u.toneMode.value = g.tone;
     u.contrast.value = gr ? g.contrast : 1;
@@ -875,12 +889,9 @@ export class PostFX {
   }
 
   dispose() {
-    this.scene?.dispose();
-    for (const m of this.mips) m.dispose();
-    this.dofA?.dispose();
-    this.dofB?.dispose();
-    this.aoA?.dispose();
-    this.aoB?.dispose();
+    this.releaseTargets();
+    for (const m of [this.prefilter, this.down, this.up, this.dofDown, this.dofBlur, this.aoBlur, this.comp]) m.dispose();
+    this.comp.uniforms.tWet.value = null;
     this.quad.dispose();
   }
 }

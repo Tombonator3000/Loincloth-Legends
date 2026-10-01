@@ -335,6 +335,8 @@ export class SoundBank {
     }
     src.onended = () => {
       try {
+        src.disconnect();
+        lp?.disconnect();
         g.disconnect();
         pan?.disconnect();
       } catch {
@@ -349,8 +351,12 @@ export class SoundBank {
         stopped = true;
         const n = c.currentTime;
         try {
-          g.gain.cancelScheduledValues(n);
-          g.gain.setValueAtTime(Math.max(0.0001, g.gain.value), n);
+          if (g.gain.cancelAndHoldAtTime) g.gain.cancelAndHoldAtTime(n);
+          else {
+            const value = Math.max(0.0001, g.gain.value);
+            g.gain.cancelScheduledValues(n);
+            g.gain.setValueAtTime(value, n);
+          }
           g.gain.linearRampToValueAtTime(0.0001, n + fade);
           src.stop(n + fade + 0.05);
         } catch {

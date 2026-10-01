@@ -99,12 +99,12 @@ class TitleScene implements Scene {
     const bounds = { minX: -6, maxX: 6, minZ: -0.5, maxZ: 0.5 };
     for (const f of this.actors) {
       f.wantVX = 0;
+      if (f.state === 'taunt' && f.st >= 1.1) f.setState('idle');
       if (f.canAct() && Math.random() < dt * 0.5) {
         const r = Math.random();
         if (r < 0.5) f.startAttack(pick([DUEL_ATK.slash, DUEL_ATK.over, DUEL_ATK.sweep, DUEL_ATK.whirl]));
         else if (r < 0.7) {
           f.setState('taunt');
-          setTimeout(() => f.state === 'taunt' && f.setState('idle'), 1100);
         } else if (r < 0.85) f.jump(0, 0, 8);
       }
       f.update(dt, bounds);
@@ -132,6 +132,8 @@ class StageScene implements Scene {
   name = 'stage';
   pausable = true;
   stage: Stage;
+  private suppliesNotice = '';
+  private suppliesT = 0.6;
   constructor(private game: Game, levelId: string, private onEnd: (r: 'complete' | 'duel' | 'gameover') => void, startX?: number) {
     const cfgs = game.twoP ? [game.save.heroes[0], game.save.heroes[1]] : [game.save.heroes[0]];
     // Prøvespill fra brettverkstedet bruker ikke opp forsyningene fra nattleiren
@@ -149,12 +151,19 @@ class StageScene implements Scene {
     this.stage = new Stage(game.hud, level, cfgs, game.input.players, [game.progressOf(0), game.progressOf(1)], sup);
     // Testspill fra brettverkstedet: start der kameraet sto
     if (startX !== undefined) this.stage.startAt(startX);
-    if (sup.lives || sup.potions) setTimeout(() => game.toast(`SUPPLIES: +${sup.lives} LIFE, +${sup.potions * 2} POTIONS`), 600);
+    if (sup.lives || sup.potions) this.suppliesNotice = `SUPPLIES: +${sup.lives} LIFE, +${sup.potions * 2} POTIONS`;
     game.hud.visible(true);
     game.screens.hide();
     game.camera.position.set(this.stage.camX, STAGE_CAM.y, STAGE_CAM.z);
   }
   update(dt: number, realDt: number) {
+    if (this.suppliesNotice) {
+      this.suppliesT -= dt;
+      if (this.suppliesT <= 0) {
+        this.game.toast(this.suppliesNotice);
+        this.suppliesNotice = '';
+      }
+    }
     const st = this.stage;
     st.update(dt);
     const cam = this.game.camera;
@@ -242,7 +251,7 @@ export class Game {
   /** Et brett spilles fra brettverkstedet (PLAY FROM HERE): pausen og slutten går tilbake dit. */
   editorTest: { level: string } | null = null;
   /** Editoren venter på kulissebildene (openEditor). */
-  private editorWaiting = false;
+  private editorRequest = 0;
   last = performance.now();
   width = 1;
   height = 1;
@@ -353,6 +362,8 @@ export class Game {
 
   /** Bytt scene: rydd den gamle, lag en tom 3D-scene og bygg den nye. */
   setScene(make: () => Scene) {
+    // Et gammelt lastesvar skal ikke åpne editoren etter at spilleren har gått til en annen scene.
+    this.editorRequest++;
     this.scene.exit?.();
     this.scene = new IdleScene();
     if (W.scene) W.scene.clear();
@@ -422,11 +433,14 @@ export class Game {
   openEditor(levelId?: string) {
     // Biblioteket trenger alle kulissebildene. Spillet henter bare de brettene bruker (main.ts), så hent resten først.
     if (!propImagesLoaded()) {
-      if (this.editorWaiting) return;
-      this.editorWaiting = true;
+      const request = ++this.editorRequest;
       void loadPropImages().then(() => {
-        this.editorWaiting = false;
+        if (request !== this.editorRequest) return;
         this.openEditor(levelId);
+      }).catch((e) => {
+        if (request !== this.editorRequest) return;
+        console.warn('Stage Forge could not load its images:', e);
+        this.toast('STAGE FORGE COULD NOT LOAD. PLEASE TRY AGAIN.');
       });
       return;
     }
@@ -562,8 +576,11 @@ export class Game {
       });
       row((i) => {
         const flip = () => {
-          this.toggleFullscreen();
-          setTimeout(() => again(i), 250);
+          const panel = this.app.querySelector('#screen .panel');
+          void this.toggleFullscreen().then(() => {
+            // Fullskjerm kan ta tid. Ikke gjenåpne skjermmenyen hvis spilleren allerede har forlatt den.
+            if (panel?.isConnected) again(i);
+          });
         };
         return { label: 'FULLSCREEN', value: onOff(!!document.fullscreenElement), hint: 'MORE SCREEN, MORE BLOOD.', action: flip, adjust: flip };
       });
@@ -598,10 +615,10 @@ export class Game {
     ], onBack, sel);
   }
 
-  toggleFullscreen() {
+  async toggleFullscreen() {
     try {
-      if (document.fullscreenElement) document.exitFullscreen?.();
-      else document.documentElement.requestFullscreen?.({ navigationUI: 'hide' } as FullscreenOptions)?.catch?.(() => {});
+      if (document.fullscreenElement) await document.exitFullscreen?.();
+      else await document.documentElement.requestFullscreen?.({ navigationUI: 'hide' } as FullscreenOptions);
     } catch {
       /* ikke støttet */
     }
