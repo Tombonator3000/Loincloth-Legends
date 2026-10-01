@@ -44,8 +44,49 @@ interface FloatText { el: HTMLDivElement; pos: THREE.Vector3; life: number; max:
 interface ScreenDrop { x: number; y: number; r: number; vy: number; a: number; trail: number; col?: string }
 /** Et hode (eller annet) som flyr mot kameraet og klasker i skjermen. */
 interface Flyer { obj: THREE.Object3D; t: number; dur: number; spin: number; sx: number; sy: number; from: THREE.Vector3; img: HTMLCanvasElement; family: boolean; onArrive?: () => void }
-/** Hodet som sitter klistret på skjermen og sklir sakte ned. */
-interface GlassHead { img: HTMLCanvasElement; x: number; y: number; y0: number; size: number; rot: number; t: number; vy: number; stopSqueak: (() => void) | null; done: boolean; family: boolean; stickT: number; fade: number }
+/** En søyle (2 piksler bred) i blodsporet etter hodet: tetthet, farge, og hvor langt under starten den begynner. */
+interface TrailCol { a: number; col: string; off: number }
+/** En renne: blod som samler seg i kanten av sporet og renner ned for seg selv, med en dråpe i enden. */
+interface Drip { x: number; y: number; len: number; max: number; v: number; w: number; col: string }
+/**
+ * Hodet som sitter klistret på skjermen og sklir sakte ned. head er hvor synlig selve hodet er (det tones ut mens det
+ * sklir), fade er hvor synlig blodsporet er, og blood er hvor mye blod som er igjen å smøre ut.
+ */
+interface GlassHead {
+  img: HTMLCanvasElement; x: number; y: number; y0: number; size: number; rot: number; t: number; vy: number;
+  stopSqueak: (() => void) | null; done: boolean; family: boolean; stickT: number; fade: number;
+  head: number; blood: number; cols: TrailCol[]; trailY: number; phase: number; drips: Drip[];
+}
+
+/** Hodet i glasset: hvor lenge det synes etter at det begynner å skli, og hvor lenge det tones ut (sekunder). */
+const HEAD_SHOW = 0.9;
+const HEAD_FADE = 1.1;
+/** Hvor langt (andel av skjermhøyden) blodet rekker før sporet tørker ut, og hvor fort sporet falmer etterpå. */
+const TRAIL_REACH = 0.38;
+const TRAIL_FADE = 0.45;
+/** Blodfarger på glasset, fra levret til friskt. */
+const GLASS_BLOOD = ['#4e0009', '#66000e', '#7e0013', '#960018', '#a8061e'];
+/** Bredden på blodsporet, og hvor det går i forhold til midten av hodet (andeler av hodet). */
+const TRAIL_W = 0.42;
+const TRAIL_Y = -0.04;
+
+/**
+ * Profilen på tvers av blodsporet: søyler på to piksler med myke striper (summen av noen sinuser med tilfeldig fase,
+ * så nabosøylene ligner hverandre), fargen etter hvor tett stripa er, og en fillete start øverst.
+ */
+function trailProfile(width: number): TrailCol[] {
+  const n = Math.max(16, Math.round(width / 2));
+  const p1 = rand(0, 6.28), p2 = rand(0, 6.28), p3 = rand(0, 6.28);
+  const cols: TrailCol[] = [];
+  for (let i = 0; i < n; i++) {
+    const u = i / (n - 1);
+    const streak = 0.5 + 0.22 * Math.sin(u * 23 + p1) + 0.14 * Math.sin(u * 61 + p2) + 0.1 * Math.sin(u * 7 + p3);
+    const a = Math.min(0.95, Math.max(0.4, 0.45 + 0.5 * streak + rand(-0.04, 0.04)));
+    const k = Math.min(GLASS_BLOOD.length - 1, Math.max(0, Math.floor((1 - streak) * GLASS_BLOOD.length)));
+    cols.push({ a, col: GLASS_BLOOD[k], off: Math.round(4 + 4 * Math.sin(u * 9 + p1) + rand(0, 2)) });
+  }
+  return cols;
+}
 
 export class FX {
   shakeAmt = 0;
@@ -240,23 +281,201 @@ export class FX {
     const W = this.glassCv.width, H = this.glassCv.height;
     const size = H * 0.62;
     const x = f.sx * W, y = f.sy * H;
-    this.glass.push({ img: f.img, x, y, y0: y, size, rot: rand(-0.35, 0.35), t: 0, vy: 0, stopSqueak: null, done: false, family: f.family, stickT: rand(0.4, 0.6), fade: 1 });
-    // Sprut rundt treffpunktet
-    const c = this.smearCtx;
-    for (let i = 0; i < (f.family ? 26 : 34); i++) {
-      const a = rand(0, Math.PI * 2);
-      const d = rand(size * 0.2, size * 0.75);
-      c.fillStyle = f.family ? pick(CONFETTI) : pick(['#8e0015', '#b3001b', '#6d0010']);
-      c.globalAlpha = rand(0.7, 1);
-      c.beginPath();
-      c.arc(x + Math.cos(a) * d, y + Math.sin(a) * d * 0.8, rand(3, f.family ? 10 : 18), 0, Math.PI * 2);
-      c.fill();
+    const g: GlassHead = {
+      img: f.img, x, y, y0: y, size, rot: rand(-0.35, 0.35), t: 0, vy: 0, stopSqueak: null, done: false, family: f.family,
+      stickT: rand(0.4, 0.6), fade: 1, head: 1, blood: 1, cols: trailProfile(size * TRAIL_W), trailY: Math.floor(y + size * TRAIL_Y),
+      phase: rand(0, Math.PI * 2), drips: [],
+    };
+    this.glass.push(g);
+    // Blodet fra klatten der hodet traff, renner nedover glasset (synes når hodet er borte)
+    if (!f.family) {
+      for (let i = 0, n = Math.floor(rand(4, 8)); i < n; i++) {
+        // Fra nedre del av klatten (radius 0,17 av hodet i spatter), aldri fra tomt glass
+        const a = rand(0.15, Math.PI - 0.15), r = size * 0.17 * rand(0.55, 0.9);
+        g.drips.push({ x: Math.round(x + Math.cos(a) * r), y: Math.round(y + Math.sin(a) * r * 0.9), len: 0, max: rand(60, 200), v: rand(28, 60), w: Math.round(rand(2, 5)), col: pick(GLASS_BLOOD) });
+      }
     }
+    const c = this.smearCtx;
+    if (f.family) {
+      for (let i = 0; i < 26; i++) {
+        const a = rand(0, Math.PI * 2);
+        const d = rand(size * 0.2, size * 0.75);
+        c.fillStyle = pick(CONFETTI);
+        c.globalAlpha = rand(0.7, 1);
+        c.beginPath();
+        c.arc(x + Math.cos(a) * d, y + Math.sin(a) * d * 0.8, rand(3, 10), 0, Math.PI * 2);
+        c.fill();
+      }
+    } else this.spatter(x, y, size);
     c.globalAlpha = 1;
     if (!f.family) this.screenBlood(3);
     audio.glassSplat(f.family);
     this.shake(0.5);
     this.onGlassHit?.();
+  }
+
+  /**
+   * Spruten der hodet treffer: én uregelmessig klatt med mørkere midte og små sideklatter, dråper som blir mindre og
+   * avlange jo lenger ut de fløy, og noen korte, spisse stråler med en dråpe i enden.
+   */
+  private spatter(x: number, y: number, size: number) {
+    const c = this.smearCtx;
+    const blob = (bx: number, by: number, r: number, col: string, a: number) => {
+      const ph = rand(0, 6.28), n = 26;
+      c.fillStyle = col;
+      c.globalAlpha = a;
+      c.beginPath();
+      for (let i = 0; i <= n; i++) {
+        const t = (i / n) * Math.PI * 2;
+        const rr = r * (1 + 0.2 * Math.sin(t * 3 + ph) + 0.1 * Math.sin(t * 7 + ph * 2) + rand(-0.05, 0.05));
+        const px = bx + Math.cos(t) * rr, py = by + Math.sin(t) * rr * 0.9;
+        if (i) c.lineTo(px, py);
+        else c.moveTo(px, py);
+      }
+      c.closePath();
+      c.fill();
+    };
+    const R = size * 0.17;
+    blob(x, y, R, GLASS_BLOOD[2], 0.9);
+    blob(x + rand(-4, 4), y + rand(-4, 4), R * 0.7, GLASS_BLOOD[1], 0.75);
+    blob(x + rand(-3, 3), y + rand(-3, 3), R * 0.38, GLASS_BLOOD[0], 0.7);
+    // Små klatter rundt kanten
+    for (let i = 0, n = Math.floor(rand(6, 11)); i < n; i++) {
+      const a = rand(0, Math.PI * 2), d = R * rand(0.95, 1.5);
+      blob(x + Math.cos(a) * d, y + Math.sin(a) * d * 0.9, R * rand(0.12, 0.3), pick(GLASS_BLOOD), rand(0.75, 0.95));
+    }
+    // Dråper lenger ut: mindre og mer avlange jo lenger de fløy
+    for (let i = 0; i < 44; i++) {
+      const a = rand(0, Math.PI * 2);
+      const d = R * 1.3 + Math.pow(Math.random(), 0.8) * size * 0.75;
+      const r = Math.max(1.3, (1 - d / (size * 1.0)) * rand(3, 10));
+      c.fillStyle = pick(GLASS_BLOOD);
+      c.globalAlpha = rand(0.75, 1);
+      c.beginPath();
+      c.ellipse(x + Math.cos(a) * d, y + Math.sin(a) * d * 0.88, r * rand(1.2, 2.2), r, a, 0, Math.PI * 2);
+      c.fill();
+    }
+    // Korte, spisse stråler fra klatten
+    for (let i = 0, n = Math.floor(rand(4, 7)); i < n; i++) {
+      const a = rand(0, Math.PI * 2), r0 = R * 0.85, len = rand(0.07, 0.18) * size, w0 = rand(4, 8);
+      const ca = Math.cos(a), sa = Math.sin(a), nx = -sa, ny = ca;
+      const x0 = x + ca * r0, y0 = y + sa * r0 * 0.9, x1 = x + ca * (r0 + len), y1 = y + sa * (r0 + len) * 0.9;
+      c.fillStyle = pick(GLASS_BLOOD);
+      c.globalAlpha = rand(0.8, 0.95);
+      c.beginPath();
+      c.moveTo(x0 + nx * w0, y0 + ny * w0);
+      c.quadraticCurveTo(x0 + ca * len * 0.5 + nx * w0 * 0.3, y0 + sa * len * 0.5 + ny * w0 * 0.3, x1, y1);
+      c.quadraticCurveTo(x0 + ca * len * 0.5 - nx * w0 * 0.3, y0 + sa * len * 0.5 - ny * w0 * 0.3, x0 - nx * w0, y0 - ny * w0);
+      c.closePath();
+      c.fill();
+      c.beginPath();
+      c.ellipse(x1 + ca * 2, y1 + sa * 2, rand(2, 3.5), rand(2.5, 4.5), a, 0, Math.PI * 2);
+      c.fill();
+    }
+    c.globalAlpha = 1;
+  }
+
+  /**
+   * Blodsporet over hodet mens det sklir, som når en blodig ting dras ned en rute: et sammenhengende smøresjikt med
+   * myke striper på langs, mørkere kanter der blodet samler seg, en blank stripe, og kanter som blir smalere og mer
+   * ujevne når blodet tar slutt. Radene tegnes på hele piksler, så det ikke blir tverrstriper der bildene møtes.
+   */
+  private trail(g: GlassHead, dy: number, dt: number) {
+    const sm = this.smearCtx;
+    const H = this.smearCv.height;
+    const top = g.y + g.size * TRAIL_Y;
+    g.blood = Math.max(0, g.blood - dy / (H * TRAIL_REACH));
+    const y1 = Math.floor(top + dy);
+    if (y1 > g.trailY) {
+      const n = g.cols.length, w = n * 2;
+      // Bredden og tettheten varierer langs sporet og avtar når blodet tar slutt
+      const along = 0.78 + 0.22 * Math.sin(top * 0.045 + g.phase) * Math.sin(top * 0.013 + g.phase * 2);
+      const half = (w / 2) * (0.5 + 0.5 * g.blood) * (0.9 + 0.1 * Math.sin(top * 0.08 + g.phase)) + rand(-2.5, 2.5);
+      const wob = Math.round(Math.sin(g.t * 2.1 + g.phase) * 1.5);
+      const x0 = Math.round(g.x - w / 2) + wob;
+      const y0t = Math.floor(g.y0 + g.size * TRAIL_Y);
+      const dep = 0.2 + 0.8 * g.blood;
+      for (let i = 0; i < n; i++) {
+        const cx = (i + 0.5) * 2 - w / 2;
+        if (Math.abs(cx) > half) continue;
+        const c = g.cols[i];
+        const ys = Math.max(g.trailY, y0t + c.off);
+        if (ys >= y1) continue;
+        // Kanten av smøringen er myk ytterst og mørkere rett innenfor: blodet samles der
+        const inside = half - Math.abs(cx);
+        const soft = Math.min(1, inside / 5);
+        const rim = inside > 1.5 && inside < 6 ? 0.25 : 0;
+        sm.globalAlpha = Math.min(0.95, (c.a * along + rim) * dep * soft);
+        sm.fillStyle = rim ? GLASS_BLOOD[0] : c.col;
+        sm.fillRect(x0 + i * 2, ys, 2, y1 - ys);
+      }
+      // Den blanke stripa (vått lys) litt til venstre for midten
+      sm.globalAlpha = 0.16 * g.blood;
+      sm.fillStyle = '#e8707a';
+      sm.fillRect(Math.round(g.x - w * 0.16) + wob, g.trailY, Math.max(2, Math.round(w * 0.035)), y1 - g.trailY);
+      sm.globalAlpha = 1;
+      g.trailY = y1;
+    }
+    // Renner fra sporet (de synes når hodet er borte)
+    const len = top - (g.y0 + g.size * TRAIL_Y);
+    if (Math.random() < dt * 5 * g.blood && len > 20) {
+      const w = g.cols.length * 2;
+      g.drips.push({ x: Math.round(g.x + rand(-0.45, 0.45) * w), y: Math.round(top - rand(10, Math.min(160, len))), len: 0, max: rand(25, 120) * (0.5 + g.blood), v: rand(25, 60), w: Math.round(rand(2, 4)), col: pick(GLASS_BLOOD) });
+    }
+  }
+
+  /**
+   * Slutten på sporet når hodet er borte: søylene stikker litt ujevnt nedover og tynnes ut, og blodet som samlet seg
+   * i nederkanten, renner videre i noen renner.
+   */
+  private trailEnd(g: GlassHead) {
+    const sm = this.smearCtx;
+    const n = g.cols.length, w = n * 2;
+    const x0 = Math.round(g.x - w / 2);
+    const half = (w / 2) * (0.5 + 0.5 * g.blood);
+    for (let i = 0; i < n; i++) {
+      const cx = (i + 0.5) * 2 - w / 2;
+      if (Math.abs(cx) > half) continue;
+      const c = g.cols[i];
+      const ext = Math.round(rand(0, 9) + 6 * Math.abs(Math.sin(i * 0.37 + g.phase)));
+      for (let k = 0; k < ext; k += 2) {
+        sm.globalAlpha = c.a * (0.3 + 0.7 * g.blood) * (1 - k / Math.max(1, ext));
+        sm.fillStyle = c.col;
+        sm.fillRect(x0 + i * 2, g.trailY + k, 2, 2);
+      }
+    }
+    sm.globalAlpha = 1;
+    for (let i = 0, m = Math.floor(rand(2, 5)); i < m; i++) {
+      g.drips.push({ x: Math.round(g.x + rand(-0.8, 0.8) * half), y: g.trailY + 4, len: 0, max: rand(30, 120) * (0.4 + g.blood), v: rand(20, 45), w: Math.round(rand(2, 5)), col: pick(GLASS_BLOOD) });
+    }
+  }
+
+  /** Rennene vokser nedover og bremser opp. Når en stopper, får den en tykkere dråpe i enden. */
+  private drips(g: GlassHead, dt: number) {
+    const sm = this.smearCtx;
+    for (const d of g.drips) {
+      if (d.len >= d.max) continue;
+      const nl = Math.min(d.max, d.len + d.v * dt);
+      // Renna slingrer litt, som blod som finner veien over glasset
+      if (Math.random() < dt * 2.5) d.x += Math.random() < 0.5 ? -1 : 1;
+      const ya = Math.floor(d.y + d.len), yb = Math.floor(d.y + nl);
+      if (yb > ya) {
+        sm.globalAlpha = 0.85;
+        sm.fillStyle = d.col;
+        sm.fillRect(d.x - Math.floor(d.w / 2), ya, d.w, yb - ya);
+      }
+      d.len = nl;
+      d.v *= 1 - dt * 0.7;
+      if (d.len >= d.max || d.v < 5) {
+        d.max = d.len;
+        sm.globalAlpha = 0.9;
+        sm.fillStyle = d.col;
+        sm.beginPath();
+        sm.ellipse(d.x, d.y + d.len + d.w * 0.5, d.w * 0.9, d.w * 1.3, 0, 0, Math.PI * 2);
+        sm.fill();
+      }
+    }
+    sm.globalAlpha = 1;
   }
 
   private updateGlass(dt: number, camera: THREE.Camera) {
@@ -284,9 +503,8 @@ export class FX {
     if (!this.glass.length) return;
     const c = this.glassCtx;
     const W = this.glassCv.width, H = this.glassCv.height;
-    c.clearRect(0, 0, W, H);
-    for (let i = this.glass.length - 1; i >= 0; i--) {
-      const g = this.glass[i];
+    let smearA = 0;
+    for (const g of this.glass) {
       g.t += dt;
       const sliding = g.t > g.stickT && !g.done;
       if (sliding) {
@@ -294,57 +512,53 @@ export class FX {
         // Stick-slip: ujevn fart, som hud mot glass
         const slip = Math.sin(g.t * 17) + Math.sin(g.t * 5.3) > 0.1 ? 1 : 0.12;
         const bottom = g.y > H * 0.9;
-        g.vy = Math.min(bottom ? H * 1.2 : H * 0.22, g.vy + dt * H * (bottom ? 2.5 : 0.25));
+        g.vy = Math.min(bottom ? H * 1.2 : H * 0.26, g.vy + dt * H * (bottom ? 2.5 : 0.35));
         const dy = g.vy * dt * (bottom ? 1 : slip);
-        const sm = this.smearCtx;
-        const w = g.size * 0.46;
-        // Stripen blir liggende over hodet
-        sm.fillStyle = g.family ? 'rgba(255,255,255,0.18)' : 'rgba(128,0,18,0.9)';
-        const top = g.y - g.size * 0.3;
-        sm.beginPath();
-        sm.moveTo(g.x - w / 2 + rand(-2, 2), top);
-        sm.lineTo(g.x + w / 2 + rand(-2, 2), top);
-        sm.lineTo(g.x + w / 2 + rand(-2, 2), top + dy + 2);
-        sm.lineTo(g.x - w / 2 + rand(-2, 2), top + dy + 2);
-        sm.fill();
-        if (!g.family && Math.random() < dt * 5) {
-          // Drypp som renner litt ned fra kanten
-          sm.fillRect(g.x + rand(-w / 2, w / 2), top, rand(3, 6), rand(10, 40));
-        }
+        if (g.family) {
+          // FAMILY: en svak, hvit stripe
+          const w = g.size * 0.46, top = g.y - g.size * 0.3;
+          this.smearCtx.fillStyle = 'rgba(255,255,255,0.18)';
+          this.smearCtx.fillRect(g.x - w / 2, top, w, dy + 2);
+        } else this.trail(g, dy, dt);
         g.y += dy;
         g.rot += dt * 0.1 * Math.sign(g.rot || 1);
-        if (g.y - g.size * 0.5 > H || g.t > 12) {
+        // Hodet sklir sakte, men tones ut etter en stund, så det ikke dekker bildet for lenge
+        if (g.t - g.stickT > HEAD_SHOW) g.head = Math.max(0, g.head - dt / HEAD_FADE);
+        if (g.head <= 0 || g.y - g.size * 0.5 > H) {
           g.done = true;
           g.stopSqueak?.();
           g.stopSqueak = null;
+          if (!g.family) this.trailEnd(g);
         }
       }
-      if (g.done) g.fade -= dt * 0.35;
-      // Smøreflekken blir liggende litt, så falmer den
-      const a = Math.max(0, Math.min(1, g.fade));
-      c.globalAlpha = a;
-      c.drawImage(this.smearCv, 0, 0);
-      c.globalAlpha = 1;
-      if (!g.done) {
-        const sq = g.t < 0.16 ? 1 - g.t / 0.16 : 0;
-        const sxs = 1 + 0.35 * sq, sys = 1 - 0.28 * sq;
-        const iw = g.img.width, ih = g.img.height;
-        const s = g.size / ih;
-        c.save();
-        c.translate(g.x, g.y);
-        c.rotate(g.rot);
-        c.scale(sxs * s, sys * s);
-        c.drawImage(g.img, -iw / 2, -ih / 2);
-        c.restore();
-        c.globalAlpha = 1;
-      }
-      if (g.fade <= 0) {
-        this.glass.splice(i, 1);
-        if (!this.glass.length) {
-          this.smearCtx.clearRect(0, 0, W, H);
-          c.clearRect(0, 0, W, H);
-        }
-      }
+      if (!g.family) this.drips(g, dt);
+      if (g.done) g.fade -= dt * TRAIL_FADE;
+      smearA = Math.max(smearA, Math.min(1, g.fade));
+    }
+    // Blodsporet tegnes én gang (felles for alle hodene), så hodene oppå
+    c.clearRect(0, 0, W, H);
+    c.globalAlpha = Math.max(0, smearA);
+    c.drawImage(this.smearCv, 0, 0);
+    c.globalAlpha = 1;
+    for (const g of this.glass) {
+      if (g.done || g.head <= 0) continue;
+      const sq = g.t < 0.16 ? 1 - g.t / 0.16 : 0;
+      const sxs = 1 + 0.35 * sq, sys = 1 - 0.28 * sq;
+      const iw = g.img.width, ih = g.img.height;
+      const s = g.size / ih;
+      c.save();
+      c.globalAlpha = g.head;
+      c.translate(g.x, g.y);
+      c.rotate(g.rot);
+      c.scale(sxs * s, sys * s);
+      c.drawImage(g.img, -iw / 2, -ih / 2);
+      c.restore();
+    }
+    c.globalAlpha = 1;
+    this.glass = this.glass.filter((g) => g.fade > 0);
+    if (!this.glass.length) {
+      this.smearCtx.clearRect(0, 0, W, H);
+      c.clearRect(0, 0, W, H);
     }
   }
 

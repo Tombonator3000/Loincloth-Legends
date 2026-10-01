@@ -23,6 +23,9 @@ art/inbox/*
 # Arbeidskopier for agenter (git worktree), aldri i repoet
 .claude/worktrees/
 
+# Tilstanden til autoharness (tellere, forslag i kø, kjøringer, øyeblikksbilder). Lærte skills i .claude/skills/ skal i git
+.claude/autoharness/
+
 # Mellomlager for tools/make_sounds.py
 .soundcache/
 

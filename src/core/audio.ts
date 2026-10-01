@@ -1006,11 +1006,16 @@ export class AudioEngine {
 
 
   // ---------- Teit vold ----------
-  /** Våt klask mot skjermglasset. FAMILY: en snill "boink". */
+  /**
+   * Våt klask mot skjermglasset: de innspilte splattene fra lydbanken (litt dypere, for et helt hode) oppå et dunk i
+   * glasset. FAMILY: en snill "boink".
+   */
   glassSplat(family = false) {
     if (!this.ok('glass', 0.1)) return;
     const c = this.ctx!;
     const t = c.currentTime;
+    // Uten opptakene (eller på FAMILY) står dunket og støyen alene for hele lyden
+    const out = family ? this.sfx : this.rec([['splat', 0.95, 0.8], ['gore', 0.75, 0.85, true], ['splat', 0.5, 1.15]], 0.6);
     const o = c.createOscillator();
     o.type = 'sine';
     if (family) {
@@ -1023,7 +1028,7 @@ export class AudioEngine {
     }
     const g = c.createGain();
     this.env(g, t, 0.003, 0.95, 0.3);
-    o.connect(g).connect(this.sfx);
+    o.connect(g).connect(out);
     o.start(t);
     o.stop(t + 0.4);
     if (!family) {
@@ -1035,7 +1040,7 @@ export class AudioEngine {
       f.Q.value = 5;
       const g2 = c.createGain();
       this.env(g2, t, 0.002, 0.8, 0.35);
-      n.connect(f).connect(g2).connect(this.sfx);
+      n.connect(f).connect(g2).connect(out);
     }
     for (const fr of [2630, 3950]) {
       const o2 = c.createOscillator();
@@ -1043,7 +1048,7 @@ export class AudioEngine {
       o2.frequency.value = fr * rand(0.98, 1.02);
       const g3 = c.createGain();
       this.env(g3, t + 0.01, 0.001, 0.12, 0.14);
-      o2.connect(g3).connect(this.sfx);
+      o2.connect(g3).connect(out);
       o2.start(t);
       o2.stop(t + 0.25);
     }

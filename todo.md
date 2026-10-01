@@ -1,5 +1,30 @@
 # todo.md
 
+## Teit vold: mer over the top (Tom 2026-10-01)
+- [x] Underkroppen løper rundt og spruter blod fra midjen når en fiende kuttes i to, og legger blodspor (tools/tests/splatter.mjs)
+- [x] Hodet i skjermen: vått splatt fra lydbanken, tones ut mens det sklir (borte under tre sekunder), naturlig spor med sprut, smøremerke og renner
+- [ ] Tom: velg hvilke av forslagene under som skal lages
+- [ ] Forslag: overkroppen kryper videre på armene mot helten og prøver å bite ham i ankelen («I CAN STILL BITE!»), med innvoller på slep
+- [ ] Forslag: hodet som baseball: et hode som spretter på bakken, kan slås mot de andre fiendene (HOME RUN!), med samme bowling som kastede fiender
+- [ ] Forslag: kebab-spyd: løpeslaget spidder to eller tre fiender på sverdet, og neste slag rister dem av (SHISH KEBAB!)
+- [ ] Forslag: blodregn når en kjempe eller sjef sprenges: dråper på glasset og flekker over hele bildet, og en gnom slår opp en paraply (I CAME PREPARED)
+- [ ] Forslag: glatte blodpytter: fiender som løper over en stor pytt, sklir og går på trynet (SLIP!)
+- [ ] Forslag: skjelettxylofon: når et skjelett knuses, gir hvert bein en tone når det treffer bakken, i en skala
+- [ ] Forslag: siste ord på glasset: hodet i skjermen sier én replikk før det sklir («TELL MY MOTHER...», «WORTH IT»)
+- [ ] Forslag: tenner som flyr ved tunge slag i ansiktet, med et lite pling når de spretter
+- [ ] Forslag: kjøttbiter fra en eksplosjon som klistrer seg på glasset og sklir ned sammen med blodet
+- [ ] Forslag: ildimper som smeller i en liten ildkule når de dør og setter fyr på dem som står nær
+
+## Forgrunnen som dekker bildet (Tom 2026-10-01, skjermbilde fra mobil)
+- [x] Trær foran veien tones ut når de dekker en figur (i dag furuene i frostpasset), og kulissene i FRONT tones like mye (tools/tests/foreground.mjs). De store trærne på brett 1 og i nattleiren står bak kampbeltet etter PR #7
+- [ ] Tom: spill nattleiren, brett 1 og frostpasset på mobilen når endringene er i main, og si fra om noe fortsatt dekker for mye
+
+## autoharness: skills som lærer av øktene (2026-10-01, docs/SKILLS.md)
+- [x] Slått på for prosjektet i `.claude/settings.json`, tilstanden i `.gitignore`, regler i AGENTS.md og docs/SKILLS.md
+- [ ] Tom: legg `claude plugin marketplace add tigerless-labs/autoharness` og `claude plugin install autoharness@autoharness` i oppstartsskriptet til skymiljøet (miljøinnstillingene), så tillegget er med fra start i hver økt
+- [ ] Se over de første skillene den lærer (mapper i `.claude/skills/` med `.ledger.jsonl`, også `references/`) før de commites, og si fra om noe skal endres
+- [ ] Vurder takten etter noen økter (`AUTOHARNESS_REFLECT_EVERY_N`, standard 50 verktøykall): hver runde er en egen Claude-økt
+
 ## Retning fra ChatGPT-samtalen (forslag som venter på Tom, 2026-10-01)
 Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og Mystara som inspirasjon. Vurderingen står i log.md 2026-10-01.
 - [x] Tom: historien. Prinsesse Amberly er målet, Solhjertet kan være grunnen til jungelen (Tom 2026-10-01)
@@ -70,6 +95,7 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [x] Implementere mobil-HUD, fortellerkontrast, co-op-kamera, spilltidsstyrt tekst, credits og sju eksisterende kulissedeler
 - [x] Samlet nettleser- og bildekontroll bestått i GitHub Actions 36851983556 på kodecommit 9a42757: fem suiter, 20 HUD-kontroller og seks spillbilder. Mobil-HUD, credits, co-op og kulisser er visuelt kontrollert; målinger i docs/review/todo-quality-2026-10-01.json
 - [ ] Tom: prøv lesbarhet og co-op-kamera på fysisk telefon og med to spillere
+- [ ] HUD uten nettskriften (Google Fonts nås ikke, for eksempel offline eller i enkeltfil-bygget uten nett): THRUGG THE UNREASONABLE brekker midt i ordet over tre linjer (`overflow-wrap: anywhere` på `.pname`), og i liggende format med to spillere berører panelet pauseknappen. hud-layout.mjs feiler derfor lokalt i skymiljøet (landscape-2p), men er grønn i CI der skriften lastes. Vurder å legge skriftene i repoet
 
 ## Hero Forge: felles pool av malte deler (2026-09-30)
 - [x] Finn årsaken til at malte deler forsvant ved endring av preset; kontroller alle 143 grunnfiler

@@ -71,8 +71,9 @@ export function buildFrost(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     for (let x = -6; x < L + 6; x += rand(8, 16)) pines.add(x, rand(-11.5, -8), rand(0.75, 1.15));
     for (let x = -20; x < L + 20; x += rand(3, 5.5)) pines.add(x, rand(-34, -20), rand(1.0, 1.5), undefined, false);
     // Småfuruer helt fremme: så nær kameraet at bare toppene stikker opp nederst i bildet
-    for (let x = 4; x < L; x += rand(16, 24)) pines.add(x, rand(6.6, 7.2), rand(0.14, 0.2));
+    for (let x = 4; x < L; x += rand(16, 24)) pines.addFront(x, rand(6.6, 7.2), rand(0.14, 0.2));
     g.add(pines.build());
+    (g.userData.fronts ??= []).push(...pines.fronts);
   }
   // Gresset bak står bak juvet (hullet går til z -5.2)
   if (gen(o, 'meadow')) {

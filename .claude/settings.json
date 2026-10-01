@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "autoharness": {
+      "source": {
+        "source": "github",
+        "repo": "tigerless-labs/autoharness"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "autoharness@autoharness": true
+  }
+}
