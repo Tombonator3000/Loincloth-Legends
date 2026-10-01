@@ -200,3 +200,5 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - HUD har ingen interval-klokke. `Game.tick` gir `HUD.update` spilltid før scenen oppdateres; `FX.update` får separat spilltid for verdenstekst og sanntid for skjermvirkninger. Pause, meny, treffstopp og scenebytte skal ikke spise neste replikk. `HUD.clear` tømmer gammel scenetekst.
 - CREDITS er en undermeny av OPTIONS, i fire seksjoner med sideskift og rullbart innhold. Lydkilder leses fra KILDER.md ved bygging; MIT-tekstene importeres som rå tekst. Alt følger enkeltfilen uten nettverk. Ikke lag en separat manuell liste over lydfilene.
 - Sju kulissedeler er lagt i JSON-layoutene: portblader på road, alter/steinblokk/stokk i jungle, stang/duk i frost. Ingen nye bilder eller manifestendringer; antallet er fortsatt 254.
+
+- Co-op og kameradykk: `Stage.coopZoom` kjøres etter `screenFX.update` og begrenser bare tegnet zoom fra faktisk projisert kroppsramme når to helter ellers klippes. Den ønskede effekten lagres uendret. Opptak som kaller `startAt` etter at StageScene er konstruert, må også synkronisere kameraet slik produksjonskonstruktøren gjør.

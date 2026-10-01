@@ -65,6 +65,11 @@ async function run(target, single) {
   for (const [name, width, height] of [['desktop', 1280, 720], ['portrait', 412, 915], ['landscape', 844, 390]]) {
     await page.setViewportSize({ width, height });
     await tick();
+    // Portrett viser spillets vanlige, avvisbare roteringsråd. Bruk samme trykk som spilleren før bildet tas.
+    const rotateNote = page.locator('.rotate-note');
+    if (await rotateNote.isVisible()) await rotateNote.tap();
+    await rotateNote.waitFor({ state: 'hidden' });
+    check(`${name} orientation advice does not cover credits`, !(await rotateNote.isVisible()));
     const size = await page.evaluate(() => {
       const panel = document.querySelector('.credits'), menu = document.querySelector('.credits-menu'), body = document.querySelector('.credits-content');
       const p = panel.getBoundingClientRect(), m = menu.getBoundingClientRect();

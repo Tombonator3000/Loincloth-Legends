@@ -961,6 +961,23 @@ button:focus-visible, .menu li:focus-visible { outline: 3px solid var(--gold); o
 @media (orientation: landscape) and (max-height: 500px) {
   #app:has(.touch:not([style*="display: none"])) .say { bottom: calc(12px + env(safe-area-inset-bottom, 0px)); max-width: calc(100vw - 464px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)); }
 }
+/* De minste stående telefonene: navn får hele kortbredden. Liv flyttes til
+   portrettraden, og pause ligger ved siden av MAGIC så replikken kan bruke bredden. */
+@media (orientation: portrait) and (max-width: 360px) {
+  .pp:not(:only-child) { position: relative; grid-template-columns: 30px minmax(0, 1fr); padding: 6px; gap: 4px 6px; }
+  .pp.p2:not(:only-child) { grid-template-columns: minmax(0, 1fr) 30px; }
+  .pp:not(:only-child) .pframe { margin-bottom: 0; }
+  .pp:not(:only-child) .portrait { display: block; width: 24px; height: 24px; }
+  .pp:not(:only-child) .ptag { bottom: -2px; font-size: 8px; padding: 1px 3px; }
+  .pp:not(:only-child) .pname, .pp.p2:not(:only-child) .pname { grid-column: 1 / -1; grid-row: 2; font-size: 16px; line-height: 1.1; letter-spacing: 0.02em; text-align: center; }
+  .pp:not(:only-child) .pname .lives { position: absolute; top: 12px; right: 10px; margin: 0; }
+  .pp.p2:not(:only-child) .pname .lives { right: auto; left: 10px; }
+  .pp:not(:only-child) .bar { height: 16px; }
+  .pp:not(:only-child) .row { gap: 4px; }
+  .t-pause { bottom: calc(160px + env(safe-area-inset-bottom, 0px)); }
+  #app:has(.touch:not([style*="display: none"])) .say { left: calc(12px + env(safe-area-inset-left, 0px)); right: calc(12px + env(safe-area-inset-right, 0px)); padding: 6px 12px 8px; }
+  #app:has(.touch:not([style*="display: none"])) .say span { font-size: 18px; }
+}
 
 /* ---------------------------------------------------------------- kreditering og kildeliste */
 .panel.credits {

@@ -681,3 +681,10 @@ Tom ba om å sjekke todo og ta det som kan gjøres. Ny runde på main `012a97e`,
 - Ryddet gammel åpen Runde E-dobbeltføring, nettleserstatus for miljølyd og beskrivelsen av heltenes eksisterende sovestilling. Større kunstpakker, fiendebøy, stemmeopptak og fysisk spill-/lydtest står fortsatt åpne.
 - Lokalt bestått: typecheck, build, build:single, kunstkontroll av 254 filer og scenery-reuse. Alle nye nettlesersuiter kjøres i GitHub Actions; nettleserresultat og visuell godkjenning gjenstår foreløpig.
 - Nye tester: hud-layout, co-op-camera, caption-time, credits, scenery-reuse og seks faktiske spillbilder via todo-visuals. Ingen lokal Chromium-oppstart forsøkt på nytt etter forrige miljøavvisning.
+
+## 2026-10-01 12:53 (Europe/Oslo)
+
+- PR #8 er opprettet som utkast: https://github.com/Tombonator3000/Loincloth-Legends/pull/8. Første kodecommit `78aecc5` besto alle fem fokuserte nettlesersuiter og seks spillopptak i Actions 36850828726.
+- Gjennomgangen fant at eksisterende sjefszoom kunne klippe en spiller ved ytterkanten i co-op. Rettet i `46683ed`: siste kameratrinn begrenser bare den tegnede zoomen når to levende helter trenger plassen; ønsket filmatisk zoom, bevegelsesgrenser og ettspiller beholdes. Ny nettleserkontroll av sjefszoom ved begge kanter bestått.
+- Visuell kontroll fanget en testmangel: ved 320 x 568 og lange navn kunne fortellertekst dekke HUD/METAL selv om testen var grønn. Dette rettes, og testen utvides med direkte overlappskontroll. Credits-opptaket i stående format må lukke spillets vanlige roteringsråd med et ekte trykk.
+- 2P-opptaket brukte startAt etter scenekonstruksjon uten å flytte kameraet først, slik at spillerne ble presset sammen i testoppsettet. Produksjonens StageScene-konstruktør flytter allerede kameraet etter startAt; editoren er ikke rammet. Opptaket justeres til samme rekkefølge og får krav om synlig avstand mellom heltene.

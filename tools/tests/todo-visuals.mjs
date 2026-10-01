@@ -32,6 +32,7 @@ async function startStage(level, x, players) {
     g.save.heroMade = [true, true];
     g.twoP = players === 2;
     g.input.solo = players === 1;
+    g.input.keys.clear();
     g.paused = false;
     g.playLevel({ id: level, name: level, kind: 'level', level, biome: L.LEVELS[level].biome, pos: [0, 0], requires: [], blurb: '' });
     const s = g.scene.stage;
@@ -40,13 +41,31 @@ async function startStage(level, x, players) {
     s.wave = null;
     s.lockX = null;
     s.visionDone = true;
+    // startAt flytter bare brettets kameramål. Den tegnede kamera-x-en må være på samme sted før
+    // første oppdatering, ellers klemmer samarbeidsgrensene begge heltene tilbake mot gammel x=0.
+    g.resize();
+    g.camera.zoom = 1;
+    g.camera.updateProjectionMatrix();
+    g.camera.position.set(x, 3.6, g.camera.aspect < 1.2 ? 15 : 11.4);
+    g.camera.lookAt(x, 1.8, 0);
+    g.camera.updateMatrixWorld(true);
     for (const h of s.heroes) {
       h.f.hp = h.f.maxHp;
       h.gold = 123456;
       h.potions = 5;
-      h.f.pos.set(x + (players === 2 ? (h.idx ? 2 : -2) : 0), 0, h.idx ? -0.6 : 0.6);
+      h.f.pos.set(x + (players === 2 ? (h.idx ? 0.6 : -0.6) : 0), 0, h.idx ? -0.6 : 0.6);
+      h.f.vel.set(0, 0, 0);
+      h.f.setState('idle');
     }
     document.querySelector('.rotate-note')?.classList.add('dismissed');
+    // Vis to adskilte figurer gjennom den ekte bevegelsen og kamerafølgingen, ikke en positur som
+    // overstyrer spillgrensene for hvert bilde. Begge står stille igjen når skjermbildet tas.
+    if (players === 2) {
+      g.input.keys.add('KeyA');
+      g.input.keys.add('ArrowRight');
+      for (let i = 0; i < 120; i++) g.tick(1 / 60, false);
+      g.input.keys.clear();
+    }
     for (let i = 0; i < 180; i++) g.tick(1 / 60, false);
     document.querySelector('#hud .announce')?.classList.remove('show');
   }, { level, x, players });
@@ -107,6 +126,10 @@ async function capture(id, expectedPlayers, propIds = []) {
   const inside = (b) => b.width > 0 && b.height > 0 && b.x >= -1 && b.y >= -1 && b.right <= w + 1 && b.bottom <= h + 1;
   const overlap = (a, b) => Math.min(a.right, b.right) - Math.max(a.x, b.x) > 1 && Math.min(a.bottom, b.bottom) - Math.max(a.y, b.y) > 1;
   check(`${id}: begge ender av hver levende helt er i bildet`, result.heroes.length === expectedPlayers && result.heroes.every((p) => p.alive && inFrame(p.feet) && inFrame(p.head)), result.heroes);
+  if (expectedPlayers === 2) {
+    const separation = Math.abs(result.heroes[0].feet.x - result.heroes[1].feet.x);
+    check(`${id}: to spillere vises tydelig fra hverandre`, separation >= Math.max(70, w * 0.2), { separation, minimum: Math.max(70, w * 0.2) });
+  }
   check(`${id}: spillerpanelene er innenfor skjermen`, result.panels.length === expectedPlayers && result.panels.every(inside) && !result.overflow, result.panels);
   const boxes = [...result.panels, result.meter, result.pause].filter(Boolean);
   check(`${id}: spillerpanel, metal og pause dekker ikke hverandre`, boxes.every((a, i) => boxes.slice(i + 1).every((b) => !overlap(a, b))), { meter: result.meter, pause: result.pause });

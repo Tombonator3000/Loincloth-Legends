@@ -57,10 +57,10 @@ try {
           return { text: el.textContent, fits: r.x >= owner.x && r.right <= owner.right + 1 && r.bottom <= owner.bottom, size: parseFloat(getComputedStyle(el).fontSize) };
         });
         const textOverflow = [...document.querySelectorAll('.pp .pname, .say b, .say span')].some(e => e.scrollWidth > e.clientWidth + 1);
-        return { panels, meter, caption, numbers, textOverflow, within: [...panels, meter, caption].every(inside), overlap: panels.some(p => intersects(p, meter)) || (panels.length > 1 && intersects(panels[0], panels[1])), touchClash: touch && buttons.some(b => intersects(b, caption) || intersects(b, meter) || panels.some(p => intersects(p, b))) };
+        return { panels, meter, caption, numbers, textOverflow, within: [...panels, meter, caption].every(inside), overlap: panels.some(p => intersects(p, meter)) || (panels.length > 1 && intersects(panels[0], panels[1])), captionClash: intersects(caption, meter) || panels.some(p => intersects(p, caption)), touchClash: touch && buttons.some(b => intersects(b, caption) || intersects(b, meter) || panels.some(p => intersects(p, b))) };
       });
       const name = `${label}-${players}p`;
-      check(`${name}: paneler, navn og METAL overlapper ikke`, data.within && !data.overlap && !data.textOverflow, data);
+      check(`${name}: paneler, navn, METAL og replikk overlapper ikke`, data.within && !data.overlap && !data.captionClash && !data.textOverflow, data);
       check(`${name}: liv og gull er synlige, og berøringsknappene har plass`, data.numbers.every(n => n.fits && n.size >= 12) && !data.touchClash, { numbers: data.numbers, touchClash: data.touchClash });
       await page.screenshot({ path: `${out}/${name}.png` });
     }
