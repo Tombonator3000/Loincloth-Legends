@@ -66,6 +66,11 @@ export class Hero {
     return scaleAttack(HERO_ATK[k], this.weapon);
   }
 
+  /** Ikke prøv å gripe igjen på en stund (en tøff fiende har nettopp skjøvet helten unna). */
+  grabPause(t: number) {
+    this.grabCd = Math.max(this.grabCd, t);
+  }
+
   update(dt: number, st: HeroWorld) {
     const f = this.f;
     const inp = this.input;

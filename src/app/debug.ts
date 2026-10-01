@@ -22,7 +22,8 @@ import { defaultSave, loadSave, writeSave } from './save';
 import { images, getOverride, getAppearanceAsset } from '../gfx/assets';
 import { screenFX } from '../gfx/screenfx';
 import { applyHit } from '../game/combat';
-import { HERO_ATK, ENEMY_ATK, DUEL_ATK, P } from '../game/attacks';
+import { HERO_ATK, ENEMY_ATK, DUEL_ATK, P, PB, bentPose } from '../game/attacks';
+import { findGrab, grabbable, offBalance } from '../game/grab';
 import { showCamp, showShop, showTraining } from './camp';
 import { FOES } from '../data/enemies';
 import { BOSSES } from '../data/bosses';
@@ -37,7 +38,7 @@ import { forgeState } from './scenes/editor';
 export function installDebug() {
   (window as unknown as { __lib: unknown }).__lib = {
     THREE, Fighter, W, registerChar, getChar, buildHeroDef, PRESETS, randomHero, HERO_OPTIONS, headCanvas, WEAPONS, settings, setSettings, defaultSave, charUniforms, MetalBand, METAL_TRACKS, Conductor, BandPerformer, audio, images,
-    screenFX, applyHit, HERO_ATK, ENEMY_ATK, DUEL_ATK, P, NEUTRAL, FOES, BOSSES, showCamp, showShop, showTraining, cabinetIR, guitarAmp,
+    screenFX, applyHit, HERO_ATK, ENEMY_ATK, DUEL_ATK, P, PB, bentPose, findGrab, grabbable, offBalance, NEUTRAL, FOES, BOSSES, showCamp, showShop, showTraining, cabinetIR, guitarAmp,
     cloneHero, withHeroParts, HERO_PARTS, defaultHeroParts, loadSave, writeSave, getOverride,
     withHeroAppearance, isModularHeroHead, HERO_APPEARANCE_KEYS, HERO_APPEARANCE, defaultHeroAppearance, sanitizeHeroAppearance, findHeroAppearance,
     heroHeadPreview, heroSkinSupport, heroAppearanceAvailable, heroAppearanceCacheStats, composeHeroHead, applyHeroSkin, purgeHeroAppearance,

@@ -119,6 +119,10 @@ Lim beskrivelsen inn i feltet for stemmebeskrivelse (Voice Design) i VoiceStudio
 | `v_meteor_of_excessive_force.wav` | B | METEOR OF EXCESSIVE FORCE |
 | `v_scream_of_the_ancestors.wav` | B | SCREAM OF THE ANCESTORS |
 | `v_wrath_of_the_thunder_god.wav` | B | WRATH OF THE THUNDER GOD |
+| `v_a_prisoner_cart_bound_for_vorthax_s_tower_the_prisoners_esca.wav` | B | A PRISONER CART BOUND FOR VORTHAX'S TOWER. THE PRISONERS ESCAPED. THE HOGMEN DID NOT. |
+| `v_a_note_pinned_to_a_zombie_more_brains_for_the_army_signed_v.wav` | B | A NOTE PINNED TO A ZOMBIE: MORE BRAINS FOR THE ARMY. SIGNED, V. |
+| `v_vorthax_sent_a_memo_more_trolls_the_trolls_cannot_read_they.wav` | B | VORTHAX SENT A MEMO: MORE TROLLS. THE TROLLS CANNOT READ. THEY CAME ANYWAY. |
+| `v_the_imps_carry_vorthax_s_laundry_to_the_tower_even_evil_need.wav` | B | THE IMPS CARRY VORTHAX'S LAUNDRY TO THE TOWER. EVEN EVIL NEEDS CLEAN ROBES. |
 
 ### THRUGG
 
@@ -177,6 +181,23 @@ Lim beskrivelsen inn i feltet for stemmebeskrivelse (Voice Design) i VoiceStudio
 | `v_prepare_to_be_moderately_destroyed.wav` | A | PREPARE TO BE MODERATELY DESTROYED! |
 | `v_behold_my_moderate_form.wav` | A | BEHOLD MY MODERATE FORM! |
 | `v_send_everyone_yes_even_kevin.wav` | A | SEND EVERYONE! YES, EVEN KEVIN! |
+
+Talene fra himmelen på brett 1 til 4 (LevelDef.vorthax, gfx/vision.ts). Litt romklang passer, som en stemme fra et trollspeil.
+
+| Fil | Prioritet | Replikk |
+|---|---|---|
+| `v_greetings_oily_trespassers_i_am_vorthax_the_moderately_evil.wav` | A | GREETINGS, OILY TRESPASSERS. I AM VORTHAX THE MODERATELY EVIL. |
+| `v_princess_amberly_is_my_guest_she_is_safe_she_is_extremely_bo.wav` | A | PRINCESS AMBERLY IS MY GUEST. SHE IS SAFE. SHE IS EXTREMELY BORED. |
+| `v_turn_back_now_or_face_moderate_consequences.wav` | A | TURN BACK NOW, OR FACE... MODERATE CONSEQUENCES. |
+| `v_still_alive_how_adequate.wav` | A | STILL ALIVE? HOW... ADEQUATE. |
+| `v_king_croakus_rules_this_swamp_for_me_he_is_a_frog_he_takes_i.wav` | A | KING CROAKUS RULES THIS SWAMP FOR ME. HE IS A FROG. HE TAKES IT VERY SERIOUSLY. |
+| `v_the_princess_sends_her_regards_no_she_doesn_t.wav` | A | THE PRINCESS SENDS HER REGARDS. NO, SHE DOESN'T. |
+| `v_cold_isn_t_it_i_had_the_pass_air_conditioned.wav` | A | COLD, ISN'T IT? I HAD THE PASS AIR-CONDITIONED. |
+| `v_kaldor_guards_the_frozen_pit_i_paid_him_in_advance_non_refun.wav` | A | KALDOR GUARDS THE FROZEN PIT. I PAID HIM IN ADVANCE. NON-REFUNDABLE. |
+| `v_and_stop_throwing_my_trolls_into_the_chasm_they_are_on_loan.wav` | A | AND STOP THROWING MY TROLLS INTO THE CHASM. THEY ARE ON LOAN. |
+| `v_behold_my_scorchlands_the_property_values_are_terrible.wav` | A | BEHOLD MY SCORCHLANDS. THE PROPERTY VALUES ARE TERRIBLE. |
+| `v_magmor_will_melt_you_he_is_very_lonely_do_not_hug_him.wav` | A | MAGMOR WILL MELT YOU. HE IS VERY LONELY. DO NOT HUG HIM. |
+| `v_my_tower_is_next_wipe_your_feet_the_carpet_is_new.wav` | A | MY TOWER IS NEXT. WIPE YOUR FEET. THE CARPET IS NEW. |
 
 ### PRINCESS AMBERLY
 

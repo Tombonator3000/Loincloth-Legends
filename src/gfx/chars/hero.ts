@@ -538,6 +538,7 @@ export function buildHeroDef(cfg: HeroConfig, slot: number): CharDef {
     voice: fem ? 'heroine' : 'hero',
     color: CLOTHS[cfg.cloth] ?? CLOTHS[0],
     skin: [SKINS[cfg.skin] ?? SKINS[0]],
+    bend: true,
   };
 }
 

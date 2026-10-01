@@ -2,11 +2,15 @@
 
 ## Retning fra ChatGPT-samtalen (forslag som venter på Tom, 2026-10-01)
 Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og Mystara som inspirasjon. Vurderingen står i log.md 2026-10-01.
-- [ ] Tom: historien. Beholde prinsesse Amberly som målet og bruke Solhjertet som grunnen til jungelen (Vorthax trenger kongelig blod for å vekke hæren), eller ta inn ChatGPTs versjon
-- [ ] Tom: kartet. Sumpen og frosten åpne i valgfri rekkefølge etter jungelen (anbefalt nå), eller ekte veivalg der man bare spiller den ene
-- [ ] Bøy i albue og kne: prøv på Thrugg på brett 1 (planet delt i flere ruter med bøy i riggen, eller egne bilder for nøkkelstillinger) før det bestilles nye deler. I dag er hver arm og hvert bein ett plan som bare roteres (gfx/rig.ts)
-- [ ] Grepet krever en åpning (fienden vakler eller er svimmel) for tøffere fiender, små fiender gripes som før. Henger sammen med spørsmålet om AUTO_GRAB under Menyene
-- [ ] Vorthax synlig på brettene før tårnet: ordrer, fangetransport på brett 1, en statue han holder tale gjennom (kulisse med react og stemme). I dag finnes han bare i replikker
+- [x] Tom: historien. Prinsesse Amberly er målet, Solhjertet kan være grunnen til jungelen (Tom 2026-10-01)
+- [x] Tom: kartet. Sumpen og frosten i valgfri rekkefølge etter jungelen (Tom 2026-10-01)
+- [x] Bøy i albue og kne på heltene (bend i CharDef, PB i game/attacks.ts, Rig.plant), tools/tests/bend.mjs
+- [ ] Tom: se på bøyen i spillet (gang, løp, slag, huk, spark, kne, hån) og si fra om vinkler som skal justeres (PB i game/attacks.ts, gangen i Fighter.animate)
+- [ ] Bøy på fiendene også: sjekk stillingene for skjelett, kultist, grisemann osv. og sett `bend: true` på dem som tåler det
+- [ ] Mål albue og kne på Forge-delene (de bruker standardpunktene: midt på armen, 40 prosent ned på beinet)
+- [x] Tøffe fiender (guard) må vakle før de kan gripes, småfolk gripes som før (tools/tests/guard.mjs)
+- [x] Vorthax på brett 1 til 4: kjempehode på himmelen med tale mellom bølgene, og replikker om ordrene hans (fangevogna på brett 1) (tools/tests/vorthax.mjs)
+- [ ] Tom: lag talene til Vorthax i VoiceStudio (docs/STEMMER.md, prioritet A)
 - [ ] Jungelbrett mellom brett 1 og sumpen (skillen new-level): tempelgård, elv med ruinby, soltempel. Grep: hengende steinvekt (som istappene), søyle som velter og blir bro (som fyrfatet), kjøttetende plante som varsler før den glefser (ny fare). Teksturer og kulisser bestilles med KULISSE-BLOKKEN først
 - [ ] Utstyr som endrer handlingene, to eller tre ting som gjenbruker effekter vi har: oljeflaske (glør og brann), ring (tordenmagien), kastedolk (kultistenes dolk). Må passe på de tre knappene
 - [ ] Flere mannekropper blant fiender og rivaler (tung og hårete bryter, kompakt veteran med brukket nese, forfengelig arenahelt), se også kroppstypene under Neste

@@ -17,6 +17,10 @@ export interface PartOverride {
   fixedH: boolean;
   /** Armer: neven i bildet (brøk, y fra toppen). Riggen snur og skalerer armen så neven havner i våpenleddet. */
   hand?: [number, number];
+  /** Armer: albuen i bildet (brøk, y fra toppen). Uten den bøyer riggen armen midt mellom skulderen og neven. */
+  elbow?: [number, number];
+  /** Bein: kneet i bildet (brøk, y fra toppen). Uten den bøyer riggen beinet litt over midten mellom hofta og foten. */
+  knee?: [number, number];
   /**
    * Overkropper: skulderleddene i bildet (brøk, y fra toppen), den nære skulderen først. Figurene står i trekvart
    * profil mot høyre, så den nære skulderen (med skulderplaten) er til venstre i bildet. Våpenarmen festes der og
@@ -55,6 +59,10 @@ interface ManifestPart {
   anchor?: [number, number];
   /** Armer: neven i det beskårne bildet, [x, y] som anchor. Uten den finner lasteren neven nederst i armen. */
   hand?: [number, number];
+  /** Armer: albuen, [x, y] som anchor. Der bøyer riggen armen (heltene). */
+  elbow?: [number, number];
+  /** Bein: kneet, [x, y] som anchor. Der bøyer riggen beinet (heltene). */
+  knee?: [number, number];
   /** Overkropper: midten av den nære og den fjerne skulderen, [[x, y], [x, y]] som anchor. Standard: SHOULDERS. */
   shoulders?: [[number, number], [number, number]];
   /** Overkropper: halsroten [x, y] der hodet festes, og eventuelt halv bredde på halsstumpen som skal tones ut. */
@@ -441,6 +449,7 @@ export async function loadAssets(base = './assets/', wantProp?: (id: string) => 
           const faded = neck?.[2] ? fadeNeck(cv, neck[0], neck[1], neck[2]) : undefined;
           parts.set(p.char + ':' + p.part, {
             canvas: faded ?? cv, full: faded ? cv : undefined, w, h, ox: ax * w, oy: (1 - ay) * h, ax, ay, fixedH, hand, shoulders, neck, front: p.front,
+            elbow: p.part === 'arm' && !beast ? p.elbow : undefined, knee: p.part === 'leg' && !beast ? p.knee : undefined,
           });
           assetRevision++;
           n++;

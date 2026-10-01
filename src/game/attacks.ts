@@ -43,6 +43,60 @@ export const P = {
   drag: { torso: -0.5, armF: -0.9, armB: -0.9, weapon: -1.0, legF: 0.6, legB: -0.6 },
 } satisfies Record<string, Partial<Pose>>;
 
+/**
+ * Tillegg for figurer som bøyer albuer og knær (CharDef.bend, heltene): legges oppå stillingen med samme navn i P.
+ * Albuen spennes i oppslaget og strekkes i slaget, vekten ligger på bakre kne før slaget og på fremre kne når det
+ * lander, og i huk står leggen loddrett og bakre kne nesten nede. Våpenet følger neven, men bladet peker dit
+ * armF + weapon sier, så våpenvinklene i P virker likt med og uten bøy. Kroppens høyde regnes fra beina
+ * (Rig.plant), så bodyY trengs ikke her. Figurer uten bend bruker P som før.
+ */
+export const PB: { [K in keyof typeof P]?: Partial<Pose> } = {
+  slashW: { elbowF: 1.1, elbowB: 0.5, kneeF: 0.15, kneeB: 0.45 },
+  slashS: { elbowF: 0.05, elbowB: 0.6, legF: 0.6, kneeF: 0.55, legB: -0.45, kneeB: 0.1 },
+  backW: { armF: -0.5, elbowF: 1.4, elbowB: 0.6, kneeF: 0.2, kneeB: 0.4 },
+  backS: { elbowF: 0.1, elbowB: 0.5, legF: 0.45, kneeF: 0.45, kneeB: 0.15 },
+  chopW: { elbowF: 0.45, elbowB: 0.9, kneeF: 0.25, kneeB: 0.2 },
+  chopS: { elbowF: 0.05, elbowB: 0.3, legF: 0.75, kneeF: 0.85, legB: -0.55, kneeB: 0.15 },
+  jumpW: { elbowF: 0.9, kneeF: 1.3, kneeB: 1.1 },
+  jumpS: { elbowF: 0.1, kneeF: 0.9, kneeB: 0.7 },
+  dashS: { elbowF: 0.3, elbowB: 1.3, kneeF: 0.6, kneeB: 0.1 },
+  spin: { elbowF: 0.05, elbowB: 0.1, kneeF: 0.35, kneeB: 0.35 },
+  hurt: { elbowF: 0.5, elbowB: 0.9, kneeF: 0.5, kneeB: 0.6 },
+  jump: { kneeF: 1.4, kneeB: 1.2, elbowF: 0.4, elbowB: 0.9 },
+  fall: { kneeF: 0.5, kneeB: 0.4, elbowF: 0.4, elbowB: 0.6 },
+  tumble: { kneeF: 0.8, kneeB: 0.5, elbowF: 0.4, elbowB: 0.6 },
+  down: { kneeF: 0.35, kneeB: 0.15, elbowF: 0.3, elbowB: 0.5 },
+  getup: { legF: 1.2, kneeF: 1.3, legB: -0.2, kneeB: 1.5, elbowF: 0.4, elbowB: 0.8 },
+  magic: { elbowF: 0.3, elbowB: 0.4, kneeF: 0.15, kneeB: 0.2 },
+  // Seiersposen: sverdet i været og den andre armen spent som en biceps
+  victory: { elbowF: 0.15, armB: 1.5, elbowB: 2.1, kneeF: 0.2, kneeB: 0.25 },
+  // Hånet: begge bicepsene spent
+  taunt: { armF: 1.65, elbowF: 2.2, weapon: -1.4, armB: 1.6, elbowB: 2.2, kneeF: 0.2, kneeB: 0.25 },
+  blockHi: { elbowF: 0.4, elbowB: 1.2, kneeF: 0.25, kneeB: 0.3 },
+  blockLo: { elbowF: 0.3, elbowB: 0.8, legF: 0.9, kneeF: 1.2, legB: -0.3, kneeB: 1.2 },
+  crouch: { elbowF: 0.4, elbowB: 0.7, legF: 0.9, kneeF: 1.3, legB: -0.3, kneeB: 1.4 },
+  sweepW: { elbowF: 0.9, elbowB: 0.3, legF: 0.9, kneeF: 1.3, legB: -0.3, kneeB: 1.4 },
+  sweepS: { elbowF: 0.05, elbowB: 0.5, legF: 1.1, kneeF: 1.0, legB: -0.5, kneeB: 1.4 },
+  // Sparket: kneet trekkes opp før foten skytes ut
+  kickW: { legF: 0.9, kneeF: 1.7, kneeB: 0.25, elbowF: 0.4 },
+  kickS: { kneeF: 0, kneeB: 0.25, elbowF: 0.4, elbowB: 0.8 },
+  neckW: { elbowF: 0.9, kneeF: 1.3, kneeB: 1.0 },
+  neckS: { elbowF: 0.05, kneeF: 0.6, kneeB: 0.5, elbowB: 0.3 },
+  throwW: { elbowF: 1.0, elbowB: 0.5, kneeB: 0.3 },
+  throwS: { elbowF: 0.1, elbowB: 0.3, kneeF: 0.4 },
+  roll: { kneeF: 2.0, kneeB: 2.0, elbowF: 1.2, elbowB: 1.4 },
+  stunned: { elbowF: 0.15, elbowB: 0.2, kneeF: 0.35, kneeB: 0.45 },
+  drag: { kneeF: 0.4, kneeB: 0.4 },
+};
+
+const BENT = new Map<Partial<Pose>, Partial<Pose>>(Object.entries(PB).map(([k, v]) => [P[k as keyof typeof P], v!]));
+
+/** Stillingen med tillegget for bøyde albuer og knær (PB) når figuren har bend. Andre stillinger kommer tilbake som de er. */
+export function bentPose(pose: Partial<Pose>, bend: boolean | undefined): Partial<Pose> {
+  const o = bend ? BENT.get(pose) : undefined;
+  return o ? { ...pose, ...o } : pose;
+}
+
 export interface AttackDef {
   id: string;
   startup: number;

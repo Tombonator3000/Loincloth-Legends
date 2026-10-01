@@ -29,6 +29,12 @@ export interface FoeDef {
   poise?: number;
   /** Et grep han bruker av og til mot heltene i stedet for vanlig angrep (løfter og kaster, se AttackDef.grab). */
   grab?: AttackDef;
+  /**
+   * Tøff fiende som står imot grep til han vakler: rett etter et treff som rykket ham, når han er svimmel, eller når
+   * han har under en tredjedel av livet igjen (se offBalance i game/grab.ts). Går helten inn i ham før det, blir
+   * helten skjøvet unna. Fiender med poise står uansett imot til de vakler.
+   */
+  guard?: boolean;
   poseMod?: Partial<Pose>;
   barks: string[];
 }
@@ -68,7 +74,7 @@ export const FOES: Record<string, FoeDef> = {
     barks: ['RATTLE RATTLE!', 'FIRST DAY ON THE JOB!', 'I HAVE NO SKIN IN THIS GAME!', 'FOR VORTHAX! I THINK?', 'MY MOM SAYS I\'M SPOOKY!'],
   },
   hogman: {
-    id: 'hogman', char: 'hogman', name: 'HOGMAN', hp: 70, speed: 1.7, gold: 6, behavior: 'brute', attack: ENEMY_ATK.hog, range: 1.7,
+    id: 'hogman', char: 'hogman', name: 'HOGMAN', hp: 70, speed: 1.7, gold: 6, behavior: 'brute', attack: ENEMY_ATK.hog, range: 1.7, guard: true,
     barks: ['OINK. I MEAN: DIE!', 'HOGMAN SMASH!', 'I SMELL BARBARIAN!', 'YOU LOOK LIKE LUNCH!'],
   },
   cultist: {
@@ -93,7 +99,7 @@ export const FOES: Record<string, FoeDef> = {
     tint: [0.75, 0.92, 1.4], barks: ['C-C-COLD...', 'MY MARROW IS FROZEN!', 'CHILL OUT, BARBARIAN!'],
   },
   troll: {
-    id: 'troll', char: 'troll', name: 'ICE TROLL', hp: 95, speed: 1.6, gold: 8, behavior: 'brute', attack: trollSmash, range: 1.9, proj: 'snowball', projCd: [4, 6],
+    id: 'troll', char: 'troll', name: 'ICE TROLL', hp: 95, speed: 1.6, gold: 8, behavior: 'brute', attack: trollSmash, range: 1.9, proj: 'snowball', projCd: [4, 6], guard: true,
     barks: ['TROLL HUNGRY!', 'YOU LOOK CRUNCHY!', 'ME HATE WINTER. ME HATE YOU MORE.'],
   },
   bigtroll: {
@@ -118,7 +124,7 @@ export const FOES: Record<string, FoeDef> = {
     tint: [0.55, 0.45, 0.75], barks: ['THE MASTER SEES ALL!', 'I GOT PROMOTED!', 'SENIOR CULTIST, THANK YOU.'],
   },
   hogguard: {
-    id: 'hogguard', char: 'hogman', name: 'HOG GUARD', hp: 85, speed: 1.8, gold: 8, behavior: 'brute', attack: { ...ENEMY_ATK.hog, id: 'hogguard', dmg: 15 }, range: 1.7,
+    id: 'hogguard', char: 'hogman', name: 'HOG GUARD', hp: 85, speed: 1.8, gold: 8, behavior: 'brute', attack: { ...ENEMY_ATK.hog, id: 'hogguard', dmg: 15 }, range: 1.7, guard: true,
     tint: [0.78, 0.72, 1.05], barks: ['HALT! PAPERS, PLEASE!', 'NO BARBARIANS AFTER 9PM!', 'OINK OF DUTY!'],
   },
   ironwarden: {

@@ -9,7 +9,7 @@ import { Foe, type FoeWorld } from './foes';
 import { BossCtl, type BossWorld } from './boss';
 import { Hero, type HeroWorld } from './hero';
 import { Hazard } from './hazards';
-import { findGrab, startHold, bowl, SLAM, AUTO_GRAB } from './grab';
+import { findGrab, startHold, bowl, resistGrab, SLAM, AUTO_GRAB } from './grab';
 import { buildHazard } from '../gfx/env/hazards';
 import { chasmHole } from '../data/hazards';
 import { Icicles, ICICLE_WARN } from './icicles';
@@ -21,6 +21,7 @@ import { W } from './world';
 import { STAGE_BUILDERS } from '../gfx/env';
 import { resetGenerators, usedGenerators } from '../gfx/env/common';
 import { Scenery, type FighterBox } from '../gfx/scenery';
+import { Vision } from '../gfx/vision';
 import { layoutFor } from '../data/layouts';
 import type { PlayerInput } from '../core/input';
 import type { HeroConfig } from '../gfx/chars/hero';
@@ -46,6 +47,8 @@ const MAGIC_ATK: AttackDef = { ...HERO_ATK.chop, id: 'magic', kd: true, launch: 
 const SCREAM_ATK: AttackDef = { ...HERO_ATK.chop, id: 'scream', kd: true, launch: 6, push: 8, death: ['headsplode'], heavy: true, word: ['AAAAAH!'] };
 const THUNDER_ATK: AttackDef = { ...HERO_ATK.chop, id: 'thunder', kd: true, launch: 5, push: 3, death: ['explode', 'headsplode'], heavy: true, word: ['KRAKOOM!', 'ZZZAP!'] };
 const MAGIC_NAMES = { meteor: 'METEOR OF EXCESSIVE FORCE', scream: 'SCREAM OF THE ANCESTORS', thunder: 'WRATH OF THE THUNDER GOD' };
+/** Sekunder per replikk når Vorthax taler fra himmelen (LevelDef.vorthax). */
+const VISION_LINE = 3.0;
 
 export type StageResult = '' | 'complete' | 'duel' | 'gameover';
 
@@ -109,6 +112,11 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   /** Intensiteten i musikken (core/conductor.ts), og hvor lenge det har vært roligere enn den (spilltid). */
   private mood: Level = 0;
   private calmT = 0;
+  /** Vorthax på himmelen (LevelDef.vorthax): projeksjonen, hvor lenge den har vart og hvor langt han er kommet i talen. */
+  vision: Vision | null = null;
+  visionDone = false;
+  private visionT = 0;
+  private visionLine = 0;
 
   constructor(public hud: HUD, public level: LevelDef, configs: HeroConfig[], inputs: PlayerInput[], progress: HeroProgress[] = [], supplies = { lives: 0, potions: 0 }) {
     this.L = level.length;
@@ -352,10 +360,12 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     });
   }
 
-  /** Står helten inntil noe han kan gripe eller sitte opp på (grep uten knapp)? */
+  /** Står helten inntil noe han kan gripe eller sitte opp på (grep uten knapp)? En tøff fiende som står imot, teller også. */
   grabContact(h: Hero) {
     const f = h.f;
-    return !!this.freeMount(f, true) || !!findGrab(f, this.foes.map((x) => x.f), AUTO_GRAB.reach, AUTO_GRAB.zr).target;
+    if (this.freeMount(f, true)) return true;
+    const g = findGrab(f, this.foes.map((x) => x.f), AUTO_GRAB.reach, AUTO_GRAB.zr);
+    return !!g.target || !!g.guarded;
   }
 
   tryGrab(h: Hero, auto = false) {
@@ -363,9 +373,15 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     // Ledig ridedyr i nærheten? Sitt opp.
     const m = this.freeMount(f, auto);
     if (m) return m.mountUp(f);
-    const { target, tooHeavy } = auto ? findGrab(f, this.foes.map((x) => x.f), AUTO_GRAB.reach, AUTO_GRAB.zr) : findGrab(f, this.foes.map((x) => x.f));
+    const { target, tooHeavy, guarded } = auto ? findGrab(f, this.foes.map((x) => x.f), AUTO_GRAB.reach, AUTO_GRAB.zr) : findGrab(f, this.foes.map((x) => x.f));
     if (target) {
       startHold(f, target);
+      return true;
+    }
+    // Tøff fiende som ikke vakler: han skyver helten unna (slå ham først)
+    if (guarded) {
+      resistGrab(f, guarded);
+      h.grabPause(1.1);
       return true;
     }
     if (tooHeavy && !auto) {
@@ -877,6 +893,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     if (this.metal.on && !wasMetal) for (const o of this.foes) if (o.f.alive && this.onScreen(o.f.pos.x, 0) && chance(0.5)) o.panic(rand(1.5, 3), true);
     for (const [f] of this.juggle) if (f.onGround || !f.alive) this.juggle.delete(f);
     if (this.level.nightCamp) this.thieves(dt);
+    this.updateVision(dt);
     // Årer og en rød kant som banker når den svakeste levende helten nesten er død
     let weakest = -1;
     for (const h of this.heroes) if (h.f.alive) weakest = Math.min(weakest < 0 ? 1 : weakest, Math.max(0, h.f.hp) / h.f.maxHp);
@@ -1063,7 +1080,39 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     return out;
   }
 
+  /**
+   * Vorthax holder tale fra himmelen når kameraet når stedet hans, mellom bølgene så heltene rekker å lese. Hodet
+   * kommer med et tordenbrak og lilla lys, sier én replikk om gangen og toner ut (gfx/vision.ts). Spilltid hele veien.
+   */
+  private updateVision(dt: number) {
+    const v = this.level.vorthax;
+    if (!v) return;
+    if (!this.vision && !this.visionDone && !this.wave && !this.boss && this.camX >= v.at - 0.2) {
+      this.vision = new Vision(W.scene, 'vorthax', this.camX);
+      this.visionT = 0;
+      this.visionLine = 0;
+      audio.thunder(0.7);
+      W.fx.lightningFlash(0.3, 0.15);
+    }
+    const vi = this.vision;
+    if (!vi) return;
+    this.visionT += dt;
+    if (this.visionLine < v.lines.length && this.visionT >= 1 + this.visionLine * VISION_LINE) {
+      this.say('VORTHAX', v.lines[this.visionLine], VISION_LINE - 0.2);
+      this.visionLine++;
+    }
+    if (this.visionT >= 1 + v.lines.length * VISION_LINE) vi.fade();
+    vi.update(dt, this.camX);
+    if (vi.done) {
+      vi.dispose();
+      this.vision = null;
+      this.visionDone = true;
+    }
+  }
+
   dispose() {
+    this.vision?.dispose();
+    this.vision = null;
     this.scenery.dispose();
     this.metal.stop();
     audio.ambience(null);

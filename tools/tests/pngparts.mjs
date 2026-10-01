@@ -42,7 +42,8 @@ const res = await page.evaluate((CHARS) => {
     f.pos.set(0, 0, 0);
     f.addTo(L.W.scene);
     const r = f.rig;
-    r.snap({ torso: 0, head: 0, armF: 0, armB: 0, legF: 0, legB: 0, weapon: 0, bodyY: 0, bodyX: 0, tilt: 0, lift: 0 });
+    // Rette ledd: også albuer og knær (heltene bøyer dem ellers litt i hvilestillingen)
+    r.snap({ torso: 0, head: 0, armF: 0, armB: 0, legF: 0, legB: 0, weapon: 0, bodyY: 0, bodyX: 0, tilt: 0, lift: 0, elbowF: 0, elbowB: 0, kneeF: 0, kneeB: 0 });
     r.sync();
     r.root.updateMatrixWorld(true);
     const box = (name) => new T.Box3().setFromObject(r.g[name].children[0]);

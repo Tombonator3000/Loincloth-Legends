@@ -123,6 +123,22 @@ Avhengigheter går én vei: `app` bruker `game`, `gfx`, `data`, `ui`. `game` bru
 
 Heltene bygges av `gfx/chars/muscle.ts` med målene i `gfx/chars/types.ts`: lange bein (`LEG_L`, `HERO_HIP_Y`), lange armer (`ARM_L`), høyere overkropp (`TORSO_Y` via `stretchY()`), hodet litt for lite (`HEAD_SCALE`), brede skuldre og enorme armer (`HERO_BIG_J`). `scalePart()` skalerer en del rundt leddet uten at konturstreken blir tykkere, og `stretchY()` strekker bare i høyden. Thrugg og Valkyra i `classic.ts` er bygget med heltebyggeren, så presetene har samme proporsjoner.
 
+## Albuer og knær
+
+Figurer med `bend` i `CharDef` (alt som bygges med `buildHeroDef`: heltene, Thrugg, Valkyra, Ash Raider og Iron Warden) bøyer albuene og knærne. Armer og bein er delt i ruter (`PlaneGeometry` 4 x 24 i `partAsset`), og hver figur får en egen kopi av geometrien (`Rig.limbBend`) der alt nedenfor leddet dreies rundt albuen eller kneet, med en myk overgang (`BEND_SOFT`) så huden strekkes i stedet for å knekke. Skyggeleggeren får dreiningen per hjørne (`aRot`, `#define BEND` i `CHAR_VERT`), så relieffet og kantlyset følger underarmen. Skyggen følger med fordi det er geometrien som bøyes.
+- Leddet: `elbow` og `knee` i manifestet (brøk av bildet, målt for Thrugg og Valkyra), ellers midt på armen og 40 prosent ned på beinet.
+- Stillingene: `elbowF`, `elbowB`, `kneeF`, `kneeB` i `Pose` (positivt er bøyd). Våpenet følger neven, men bladet peker dit `armF + weapon` sier, så våpenvinklene virker likt med og uten bøy. Tilleggene for heltene står i `PB` i `game/attacks.ts` og legges oppå `P` med `bentPose()` (figurer uten `bend` bruker `P` som før). Gangen og løpet regnes i `Fighter.animate`: kneet bøyes i beinet som svinger fram.
+- Føttene på bakken: `Rig.plant()` flytter kroppen så laveste fot eller kne står på bakken når figuren står (`PLANTED` i fighter.ts). Da gir bøyde knær lavere kropp, kroppen synker når beina sprikes, og kneet står i bakken når figuren kneler. `bodyY` i stillingene betyr derfor bare noe for figurer uten `bend`.
+- En arm som ryker, beholder bøyen den hadde. `tools/tests/bend.mjs` sjekker og viser stillingene (også `stiff` ved siden av, før og etter).
+
+## Grep og tøffe fiender
+
+Helten griper ved å gå inn i en fiende (`AUTO_GRAB`). Tøffe fiender (`guard: true` i `FoeDef`: grisemannen, vakten og istrollet) står imot til de vakler (`offBalance` i `game/grab.ts`): rett etter et treff (`Fighter.staggerT`, `STAGGER_OPEN` etter treffstøtet), når de er svimle, eller med under en tredjedel av livet. Går helten inn i en som står imot, skyves helten unna (`resistGrab`, en replikk fra `RESIST_BARKS`) og prøver ikke igjen på litt over et sekund (`Hero.grabPause`). Fiender med `poise` står uansett imot til de vakler. Test: `tools/tests/guard.mjs`.
+
+## Vorthax på veien
+
+`vorthax: { at, lines }` i en `LevelDef` får Vorthax til å vise seg som et kjempehode av lilla lys over brettet (`gfx/vision.ts`, hodet til figuren `vorthax`) og holde en tale, én replikk om gangen i HUD-en (`Stage.updateVision`, spilltid). Han viser seg bare mellom bølgene og bare én gang. Brett 1 til 4 har en tale, og noen bølger har replikker om ordrene hans. Test: `tools/tests/vorthax.mjs`.
+
 ## Lys på figurene
 
 Figurdelene er flate tegninger, så `gfx/charlight.ts` lager et relieffkart per del når tegningen lages (`reliefTexture` i `rig.ts` og `beast.ts`): hver flate mellom blekkstrekene blir en pute (avstandsfelt til blekk og kontur), pluss en slak bue over hele delen. R og G er normalen, B er glansstyrke og A glanstype (matt stoff og lær, hud med olje, metall). Hud gjenkjennes fra `skin` på CharDef (hudfargene og mørkere nyanser av dem), stål og gull fra fargen.

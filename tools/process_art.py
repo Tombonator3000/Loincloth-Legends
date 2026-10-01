@@ -451,11 +451,11 @@ def behandle(nøkkel, im, man, tekstur_ok):
         fil = lagre(im, nøkkel, True)
         char, part = (t[1], t[2]) if t[0] == 'del' else (nøkkel, 'body')
         # Et nytt bilde av en del som finnes, beholder høyde og festepunkt som er justert i manifestet. Punktene som
-        # er målt i selve bildet (skulderplatene, halsroten og neven) hører til det gamle bildet og strykes.
+        # er målt i selve bildet (skulderplatene, halsroten, neven, albuen og kneet) hører til det gamle bildet og strykes.
         gammel = next((p for p in man.setdefault('parts', []) if p['char'] == char and p['part'] == part), None)
         if gammel:
             gammel['file'] = fil
-            målt = [k for k in ('shoulders', 'neck', 'hand') if gammel.pop(k, None) is not None]
+            målt = [k for k in ('shoulders', 'neck', 'hand', 'elbow', 'knee') if gammel.pop(k, None) is not None]
             if målt: print(f'  obs: {char} {part} har nytt bilde, mål {", ".join(målt)} på nytt (MEASURE)')
         else: man['parts'].append({'char': char, 'part': part, 'file': fil})
         return f'{fil} ({im.size[0]}x{im.size[1]}, {char} {part})'

@@ -17,6 +17,9 @@ node tools/tests/closeup.mjs http://localhost:4173/ ./shots '{"body":1}'  # nær
 node tools/tests/violence.mjs http://localhost:4173/ ./shots              # arm ryker, halshugging, hodet i skjermen, hodeløs kylling
 node tools/tests/particles.mjs http://localhost:4173/ [./shots]           # blodråper i fart, gnister, sjokkbølger og blod fra en arm som ryker synes på skjermen (teller piksler)
 node tools/tests/grab.mjs http://localhost:4173/ ./shots road             # grep, kne, kast, bowling og fare (road, swamp, frost, scorch, tower)
+node tools/tests/guard.mjs http://localhost:4173/ [./shots]               # tøffe fiender (guard) står imot grep til de vakler: skjelett gripes, grisemannen skyver helten unna, etter et slag eller med lite liv gripes han
+node tools/tests/bend.mjs http://localhost:4173/ [./shots] [stillinger] [stiff]  # albuer og knær på Thrugg: våpenet i neven, bladet beholder retningen, skjelettet bøyer ikke, løs arm beholder bøyen, føttene, og bilder av stillingene (stiff = også uten bøy)
+node tools/tests/vorthax.mjs http://localhost:4173/ [./shots] [brett]     # Vorthax på himmelen på brett 1 til 4: tale mellom bølgene, alle replikkene, toner ut og kommer ikke igjen
 node tools/tests/mounts.mjs http://localhost:4173/ ./shots                # ridedyr, fiende-ryttere, avkasting, sitte opp, stormløp
 node tools/tests/riders.mjs http://localhost:4173/                         # fiende-ryttere kan tas: en bot jager dem med låst kamera, de holder seg innen rekkevidde, rygger saktere enn helten og slås av og drepes
 node tools/tests/mouse.mjs http://localhost:4173/                          # venstre museknapp slår på brett og i duell, ikke på kartet eller i pausen

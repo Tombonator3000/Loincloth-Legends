@@ -1,5 +1,5 @@
 // Kunstpakken satt sammen på riggen (de ekte bildene i public/assets, ikke testbilder):
-// - neven i armbildet havner i våpenleddet på alle figurer med malt arm, både i hvilestilling og med armen løftet
+// - neven i armbildet havner i våpenleddet på alle figurer med malt arm, både i hvilestilling, med armen løftet og med bøyd albue
 //   (armer fra ChatGPT henger ikke alltid rett ned, så riggen snur og skalerer dem etter neven)
 // - trekvart profil: våpenarmen sitter på den nære skulderen og dekker skulderplaten, hodet ligger bak overkroppen
 //   (foran ved langt skjegg), den fjerne armen synes på Thrugg, og hoggene når fram
@@ -92,17 +92,25 @@ const fist = await page.evaluate(({ ids, labels }) => {
     const ov = L.getOverride(id, 'arm') ?? (src ? L.getOverride(src, 'arm') : undefined);
     if (!ov?.hand || !def.weapon) continue;
     const worst = [];
-    for (const pose of [{}, { armF: 3.0, weapon: 0.1 }, { armF: 1.57, weapon: -1.57 }]) {
+    // Hvilestillingen (heltene med litt bøyd albue), armen løftet, armen fram og albuen kraftig bøyd
+    for (const pose of [{}, { armF: 3.0, weapon: 0.1 }, { armF: 1.57, weapon: -1.57 }, { armF: 1.2, elbowF: 1.4 }]) {
       const f = new L.Fighter(id, 'foe', { hp: 100, speed: 3 });
       f.rig.snap({ ...f.rig.pose, ...pose });
       f.rig.sync();
       f.rig.root.updateMatrixWorld(true);
       const mesh = f.rig.g.armF.children.find((c) => c.isMesh);
-      const pos = mesh.geometry.attributes.position;
-      // PlaneGeometry: hjørnene er øverst til venstre, øverst til høyre, nederst til venstre, nederst til høyre
-      const P = (i) => new T.Vector3(pos.getX(i), pos.getY(i), 0);
-      const tl = P(0), tr = P(1), bl = P(2);
+      // Armene er delt i ruter (for albuen): hjørnene er første og siste i øverste rad og første i nederste rad.
+      // En bøyd arm (bends.armF) har hvileposisjonene i rest, og neven dreies rundt albuen som underarmen.
+      const b = f.rig.bends?.armF;
+      const geo = mesh.geometry, prm = geo.parameters ?? { widthSegments: 1, heightSegments: 1 };
+      const arr = b ? b.rest : geo.attributes.position.array;
+      const P = (i) => new T.Vector3(arr[i * 3], arr[i * 3 + 1], 0);
+      const tl = P(0), tr = P(prm.widthSegments), bl = P((prm.widthSegments + 1) * prm.heightSegments);
       const p = tl.clone().add(tr.clone().sub(tl).multiplyScalar(ov.hand[0])).add(bl.clone().sub(tl).multiplyScalar(ov.hand[1]));
+      if (b && b.angle) {
+        const dx = p.x - b.e[0], dy = p.y - b.e[1], c = Math.cos(b.angle), sn = Math.sin(b.angle);
+        p.set(b.e[0] + dx * c - dy * sn, b.e[1] + dx * sn + dy * c, 0);
+      }
       mesh.localToWorld(p);
       const w = new T.Vector3();
       f.rig.g.weapon.getWorldPosition(w);
@@ -113,7 +121,7 @@ const fist = await page.evaluate(({ ids, labels }) => {
   }
   return res;
 }, { ids, labels });
-check('neven i armbildet havner i våpenleddet (under 0,03 enheter, tre poser)', requiredGrip.every((id) => Number.isFinite(fist[labels[id] ?? id]) && fist[labels[id] ?? id] < 0.03), fist);
+check('neven i armbildet havner i våpenleddet (under 0,03 enheter, fire poser, også med bøyd albue)', requiredGrip.every((id) => Number.isFinite(fist[labels[id] ?? id]) && fist[labels[id] ?? id] < 0.03), fist);
 
 // 2) Armene og hodet i trekvart profil (Tom: våpenarmen skal sitte ytterst, hodet og halsen bak overkroppen):
 // - våpenarmen dekker skulderplaten på den nære skulderen (venstre i bildet): midten og fire punkter rundt den er dekket

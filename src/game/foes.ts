@@ -82,6 +82,7 @@ export class Foe {
     const scale = (def.scale ?? 1) * rand(0.92, 1.08);
     this.f = new Fighter(def.char, 'enemy', { hp: def.hp * hpMul, speed: def.speed * rand(0.9, 1.1), tint, scale, poseMod: def.poseMod });
     this.f.label = def.name;
+    this.f.guard = !!def.guard;
     this.f.pos.set(x, 0, z);
     if (def.poise) this.givePoise(def.poise);
   }

@@ -310,13 +310,24 @@ varying vec3 vViewPos;
 varying vec3 vT;
 varying vec3 vB;
 varying vec3 vN;
+#ifdef BEND
+// Bøyd albue eller kne (gfx/rig.ts): hvor mye tegningen er dreid i planet ved dette hjørnet
+attribute float aRot;
+#endif
 void main() {
   vUv = uv;
   vec4 mv = modelViewMatrix * vec4(position, 1.0);
   vViewPos = mv.xyz;
   // Tegningens x og y i kamerarommet (speilvendt figur gir speilvendt x, som tegningen)
+  #ifdef BEND
+  // Underarmen og leggen er dreid rundt leddet, så relieffet må dreies med, ellers kommer lyset fra feil kant
+  float cr = cos(aRot), sr = sin(aRot);
+  vT = mat3(modelViewMatrix) * vec3(cr, sr, 0.0);
+  vB = mat3(modelViewMatrix) * vec3(-sr, cr, 0.0);
+  #else
   vT = mat3(modelViewMatrix) * vec3(1.0, 0.0, 0.0);
   vB = mat3(modelViewMatrix) * vec3(0.0, 1.0, 0.0);
+  #endif
   vN = normalMatrix * vec3(0.0, 0.0, 1.0);
   gl_Position = projectionMatrix * mv;
 }`;
@@ -405,8 +416,11 @@ void main() {
   #include <colorspace_fragment>
 }`;
 
-/** Materiale for en figurdel. Uniformnavnene map, tint, flash, flashColor og opacity brukes av riggene. */
-export function charMaterial(tex: THREE.Texture, relief: THREE.Texture | null, tint = 1) {
+/**
+ * Materiale for en figurdel. Uniformnavnene map, tint, flash, flashColor og opacity brukes av riggene. bend gir
+ * skyggeleggeren for bøyde armer og bein (geometrien må ha attributtet aRot, se Rig.limbBend).
+ */
+export function charMaterial(tex: THREE.Texture, relief: THREE.Texture | null, tint = 1, bend = false) {
   const uniforms = {
     ...THREE.UniformsUtils.clone(THREE.UniformsLib.lights),
     ...charUniforms,
@@ -425,6 +439,7 @@ export function charMaterial(tex: THREE.Texture, relief: THREE.Texture | null, t
     side: THREE.DoubleSide,
     alphaToCoverage: true,
     transparent: false,
+    ...(bend ? { defines: { BEND: '' } } : {}),
   });
   // Skyggepasset i three.js alfatester med material.map (og 0.5 når alphaToCoverage er på), så figurene
   // kaster skygge med riktig omriss når meshet har castShadow
