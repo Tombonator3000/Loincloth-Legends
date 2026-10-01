@@ -1,5 +1,19 @@
 # todo.md
 
+## Retning fra ChatGPT-samtalen (forslag som venter på Tom, 2026-10-01)
+Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og Mystara som inspirasjon. Vurderingen står i log.md 2026-10-01.
+- [ ] Tom: historien. Beholde prinsesse Amberly som målet og bruke Solhjertet som grunnen til jungelen (Vorthax trenger kongelig blod for å vekke hæren), eller ta inn ChatGPTs versjon
+- [ ] Tom: kartet. Sumpen og frosten åpne i valgfri rekkefølge etter jungelen (anbefalt nå), eller ekte veivalg der man bare spiller den ene
+- [ ] Bøy i albue og kne: prøv på Thrugg på brett 1 (planet delt i flere ruter med bøy i riggen, eller egne bilder for nøkkelstillinger) før det bestilles nye deler. I dag er hver arm og hvert bein ett plan som bare roteres (gfx/rig.ts)
+- [ ] Grepet krever en åpning (fienden vakler eller er svimmel) for tøffere fiender, små fiender gripes som før. Henger sammen med spørsmålet om AUTO_GRAB under Menyene
+- [ ] Vorthax synlig på brettene før tårnet: ordrer, fangetransport på brett 1, en statue han holder tale gjennom (kulisse med react og stemme). I dag finnes han bare i replikker
+- [ ] Jungelbrett mellom brett 1 og sumpen (skillen new-level): tempelgård, elv med ruinby, soltempel. Grep: hengende steinvekt (som istappene), søyle som velter og blir bro (som fyrfatet), kjøttetende plante som varsler før den glefser (ny fare). Teksturer og kulisser bestilles med KULISSE-BLOKKEN først
+- [ ] Utstyr som endrer handlingene, to eller tre ting som gjenbruker effekter vi har: oljeflaske (glør og brann), ring (tordenmagien), kastedolk (kultistenes dolk). Må passe på de tre knappene
+- [ ] Flere mannekropper blant fiender og rivaler (tung og hårete bryter, kompakt veteran med brukket nese, forfengelig arenahelt), se også kroppstypene under Neste
+- [ ] Kameraet trekker seg litt bakover når to spillere går fra hverandre (slik `Stage.camPull` gjør for kjemper)
+- [ ] Sluttkampen i faser (hæren, Vorthax med skjold og søyler, en siste desperat fase), sammen med runde E og skjelettvaktene fra Golden Axe
+- [ ] Se på brett 1 om de nesten fotorealistiske figurene og de malte miljøbildene ser ut som samme spill
+
 ## Plan: brettverksted, gørr, AI og teksturer (fra 2026-09-30 15:54, docs/PLAN_BRETT_GORR_AI.md)
 - [x] Blodråper i lufta, gnister og sjokkbølger var usynlige (speilvendte partikler i GLOW_VERT). Rettet, med ny test tools/tests/particles.mjs
 - [x] Plan med editor, lag, rekvisitter, Morbidium-animasjon, gørr, AI (moderne Golden Axe-kloner), teksturer og andre forbedringer
