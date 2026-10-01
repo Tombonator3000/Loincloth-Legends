@@ -32,6 +32,8 @@ await page.evaluate(() => {
       for (const f of s.foes) f.f.remove();
       s.foes = []; s.hazards = []; s.tippables = [];
       s.camX = center; s.camPull = 0;
+      g.camera.zoom = 1;
+      g.camera.updateProjectionMatrix();
       g.camera.position.set(center, 3.6, g.camera.aspect < 1.2 ? 15 : 11.4);
       g.camera.lookAt(center, 1.8, 0);
       g.camera.updateMatrixWorld();
@@ -59,15 +61,17 @@ await page.evaluate(() => {
       const g = window.__game, s = g.scene.stage;
       g.input.keys.clear();
       for (const key of keys) g.input.keys.add(key);
-      let worst = 0, step = 0, pull = s.camPull;
+      let worst = 0, step = 0, pull = s.camPull, requestedZoom = 1, renderedZoom = 1;
       for (let i = 0; i < Math.round(seconds * 60); i++) {
         g.tick(1 / 60, false);
         worst = Math.max(worst, this.projected());
         step = Math.max(step, Math.abs(s.camPull - pull));
         pull = s.camPull;
+        requestedZoom = Math.max(requestedZoom, window.__lib.screenFX.camZoom);
+        renderedZoom = Math.max(renderedZoom, g.camera.zoom);
       }
       g.input.keys.clear();
-      return { pull, step, worst, camX: s.camX, z: g.camera.position.z, halfW: s.halfW, xs: s.heroes.filter((h) => h.f.alive).map((h) => h.f.pos.x) };
+      return { pull, step, worst, requestedZoom, renderedZoom, camX: s.camX, z: g.camera.position.z, halfW: s.halfW, xs: s.heroes.filter((h) => h.f.alive).map((h) => h.f.pos.x) };
     },
   };
 });
@@ -79,13 +83,13 @@ const solo = await page.evaluate(() => {
   s.heroes[0].f.pos.x = 37;
   const expectedHalf = Math.tan(g.camera.fov * Math.PI / 360) * g.camera.position.z * g.camera.aspect * 0.93;
   g.tick(1 / 60, false);
-  return { half: s.halfW, expectedHalf, x: s.camX, expectedX: 36 + (38.5 - 36) * 4 / 60, pull: s.camPull, z: g.camera.position.z };
+  return { half: s.halfW, expectedHalf, x: s.camX, expectedX: 36 + (38.5 - 36) * 4 / 60, pull: s.camPull, z: g.camera.position.z, zoomLimit: s.coopZoom(1.16) };
 });
-check('1P beholder kamerabredde, fremovermål og normalavstand', Math.abs(solo.half - solo.expectedHalf) < 1e-8 && Math.abs(solo.x - solo.expectedX) < 1e-8 && solo.pull === 0 && solo.z === 11.4, solo);
+check('1P beholder kamerabredde, fremovermål, normalavstand og kameradykk', Math.abs(solo.half - solo.expectedHalf) < 1e-8 && Math.abs(solo.x - solo.expectedX) < 1e-8 && solo.pull === 0 && solo.z === 11.4 && solo.zoomLimit === 1.16, solo);
 
 for (const [name, width, height] of [['wide', 1280, 720], ['narrow', 420, 900]]) {
   await page.setViewportSize({ width, height });
-  await page.waitForFunction(({ w, h }) => Math.abs(window.__game.camera.aspect - w / h) < 0.01, { w: width, h: height });
+  await page.waitForFunction(({ w, h }) => Math.abs(window.__game.camera.aspect - w / h) < 0.01, { w: width, h: height }, { polling: 100 });
   const close = await page.evaluate(() => {
     const T = window.__cameraTest;
     T.setup(true);
@@ -110,12 +114,23 @@ for (const [name, width, height] of [['wide', 1280, 720], ['narrow', 420, 900]])
     return { before, after: { pull: s.camPull, x: s.camX, z: g.camera.position.z } };
   });
   check(`${name}: pause fryser kameraets uttrekk`, JSON.stringify(pause.before) === JSON.stringify(pause.after), pause);
+  const dive = await page.evaluate(() => {
+    window.__lib.screenFX.dive(0.16, 1.2);
+    return window.__cameraTest.run(2, ['KeyA', 'ArrowRight']);
+  });
+  check(`${name}: sjefens kameradykk kutter ikke av heltene ved kanten`, dive.requestedZoom > 1.14 && dive.worst < 0.99, dive);
+  check(`${name}: ønsket dykk beholdes mens tegnet zoom begrenses`, dive.renderedZoom < dive.requestedZoom - 0.03, dive);
   const returned = await page.evaluate(() => {
     const g = window.__game, s = g.scene.stage;
     s.heroes.forEach((h, i) => { h.f.pos.x = s.camX - 0.6 + i * 1.2; h.f.vel.set(0, 0, 0); });
     return window.__cameraTest.run(6);
   });
   check(`${name}: kameraet går tilbake når heltene samles`, returned.pull < 0.02 && returned.worst < 0.99, returned);
+  const roomForDive = await page.evaluate(() => {
+    window.__lib.screenFX.dive(0.16, 1.2);
+    return window.__cameraTest.run(1);
+  });
+  check(`${name}: dykket får full styrke når begge heltene har plass`, roomForDive.requestedZoom > 1.14 && Math.abs(roomForDive.requestedZoom - roomForDive.renderedZoom) < 0.001 && roomForDive.worst < 0.99, roomForDive);
 }
 
 // Døde helter skal ikke trekke kameraet ut, mens kjempene fortsatt får plass.

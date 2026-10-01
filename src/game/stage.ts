@@ -74,6 +74,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   halfW = 9;
   /** 0..1: felles, begrenset uttrekk for kjemper og to levende helter som sprer seg (app/game.ts). */
   camPull = 0;
+  private cameraProbe = new THREE.Vector3();
   lockX: number | null = null;
   waveIdx = 0;
   wave: WaveDef | null = null;
@@ -251,6 +252,33 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   onScreen(x: number, margin: number) {
     return x > this.camX - this.halfW - margin && x < this.camX + this.halfW + margin;
   }
+
+  /**
+   * Siste kamerakontroll etter screenFX.update: et nytt kameradykk kan komme etter bevegelsesgrensene ble satt.
+   * Behold ønsket dykk i screenFX, men bruk bare den delen som fortsatt lar begge levende heltene være i bildet.
+   * Figurenes posisjoner og vanlige spillergrenser endres ikke av en filmatisk zoomeffekt.
+   */
+  coopZoom(requested: number) {
+    const alive = this.heroes.filter((h) => h.f.alive);
+    if (alive.length < 2) return requested;
+    const cam = W.camera;
+    cam.updateMatrixWorld();
+    let extent = 0;
+    // FX.update demper ristingen etter dette kallet. Nåværende amplitude er derfor en trygg øvre grense.
+    const shake = Math.min(1.2, Math.max(0, W.fx.shakeAmt)) ** 2 * 0.6;
+    for (const h of alive) {
+      const f = h.f;
+      const half = COOP_CAM.bodyHalf * f.size + shake;
+      for (const dx of [-half, half]) for (const y of [-shake, COOP_CAM.headY * f.size + shake]) {
+        this.cameraProbe.set(f.pos.x + dx, f.pos.y + y, f.pos.z).project(cam);
+        extent = Math.max(extent, Math.abs(this.cameraProbe.x), Math.abs(this.cameraProbe.y));
+      }
+    }
+    // Projeksjonen ovenfor inneholder forrige frames zoom. Ta den ut før neste frames zoom begrenses.
+    const fit = extent > 0 ? COOP_CAM.zoomEdge * cam.zoom / extent : requested;
+    return Math.min(requested, Math.max(1, fit));
+  }
+
   addsAlive() {
     return this.foes.filter((f) => f.f.alive && f.def.behavior !== 'runner').length;
   }

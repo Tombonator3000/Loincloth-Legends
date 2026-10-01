@@ -21,6 +21,9 @@ export const COOP_CAM = {
   headY: 3.0,
   edge: 0.94,
   bodyPad: 0.8,
+  /** Kroppsboks og bildekant for siste zoomkontroll, etter at skjermeffektene er oppdatert. */
+  bodyHalf: 0.6,
+  zoomEdge: 0.96,
   /** Litt rom utover kroppene utløser uttrekket før en helt møter bildekanten. */
   anticipation: 1.2,
 };

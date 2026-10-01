@@ -1030,8 +1030,9 @@ export class Game {
     // Kameradykket settes før teksten plasseres, så flytende tekst følger bildet.
     screenFX.update(this.paused ? 0 : realDt, cam);
     this.post.update(this.paused ? 0 : realDt);
-    if (cam.zoom !== screenFX.camZoom) {
-      cam.zoom = screenFX.camZoom;
+    const desiredZoom = this.scene instanceof StageScene ? this.scene.stage.coopZoom(screenFX.camZoom) : screenFX.camZoom;
+    if (cam.zoom !== desiredZoom) {
+      cam.zoom = desiredZoom;
       cam.updateProjectionMatrix();
     }
     this.fx.update(this.paused ? 0 : realDt, cam, this.width, this.height,
