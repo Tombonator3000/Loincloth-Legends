@@ -7,6 +7,7 @@ import { FX } from '../gfx/fx';
 import { buildArena, type Env } from '../gfx/env';
 import { HUD } from '../ui/hud';
 import { Screens, type Item, type ControlsPage } from '../ui/screens';
+import { showCredits } from '../ui/credits';
 import { TouchControls } from '../ui/touch';
 import { Splash, wantSplash } from '../ui/splash';
 import { settings, setSettings, onSettings, touchEnabled, GORE_NAMES, GORE_HINTS, QUALITY_SETTINGS, QUALITY_HINTS, type GoreLevel, type TouchMode, type QualitySetting } from '../core/settings';
@@ -530,8 +531,9 @@ export class Game {
       { label: 'SOUND', more: true, hint: 'MUSIC, THE BAND AND THE CRUNCHES', action: () => this.showSettingsGroup('sound', () => again(2)) },
       { label: 'SCREEN', more: true, hint: 'GRAPHICS, FULLSCREEN, SHAKE AND FLASHES', action: () => this.showSettingsGroup('screen', () => again(3)) },
       { label: 'CONTROLS', more: true, hint: 'KEYS, MOVES, RUMBLE AND TOUCH', action: () => this.showControls(() => again(4)) },
+      { label: 'CREDITS', more: true, hint: 'THE PEOPLE, SOUND AND OPEN-SOURCE CREDITS', action: () => showCredits(this.screens, () => again(5)) },
     ];
-    if (this.scene.name === 'title') items.push({ label: 'ERASE SAVE', hint: 'ALL PROGRESS AND HEROES. NO TAKEBACKS.', action: () => this.confirmReset(() => again(5)) });
+    if (this.scene.name === 'title') items.push({ label: 'ERASE SAVE', hint: 'ALL PROGRESS AND HEROES. NO TAKEBACKS.', action: () => this.confirmReset(() => again(6)) });
     items.push({ label: 'BACK', action: onBack });
     this.screens.custom(`<div class="panel settings"><h2>OPTIONS</h2><ul class="menu rows"></ul></div>`, items, sel, onBack);
   }
@@ -1014,6 +1016,9 @@ export class Game {
     const simDt = this.paused ? 0 : this.fx.hitstop > 0 ? 0 : realDt * this.fx.timeScale;
     W.time += simDt;
     wind.update(simDt);
+    // Spillmeldinger følger pause, treffstopp og slowmo. Nye meldinger fra scene.update
+    // får hele levetiden sin fra neste bilde; menyer beholder sin egen sanntidsklokke.
+    this.hud.update(blocked ? 0 : simDt);
     if (!this.paused && !blocked) this.scene.update(simDt, realDt);
 
     const cam = this.camera;
@@ -1029,7 +1034,8 @@ export class Game {
       cam.zoom = screenFX.camZoom;
       cam.updateProjectionMatrix();
     }
-    this.fx.update(realDt, cam, this.width, this.height);
+    this.fx.update(this.paused ? 0 : realDt, cam, this.width, this.height,
+      blocked || this.scene !== sceneBefore ? 0 : simDt);
     // Skyggekartet tegnes ikke på nytt i pause (ingenting flytter seg), men én gang når tilstanden skifter
     const sm = this.renderer.shadowMap;
     if (sm.autoUpdate === this.paused) {

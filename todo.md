@@ -20,7 +20,7 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [ ] Jungelen: elv med ruinby, og søyler som blir bro over elva (fra idélista), er ikke laget
 - [ ] Utstyr som endrer handlingene, to eller tre ting som gjenbruker effekter vi har: oljeflaske (glør og brann), ring (tordenmagien), kastedolk (kultistenes dolk). Må passe på de tre knappene
 - [ ] Flere mannekropper blant fiender og rivaler (tung og hårete bryter, kompakt veteran med brukket nese, forfengelig arenahelt), se også kroppstypene under Neste
-- [ ] Kameraet trekker seg litt bakover når to spillere går fra hverandre (slik `Stage.camPull` gjør for kjemper)
+- [x] Kameraet trekker seg kontrollert bakover når to levende spillere går fra hverandre, med plass til kroppene ved fremre kant og samme maksimale uttrekk som kjemper (tools/tests/co-op-camera.mjs, 2026-10-01)
 - [x] Sluttkampen i faser: skjelettvakter med dør som skjold reiser seg av gulvet, Vorthax bak skjold fra tre søyler, faser, Solhjertet (tools/tests/finale.mjs)
 - [x] Sjefer i faser ved 66 og 33 prosent: måltidet (Hogmother), dykket (Croakus), lavasporet (Magmor), speilbildene og solstrålen (Vorthax), vinduer etter store trekk og røde trekk (tools/tests/bossphases.mjs)
 - [ ] Tom: spill sluttkampen og si fra om den er for lett eller for vond (skjoldet, søylene, solstrålen)
@@ -43,7 +43,7 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [x] Miljøpakken satt sammen: seks sett med målte festepunkter (lykt i kroken og flamme på veken, fakkel, veggfakkel, bål, banner, eik), deler som henger på en annen del (`on`), bevegelse (WAVE, SWING, SWAY, FLICKER med lys, PULSE, REACT), flammer som lyser selv (`emit`, SELF-LIT i editoren), og ankere flyttet til der tingen står
 - [x] Spillet henter bare kulissebildene brettene bruker (28 av 52 på brett 1), editoren resten (`loadPropImages`)
 - [x] Murene og gravene på de andre brettene (Tom 2026-09-30): gravplass i sumpen (også ute i vannet), steinmur, gravplass, borgruin og borgmur fram til porten i frosten, nedbrente teglmurer og borgruin i Scorchlands, ras og krypt i tårnet, liten gravplass i nattleiren. Farge per brett med tint
-- [ ] Porten (`env_palisade_gate`), alteret, steinblokka og den falne stokken er ikke brukt på noe brett ennå
+- [x] Portbladene er satt i palisadeåpningen på brett 1; alteret, steinblokka og den falne stokken står ved tempelglennen i jungelen (tools/tests/scenery-reuse.mjs, 2026-10-01)
 - [x] Genererte eiker som dekket kameraet i nattleiren (x 34,5) og på brett 1 (x 55), flyttet bak kampbeltet i env/night.ts og env/grass.ts (2026-10-01). Før/etter-bildene er visuelt kontrollert
 - [x] Varig alfagjenkjenning i process_art.py: eksisterende alfa bevares uten prosentgrense; hjelpelinjer behandles separat. Seks Python-regresjoner bestått (2026-10-01)
 - [ ] Tom: si om rekkefølgen passer (A, B, C, D, E), eller om AI del 1 (D) skal før editoren (C)
@@ -63,7 +63,13 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [ ] Senere i editoren: gjøre en generator om til enkeltkulisser («bake inn»), `solid` og `breakable` på kulisser, InstancedMesh for lange rader hvis det blir tungt
 - [ ] Sporformatet (track) på riggens stillinger: angrep i flere faser og dødsanimasjoner som data (runde A eller E)
 - [ ] Runde D: AI del 1 (én plass per side, ytre ring, rettferdighet, felles varsling `tell`/`bark`, to spillere, målinger i ai.mjs)
-- [ ] Runde E: AI del 2 (tempostyring og budsjett, nye fiendetyper, grense for evige komboer, forsvar, sjefer i faser, vanskelighetsgrad, ridedyr)
+- [x] Runde E: AI del 2 er ferdig, se de tre avkryssede Runde E-punktene øverst og sjefene i faser. Dette var en gammel dobbeltføring
+
+## Todo-runde: spillbarhet og gjenbruk (2026-10-01)
+- [x] Gjennomgå siste main etter PR #7 og rydde gammel Runde E-dobbeltføring og utdatert nattleirbeskrivelse
+- [x] Implementere mobil-HUD, fortellerkontrast, co-op-kamera, spilltidsstyrt tekst, credits og sju eksisterende kulissedeler
+- [ ] Samlet nettleser- og bildekontroll i GitHub Actions for denne runden (todo-quality.yml); lokale bygg og statisk kulissekontroll er bestått
+- [ ] Tom: prøv lesbarhet og co-op-kamera på fysisk telefon og med to spillere
 
 ## Hero Forge: felles pool av malte deler (2026-09-30)
 - [x] Finn årsaken til at malte deler forsvant ved endring av preset; kontroller alle 143 grunnfiler
@@ -92,7 +98,7 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [x] Kontrollskjermen i tre sider (tastene, brettene, duellene) med tastetegn og gamepad-knapper i farger, "/ OR -" for spiller 2
 - [x] Tre spillknapper (angrep, hopp, spesial): grep og ridning ved å gå inn i fienden eller dyret, ned + hopp av dyret (tools/tests/buttons.mjs)
 - [ ] Tom: spill og si om grepet kommer for lett eller for tungt (i dag 0,12 s inntil fienden, AUTO_GRAB i game/grab.ts)
-- [ ] HUD-en: større og tydeligere tall og navn (livene, gullet og METAL-måleren er små)
+- [x] HUD-en: tydeligere navn, større liv-/gulltall og egen METAL-rad på smale skjermer. Egne felt for to spillere og duell (tools/tests/hud-layout.mjs, 2026-10-01)
 
 ## Ekte instrumenter i musikken (fra 2026-09-30 08:10)
 - [x] Trommer, gitar og bass fra Karoryfer (CC0) spilt av bandet, synth som reserve (tools/tests/instruments.mjs)
@@ -109,7 +115,7 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [x] Klippevegger med snø, fossefall med dis, taubro, ruiner, fyrfat med ild, lys og varmeflimmer, fillete krigsbannere med hornet hodeskalle, runesteiner i 3D (noen gløder), istapper, taugjerde, snø på steinene, snøføyke og tettere snøfall
 - [x] Trollets seks ChatGPT-deler (troll_*.webp). Kjempetrollet arver delene og får samme stil
 - [x] Krigsbanner som separate ChatGPT-bilder: `env_banner_pole` og `env_banner_cloth` er levert og importert gjennom `prop_`-kategorien (docs/ENVIRONMENT_PACK.md)
-- [ ] Plasser banneret (settet `env_banner_pole`) i frostpasset dersom det skal brukes der; innfesting og bevegelse er satt opp
+- [x] Banneret er plassert i frostpasset ved x 68,2, med duk festet til stangen og eksisterende bevegelse (tools/tests/scenery-reuse.mjs, 2026-10-01)
 - [x] Gameplay fra bildet: kast fiender i juvet (opp + kast), istapper som faller, fyrfat som kan veltes med glør og brann, kjempen griper og kaster helter, panikk (tools/tests/frostplay.mjs)
 - [x] Fiender som rygget ut av bildet og var for raske: rygger på halv fart og blir i bildet (Tom meldte fra)
 - [x] Heltene og ridedyrene stopper foran taugjerdet ved juvet, ikke mellom gjerdet og stupet
@@ -126,9 +132,9 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [x] Automatisk grafikkvalitet, gjenoppretting av WebGL, ?perf, lyspool uten blinking, sårede drypper blod, SSAO lar lava lyse
 - [x] Bildeverktøy og maler for ChatGPT, fiendevariasjon, kreditering (README, public/LICENSES, THIRD_PARTY_LICENSES.md)
 - [ ] Tom: lytt på musikken og lydene på ekte høyttalere og si hva som skal justeres
-- [x] Ro mellom bølgene: musikken trekker seg tilbake og miljølyden kommer fram. Miljølag, bål/foss og dyrelyder har stereo/avstandsfilter, og pause demper miljøet (2026-10-01). Nettleserkontroll og lytting gjenstår
+- [x] Ro mellom bølgene: musikken trekker seg tilbake og miljølyden kommer fram. Miljølag, bål/foss og dyrelyder har stereo/avstandsfilter, og pause demper miljøet (2026-10-01). Nettleserkontroll bestått i Actions 36846244498. Lytting på ekte høyttalere gjenstår
 - [ ] Senere fra rapporten: seierslåt som slutter, romplassering av øvrige kamplyder, lava som flyter, varsel på bakken før angrep, fugleflokker og mose på steiner (fottrinn per underlag, sverdklang, publikum, ulv, krigshorn, snø på steiner og stemmemanus er gjort)
-- [ ] CREDITS-skjerm i spillet (src/data/credits.ts), så også enkeltfil-bygget bærer krediteringen
+- [x] CREDITS under OPTIONS, med studio, kode, alle 137 lydkilder og fire komplette MIT-tekster innebygd også i enkeltfil-bygget (tools/tests/credits.mjs, 2026-10-01)
 
 ## Work-runde: miljø, lyd og opprydding (2026-10-01)
 - [x] Implementert vandrende ildfluer/pollen, flagrende snø/aske og kompakt treffglimt i eksisterende GPU-pooler, med jevn kvalitetsreduksjon
@@ -141,8 +147,8 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [x] Åtte nettlesersuiter bestått og logger lest i GitHub Actions 36846244498. Lokal Chromium ble avvist; runtimekontrollen er fra GitHub-runneren
 - [x] Ti før/etter-bilder vurdert: fri sikt på road/nightcamp, nye jungelteksturer og lesbare figurer i Scorchlands. Ingen ny lesbarhetsregresjon funnet
 - [ ] Lytt på ro/kamp og miljødybde på ekte høyttalere; mål ytelsen på ekte telefon/GPU
-- [ ] Rett eksisterende mobil-HUD: METAL overlapper heltenavnet i smalt stående format
-- [ ] Gi fortellerteksten bedre kontrast mot forgrunnsgress, særlig i jungelen
+- [x] Mobil-HUD: METAL følger høyden på spillerpanelene i egen rad og overlapper ikke heltenavn ved smalt format (tools/tests/hud-layout.mjs)
+- [x] Fortellertekst har mørkere lokal bakgrunn, lysere tekst, større linjeavstand og plass utenfor berøringsknappene (tools/tests/hud-layout.mjs)
 
 ## Pågår: nesten ekte karikatur (Toms Valkyra-bilde, fra 2026-09-29 17:05)
 - [x] Ny tegneinstruks i docs/ART_PROMPTS.md: stil-blokk for nesten ekte karikatur, helfigur først, delene med helfiguren som referanse, HAIRBACK for langt hår, nye Thrugg- og Valkyra-prompter
@@ -202,7 +208,7 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [ ] Lytt gjennom metal-miksen på ekte høyttalere og juster (Tom)
 - [x] Gameplay-hyllest: tordenmagi (Golden Axe), sjonglering i lufta (Castle Crashers), B-film-replikker, nattleir med tyvnisser (Golden Axe)
 - [ ] Mer hyllest: Barbarian-hopp med flygende halshugging i duellene, hesteløp eller dragetur, sluttkamp med skjelettvakter som i Golden Axe
-- [ ] Nattleiren: tyvene burde snike seg inn mens heltene sover (i dag løper de bare forbi), og en egen sovepose-animasjon
+- [ ] Nattleiren: egen snikeanimasjon for tyvene og sovepose-animasjon for heltene. Heltene ligger allerede nede med ZZZ, og tyvene stjeler underveis
 
 ## Pågår
 - [ ] Lokalt: bytt ut den utpakkede mappen ~/Utvikling/Loincloth-Legends med en klone av repoet. Mappen har ikke git og har eldre utgaver av log.md, todo.md og memory.md, så den skal ikke pushes fra.
@@ -226,7 +232,7 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [ ] Vis tittelbilde og sjef-VS-kort fra assets
 - [ ] Kartlegg og rydd gjenværende miljø-/riggressurser ved mange scenebytter, med tydelig eierskap for delte geometrier/materialer. Prosjektiler og post-prosessering har egen opprydding fra Work-runden 2026-10-01; alle lekkasjer er ikke kartlagt
 - [ ] Flere rekvisitter inn i staticGroup (telt, bannere, bål, tårnets møbler) for enda færre tegnekall
-- [ ] Taleboblene og kunngjøringer bruker sanntid, ikke spilltid (merkes bare i slowmo)
+- [x] Talebobler, kunngjøringer og kombotekst følger spilltid, pause og treffstopp; gammel scenetekst ryddes ved overgang (tools/tests/caption-time.mjs, 2026-10-01)
 - [ ] Flere kroppstyper i heltebyggeren (dverg, halvtroll, sint gnome)
 - [ ] Opptil 4 spillere lokalt
 - [ ] Tastebinding og CRT-filter i innstillingene

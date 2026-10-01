@@ -21,7 +21,9 @@
     {"id":"p17","prop":"env_castle_wall_pillar","layer":"back","x":104.3,"z":-8.55,"tint":"#aab8d0"},
     {"id":"p18","prop":"env_castle_wall_breach","layer":"back","x":108.4,"z":-8.6,"flip":true,"tint":"#aab8d0"},
     {"id":"p19","prop":"env_castle_wall_pillar","layer":"back","x":112.5,"z":-8.55,"tint":"#aab8d0"},
-    {"id":"p20","prop":"env_castle_wall_straight","layer":"back","x":116.1,"z":-8.6,"tint":"#aab8d0"}
+    {"id":"p20","prop":"env_castle_wall_straight","layer":"back","x":116.1,"z":-8.6,"tint":"#aab8d0"},
+    {"id":"p21","prop":"env_banner_pole","layer":"back","x":68.2,"z":-5.85,"scale":1.1,"tint":"#bac8e0"},
+    {"id":"p22","prop":"env_banner_cloth","parent":"p21","layer":"back","x":68.41,"y":2.45,"z":-5.872,"scale":0.88,"tint":"#bac8e0"}
   ],
   "runs": []
 }

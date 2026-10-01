@@ -672,3 +672,12 @@ Tom ba ChatGPT Work hjelpe Claude med partikler, atmosfære, lyd, etterbehandlin
 - GitHub Actions 36846244498 besto alle steg: begge bygg, 254 bildefiler, seks alfa-tester, prosjektilressurser og åtte nettlesersuiter (post-quality, audio-depth, atmosphere, lifecycle, soundbank, particles, jungle, finale). 137 av 137 lydfiler ble dekodet; enkeltfilens syntreserve besto også.
 - Bildeartifakten ble lastet ned og kontrollsummen verifisert. Alle ti før/etter-bilder er åpnet; en uavhengig gjennomgang bekreftet fri sikt på road/nightcamp og lesbare figurer i jungelen. Ingen nye lesbarhetsfeil eller nettleser-/shaderfeil funnet i opptakene. Mobil-HUD-overlapp og svak kontrast på fortellertekst fantes før endringen og er ført som åpne oppgaver.
 - Tegnekall før/etter: road 261/261, nightcamp 122/120, jungle 280/280, scorch 194/193. Dette er fire kontrollerte opptak med SwiftShader, ikke en FPS-påstand om ekte maskinvare. Lytting og fysisk mobil-/GPU-test gjenstår. Måleresultatene er bevart i docs/review/world-quality-2026-10-01.json og overleveringen er oppdatert.
+
+## 2026-10-01 12:39 (Europe/Oslo)
+
+Tom ba om å sjekke todo og ta det som kan gjøres. Ny runde på main `012a97e`, etter innslått PR #7.
+
+- Implementert tydeligere HUD og fortellertekst, begrenset co-op-kamera, spilltidsstyrte meldinger, credits i begge bygg og gjenbruk av sju kulissedeler. Detaljer og beslutninger er ført i memory.md.
+- Ryddet gammel åpen Runde E-dobbeltføring, nettleserstatus for miljølyd og beskrivelsen av heltenes eksisterende sovestilling. Større kunstpakker, fiendebøy, stemmeopptak og fysisk spill-/lydtest står fortsatt åpne.
+- Lokalt bestått: typecheck, build, build:single, kunstkontroll av 254 filer og scenery-reuse. Alle nye nettlesersuiter kjøres i GitHub Actions; nettleserresultat og visuell godkjenning gjenstår foreløpig.
+- Nye tester: hud-layout, co-op-camera, caption-time, credits, scenery-reuse og seks faktiske spillbilder via todo-visuals. Ingen lokal Chromium-oppstart forsøkt på nytt etter forrige miljøavvisning.
