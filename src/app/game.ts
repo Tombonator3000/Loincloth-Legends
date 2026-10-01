@@ -30,7 +30,7 @@ import { EditorScene } from './scenes/editor';
 import { layoutFor } from '../data/layouts';
 import { loadPropImages, propImagesLoaded } from '../gfx/assets';
 import { DUELISTS, type DuelistDef } from '../data/duelists';
-import { MAP_NODES, type MapNode } from '../data/worldmap';
+import { MAP_NODES, stageName, type MapNode } from '../data/worldmap';
 import { loadSave, writeSave, defaultSave, type SaveData } from './save';
 import type { Scene } from './scene';
 import { CreatorScene } from './scenes/creator';
@@ -140,8 +140,11 @@ class StageScene implements Scene {
       game.save.supplies = { lives: 0, potions: 0 };
       game.persist();
     }
-    // Spilldata fra brettfila (bølger, tønner, farer, ryttere) går foran levels.ts
-    const level = levelWithLayout(LEVELS[levelId], layoutFor(levelId));
+    // Spilldata fra brettfila (bølger, tønner, farer, ryttere) går foran levels.ts. Brettnummeret følger rekkefølgen
+    // spilleren har tatt brettene i (sumpen og frosten kan tas i valgfri rekkefølge)
+    const base = levelWithLayout(LEVELS[levelId], layoutFor(levelId));
+    const node = MAP_NODES.find((m) => m.level === levelId);
+    const level = node ? { ...base, name: stageName(node.id, game.save.completed, base.name) } : base;
     this.stage = new Stage(game.hud, level, cfgs, game.input.players, [game.progressOf(0), game.progressOf(1)], sup);
     // Testspill fra brettverkstedet: start der kameraet sto
     if (startX !== undefined) this.stage.startAt(startX);
@@ -802,7 +805,8 @@ export class Game {
         const [k, i] = u.split(':');
         lines.push(['HERO FORGE', 'UNLOCKED: ' + (HERO_OPTIONS[k as keyof typeof HERO_OPTIONS]?.[Number(i)] ?? u)]);
       }
-      const newly = MAP_NODES.filter((m) => !s.completed.includes(m.id) && m.requires.includes(n.id));
+      // Bare steder som faktisk ble åpnet nå (Scorchlands krever både sumpen og frosten)
+      const newly = MAP_NODES.filter((m) => !s.completed.includes(m.id) && m.requires.includes(n.id) && m.requires.every((r) => s.completed.includes(r)));
       if (newly.length) lines.push(['CARTOGRAPHER', 'NEW PLACES TO RUIN: ' + newly.map((m) => m.name).join(', ')]);
     }
     s.gold += W.stats.gold;

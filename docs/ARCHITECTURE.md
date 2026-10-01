@@ -310,7 +310,7 @@ Legg til en `LevelDef` i `data/levels.ts`. Kulissene legges i `data/layouts/<id>
 Legg en `ShopItem` i `SHOP` (`data/progress.ts`). Nye typer (`ShopKind`) trenger en linje i `buy()` og `stock()` i `app/camp.ts`.
 
 ### Ny kartnode
-Legg til en `MapNode` i `data/worldmap.ts` (posisjon, krav, belønning) og en kant i `MAP_EDGES`. Arena-noder peker på en duellant.
+Legg til en `MapNode` i `data/worldmap.ts` (posisjon, krav, belønning) og en kant i `MAP_EDGES`. Arena-noder peker på en duellant. Alle nodene i `requires` må være klart før noden åpner. Hovedveien står i `MAIN_ROUTE`, der en liste inni lista er brett som kan tas i valgfri rekkefølge (sumpen og frosten), og `stageName()` gir brettnummeret ut fra rekkefølgen brettene ble klart i (`save.completed`). Kartet og `StageScene` bruker det, og `name` i `LevelDef` er bare reserven. Kartografen melder bare steder som faktisk ble åpnet. Test: `tools/tests/route.mjs`.
 
 ### Ny duellant
 Legg til en `DuelistDef` i `data/duelists.ts`. `char: '@player'` gir en ond tvilling av spillerens helt. `after` gir replikker etter seieren når duellen er finalen på et brett (`finale: { type: 'duel' }`).

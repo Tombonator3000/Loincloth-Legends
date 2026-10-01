@@ -34,6 +34,8 @@ import { Scenery, expandRun, trackValue } from '../gfx/scenery';
 import { withSeed, hashSeed, random } from '../core/math';
 import { LEVELS } from '../data/levels';
 import { forgeState } from './scenes/editor';
+import { MAP_NODES, MAP_EDGES, MAIN_ROUTE, stageName } from '../data/worldmap';
+import { nodeOpen } from './scenes/map';
 
 export function installDebug() {
   (window as unknown as { __lib: unknown }).__lib = {
@@ -45,5 +47,6 @@ export function installDebug() {
     HERO_SKIN_REGIONS, HERO_APPEARANCE_LAYOUTS, getAppearanceAsset, purgeChar, headImage,
     LAYOUTS, layoutFor, setUnsavedLayout, validateLayout, levelWithLayout, layoutToJson, emptyLayout, LAYERS, LEVELS,
     allProps, propKind, propIds, imageKind, Scenery, expandRun, trackValue, withSeed, hashSeed, random, forgeState,
+    MAP_NODES, MAP_EDGES, MAIN_ROUTE, stageName, nodeOpen,
   };
 }

@@ -49,11 +49,13 @@ Castle Crashers-inspirert 3D-kart over en øy. Heltene (og kjæledyrene) går la
 | The Swamp of Moist Regret | Brett | Sump | Jungle | Sjef: King Croakus | Krone |
 | The Mirror Pool | Arena (valgfri) | Sump | Swamp | Duell: Dark You (ond tvilling) | Wizard Blue hårfarge |
 | The Night Camp | Brett (valgfritt) | Natt | Jungle | Overlev til daggry (tyvnisser) | Gull, krukker til neste brett |
-| Frostbite Pass | Brett | Frost | Swamp | **Duell i stedet for sjef**: Frostjarl Kaldor | Great Helm, Frost Blue hud |
+| Frostbite Pass | Brett | Frost | Jungle | **Duell i stedet for sjef**: Frostjarl Kaldor | Great Helm, Frost Blue hud |
 | The Trough of Honour | Arena (valgfri) | Frost | Frost | Duell: Sir Oinksalot | Gull |
-| The Scorchlands | Brett | Vulkan | Frost | Sjef: Magmor the Molten | Gull |
+| The Scorchlands | Brett | Vulkan | Swamp og Frost | Sjef: Magmor the Molten | Gull |
 | The Bone Coliseum | Arena (valgfri) | Vulkan | Scorch | Duell: Bonejangles | Spiked Club |
 | Tower of Moderate Evil | Brett | Tårn | Scorch | Sjef: Vorthax | Slutten |
+
+**Valgfri rekkefølge** (Tom 2026-10-01): etter jungelen kan sumpen og frostpasset tas i den rekkefølgen spilleren vil, men begge må klares før Scorchlands åpner. Brettnummeret følger rekkefølgen: det første av de to heter STAGE 3, det andre STAGE 4, både på kartet og når brettet starter.
 
 **Jungelen** (brett 2) ligger mellom brett 1 og sumpen. Prinsessen er fortsatt målet. Jungelen gir en grunn til å gå omveien: Vorthax har stjålet Solhjertet fra Soltempelet, og amazonene tror heltene er tyvene. Brettet ender i en duell mot dronning Zanthra over tempelet. Etter seieren viser amazonene heltene lappen Vorthax la igjen på sokkelen (IOU), og fortelleren knytter det til tårnet: Solhjertet er der, og prinsessen også.
 

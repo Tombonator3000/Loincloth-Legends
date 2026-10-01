@@ -7,7 +7,7 @@ import { Fighter } from '../../game/fighter';
 import { buildWorldMap } from '../../gfx/env/worldmap';
 import { buildHeroDef } from '../../gfx/chars/hero';
 import { registerChar } from '../../gfx/chars';
-import { MAP_NODES, MAP_EDGES, nodeById, type MapNode } from '../../data/worldmap';
+import { MAP_NODES, MAP_EDGES, nodeById, stageName, type MapNode } from '../../data/worldmap';
 import { LEVELS } from '../../data/levels';
 import { BOSSES } from '../../data/bosses';
 import { DUELISTS } from '../../data/duelists';
@@ -85,7 +85,7 @@ export class MapScene implements Scene {
     let extra = '';
     if (n.kind === 'level' && n.level) {
       const lv = LEVELS[n.level];
-      kind = lv.name;
+      kind = stageName(n.id, s.completed, lv.name);
       const f = lv.finale;
       extra = f.type === 'boss' ? 'BOSS: ' + (BOSSES[f.boss]?.name ?? '?') : f.type === 'duel' ? 'DUEL TO THE DEATH: ' + (DUELISTS[f.duelist]?.name ?? '?') : 'SURVIVE UNTIL DAWN';
     } else if (n.kind === 'arena' && n.duel) {

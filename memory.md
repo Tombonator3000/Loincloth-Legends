@@ -9,6 +9,7 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - 80-talls fantasy-klisjeer spilt rett, med humor og mange parodier, og over-the-top gore
 
 ## Beslutninger
+- 2026-10-01: Sumpen og frosten tas i valgfri rekkefølge etter jungelen, og begge må klares før Scorchlands. Brettnummeret følger rekkefølgen spilleren tar dem i (`MAIN_ROUTE` og `stageName()` i data/worldmap.ts), så `name` i LevelDef er bare reserven.
 - 2026-10-01: Jungelen er brett 2 (`jungle`, THE STEAMING JUNGLE). Vorthax har stjålet Solhjertet fra Soltempelet, men prinsessen er fortsatt målet; jungelen er omveien. Finalen er en duell mot dronning Zanthra (arena `temple`). Sumpen er STAGE 3, frosten STAGE 4 og Scorchlands STAGE 5.
 - 2026-10-01: Tom bestemte: prinsesse Amberly er fortsatt målet for historien (Solhjertet kan være grunnen til jungelen), sumpen og frosten får valgfri rekkefølge, og arbeidet tas i rekkefølgen bøy i albue og kne, grep som krever at tøffe fiender vakler, Vorthax på brett 1 til 4, jungelbrettet mellom brett 1 og sumpen, kartet, og sluttkampen i faser med runde E.
 - 2026-10-01: Tom (ChatGPT-samtale 30.09, lest med `tools/chatgpt_share.py`): beholde nesten ekte karikatur, et jungelbiom, en tydelig vei fram til sluttkampen mot Vorthax, og inspirasjon fra Dragon's Crown, bara, 80-tallsfantasy og Capcoms D&D-arkadespill (Tower of Doom, Shadow over Mystara). ChatGPTs kampanjeforslag (Solhjertet og en begravd hær, sump eller frost som veivalg) er ikke vedtatt. Vurderingen står i log.md 2026-10-01, valgene Tom må ta i todo.md.

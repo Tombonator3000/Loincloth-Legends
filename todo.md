@@ -4,6 +4,7 @@
 Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og Mystara som inspirasjon. Vurderingen står i log.md 2026-10-01.
 - [x] Tom: historien. Prinsesse Amberly er målet, Solhjertet kan være grunnen til jungelen (Tom 2026-10-01)
 - [x] Tom: kartet. Sumpen og frosten i valgfri rekkefølge etter jungelen (Tom 2026-10-01)
+- [x] Kartet: sumpen og frosten i valgfri rekkefølge, Scorchlands krever begge, brettnummeret følger rekkefølgen (tools/tests/route.mjs)
 - [x] Bøy i albue og kne på heltene (bend i CharDef, PB i game/attacks.ts, Rig.plant), tools/tests/bend.mjs
 - [ ] Tom: se på bøyen i spillet (gang, løp, slag, huk, spark, kne, hån) og si fra om vinkler som skal justeres (PB i game/attacks.ts, gangen i Fighter.animate)
 - [ ] Bøy på fiendene også: sjekk stillingene for skjelett, kultist, grisemann osv. og sett `bend: true` på dem som tåler det

@@ -590,3 +590,13 @@ Fjerde punkt fra Tom: jungelbrettet mellom brett 1 og sumpen.
 - Ny test `tools/tests/jungle.mjs` (11 av 11): planten spiser en kastet fiende, biter helten bare når den glefser (helten overlever), fiendene går rundt den, steinvekta knuser en fiende og skader helten uten å drepe ham og er oppe igjen etter en stund, og en søyle knuser tre fiender langs linja den faller. `vorthax.mjs` tar med jungelen (alle fem brettene har tale). `looks.mjs` og `scenarios.mjs` kjenner jungelen.
 - Kjørt: jungle.mjs, vorthax.mjs (jungelen), looks.mjs jungle, scenarios levels jungle (duellen starter), scenarios map, metal.mjs jungle og stage, typecheck og build. Sett på bildene: brettet, planten som gaper, steinvekta, søylen på skrå over veien, tempelet i disen, kartet og duellen mot Zanthra.
 - Dokumentasjon: ARCHITECTURE (Jungelen, Ny fare, Nytt biom, Ny duellant, Nytt tre), GDD (kartet, biomene, duellene), STEMMER (fortelleren, Vorthax, Zanthra, nye fiender), tests/README.
+
+## 2026-10-01 08:47 (Europe/Oslo)
+Femte punkt fra Tom: sumpen og frosten i valgfri rekkefølge på kartet.
+- Kartet: sumpen og frosten krever begge jungelen, og Scorchlands krever begge (`requires` må alle være klart). Stiene går fra jungelen til begge og fra begge til Scorchlands. Teksten på kartet sier at rekkefølgen er valgfri (BEFORE OR AFTER THE PASS. YOUR CALL.).
+- Brettnummeret regnes ut fra rekkefølgen spilleren tar brettene i (`MAIN_ROUTE` og `stageName()` i data/worldmap.ts): det første av sumpen og frosten heter STAGE 3, det andre STAGE 4, på kartet og når brettet starter. Ellers ville frosten hett STAGE 4 selv om den var brett nummer tre. `name` i `LevelDef` er reserven (editoren bruker den).
+- Feil funnet underveis: kartografen meldte alle steder som krevde brettet man nettopp klarte, også de som fortsatt var låst. Med frosten først ville den ha meldt at Scorchlands var åpen. Nå meldes bare steder der alle kravene er klart.
+- Gamle lagringer: en som har klart sumpen, men ikke jungelen, må ta jungelen før frosten åpner. Ingen kan låse seg fast, siden jungelen bare krever brett 1.
+- Ny test `tools/tests/route.mjs` (16 av 16): hva som er åpent etter hvert steg, stiene, brettnumrene i begge rekkefølger, navnet når brettet starter (frosten først: STAGE 3, sumpen etterpå: STAGE 4), kartografen, og panelet på kartet. Sett på kartbildet.
+- Kjørt: route, story, progress, scenarios map, typecheck og build.
+- Dokumentasjon: GDD (kartet), ARCHITECTURE (Ny kartnode), tests/README.
