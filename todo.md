@@ -95,6 +95,7 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [x] Implementere mobil-HUD, fortellerkontrast, co-op-kamera, spilltidsstyrt tekst, credits og sju eksisterende kulissedeler
 - [x] Samlet nettleser- og bildekontroll bestått i GitHub Actions 36851983556 på kodecommit 9a42757: fem suiter, 20 HUD-kontroller og seks spillbilder. Mobil-HUD, credits, co-op og kulisser er visuelt kontrollert; målinger i docs/review/todo-quality-2026-10-01.json
 - [ ] Tom: prøv lesbarhet og co-op-kamera på fysisk telefon og med to spillere
+- [ ] HUD uten nettskriften (Google Fonts nås ikke, for eksempel offline eller i enkeltfil-bygget uten nett): THRUGG THE UNREASONABLE brekker midt i ordet over tre linjer (`overflow-wrap: anywhere` på `.pname`), og i liggende format med to spillere berører panelet pauseknappen. hud-layout.mjs feiler derfor lokalt i skymiljøet (landscape-2p), men er grønn i CI der skriften lastes. Vurder å legge skriftene i repoet
 
 ## Hero Forge: felles pool av malte deler (2026-09-30)
 - [x] Finn årsaken til at malte deler forsvant ved endring av preset; kontroller alle 143 grunnfiler
