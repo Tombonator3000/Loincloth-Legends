@@ -691,6 +691,30 @@ Tom ba ChatGPT Work hjelpe Claude med partikler, atmosfære, lyd, etterbehandlin
 - Bildeartifakten ble lastet ned og kontrollsummen verifisert. Alle ti før/etter-bilder er åpnet; en uavhengig gjennomgang bekreftet fri sikt på road/nightcamp og lesbare figurer i jungelen. Ingen nye lesbarhetsfeil eller nettleser-/shaderfeil funnet i opptakene. Mobil-HUD-overlapp og svak kontrast på fortellertekst fantes før endringen og er ført som åpne oppgaver.
 - Tegnekall før/etter: road 261/261, nightcamp 122/120, jungle 280/280, scorch 194/193. Dette er fire kontrollerte opptak med SwiftShader, ikke en FPS-påstand om ekte maskinvare. Lytting og fysisk mobil-/GPU-test gjenstår. Måleresultatene er bevart i docs/review/world-quality-2026-10-01.json og overleveringen er oppdatert.
 
+## 2026-10-01 12:39 (Europe/Oslo)
+
+Tom ba om å sjekke todo og ta det som kan gjøres. Ny runde på main `012a97e`, etter innslått PR #7.
+
+- Implementert tydeligere HUD og fortellertekst, begrenset co-op-kamera, spilltidsstyrte meldinger, credits i begge bygg og gjenbruk av sju kulissedeler. Detaljer og beslutninger er ført i memory.md.
+- Ryddet gammel åpen Runde E-dobbeltføring, nettleserstatus for miljølyd og beskrivelsen av heltenes eksisterende sovestilling. Større kunstpakker, fiendebøy, stemmeopptak og fysisk spill-/lydtest står fortsatt åpne.
+- Lokalt bestått: typecheck, build, build:single, kunstkontroll av 254 filer og scenery-reuse. Alle nye nettlesersuiter kjøres i GitHub Actions; nettleserresultat og visuell godkjenning gjenstår foreløpig.
+- Nye tester: hud-layout, co-op-camera, caption-time, credits, scenery-reuse og seks faktiske spillbilder via todo-visuals. Ingen lokal Chromium-oppstart forsøkt på nytt etter forrige miljøavvisning.
+
+## 2026-10-01 12:53 (Europe/Oslo)
+
+- PR #8 er opprettet som utkast: https://github.com/Tombonator3000/Loincloth-Legends/pull/8. Første kodecommit `78aecc5` besto alle fem fokuserte nettlesersuiter og seks spillopptak i Actions 36850828726.
+- Gjennomgangen fant at eksisterende sjefszoom kunne klippe en spiller ved ytterkanten i co-op. Rettet i `46683ed`: siste kameratrinn begrenser bare den tegnede zoomen når to levende helter trenger plassen; ønsket filmatisk zoom, bevegelsesgrenser og ettspiller beholdes. Ny nettleserkontroll av sjefszoom ved begge kanter bestått.
+- Visuell kontroll fanget en testmangel: ved 320 x 568 og lange navn kunne fortellertekst dekke HUD/METAL selv om testen var grønn. Dette rettes, og testen utvides med direkte overlappskontroll. Credits-opptaket i stående format må lukke spillets vanlige roteringsråd med et ekte trykk.
+- 2P-opptaket brukte startAt etter scenekonstruksjon uten å flytte kameraet først, slik at spillerne ble presset sammen i testoppsettet. Produksjonens StageScene-konstruktør flytter allerede kameraet etter startAt; editoren er ikke rammet. Opptaket justeres til samme rekkefølge og får krav om synlig avstand mellom heltene.
+
+## 2026-10-01 13:10 (Europe/Oslo)
+
+- Sluttversjonen i PR #8, kodecommit `9a42757`, er godkjent. Actions 36851983556 besto begge bygg, kunstkontroll, fem fokuserte suiter og seks faktiske spillbilder. Kontrollpunkter: HUD 20, kamera 26, tekstklokke 7, credits 42, kulisser 4 og spillbilder 28. Ingen rapporterte feil.
+- Actions 36851983543 besto hele eksisterende miljø-/lydrunden: post-quality, audio-depth, atmosphere, lifecycle, soundbank, particles, jungle og finale, deretter før/etter-opptak. Tidligere mellomversjoner ble automatisk avbrutt av nyere commits; de er ikke brukt som sluttbevis.
+- Endelige bilder fra den fokuserte kjøringen er åpnet og vurdert. På 320 x 568 har HUD og fortellertekst nå omtrent 58 px klaring. Begge heltene vises adskilt i ekte co-op-opptak: omtrent 248 px i stående format og 534 px i liggende. Credits i stående format har lesbar tekst og synlig navigering. Kulissene er synlige bak kampfeltet. Uavhengig bildevurdering fant ingen gjenstående blokkering.
+- Målinger og begrensninger er bevart i `docs/review/todo-quality-2026-10-01.json`. SwiftShader-opptak dokumenterer utsnitt og lesbarhet, ikke ytelse på fysisk GPU. Lytting, fysisk mobil/gamepad og balanse med mennesker gjenstår.
+- Todo er oppdatert med testreferanser. Neste større selvstendige oppgaver er opprydding av tydelig eide figur-/miljøressurser og egne jungelkulisser; nye stemmeopptak og Toms vurderinger står fortsatt åpne.
+
 ## 2026-10-01 13:19 (Europe/Oslo)
 Tom: «Når fiender blir delt i to løper underkroppen rundt og spruter blod. Kom også med forslag til andre håpløse og festlige gibs og splatter som er over the top, når hode klasker i skjermen og sklir ned må det komme splatt lyd og når den glir sakte nedover må den fades ut så den ikke blokkerer for lenge. Blodsporet etter hodet som sklir ned må se naturlig ut».
 - Todeling: underkroppen bruker samme løping som den hodeløse kyllingen (`headlessT`), med en fontene fra midjen og en tekst (LEGS DAY!, HALF-TIME!, THE LEGS DID NOT GET THE MEMO!, RUN, LEGS, RUN!). Begge legger blodflekker på bakken mens de løper. Bare fiender på brettene (`allowHeadless`), og bare når de står på bakken.

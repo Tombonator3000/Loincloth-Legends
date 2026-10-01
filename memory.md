@@ -177,7 +177,7 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - Albuer og knær (2026-10-01): `bend` i CharDef (alt fra `buildHeroDef`). Armer og bein er plan med 4 x 24 ruter; `Rig.limbBend` lager en egen kopi per figur som `sync()` bøyer, og `aRot` dreier relieffet i skyggeleggeren (`#define BEND`). Våpenet flyttes til den bøyde neven, men bladet beholder retningen `armF + weapon`. Tilleggene for heltene står i `PB` (game/attacks.ts) og legges på med `bentPose()`; fiendene bruker P uendret. `Rig.plant()` setter laveste fot eller kne på bakken når figuren står (`PLANTED` i fighter.ts), så `bodyY` virker bare på figurer uten bend. Leddene måles i bildet (`elbow`, `knee` i manifestet). Tester som setter en stilling med `snap()`, må ta med elbowF, elbowB, kneeF og kneeB hvis de vil ha rette ledd (ellers gjelder NEUTRAL).
 - Armer og bein er ikke lenger fire hjørner: kode som leser hjørnene i geometrien, må bruke `geometry.parameters` (se artcheck.mjs), og en bøyd figur har hvileposisjonene i `rig.bends.<lem>.rest`.
 - Grep (2026-10-01): `FoeDef.guard` (grisemannen, vakten, istrollet) gir motstand til fienden vakler (`offBalance` i game/grab.ts: `Fighter.staggerT` etter treff, svimmel, eller under en tredjedel av livet). `findGrab` gir `guarded`, `Stage.tryGrab` skyver helten unna med `resistGrab` og `Hero.grabPause`. To trykk på samme retningstast rett etter hverandre i en test gir løp, og en løpende helt griper ikke: vent litt mellom delene av en test.
-- Vorthax på brettene (2026-10-01): `LevelDef.vorthax` (`at`, `lines`), `Stage.updateVision` og `gfx/vision.ts`. Hodet henger på z -7,5 foran skogen; lenger bak forsvant det i tåka og bak trekronene. HUD-en beholder siste replikk mellom brett, så tester som leser `.say`, må sammenligne med replikkene til brettet.
+- Vorthax på brettene (2026-10-01): `LevelDef.vorthax` (`at`, `lines`), `Stage.updateVision` og `gfx/vision.ts`. Hodet henger på z -7,5 foran skogen; lenger bak forsvant det i tåka og bak trekronene. HUD-en tømmer siste replikk ved scenebytte fra todo-runden 2026-10-01; eldre tester må lese den nye scenens replikk.
 - Bakgrunnsoppgaver (dev-server og preview) stoppes etter 30 minutter som standard. Start serverne med `run_in_background` og `timeout` 7200000 når en lang testrunde skal kjøres.
 
 ## Work-runde 2026-10-01: miljø, lyd og ressurslevetid
@@ -195,3 +195,18 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - `.github/workflows/world-quality.yml` kjører nettlesertestene sekvensielt mot Vite dev og tar før/etter-bilder med `polish-visuals.mjs`. Artifakten inneholder logger, bilder og målinger. `atmosphere.mjs` bruker dev-importer og skal ikke kjøres mot bare dist. Et grønt bygg er ikke visuell eller hørbar godkjenning.
 
 - Visuell kontroll av Work-runden: road/nattleir har fri sikt etter flytting av eikene; jungelens nye steinvei passer inn og lar figurer/farer skilles fra bakgrunnen. Tegnekall var uendret eller litt lavere i fire opptak. Mobil-HUD-overlapp (METAL/navn) og svak kontrast på fortellertekst fantes også i baseline og er fortsatt egne åpne oppgaver.
+
+## Todo-runde 2026-10-01: HUD, kamera, tekst og kreditering
+
+- Bygger på main `012a97e` etter at PR #7 ble slått sammen. Egen kontrollflyt er `.github/workflows/todo-quality.yml`; begge lokale bygg og statiske kulissekontroller bestått, nettleser- og bildestatus føres i loggen etter Actions.
+- Mobil-HUD lar METAL følge spillerpanelene i normal flyt ved bredde opptil 1100 px. To spillere får egne rutenettfelt, liv og gull er minst 12 px, fortellerteksten har mørkere lokal bakgrunn og ligger utenfor berøringsknappene.
+- Co-op-kamera bruker eksisterende `Stage.camPull` mellom 0 og 1. Bare levende helter bidrar; geometrien måles ved kampbeltets fremre kant. Uttrekket kombineres med kjempebehov via maks, ikke addisjon. Én spiller beholder tidligere kameraregel.
+- HUD har ingen interval-klokke. `Game.tick` gir `HUD.update` spilltid før scenen oppdateres; `FX.update` får separat spilltid for verdenstekst og sanntid for skjermvirkninger. Pause, meny, treffstopp og scenebytte skal ikke spise neste replikk. `HUD.clear` tømmer gammel scenetekst.
+- CREDITS er en undermeny av OPTIONS, i fire seksjoner med sideskift og rullbart innhold. Lydkilder leses fra KILDER.md ved bygging; MIT-tekstene importeres som rå tekst. Alt følger enkeltfilen uten nettverk. Ikke lag en separat manuell liste over lydfilene.
+- Sju kulissedeler er lagt i JSON-layoutene: portblader på road, alter/steinblokk/stokk i jungle, stang/duk i frost. Ingen nye bilder eller manifestendringer; antallet er fortsatt 254.
+
+- Co-op og kameradykk: `Stage.coopZoom` kjøres etter `screenFX.update` og begrenser bare tegnet zoom fra faktisk projisert kroppsramme når to helter ellers klippes. Den ønskede effekten lagres uendret. Opptak som kaller `startAt` etter at StageScene er konstruert, må også synkronisere kameraet slik produksjonskonstruktøren gjør.
+
+- Sluttkontroll for todo-runden: Actions 36851983556 på `9a42757` besto HUD (20), kamera (26), tekstklokke (7), credits (42), kulisser (4) og spillbilder (28 kontrollpunkter i seks bilder). 320 x 568 har nå egen kompakt plassering uten overlapp; uavhengig bildevurdering bekreftet tydelige felt. Credits og begge heltene er synlige også i stående format. Evidens i `docs/review/todo-quality-2026-10-01.json`.
+
+- Eksisterende miljø- og lydregresjoner er også grønne på samme kodecommit: Actions 36851983543, åtte suiter og før/etter-opptak. Tidligere avbrutte mellomversjoner er ikke sluttbevis.
