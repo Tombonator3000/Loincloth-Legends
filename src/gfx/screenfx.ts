@@ -78,6 +78,7 @@ export class ScreenFX {
     this.dv.z = 1;
     this.wet.clear();
     this.wet.rain = 0;
+    this.wet.bloodRain = 0;
   }
 
   // ---------------------------------------------------------------- store øyeblikk

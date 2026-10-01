@@ -19,7 +19,7 @@ Repo: https://github.com/Tombonator3000/Loincloth-Legends. Spillet er fra Tom's 
 - Skriv dokumentasjon på norsk. Tekst i selve spillet er på engelsk (80-talls fantasy-stemning).
 
 ## Regler for koden
-- Nytt innhold legges inn som data (`src/data/`) og registre (`CHARS`, `BEASTS`, `STAGE_BUILDERS`, `FOES`, `BOSSES`, `DUELISTS`, `LEVELS`, `HAZARDS`, `MOUNTS`, `PETS`, `SHOP`, `MAP_NODES`). Unngå spesialtilfeller i motorkoden.
+- Nytt innhold legges inn som data (`src/data/`) og registre (`CHARS`, `BEASTS`, `STAGE_BUILDERS`, `FOES`, `BOSSES`, `DUELISTS`, `LEVELS`, `HAZARDS`, `MOUNTS`, `PETS`, `SHOP`, `MAP_NODES`, `SPELLS`, `CLASSES`). Unngå spesialtilfeller i motorkoden.
 - `src/data/` skal ikke importere Three.js.
 - Figurgrafikk tegnes prosedyremessig i `src/gfx/chars/`. PNG-er kan erstatte delene via `public/assets/manifest.json`.
 - Ikke legg inn opphavsrettsbeskyttede figurer, navn eller logoer. Alt skal være originalt.

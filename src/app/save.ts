@@ -1,5 +1,6 @@
 // Lagring av fremgang i localStorage. Alt er pakket i try/catch, så spillet virker også uten lagring.
-import { PRESETS, HERO_OPTIONS, cloneHero, withHeroParts, type HeroConfig } from '../gfx/chars/hero';
+import { PRESETS, HERO_OPTIONS, cloneHero, withHeroParts, withClassRules, type HeroConfig } from '../gfx/chars/hero';
+import { validAbilities } from '../data/classes';
 import { HERO_PARTS, HERO_PART_SLOTS, defaultHeroParts, findHeroPart, sanitizeHeroParts } from '../data/hero-parts';
 import { sanitizeHeroAppearance } from '../data/hero-appearance';
 import { PART_LOCKS } from '../data/unlocks';
@@ -51,7 +52,15 @@ function validProgress(p: unknown): HeroProgress {
   return out;
 }
 
+/** En helt fra lagringen, med klassens regler for våpen og magi (data/classes.ts) og et gyldig terningkast. */
 function validHero(h: unknown, fallback: HeroConfig, unlocked: string[], migrateLegacy: boolean): HeroConfig {
+  const out = validHeroLook(h, fallback, unlocked, migrateLegacy);
+  const ab = h && typeof h === 'object' ? validAbilities((h as Record<string, unknown>).abilities) : undefined;
+  if (ab) out.abilities = ab;
+  return withClassRules(out, (key) => !PART_LOCKS[key] || unlocked.includes(key));
+}
+
+function validHeroLook(h: unknown, fallback: HeroConfig, unlocked: string[], migrateLegacy: boolean): HeroConfig {
   if (!h || typeof h !== 'object' || Array.isArray(h)) return cloneHero(fallback);
   const o = h as Record<string, unknown>;
   const out = cloneHero(fallback);

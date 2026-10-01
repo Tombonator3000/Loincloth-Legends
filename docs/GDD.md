@@ -114,6 +114,16 @@ Etter halshugging kommer Cleanup Imp og **sparker hodet rett mot kameraet**. Det
 - **Hodeløs kylling**: noen halshuggede fiender løper rundt og spruter blod en stund før kroppen skjønner det.
 - **Beina har ikke fått beskjed**: når en fiende kuttes i to, flyr overkroppen, og underkroppen løper rundt og spruter blod fra midjen (LEGS DAY!, HALF-TIME!) før den faller. Begge etterlater et blodspor på bakken. Munnen fløy med overkroppen, så det blir ingen dødsreplikk.
 - **Miljødrap**: spiddet på staker, sugd ned i myra, frosset i råken, forkullet i lava, piggfelle i gulvet. Gir bonusgull og XP.
+- **I CAN STILL BITE!**: noen ganger gir ikke overkroppen opp. Den legger seg på magen, drar seg fram på armene mot nærmeste helt med innvollene på slep, og biter ham i ankelen. Ett slag tar den, ellers blør den ut etter noen sekunder (...TELL MY LEGS...).
+- **Hodet som baseball**: et hode som blir liggende på bakken, kan slås videre. Treffer det en fiende, er det HOME RUN!
+- **Shish kebab**: løpeslaget med sverd spidder opptil tre fiender på bladet. Helten går saktere med dem der, og neste slag rister dem av (SHISH KEBAB!).
+- **Blodregn**: når en sjef eller kjempetrollet sprenges, regner det blod over hele bildet og på glasset. En gnom tusler inn, slår opp paraplyen (I CAME PREPARED) og går igjen når det slutter.
+- **Glatte pytter**: store blodpytter er glatte til de tørker, og fiender som løper over, går på trynet (SLIP!).
+- **Skjelettxylofonen**: når et skjelett knuses, spiller beina en liten melodi, én tone hver gang et bein spretter.
+- **Siste ord**: hodet i skjermen sier én replikk i en snakkeboble før det sklir (WORTH IT, TELL MY MOTHER...).
+- **Tenner**: tunge slag i ansiktet slår ut tenner som sier pling når de spretter.
+- **Kjøttbiter på glasset**: sprenges noen nær kameraet, klistrer kjøttbiter seg på glasset og sklir ned med blodet.
+- **Ildimpene** smeller i en ildkule når de dør og setter fyr på alle som står for nær, også heltene.
 
 ## 9. Hero Forge (heltebygger)
 
@@ -134,9 +144,27 @@ CLASSIC BUILDER beholder de prosedyretegnede valgene nedenfor. Malt hår, hjelme
 | Bein | Fur Boots, Leather Boots, Greaves, Sandals |
 | Våpen | Sword, Axe, Warhammer*, Spiked Club* |
 | Tøyfarge | 7 farger |
-| Magi | Meteor Storm, Ancestral Scream |
+| Magi | Meteor Storm, Ancestral Scream, Sky Thunder, Magic Missile, Turn Undead, Grease, Polymorph: Chicken |
 
 \* Låses opp på kartet eller kjøpes i butikken. Presets: Thrugg og Valkyra.
+
+### Klasser (Tom 2026-10-01)
+
+En parodi på rollespillene fra 80-tallet, uten navn, regler eller monstre som tilhører noen. CLASS-raden setter våpen, hvilken magi helten kan velge og egenskapene. Utseendet er fritt. Gamle helter er FIGHTER.
+
+| Klasse | Våpen | Magi | Egenskaper og evner |
+|---|---|---|---|
+| FIGHTER | Alle | Meteor Storm, Ancestral Scream, Sky Thunder | Barbaren slik han alltid har vært |
+| CLERIC | Holy Mace (stump, av religiøse grunner) | Turn Undead, Sky Thunder | Helbreder en partner som står nær (co-op), en krukke ekstra, litt sterkere magi |
+| THIEF | To dolker | Grease, Polymorph: Chicken | Raske stikk, tre ganger skade bakfra (BACKSTAB!), stjeler gull ved treff (YOINK!), lite liv |
+| MAGIC-USER | Stav | Magic Missile, Polymorph: Chicken, Meteor Storm, Grease | Svake slag, starter med tre krukker, mye sterkere magi |
+| ELF | Langbue | Magic Missile, Polymorph: Chicken, Sky Thunder | Skyter piler langs linja, lite liv, litt magi. ELF IS A CLASS. DO NOT ASK. |
+| DWARF | Øks eller hammer | Ancestral Scream, Sky Thunder | Lav og bred, mye liv, treg |
+| BARD | Lutt (brukt som kølle) | Ancestral Scream, Polymorph: Chicken | METAL-måleren fylles dobbelt så fort for alle |
+
+- **ROLL 3D6** i smia kaster tre terninger for STR, INT, WIS, DEX, CON og CHA, som i 1974. STR gir skade, DEX fart, CON liv og INT magi (4 prosent per poeng i tillegg, fra -3 til +3). WIS og CHA gjør ingenting, som vanlig. Spillederen har en mening om kastet, og om hvor mange ganger du har kastet på nytt.
+- **NATURAL 20 og CRITICAL FUMBLE**: hvert tungt slag rulles på en d20. 20 gir dobbel skade. 1 betyr at helten går på trynet og mister litt liv, og GAME MASTER sukker.
+- Alven og dvergen har ennå ikke egne bilder: alven er litt slankere og dvergen klemmes lav og bred. Bestillingene står i ART_PROMPTS. Utstyret (kølle, dolker, stav, bue, lutt) er tegnet i koden til de malte bildene kommer.
 
 ## 10. Mekanikk på brettene
 
@@ -154,7 +182,11 @@ CLASSIC BUILDER beholder de prosedyretegnede valgene nedenfor. Malt hår, hjelme
   - War Hog: stormløp som spidder alt foran seg
   - Cluckatrice (halvt hane, halvt øgle): halesvip som treffer begge sider
   - Magma Newt: ildpust som griller alt foran
-- Magi: blå potions fra gnomer, alle brukes på én gang (sterkere jo flere, og sterkere med MAG). Tre typer som i Golden Axe: meteorregn, forfedrenes skrik og tordenguden (lynet slår først ned i heltens våpen og så i hver fiende på skjermen, med flere nedslag rundt omkring fra tre krukker og fiolette lyn på fem og seks)
+- Magi: blå potions fra gnomer, alle brukes på én gang (sterkere jo flere, og sterkere med MAG). Sju typer i et register (`data/spells.ts`), valgt på MAGIC-raden i Hero Forge. De tre første er som i Golden Axe: meteorregn, forfedrenes skrik og tordenguden (lynet slår først ned i heltens våpen og så i hver fiende på skjermen, med flere nedslag rundt omkring fra tre krukker og fiolette lyn på fem og seks). De fire nye er parodier på gamle rollespillformler:
+  - **MAGIC MISSILE OF ABSOLUTE CERTAINTY**: en lysende pil til hver fiende i bildet (to hver fra fire krukker). Én bommer (MISS!), flyr forbi, snur og treffer likevel.
+  - **TURN UNDEAD (AND EVERYONE ELSE)**: en lysstråle fra himmelen. Skjeletter og zombier smuldrer, de levende blir blendet og holder seg for øynene en stund (MY EYES!), og heltene får litt liv.
+  - **GREASE OF THE OILY ONE**: olje faller over hele veien i bildet. Fiender som går i den, sklir og går på trynet, igjen og igjen. Får olja fyr (en brennende fiende, glør, ildkuler, meteorer, lyn, en ildimp som smeller, det brennende våpenet i METAL MODE), brenner den, og brannen sprer seg (GREASE FIRE!). Heltene sklir ikke, men brenner like godt.
+  - **POLYMORPH: CHICKEN**: fiendene blir høner som løper i panikk med vingene i været. Ett slag, og de sprenges i fjær (og noen ganger ligger det en stekt kylling igjen). Etter en stund blir de seg selv igjen (WHY DO I CRAVE CORN?). Kjempetrollet blir en kjempehøne. Sjefen står imot: THE BOSS SAVED VS. POLYMORPH.
 - **Sjonglering** som i Castle Crashers: treff på en fiende som er i lufta telles (JUGGLE! x2, AIR RAID! x3, SKY BUFFET! x4 osv.) og fyller METAL-måleren. Etter sju treff i lufta slås han hardt i bakken (SPIKED!) og blir liggende, så ingen kombo varer evig
 - **Kanten av bildet** under en bølge: kropper som blir slått bakover, spretter tilbake fra kanten (WALL BOUNCE!), høyst tre ganger. En kropp som flyr, slår ned fiendene den treffer
 - **Fiender som leser deg**: eliter (tøffe fiender, kjemper og skjelettvakter) og sjefer blokkerer etter fire like slag på rad (TOO PREDICTABLE!). En hel kombo teller ikke som like slag. Løpeslaget bryter guarden, og slag bakfra går gjennom

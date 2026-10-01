@@ -138,6 +138,11 @@ export class Gore {
   stepDust = 0;
   /** Hull i bakken (juvet): blod legger seg ikke der, og kroppsdeler faller ned i dypet. Settes av Stage. */
   holes: Hole[] = [];
+  /**
+   * Kalles når en blodpytt legges (under et lik eller en kjøttbit), med størrelsen etter gore-nivået. Brettet gjør de
+   * store pyttene glatte (game/mayhem.ts). Nullstilles i clear().
+   */
+  onPool: ((x: number, z: number, size: number, kind: BloodKind) => void) | null = null;
   debris: Debris[] = [];
   fountains: Fountain[] = [];
   private gibTex = new Map<GibKind, THREE.MeshBasicMaterial>();
@@ -197,14 +202,15 @@ export class Gore {
   }
 
   // ---------------------------------------------------------------- partikler
-  drop(x: number, y: number, z: number, vx: number, vy: number, vz: number, size: number, kind: BloodKind = 'red', life = 2) {
+  /** decalMul: hvor stor del av dråpene som legger en flekk der de lander (blodregnet legger færre, så det ikke visker ut resten). */
+  drop(x: number, y: number, z: number, vx: number, vy: number, vz: number, size: number, kind: BloodKind = 'red', life = 2, decalMul = 1) {
     const c = this.bloodColor(kind);
     if (kind === 'lava') {
       // Glødende lava faller som HDR-dråper (GPU), kjøles mot mørk rød
       this.vfx.glow.emit(x, y, z, vx, vy, vz, 0, -16, 0, life, 0.4, size * 1.8, size * 1.2, 0.02, c.r * 5, c.g * 3.5, c.b * 2, K.DOT, 0.6, 0.08, 0.02, 0);
       return;
     }
-    const decal = chance(this.level === 0 ? 0.15 : this.level === 1 ? 0.3 : 0.5);
+    const decal = chance((this.level === 0 ? 0.15 : this.level === 1 ? 0.3 : 0.5) * decalMul);
     this.drops.emit(x, y, z, vx, vy, vz, this.level === 0 ? size * 0.8 : size, c.r, c.g, c.b, life, 0.4, decal);
   }
 
@@ -329,6 +335,7 @@ export class Gore {
     if (this.overHole(x, z)) return;
     const c = this.bloodColor(kind).multiplyScalar(this.family ? 1 : 0.7);
     this.decals.add(x, z, size * rand(1, 1.25), size * rand(0.65, 0.85), rand(-0.3, 0.3), c, 12 + Math.floor(Math.random() * 4), 0.0105, grow, 1);
+    this.onPool?.(x, z, size, kind);
   }
 
   // ---------------------------------------------------------------- fontener
@@ -349,7 +356,29 @@ export class Gore {
     return d;
   }
 
-  gibs(pos: THREE.Vector3, count: number, kind: 'red' | 'bone' | 'green' | 'lava' = 'red', power = 1) {
+  /**
+   * Tenner som ryker ut ved et tungt slag i ansiktet: små 3D-tenner som spretter avgårde fra munnen i slagretningen og
+   * sier pling hver gang de treffer bakken. Ikke på FAMILY.
+   */
+  teeth(pos: THREE.Vector3, dirX: number, n: number) {
+    if (this.family) return 0;
+    for (let i = 0; i < n; i++) {
+      const g = makeGib('tooth', rand(1.7, 2.2));
+      g.mesh.position.set(pos.x + dirX * 0.12, pos.y + rand(-0.06, 0.04), pos.z + 0.06);
+      this.group.add(g.mesh);
+      this.addDebris(g.mesh, g.radius, dirX * rand(1.8, 4.2), rand(4, 7.5), rand(-1.6, 1.6), 0, {
+        owned: false, bleed: 0, bleedCol: 'none', life: 7 + rand(0, 3), bouncy: 0.58, maxBounces: 6,
+        spinV: new THREE.Vector3(rand(-28, 28), rand(-28, 28), rand(-28, 28)),
+        onBounce: () => audio.ping(),
+      });
+    }
+    // Litt blod fra munnen etter dem
+    this.spray(pos, dirX, 0.2, 6, 4, 0.5, 0.06);
+    return n;
+  }
+
+  /** onBounce: kalles hver gang en bit spretter (skjelettxylofonen gir en tone per sprett, se Fighter.die). */
+  gibs(pos: THREE.Vector3, count: number, kind: 'red' | 'bone' | 'green' | 'lava' = 'red', power = 1, onBounce?: (d: Debris) => void) {
     const fam = this.level === 0 && kind !== 'lava';
     count = this.n(count);
     // FAMILY: gummiender, blomster og stjerner (flate). Ellers 3D-biter.
@@ -377,7 +406,7 @@ export class Gore {
       const bleeds = !(kind === 'bone' || fam);
       this.addDebris(obj, radius, Math.cos(a) * sp, Math.sin(a) * sp + 2, rand(-2, 2), rand(-15, 15), {
         owned: false, bleed: bleeds ? 0.6 : 0, bleedCol: bleeds ? kind : 'none', life: 10 + rand(0, 6),
-        bouncy: fam ? 0.6 : undefined,
+        bouncy: fam ? 0.6 : onBounce ? 0.5 : undefined, maxBounces: onBounce ? 6 : undefined, onBounce,
         spinV: fam ? undefined : new THREE.Vector3(rand(-16, 16), rand(-16, 16), rand(-16, 16)),
         onRest: bleeds && kind !== 'lava' ? () => this.pool(obj.position.x, obj.position.z, rand(0.35, 0.6), kind as BloodKind, 1.6) : undefined,
       });
@@ -507,6 +536,7 @@ export class Gore {
     this.dustColor = SAND_DUST;
     this.stepDust = 0;
     this.holes = [];
+    this.onPool = null;
   }
 }
 

@@ -379,9 +379,13 @@ export interface Look {
   holes?: Hole[];
 }
 
+/** Største rute i bakken og veien (x, z). Store flater deles opp, så ingen trekant blir svær (se flat i stageBase). */
+const FLAT_CELL = [20, 10] as const;
+
 /**
  * Flatt plan i xz sett ovenfra (W langs x, H langs z, midt i cx, cz) med firkantede hull, laget av rektangler med
- * samme UV som ett helt plan, så teksturen går i ett. Brukes når et brett har juv.
+ * samme UV som ett helt plan, så teksturen går i ett. Brukes når et brett har juv. Rektanglene deles i ruter på
+ * høyst FLAT_CELL, som det hele planet.
  */
 function holedPlane(W: number, H: number, cx: number, cz: number, holes: Hole[]) {
   const xmin = cx - W / 2, xmax = cx + W / 2, zmin = cz - H / 2, zmax = cz + H / 2;
@@ -396,8 +400,15 @@ function holedPlane(W: number, H: number, cx: number, cz: number, holes: Hole[])
     x = Math.max(x, b);
   }
   if (x < xmax) rects.push([x, xmax, zmin, zmax]);
-  const pos: number[] = [], uv: number[] = [], idx: number[] = [];
+  const cells: [number, number, number, number][] = [];
   for (const [x0, x1, z0, z1] of rects) {
+    const nx = Math.max(1, Math.ceil((x1 - x0) / FLAT_CELL[0])), nz = Math.max(1, Math.ceil((z1 - z0) / FLAT_CELL[1]));
+    for (let i = 0; i < nx; i++) for (let k = 0; k < nz; k++) {
+      cells.push([x0 + ((x1 - x0) * i) / nx, x0 + ((x1 - x0) * (i + 1)) / nx, z0 + ((z1 - z0) * k) / nz, z0 + ((z1 - z0) * (k + 1)) / nz]);
+    }
+  }
+  const pos: number[] = [], uv: number[] = [], idx: number[] = [];
+  for (const [x0, x1, z0, z1] of cells) {
     const i = pos.length / 3;
     for (const [px, pz] of [[x0, z1], [x1, z1], [x1, z0], [x0, z0]]) {
       pos.push(px - cx, 0, pz - cz);
@@ -454,7 +465,9 @@ export function stageBase(scene: THREE.Scene, length: number, look: Look) {
   // Med juv lages bakken og veien av rektangler rundt hullene (samme tekstur og UV som et helt plan)
   const flat = (W: number, H: number, cx: number, cz: number) => {
     if (holes.length) return holedPlane(W, H, cx, cz, holes);
-    const p = new THREE.PlaneGeometry(W, H);
+    // Delt i ruter (FLAT_CELL): bakken går inn under kameraet, og to kjempetrekanter som krysser nærplanet ga feil
+    // dybde i SwiftShader, et bånd av bakke over gjerdet og figurene etter et par sprengte kjemper (log.md 2026-10-01)
+    const p = new THREE.PlaneGeometry(W, H, Math.max(1, Math.ceil(W / FLAT_CELL[0])), Math.max(1, Math.ceil(H / FLAT_CELL[1])));
     p.rotateX(-Math.PI / 2);
     return p;
   };

@@ -70,6 +70,8 @@ export interface ProjOpts {
   delay?: number;
   onHit?: (t: Fighter) => void;
   origin?: () => THREE.Vector3;
+  /** Angrepet treffet regnes som (tilbakeslag, dødsmåte). Standard er et vanlig prosjektil. */
+  atk?: AttackDef;
 }
 
 export class Projectile {
@@ -88,6 +90,7 @@ export class Projectile {
   hit = new Set<number>();
   onHit?: (t: Fighter) => void;
   origin?: () => THREE.Vector3;
+  atk?: AttackDef;
   retract = false;
 
   constructor(o: ProjOpts) {
@@ -101,6 +104,7 @@ export class Projectile {
     this.delay = o.delay ?? 0;
     this.onHit = o.onHit;
     this.origin = o.origin;
+    this.atk = o.atk;
     const spr = SPR[o.kind]?.();
     if (spr) {
       this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(spr[1], spr[2]), spr[0]);
@@ -267,7 +271,7 @@ export class Projectiles {
             p.onHit?.(f);
             continue;
           }
-          applyHit(p.owner, f, PROJ_ATK, p.dmg);
+          applyHit(p.owner, f, p.atk ?? PROJ_ATK, p.dmg);
           if (p.kind === 'snowball') g.dust(p.pos, 10, '#ffffff');
           if (p.kind === 'poison') g.burst(p.pos, 12, 3, 0.08, 'green');
           if (p.kind === 'fireball') g.fire(p.pos, 10, 0.4, 2);

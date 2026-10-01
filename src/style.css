@@ -102,6 +102,9 @@ html, body {
   overflow-wrap: anywhere;
 }
 
+/* De siste ordene til hodet på glasset ligger over glasset (fx-glass har 32), og følger hodet (gfx/fx.ts) */
+.ftext.glass-words { z-index: 33; pointer-events: none; }
+
 /* ---------------------------------------------------------------- HUD */
 .hud-top {
   position: absolute;
@@ -720,6 +723,10 @@ button:focus-visible, .menu li:focus-visible { outline: 3px solid var(--gold); o
 .cr-info { min-height: 3.2em; font-size: 19px; line-height: 1.1; color: var(--steel); }
 .cr-info b { color: var(--gold); font-weight: normal; }
 .cr-info b.lock { color: var(--blood-hi); }
+/* Klassene og ROLL 3D6 (data/classes.ts): replikken til alven, terningene og spillederen */
+.cr-info b.quip { color: #ffd35a; letter-spacing: 0.04em; }
+.cr-info .dice b { color: #fff4d0; }
+.cr-info b.gm { color: #ff9a6a; font-style: italic; }
 .cr-info .st { font-family: var(--f-num); font-size: 10px; color: var(--gold-dim); }
 .cr-help { font-family: var(--f-num); font-size: 10px; color: rgba(239, 232, 210, 0.72); }
 

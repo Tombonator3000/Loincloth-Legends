@@ -6,29 +6,36 @@ import { W } from '../../game/world';
 import { Fighter } from '../../game/fighter';
 import { HERO_ATK } from '../../game/attacks';
 import { buildArena } from '../../gfx/env';
-import { buildHeroDef, cloneHero, withHeroParts, withHeroAppearance, HERO_OPTIONS, PRESETS, randomHero, randomName, type HeroConfig } from '../../gfx/chars/hero';
+import { buildHeroDef, cloneHero, withHeroParts, withHeroAppearance, withClassRules, HERO_OPTIONS, PRESETS, randomHero, randomName, type HeroConfig } from '../../gfx/chars/hero';
 import { HERO_PARTS, HERO_PART_SLOTS, defaultHeroParts, findHeroPart, isModularHeroHead, type HeroParts, type HeroPartSlot } from '../../data/hero-parts';
 import { getOverride } from '../../gfx/assets';
 import { HERO_APPEARANCE, defaultHeroAppearance, findHeroAppearance, type HeroAppearance, type HeroAppearanceKey } from '../../data/hero-appearance';
 import { heroAppearanceAvailable, heroHeadPreview, heroSkinSupport } from '../../gfx/hero-appearance';
 import { registerChar } from '../../gfx/chars';
 import { purgeChar } from '../../gfx/rig';
-import { WEAPONS, scaleAttack } from '../../data/weapons';
+import { scaleAttack } from '../../data/weapons';
 import { PART_LOCKS } from '../../data/unlocks';
+import { SPELLS, spellAt, spellIndex } from '../../data/spells';
+import { CLASSES, GEAR, ABILITIES, GM_LINES, classAt, heroWeapon, roll3d6, abilityMod, abilityEffects } from '../../data/classes';
+import { dressHero } from '../../game/hero';
 import { isUnlocked, writeSave } from '../save';
 import { audio } from '../../core/audio';
-import { pick } from '../../core/math';
+import { pick, chance } from '../../core/math';
 
 type OptKey = keyof typeof HERO_OPTIONS;
 type AppearanceRowKey = `appearance:${HeroAppearanceKey}`;
 type EditorPage = 'parts' | 'head';
-type RowKey = OptKey | HeroPartSlot | AppearanceRowKey | 'builder' | 'editor' | 'name' | 'preset' | 'random' | 'done';
+type RowKey = OptKey | HeroPartSlot | AppearanceRowKey | 'builder' | 'editor' | 'name' | 'preset' | 'random' | 'roll' | 'done';
 type Row = { k: RowKey; label: string };
 const FIRST_ROWS: Row[] = [{ k: 'name', label: 'NAME' }, { k: 'builder', label: 'BUILDER' }];
+/** Klassen bestemmer våpen, magi og egenskaper (data/classes.ts). Utseendet er fritt. */
+const CLASS_ROW: Row = { k: 'cls', label: 'CLASS' };
 const LAST_ROWS: Row[] = [
-  { k: 'magic', label: 'MAGIC' }, { k: 'preset', label: 'PRESET' },
+  { k: 'magic', label: 'MAGIC' }, { k: 'roll', label: 'ROLL 3D6' }, { k: 'preset', label: 'PRESET' },
   { k: 'random', label: 'RANDOMIZE' }, { k: 'done', label: 'DONE' },
 ];
+/** Rader som gjør noe når de velges, i stedet for å bla i valg. */
+const ACTIONS: string[] = ['preset', 'random', 'roll', 'done'];
 const PAINTED_FIRST_ROWS: Row[] = [...FIRST_ROWS, { k: 'editor', label: 'EDIT' }];
 const HEAD_DETAIL_ROWS: Row[] = [
   { k: 'appearance:hair', label: 'HAIR' }, { k: 'appearance:hairColor', label: 'HAIR COLOUR' },
@@ -37,14 +44,14 @@ const HEAD_DETAIL_ROWS: Row[] = [
 ];
 const appearanceKey = (key: RowKey): HeroAppearanceKey | undefined => key.startsWith('appearance:') ? key.slice(11) as HeroAppearanceKey : undefined;
 const PAINTED_ROWS: Row[] = [
-  ...PAINTED_FIRST_ROWS,
+  ...PAINTED_FIRST_ROWS, CLASS_ROW,
   { k: 'head', label: 'HEAD' }, { k: 'torso', label: 'TORSO' },
   { k: 'arm', label: 'ARMS' }, { k: 'pelvis', label: 'LOINS' },
   { k: 'leg', label: 'LEGS' }, { k: 'weapon', label: 'WEAPON' },
   ...LAST_ROWS,
 ];
 const CLASSIC_ROWS: Row[] = [
-  ...FIRST_ROWS,
+  ...FIRST_ROWS, CLASS_ROW,
   { k: 'body', label: 'BODY' }, { k: 'skin', label: 'SKIN' },
   { k: 'face', label: 'FACE' }, { k: 'hair', label: 'HAIR' },
   { k: 'hairColor', label: 'HAIR COLOUR' }, { k: 'beard', label: 'BEARD' },
@@ -54,7 +61,7 @@ const CLASSIC_ROWS: Row[] = [
   ...LAST_ROWS,
 ];
 const isPart = (key: string): key is HeroPartSlot => HERO_PART_SLOTS.includes(key as HeroPartSlot);
-const optionCursor = (cfg: HeroConfig) => Object.fromEntries(Object.keys(HERO_OPTIONS).map((k) => [k, cfg[k as OptKey]]));
+const optionCursor = (cfg: HeroConfig) => Object.fromEntries(Object.keys(HERO_OPTIONS).map((k) => [k, cfg[k as OptKey] ?? 0]));
 
 export class CreatorScene implements Scene {
   name = 'creator';
@@ -76,6 +83,9 @@ export class CreatorScene implements Scene {
   t = 0;
   presetIdx = 0;
   input!: HTMLInputElement;
+  /** ROLL 3D6: hvor mange ganger hver spiller har kastet, og det spillederen sa sist. */
+  private rolls = [0, 0];
+  private gm = ['', ''];
 
   constructor(private game: Game, private slots: number[], private onDone: () => void, private onCancel: () => void = onDone) {
     this.slot = slots[0];
@@ -115,7 +125,7 @@ export class CreatorScene implements Scene {
       b.addEventListener('click', () => this.setSlot(sl));
       tabs.appendChild(b);
     }
-    this.sel = this.cfgs[this.slot].parts ? 3 : 0;
+    this.sel = this.cfgs[this.slot].parts ? PAINTED_ROWS.findIndex((r) => r.k === 'head') : 0;
     this.setSlot(this.slot);
   }
 
@@ -136,8 +146,16 @@ export class CreatorScene implements Scene {
     audio.menu();
   }
 
-  private available(slot: HeroPartSlot) {
-    return HERO_PARTS[slot].filter((part) => getOverride(part.source, part.slot));
+  private available(slot: HeroPartSlot, cls = classAt(this.cfgs[this.slot]?.cls)) {
+    const list = HERO_PARTS[slot].filter((part) => getOverride(part.source, part.slot));
+    // Klassen bestemmer våpenet: bare de den kan bruke. Med eget utstyr vises ikke det malte våpenet i det hele tatt
+    if (slot === 'weapon' && !cls.gear) return list.filter((part) => part.weapon !== undefined && cls.weapons.includes(part.weapon));
+    return list;
+  }
+
+  /** Klassens regler for våpen og magi, med det som er låst opp. */
+  private classRules(cfg: HeroConfig) {
+    return withClassRules(cfg, (key) => isUnlocked(this.game.save, key));
   }
 
   private unlocked(part: { unlock?: string }) {
@@ -148,7 +166,7 @@ export class CreatorScene implements Scene {
   private availableSet(cfg: HeroConfig, preferred = cfg.parts ?? defaultHeroParts(cfg.body)): HeroParts | undefined {
     const parts = { ...preferred };
     for (const slot of HERO_PART_SLOTS) {
-      const choices = this.available(slot).filter((part) => this.unlocked(part));
+      const choices = this.available(slot, classAt(cfg.cls)).filter((part) => this.unlocked(part));
       const part = choices.find((part) => part.id === preferred[slot]) ?? choices[0];
       if (!part) return undefined;
       parts[slot] = part.id;
@@ -183,12 +201,12 @@ export class CreatorScene implements Scene {
     this.el.querySelector('.cr-done-slot')!.replaceChildren();
     this.rows.forEach((r, i) => {
       const row = document.createElement('div');
-      row.className = 'cr-row' + (['preset', 'random', 'done'].includes(r.k) ? ' action' : '');
+      row.className = 'cr-row' + (ACTIONS.includes(r.k) ? ' action' : '');
       row.dataset.i = String(i);
       row.dataset.key = r.k;
       if (r.k === 'name') {
         row.innerHTML = `<span class="k">${r.label}</span><input id="hero-name" aria-label="Hero name" type="text" maxlength="24" autocomplete="off" spellcheck="false"><button class="dice" type="button" title="Random name">?</button>`;
-      } else if (r.k === 'random' || r.k === 'done') {
+      } else if (r.k === 'random' || r.k === 'done' || r.k === 'roll') {
         row.innerHTML = `<span class="k wide">${r.label}</span>`;
       } else {
         row.innerHTML = `<span class="k">${r.label}</span><button class="arr l" type="button" aria-label="Previous ${r.label.toLowerCase()}"></button><span class="v"></span><button class="arr r" type="button" aria-label="Next ${r.label.toLowerCase()}"></button>`;
@@ -203,7 +221,7 @@ export class CreatorScene implements Scene {
       row.addEventListener('click', (e) => {
         if ((e.target as HTMLElement).closest('button, input')) return;
         this.select(i);
-        if (r.k === 'random' || r.k === 'done' || r.k === 'preset') this.activate();
+        if (ACTIONS.includes(r.k)) this.activate();
       });
       if (r.k === 'done') this.el.querySelector('.cr-done-slot')!.appendChild(row);
       else rows.appendChild(row);
@@ -280,7 +298,40 @@ export class CreatorScene implements Scene {
       audio.menu();
       return;
     }
-    if (r.k === 'name' || r.k === 'random' || r.k === 'done') return;
+    if (r.k === 'name' || r.k === 'random' || r.k === 'done' || r.k === 'roll') return;
+    if (r.k === 'cls') {
+      const cur = this.cursor[this.slot];
+      cur.cls = ((cur.cls ?? 0) + d + CLASSES.length) % CLASSES.length;
+      this.cfgs[this.slot] = this.classRules({ ...cloneHero(cfg), cls: cur.cls });
+      this.syncCursors();
+      audio.menu();
+      this.refresh(true);
+      return;
+    }
+    // Magien og våpenet: bare det klassen kan bruke. Klasser med eget utstyr har ikke noe våpen å velge
+    if (r.k === 'magic') {
+      const list = classAt(cfg.cls).spells.map(spellIndex);
+      const next = list[(Math.max(0, list.indexOf(cfg.magic)) + d + list.length) % list.length];
+      this.cursor[this.slot].magic = next;
+      this.cfgs[this.slot] = { ...cloneHero(cfg), magic: next };
+      audio.menu();
+      this.refresh(false);
+      return;
+    }
+    if (r.k === 'weapon' && classAt(cfg.cls).gear) {
+      audio.denied();
+      this.info();
+      return;
+    }
+    if (r.k === 'weapon' && !cfg.parts) {
+      const list = classAt(cfg.cls).weapons;
+      const cur = this.cursor[this.slot];
+      cur.weapon = list[(Math.max(0, list.indexOf(cur.weapon ?? cfg.weapon)) + d + list.length) % list.length];
+      if (isUnlocked(this.game.save, 'weapon:' + cur.weapon)) this.cfgs[this.slot] = { ...cloneHero(cfg), weapon: cur.weapon };
+      audio.menu();
+      this.refresh(true);
+      return;
+    }
     if (cfg.parts && isPart(r.k)) {
       const choices = this.available(r.k);
       if (!choices.length) return;
@@ -342,12 +393,25 @@ export class CreatorScene implements Scene {
       this.refresh(true);
       return;
     }
+    if (r.k === 'roll') {
+      // Tre seksere per evne. Spillederen har en mening om kastet, og om hvor mange ganger det er kastet
+      const ab = roll3d6();
+      this.cfgs[this.slot] = { ...cloneHero(cfg), abilities: ab };
+      const n = ++this.rolls[this.slot], sum = ab.map(abilityMod).reduce((a: number, b: number) => a + b, 0);
+      const lines = n > 3 && chance(0.6) ? GM_LINES.reroll : ab.includes(18) || sum >= 4 ? GM_LINES.good : ab.includes(3) || sum <= -3 ? GM_LINES.bad : GM_LINES.meh;
+      this.gm[this.slot] = pick(lines);
+      audio.dice();
+      this.refresh(false);
+      return;
+    }
     if (r.k === 'random') {
       if (cfg.parts) {
         const parts = this.availableSet(cfg);
         if (!parts) return;
         for (const slot of HERO_PART_SLOTS) parts[slot] = pick(this.available(slot).filter((part) => this.unlocked(part))).id;
-        let randomized = withHeroParts({ ...cloneHero(cfg), name: randomName(), magic: Math.floor(Math.random() * HERO_OPTIONS.magic.length) }, parts);
+        const cls = Math.floor(Math.random() * CLASSES.length);
+        const spells = classAt(cls).spells;
+        let randomized = withHeroParts({ ...cloneHero(cfg), name: randomName(), cls, magic: spellIndex(pick(spells)) }, parts);
         const appearance = { ...this.appearance(randomized) };
         for (const key of Object.keys(HERO_APPEARANCE) as HeroAppearanceKey[]) {
           if (key !== 'skinTone' && !isModularHeroHead(parts.head)) continue;
@@ -356,7 +420,7 @@ export class CreatorScene implements Scene {
           if (choices.length) appearance[key] = pick(choices).id;
         }
         randomized = withHeroAppearance(randomized, appearance);
-        this.cfgs[this.slot] = randomized;
+        this.cfgs[this.slot] = this.classRules(randomized);
       } else this.cfgs[this.slot] = randomHero((k, i) => isUnlocked(this.game.save, k + ':' + i));
       this.syncCursors();
       audio.confirm();
@@ -391,9 +455,32 @@ export class CreatorScene implements Scene {
     const cfg = this.cfgs[this.slot];
     const detail = appearanceKey(r.k);
     let html = '';
-    if (r.k === 'weapon' || r.k === 'magic' || r.k === 'name' || r.k === 'body') {
-      const w = WEAPONS[cfg.weapon];
+    const cls = classAt(cfg.cls);
+    const pct = (k: number) => (k >= 1 ? '+' : '') + Math.round((k - 1) * 100) + '%';
+    if (r.k === 'weapon' || r.k === 'name' || r.k === 'body') {
+      const w = heroWeapon(cfg);
       html = `<b>${w.name}</b> ${w.desc}<br><span class="st">DMG ${Math.round(w.dmg * 100)}% &nbsp; SPEED ${Math.round(w.speed * 100)}% &nbsp; REACH ${Math.round(w.reach * 100)}%</span>`;
+      if (r.k === 'weapon' && cls.gear) html += `<br><span class="st">THE ${cls.label} FIGHTS WITH THIS. CHANGE CLASS TO CHANGE WEAPON.</span>`;
+    }
+    // Klassen: hva den er, og hva den gjør med livet, farten, skaden og magien (data/classes.ts)
+    if (r.k === 'cls') {
+      html = (cls.quip ? `<b class="quip">${cls.quip}</b><br>` : '') + `<b>${cls.label}</b> ${cls.desc}<br><span class="st">HP ${pct(cls.hp)} &nbsp; SPEED ${pct(cls.speed)} &nbsp; DMG ${pct(cls.dmg)} &nbsp; MAGIC ${pct(cls.magic)}${cls.potions ? ` &nbsp; +${cls.potions} POTION${cls.potions > 1 ? 'S' : ''}` : ''}</span>`;
+    }
+    // Magien: navnet den roper og hva den gjør (data/spells.ts), og hva klassen kan velge mellom
+    if (r.k === 'magic') {
+      const sp = spellAt(this.cursor[this.slot].magic ?? cfg.magic);
+      html = `<b>${sp.title}</b> ${sp.desc}<br><span class="st">THE ${cls.label} KNOWS: ${cls.spells.map((id) => SPELLS[spellIndex(id)].label).join(', ')}</span>`;
+    }
+    // ROLL 3D6: de seks tallene, hva de gjør, og spillederen
+    if (r.k === 'roll') {
+      const ab = cfg.abilities;
+      if (!ab) html = 'Roll three dice for each ability, like it is 1974. STR hits harder, DEX runs faster, CON lives longer, INT casts harder. WIS and CHA do nothing, as usual.';
+      else {
+        const e = abilityEffects(ab);
+        const score = (i: number) => `${ABILITIES[i]} <b>${ab[i]}</b>`;
+        html = `<span class="dice">${[0, 1, 2].map(score).join(' &nbsp; ')}<br>${[3, 4, 5].map(score).join(' &nbsp; ')}</span><br><span class="st">DMG ${pct(e.dmg)} &nbsp; SPEED ${pct(e.speed)} &nbsp; HP ${pct(e.hp)} &nbsp; MAGIC ${pct(e.magic)}</span>`
+          + (this.gm[this.slot] ? `<br><b class="gm">${this.gm[this.slot]}</b>` : '');
+      }
     }
     if (r.k === 'builder') html = this.availableSet(cfg)
       ? 'PAINTED PARTS: mix body parts and customise your head. CLASSIC BUILDER: the original drawn hero.'
@@ -435,7 +522,8 @@ export class CreatorScene implements Scene {
     const r = this.rows[this.sel];
     const detail = appearanceKey(r.k);
     const slot = isPart(r.k) ? r.k : undefined;
-    if (!cfg.parts || (!slot && !detail)) { box.hidden = true; this.poolKey = ''; return; }
+    // Klasser med eget utstyr har ingen malte våpen å velge mellom
+    if (!cfg.parts || (!slot && !detail) || (slot === 'weapon' && classAt(cfg.cls).gear)) { box.hidden = true; this.poolKey = ''; return; }
     box.hidden = false;
     const selectedId = detail ? this.appearanceCursor[this.slot][detail] : this.partCursor[this.slot][slot!] ?? cfg.parts[slot!];
     const key = JSON.stringify([this.slot, r.k, cfg.parts, this.appearance(cfg), selectedId]);
@@ -563,7 +651,10 @@ export class CreatorScene implements Scene {
       }
       let locked = false;
       const detail = appearanceKey(r.k);
-      if (detail && cfg.parts) {
+      const gear = r.k === 'weapon' ? classAt(cfg.cls).gear : undefined;
+      if (gear) {
+        v.textContent = GEAR[gear].name;
+      } else if (detail && cfg.parts) {
         const option = findHeroAppearance(detail, this.appearanceCursor[this.slot][detail]);
         locked = !!option && !this.unlocked(option);
         v.textContent = !option || !heroAppearanceAvailable(detail, option.id) ? 'ART UNAVAILABLE' : (locked ? 'LOCKED: ' : '') + option.label;
@@ -592,7 +683,8 @@ export class CreatorScene implements Scene {
     this.preview?.remove();
     registerChar(def);
     this.previewId = def.id;
-    const f = new Fighter(def.id, 'hero', { hp: 100, speed: 3, weapon: WEAPONS[this.cfgs[this.slot].weapon] });
+    const f = new Fighter(def.id, 'hero', { hp: 100, speed: 3, weapon: heroWeapon(this.cfgs[this.slot]) });
+    dressHero(f, classAt(this.cfgs[this.slot].cls));
     f.pos.set(-1.1, 0, 0.5);
     f.facing = 1;
     f.addTo(W.scene);
@@ -618,8 +710,10 @@ export class CreatorScene implements Scene {
     if (f) {
       if (this.t > 3.2 && f.canAct()) {
         this.t = 0;
-        const w = WEAPONS[this.cfgs[this.slot].weapon];
-        f.startAttack(scaleAttack(pick([HERO_ATK.slash1, HERO_ATK.chop, HERO_ATK.slash2]), w));
+        const cfg = this.cfgs[this.slot];
+        // Alven viser buen, de andre slår
+        const moves = classAt(cfg.cls).ranged ? [HERO_ATK.shot1, HERO_ATK.shot3] : [HERO_ATK.slash1, HERO_ATK.chop, HERO_ATK.slash2];
+        f.startAttack(scaleAttack(pick(moves), heroWeapon(cfg)));
       }
       f.update(dt, { minX: -3, maxX: 3, minZ: -1, maxZ: 1 });
     }

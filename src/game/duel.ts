@@ -31,6 +31,8 @@ export interface DuelSide {
   player?: number;
   /** Skade som tas (DEF-poeng). */
   dmgTaken?: number;
+  /** Klassens utseende på figuren (bue, stav, tyvens andre dolk), se dressHero i game/hero.ts. */
+  dress?: (f: Fighter) => void;
 }
 export interface DuelConfig {
   /** Én side, eller en liste (tag team: spillerne bytter på per runde). */
@@ -291,6 +293,7 @@ export class Duel {
     if (s.human) f.player = s.player ?? idx;
     if (s.dmgTaken) f.dmgTaken = s.dmgTaken;
     f.corpseLife = 999;
+    s.dress?.(f);
     f.pos.set(idx === 0 ? -9.5 : 9.5, 0, idx === 0 ? 0.12 : -0.12);
     f.facing = idx === 0 ? 1 : -1;
     f.addTo(W.scene);

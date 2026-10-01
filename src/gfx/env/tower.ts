@@ -40,7 +40,8 @@ export function buildTower(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
   const ft = texFile('floor_tower', () => tileTex('#3a3048', '#1a1420'));
   // Ett bilde per 4 x 4 enheter (kvadratiske heller)
   ft.repeat.set((L + 60) / 4, 6);
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(L + 60, 24), toon('#ffffff', ft));
+  // Delt i ruter, som bakken på de andre brettene (store trekanter nær kameraet kan gi feil dybde)
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(L + 60, 24, Math.ceil((L + 60) / 20), 3), toon('#ffffff', ft));
   floor.rotation.x = -Math.PI / 2;
   floor.position.set(L / 2, 0, -2);
   g.add(floor);

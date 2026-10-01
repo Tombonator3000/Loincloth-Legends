@@ -1,5 +1,5 @@
 // Fiendetyper. En ny fiende = en figur i gfx/chars + en linje her.
-import { P, ENEMY_ATK, type AttackDef } from '../game/attacks';
+import { P, ENEMY_ATK, type AttackDef, type DeathStyle } from '../game/attacks';
 import type { Pose } from '../gfx/rig';
 import type { ProjKind } from '../game/projectiles';
 
@@ -50,6 +50,17 @@ export interface FoeDef {
   berserk?: number;
   /** Kapteinen: hvem han blåser inn i hornet etter. */
   horn?: string[];
+  /**
+   * Smeller i en liten ildkule når han dør (ildimpene): alle innen r (fiender og helter) tar fyr i burn sekunder.
+   * Brannen er den samme som fra glørne (Fighter.burnT, Stage.ignite).
+   */
+  burst?: { r: number; burn: number };
+  /** Dør alltid slik (kjempetrollet sprenges, uansett hva som tar ham). */
+  death?: DeathStyle;
+  /** Det regner blod over hele bildet når han sprenges, og en gnom kommer med paraply (game/mayhem.ts). */
+  bloodRain?: boolean;
+  /** Udød (skjeletter og zombier): smuldrer av TURN UNDEAD i stedet for å bli blendet (game/spells.ts). */
+  undead?: boolean;
   poseMod?: Partial<Pose>;
   barks: string[];
 }
@@ -91,7 +102,7 @@ const wardenSmash: AttackDef = { ...ENEMY_ATK.hog, id: 'wardensmash', dmg: 16, r
 
 export const FOES: Record<string, FoeDef> = {
   skeleton: {
-    id: 'skeleton', char: 'skeleton', name: 'SKELLY GRUNT', hp: 22, speed: 2.5, gold: 2, behavior: 'melee', attack: ENEMY_ATK.skel, range: 1.45,
+    id: 'skeleton', char: 'skeleton', name: 'SKELLY GRUNT', undead: true, hp: 22, speed: 2.5, gold: 2, behavior: 'melee', attack: ENEMY_ATK.skel, range: 1.45,
     barks: ['RATTLE RATTLE!', 'FIRST DAY ON THE JOB!', 'I HAVE NO SKIN IN THIS GAME!', 'FOR VORTHAX! I THINK?', 'MY MOM SAYS I\'M SPOOKY!'],
   },
   hogman: {
@@ -107,7 +118,7 @@ export const FOES: Record<string, FoeDef> = {
     barks: ['NOT THE FACE!', 'THESE ARE MY POTIONS!', 'HELP! BARBARIANS!'],
   },
   zombie: {
-    id: 'zombie', char: 'zombie', name: 'BOG ZOMBIE', hp: 34, speed: 1.35, gold: 2, behavior: 'shambler', attack: claw, range: 1.3,
+    id: 'zombie', char: 'zombie', name: 'BOG ZOMBIE', undead: true, hp: 34, speed: 1.35, gold: 2, behavior: 'shambler', attack: claw, range: 1.3,
     poseMod: { armF: 1.5, armB: 1.35, torso: -0.25, head: 0.25 },
     barks: ['BRAAAINS... OR SNACKS', 'MOIST...', 'I USED TO BE AN ACCOUNTANT', 'UUUUNGH. MONDAYS.'],
   },
@@ -116,7 +127,7 @@ export const FOES: Record<string, FoeDef> = {
     barks: ['RIBBIT. PREPARE TO DIE.', 'FOR THE KING!', 'CROAK THIS!', 'I CAN LICK MY OWN EYEBALL'],
   },
   frostskel: {
-    id: 'frostskel', char: 'skeleton', name: 'FROST SKELETON', hp: 26, speed: 2.6, gold: 3, behavior: 'melee', attack: ENEMY_ATK.skel, range: 1.45,
+    id: 'frostskel', char: 'skeleton', name: 'FROST SKELETON', undead: true, hp: 26, speed: 2.6, gold: 3, behavior: 'melee', attack: ENEMY_ATK.skel, range: 1.45,
     tint: [0.75, 0.92, 1.4], barks: ['C-C-COLD...', 'MY MARROW IS FROZEN!', 'CHILL OUT, BARBARIAN!'],
   },
   troll: {
@@ -125,20 +136,21 @@ export const FOES: Record<string, FoeDef> = {
   },
   bigtroll: {
     id: 'bigtroll', char: 'bigtroll', name: 'AVALANCHE TROLL', hp: 320, speed: 1.25, gold: 25, behavior: 'brute', attack: giantSlam, range: 2.7,
-    proj: 'snowball', projCd: [5, 8], poise: 0.14, grab: giantGrab,
+    proj: 'snowball', projCd: [5, 8], poise: 0.14, grab: giantGrab, death: 'explode', bloodRain: true,
     barks: ['ME NOT BIG. YOU SMALL.', 'MAMA CALL ME LITTLE BJORN!', 'ME SIT ON YOU. NOTHING PERSONAL.', 'WHO ORDERED BARBARIAN? ME ORDERED BARBARIAN.'],
   },
   fireimp: {
     id: 'fireimp', char: 'fireimp', name: 'FIRE IMP', hp: 24, speed: 3.3, gold: 3, behavior: 'ranged', attack: ENEMY_ATK.stab, range: 5.8, proj: 'fireball', projCd: [1.8, 2.8],
+    burst: { r: 2.3, burn: 3.5 },
     barks: ['HOT HOT HOT!', 'I\'M ON FIRE! LITERALLY!', 'CATCH!'],
   },
   emberskel: {
-    id: 'emberskel', char: 'skeleton', name: 'EMBER SKELETON', hp: 28, speed: 2.7, gold: 3, behavior: 'melee', attack: emberSlash, range: 1.45,
+    id: 'emberskel', char: 'skeleton', name: 'EMBER SKELETON', undead: true, hp: 28, speed: 2.7, gold: 3, behavior: 'melee', attack: emberSlash, range: 1.45,
     tint: [1.4, 0.72, 0.5], barks: ['SMELLS LIKE BURNT BARBARIAN!', 'I\'M TOASTY!', 'EXTRA CRISPY!'],
   },
   // Jungelen: gamle tempelvakter grodd til med mose, og tyver som plyndrer Soltempelet for Vorthax
   mossskel: {
-    id: 'mossskel', char: 'skeleton', name: 'MOSSY SKELETON', hp: 26, speed: 2.6, gold: 3, behavior: 'melee', attack: ENEMY_ATK.skel, range: 1.45,
+    id: 'mossskel', char: 'skeleton', name: 'MOSSY SKELETON', undead: true, hp: 26, speed: 2.6, gold: 3, behavior: 'melee', attack: ENEMY_ATK.skel, range: 1.45,
     tint: [0.72, 0.95, 0.6], barks: ['EIGHT HUNDRED YEARS ON GUARD DUTY!', 'NOBODY TOLD ME THE TEMPLE WAS ROBBED!', 'MOSS IS A LIFESTYLE!'],
   },
   templethief: {
@@ -177,7 +189,7 @@ export const FOES: Record<string, FoeDef> = {
   },
   // Skjelettvaktene i tårnet (runde E): reiser seg av gulvet i tronsalen, med en dør som skjold
   skelguard: {
-    id: 'skelguard', char: 'skeleton', name: 'SKELETON GUARD', hp: 34, speed: 2.3, gold: 4, behavior: 'melee', attack: ENEMY_ATK.skel, range: 1.45, shield: true,
+    id: 'skelguard', char: 'skeleton', name: 'SKELETON GUARD', undead: true, hp: 34, speed: 2.3, gold: 4, behavior: 'melee', attack: ENEMY_ATK.skel, range: 1.45, shield: true,
     tint: [0.86, 0.84, 0.98], barks: ['HALT! WHO GOES THERE?', 'THIS DOOR IS MY SHIELD NOW!', 'I GUARD. THAT IS ALL I DO.'],
   },
   darkcultist: {

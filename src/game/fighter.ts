@@ -126,6 +126,16 @@ export class Fighter {
   private dripT = Math.random() * 0.5;
   removeMe = false;
   headDebris: Debris | null = null;
+  /** Overkroppen etter todeling, og om hodet satt på (da kan den krype og bite, game/mayhem.ts). */
+  torsoDebris: Debris | null = null;
+  crawlReady = false;
+  /**
+   * Spiddet på sverdet til en helt (løpeslaget, kebab i game/mayhem.ts): følger bladet til helten rister ham av. slot er
+   * plassen på bladet (0 nærmest neven), belly hvor høyt over føttene bladet går gjennom.
+   */
+  skewer: { by: Fighter; slot: number; t: number; belly: number } | null = null;
+  /** Dør alltid på denne måten (FoeDef.death: kjempetrollet sprenges). Skjeletter knuses uansett. */
+  fixedDeath: DeathStyle | null = null;
   lastHitBy: Fighter | null = null;
   swooshed = false;
   airAttackUsed = false;
@@ -149,6 +159,14 @@ export class Fighter {
   panicking = false;
   /** Brenner i så mange sekunder til (glør fra et veltet fyrfat, Stage.updateProps). */
   burnT = 0;
+  /** Blendet (TURN UNDEAD, game/spells.ts): holder hendene for øynene så lenge han er lamslått. */
+  blindT = 0;
+  /** Skade bakfra ganges med dette (tyven, data/classes.ts). 1 = ingen forskjell. */
+  backstab = 1;
+  /** Ganges med skaden så lenge slaget varer (NATURAL 20, game/classes.ts). */
+  critMul = 1;
+  /** Antall angrep startet (så det samme slaget ikke rulles to ganger, game/classes.ts). */
+  attacks = 0;
   thrownBy: Fighter | null = null;
   /** Kalles når en kastet figur treffer bakken (settes av brettet). */
   static onThrownLand: ((f: Fighter, by: Fighter) => void) | null = null;
@@ -265,6 +283,8 @@ export class Fighter {
   startAttack(a: AttackDef) {
     if (!this.hasWeaponArm) a = kickVersion(a);
     this.atk = a;
+    this.attacks++;
+    this.critMul = 1;
     this.setState('attack');
     this.hitsDone.clear();
     this.swooshed = false;
@@ -390,6 +410,7 @@ export class Fighter {
     this.rig.flash = 0;
     const bone = this.def.blood === 'bone';
     if (bone) style = 'shatter';
+    else if (this.fixedDeath) style = this.fixedDeath;
     this.deathStyle = style;
     const col = bloodOf(this.def);
     this.fallDir = this.facing === -dir ? 1 : -1;
@@ -429,7 +450,9 @@ export class Fighter {
         break;
       }
       case 'bisect': {
-        this.fling('torso', dir * rand(2, 4), rand(6, 8.5), rand(-9, 9) + dir * 3, 0.4);
+        // Hodet og armene følger med overkroppen. Satt hodet på, kan den krype videre og bite (Stage.foeDied)
+        this.crawlReady = !this.rig.detached.has('head');
+        this.torsoDebris = this.fling('torso', dir * rand(2, 4), rand(6, 8.5), rand(-9, 9) + dir * 3, 0.4);
         g.fountain(this.rig.body, 0, 0.15, 0, 1, 2.2, 1.1, col);
         g.gibs(tp, 3, col, 0.7);
         this.collapseT = 1.3;
@@ -452,11 +475,19 @@ export class Fighter {
       case 'shatter': {
         const parts: PartName[] = ['head', 'armF', 'armB', 'torso', 'legF', 'legB', 'pelvis'];
         const p = bone ? 0.8 : 1.2;
+        // Skjelettxylofonen: hvert bein som spretter, spiller neste tone i en liten melodi
+        const tune = bone ? audio.xyloTune() : null;
+        const play = tune ? (d: Debris) => tune((d.obj.position.x - (W.camera?.position.x ?? d.obj.position.x)) / 9) : undefined;
         for (const pn of parts) {
-          this.fling(pn, dir * rand(0.5, 5) * p + rand(-2, 2), rand(5, 11) * p, rand(-18, 18), pn === 'torso' ? 0.35 : 0.2);
+          const d = this.fling(pn, dir * rand(0.5, 5) * p + rand(-2, 2), rand(5, 11) * p, rand(-18, 18), pn === 'torso' ? 0.35 : 0.2);
+          if (d && play) {
+            d.onBounce = play;
+            d.bouncy = 0.5;
+            d.maxBounces = 6;
+          }
         }
         if (bone) {
-          g.gibs(tp, 6, 'bone', 0.9);
+          g.gibs(tp, 6, 'bone', 0.9, play);
           g.dust(this.pos, 10, '#e8e0c8');
           audio.bones();
         } else {
@@ -468,7 +499,11 @@ export class Fighter {
           // Kroppen smeller: sjokkbølge og zoomslag i bildet, og litt av den havner på glasset
           screenFX.shock(tp, 0.8, 0.65, 1.3);
           screenFX.punch(tp, 0.35);
-          if (style === 'explode' && col === 'red') W.fx.lensSplat(tp, 0.8);
+          if (style === 'explode' && col === 'red') {
+            W.fx.lensSplat(tp, 0.8);
+            // Nær kameraet klistrer et par kjøttbiter seg på glasset og sklir ned (gfx/fx.ts)
+            W.fx.glassGibs(tp);
+          }
         }
         this.corpseLife = 0.5;
         break;
@@ -478,7 +513,8 @@ export class Fighter {
         this.fling('armB', dir * rand(1, 4), rand(6, 9), rand(-15, 15), 0.25);
         for (const sh of [J.shF, J.shB]) g.fountain(this.rig.g.torso, sh[0], sh[1], sh[0] < 0 ? -0.4 : 0.4, 1, 1.8, 0.8, col);
         if (chance(0.5)) {
-          this.fling('head', dir * rand(1, 3), rand(7, 9), rand(-10, 10), 0.3);
+          // Hodet blir liggende, og kan slås videre som en ball (game/mayhem.ts)
+          this.headDebris = this.fling('head', dir * rand(1, 3), rand(7, 9), rand(-10, 10), 0.3);
           g.fountain(this.rig.g.torso, J.neck[0], J.neck[1], 0, 1, 2, 1, col);
           W.stats.heads++;
         }
@@ -546,8 +582,22 @@ export class Fighter {
     this.invuln = Math.max(0, this.invuln - dt);
     this.flashT = Math.max(0, this.flashT - dt);
     this.staggerT = Math.max(0, this.staggerT - dt);
+    this.blindT = Math.max(0, this.blindT - dt);
     this.drip(dt);
     const a = this.atk;
+    // Spiddet på sverdet til en helt (kebab, game/mayhem.ts): følger bladet til helten rister ham av
+    if (this.skewer) {
+      const s = this.skewer, by = s.by;
+      s.t += dt;
+      // Spredt langs bladet (den tredje sitter helt ytterst og dekker tuppen)
+      const p = by.rig.bladePoint(0.32 + s.slot * 0.36, dripTmp);
+      this.pos.set(p.x, Math.max(0, p.y - s.belly), p.z + 0.05 + s.slot * 0.04);
+      this.facing = -by.facing;
+      this.vel.set(0, 0, 0);
+      this.onGround = true;
+      this.animate(dt);
+      return;
+    }
     // På ryggen av et ridedyr: dyret bestemmer posisjonen
     if (this.mount && this.alive) {
       this.mount.saddle(this.pos);
@@ -844,6 +894,8 @@ export class Fighter {
         break;
       case 'stunned':
         target = { ...pb(P.stunned), head: 0.3 + Math.sin(t * 9) * 0.3, torso: 0.2 + Math.sin(t * 4.5) * 0.15 };
+        // Blendet: hendene for øynene, og hodet vrir seg
+        if (this.blindT > 0) Object.assign(target, { armF: 2.35 + Math.sin(t * 6) * 0.08, armB: 2.15 + Math.cos(t * 5) * 0.08, head: 0.45 + Math.sin(t * 7) * 0.2, weapon: -0.3 });
         speed = 10;
         break;
       case 'down':
@@ -922,7 +974,11 @@ export class Fighter {
         speed = 14;
         break;
       case 'dead': {
-        if (this.headlessT > 0) {
+        if (this.skewer) {
+          // Henger slapt over sverdet
+          target = { torso: 0.75, head: 0.85, armF: 0.35, armB: 0.15, legF: -0.25, legB: -0.45, weapon: -1.0, bodyY: 0, elbowF: 0.3, elbowB: 0.4, kneeF: 0.5, kneeB: 0.6 };
+          speed = 8;
+        } else if (this.headlessT > 0) {
           const ph = this.walkPh;
           target = {
             torso: -0.3, head: 0, armF: 2.3 + Math.sin(t * 19) * 0.9, armB: 1.9 + Math.cos(t * 17) * 0.9, weapon: -1.0,

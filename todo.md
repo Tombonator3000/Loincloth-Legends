@@ -3,17 +3,41 @@
 ## Teit vold: mer over the top (Tom 2026-10-01)
 - [x] Underkroppen løper rundt og spruter blod fra midjen når en fiende kuttes i to, og legger blodspor (tools/tests/splatter.mjs)
 - [x] Hodet i skjermen: vått splatt fra lydbanken, tones ut mens det sklir (borte under tre sekunder), naturlig spor med sprut, smøremerke og renner
-- [ ] Tom: velg hvilke av forslagene under som skal lages
-- [ ] Forslag: overkroppen kryper videre på armene mot helten og prøver å bite ham i ankelen («I CAN STILL BITE!»), med innvoller på slep
-- [ ] Forslag: hodet som baseball: et hode som spretter på bakken, kan slås mot de andre fiendene (HOME RUN!), med samme bowling som kastede fiender
-- [ ] Forslag: kebab-spyd: løpeslaget spidder to eller tre fiender på sverdet, og neste slag rister dem av (SHISH KEBAB!)
-- [ ] Forslag: blodregn når en kjempe eller sjef sprenges: dråper på glasset og flekker over hele bildet, og en gnom slår opp en paraply (I CAME PREPARED)
-- [ ] Forslag: glatte blodpytter: fiender som løper over en stor pytt, sklir og går på trynet (SLIP!)
-- [ ] Forslag: skjelettxylofon: når et skjelett knuses, gir hvert bein en tone når det treffer bakken, i en skala
-- [ ] Forslag: siste ord på glasset: hodet i skjermen sier én replikk før det sklir («TELL MY MOTHER...», «WORTH IT»)
-- [ ] Forslag: tenner som flyr ved tunge slag i ansiktet, med et lite pling når de spretter
-- [ ] Forslag: kjøttbiter fra en eksplosjon som klistrer seg på glasset og sklir ned sammen med blodet
-- [ ] Forslag: ildimper som smeller i en liten ildkule når de dør og setter fyr på dem som står nær
+- [x] Tom valgte alle ti forslagene (2026-10-01). Laget i `game/mayhem.ts` med test i tools/tests/mayhem.mjs (31 av 31):
+- [x] Overkroppen kryper på armene mot nærmeste helt, biter ankelen («I CAN STILL BITE!», CHOMP!) og drar innvollene etter seg som en kjede av kjøttbiter. Ett slag tar den, ellers blør den ut etter seks til åtte sekunder
+- [x] Hodet som baseball: hodet som ble liggende etter en halshugging, flyr i en bue når det slås (BATTER UP!), og gir HOME RUN! når det treffer en fiende
+- [x] Kebab-spyd: løpeslaget med sverd spidder opptil tre fiender, helten går saktere, og neste slag rister dem av (SHISH KEBAB!)
+- [x] Blodregn når en sjef eller kjempetrollet sprenges (kjempetrollet sprenges alltid): dråper fra himmelen, på bakken og på glasset, og en gnom tusler inn og slår opp paraplyen (I CAME PREPARED)
+- [x] Glatte blodpytter: store pytter er glatte til de tørker (10 til 13 sekunder), og fiender som løper over, går på trynet (SLIP!)
+- [x] Skjelettxylofon: hvert bein som spretter når et skjelett knuses, spiller neste tone i en liten melodi (fire melodier)
+- [x] Siste ord på glasset: hodet i skjermen sier én replikk i en snakkeboble før det sklir
+- [x] Tenner som flyr ved tunge slag i ansiktet, med et pling når de spretter
+- [x] Kjøttbiter fra en eksplosjon nær kameraet klistrer seg på glasset og sklir ned med samme blodspor som hodet
+- [x] Ildimpene smeller i en ildkule og setter fyr på fiender og helter som står nær
+- [ ] Tom: se på skjermbildene og spill brett 1 (kebab, krypende overkropp, hodet som ball) og sjefene (blodregnet), og si fra om noe er for mye eller for lite. Tallene står i `MAYHEM` i game/mayhem.ts
+- [ ] Plinget, sklilyden og xylofonen er syntetisert i dag; ekte opptak (CC0) kan erstatte dem i lydbanken
+- [ ] Gnomen med paraplyen kunne fått egne replikker innlest (docs/STEMMER.md)
+
+## Magi i et register (Tom 2026-10-01)
+- [x] METEOR STORM, ANCESTRAL SCREAM og SKY THUNDER er flyttet ut av Stage og inn i et register (data/spells.ts og game/spells.ts). Gamle lagringer gir de samme som før (tools/tests/spells.mjs)
+- [x] MAGIC MISSILE OF ABSOLUTE CERTAINTY: lysende piler mot hver fiende, én bommer (MISS!), snur og treffer likevel
+- [x] TURN UNDEAD (AND EVERYONE ELSE): skjeletter og zombier smuldrer, de levende blendes og holder seg for øynene, heltene får litt liv
+- [x] GREASE OF THE OILY ONE: olje på veien, fiender sklir igjen og igjen, olje og ild blir brann som sprer seg
+- [x] POLYMORPH: CHICKEN: fiendene blir høner i panikk, ett slag og de sprenges i fjær, de blir seg selv igjen etter en stund, sjefer står imot (THE BOSS SAVED VS. POLYMORPH)
+- [ ] Tom: se på skjermbildene og prøv de fire nye på brettene. Tallene står i `SPELL` i game/spells.ts
+- [ ] Høna er tegnet i koden (gfx/chars/critters.ts); malte deler kan bestilles etter ART_PROMPTS (Planlagt)
+- [ ] Flammene i den brennende olja er de vanlige ildpartiklene; et eget flammeark for brennende flater ville sett bedre ut
+
+## Klasser i Hero Forge (Tom 2026-10-01)
+- [x] CLASS-rad i Hero Forge som setter våpen, magi og egenskaper (utseendet er fritt). ELF IS A CLASS. DO NOT ASK. (tools/tests/classes.mjs)
+- [x] FIGHTER (barbaren), CLERIC (kølle, TURN UNDEAD, helbreder partneren i co-op), THIEF (to dolker, raske stikk, tre ganger skade bakfra, stjeler gull), MAGIC-USER (stav, svake slag, starter med krukker, sterkere magi), ELF (bue langs linja, lite liv, magi), DWARF (lav og bred, øks eller hammer, mye liv, treg) og BARD (lutt, METAL-måleren fylles dobbelt så fort)
+- [x] ROLL 3D6 i smia (STR, INT, WIS, DEX, CON, CHA), NATURAL 20 og CRITICAL FUMBLE på tunge slag, og en GAME MASTER som sukker
+- [x] Bestillinger av bilder til alven, dvergen, klasseutstyret og høna i docs/ART_PROMPTS.md
+- [ ] Tom: bestill bildene til alven og dvergen (og utstyret) etter ART_PROMPTS, så bygger jeg dem inn. Til da er alven bare slankere og dvergen klemt lav og bred
+- [ ] Tom: se på skjermbildene og prøv klassene. Tallene står i `CLASSES` (data/classes.ts) og `DICE` (game/classes.ts)
+- [ ] Presten bruker en egen kølle (HOLY MACE) i stedet for stridshammeren og piggkøllen, som må låses opp. Vil Tom at de skal kunne brukes når de er låst opp?
+- [ ] GAME MASTER-replikkene kunne vært innlest (docs/STEMMER.md)
+- [ ] Klassens evner (piler, bakstikk, helbredelse) gjelder bare på brettene, ikke i duellene
 
 ## Forgrunnen som dekker bildet (Tom 2026-10-01, skjermbilde fra mobil)
 - [x] Trær foran veien tones ut når de dekker en figur (i dag furuene i frostpasset), og kulissene i FRONT tones like mye (tools/tests/foreground.mjs). De store trærne på brett 1 og i nattleiren står bak kampbeltet etter PR #7

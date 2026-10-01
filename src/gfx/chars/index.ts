@@ -4,11 +4,12 @@ import { CLASSIC } from './classic';
 import { WILDS } from './wilds';
 import { BOSSES } from './bosses';
 import { RAIDERS } from './raiders';
+import { CRITTERS } from './critters';
 
 export * from './types';
 
 export const CHARS: Record<CharId, CharDef> = {};
-for (const d of [...CLASSIC, ...WILDS, ...BOSSES, ...RAIDERS]) CHARS[d.id] = d;
+for (const d of [...CLASSIC, ...WILDS, ...BOSSES, ...RAIDERS, ...CRITTERS]) CHARS[d.id] = d;
 
 export function registerChar(def: CharDef) {
   CHARS[def.id] = def;

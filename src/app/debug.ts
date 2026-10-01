@@ -36,6 +36,15 @@ import { LEVELS } from '../data/levels';
 import { forgeState } from './scenes/editor';
 import { MAP_NODES, MAP_EDGES, MAIN_ROUTE, stageName } from '../data/worldmap';
 import { nodeOpen } from './scenes/map';
+import { MAYHEM } from '../game/mayhem';
+import { TEETH_ODDS } from '../game/combat';
+import { GLASS_GIBS } from '../gfx/fx';
+import { MAYHEM_LINES, SPELL_LINES } from '../data/quips';
+import { SPELL } from '../game/spells';
+import { SPELLS, spellIndex } from '../data/spells';
+import { CLASSES, GEAR, classIndex, heroWeapon, abilityEffects, abilityMod, roll3d6, GM_LINES } from '../data/classes';
+import { DICE } from '../game/classes';
+import { withClassRules } from '../gfx/chars/hero';
 
 export function installDebug() {
   (window as unknown as { __lib: unknown }).__lib = {
@@ -48,5 +57,7 @@ export function installDebug() {
     LAYOUTS, layoutFor, setUnsavedLayout, validateLayout, levelWithLayout, layoutToJson, emptyLayout, LAYERS, LEVELS,
     allProps, propKind, propIds, imageKind, Scenery, expandRun, trackValue, withSeed, hashSeed, random, forgeState,
     MAP_NODES, MAP_EDGES, MAIN_ROUTE, stageName, nodeOpen,
+    MAYHEM, TEETH_ODDS, GLASS_GIBS, MAYHEM_LINES, SPELL, SPELLS, spellIndex, SPELL_LINES,
+    CLASSES, GEAR, classIndex, heroWeapon, abilityEffects, abilityMod, roll3d6, GM_LINES, DICE, withClassRules,
   };
 }

@@ -63,6 +63,9 @@ export class ScreenWet {
   bloodMul = 1;
   /** Regn på brettet, 0..1 (0 = tørt). Ingen brett har regn ennå, men miljøet kan sette det (Env.rain). */
   rain = 0;
+  /** Blodregn, 0..1: en kjempe eller en sjef er sprengt (game/mayhem.ts). Bloddråper over hele glasset, ikke på FAMILY. */
+  bloodRain = 0;
+  private bloodRainT = 0;
   /** Tall for testene. */
   stats = { blood: 0, water: 0, slid: 0, merged: 0, uploads: 0 };
   private clock = 0;
@@ -275,9 +278,19 @@ export class ScreenWet {
     this.dirty = true;
   }
 
-  /** Regn: små dråper som treffer og samler seg (bare når miljøet har regn). */
+  /** Regn: små dråper som treffer og samler seg (bare når miljøet har regn). Blodregnet gir større, seige bloddråper. */
   private rainTick(dt: number) {
-    if (this.rain <= 0 || dt <= 0) return;
+    if (dt <= 0) return;
+    if (this.bloodRain > 0 && this.bloodAllowed) {
+      this.bloodRainT -= dt;
+      if (this.bloodRainT <= 0) {
+        this.bloodRainT = (0.05 + Math.random() * 0.12) / Math.max(0.2, this.bloodRain * this.bloodMul);
+        this.ensure();
+        this.add(Math.random() * this.W, Math.random() * this.H * 0.9, (1.2 + Math.random() * 2.2) * this.kk(), true);
+        this.stats.blood++;
+      }
+    }
+    if (this.rain <= 0) return;
     this.rainT -= dt;
     if (this.rainT > 0) return;
     this.rainT = (0.08 + Math.random() * 0.2) / Math.max(0.2, this.rain);
