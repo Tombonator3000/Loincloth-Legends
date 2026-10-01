@@ -2,7 +2,7 @@
 
 Arbeidsrunde 2026-10-01, med `5eded08` som utgangspunkt. Tom ba ChatGPT Work hjelpe Claude med partikler, atmosfære, lyd, etterbehandling, manglende grafikk og opprydding. Endringene bruker spillets eksisterende Three.js-, WebAudio- og manifestoppsett.
 
-**Status:** implementert og statisk gjennomgått. Typekontroll, vanlig bygg, enkeltfilbygg, kunstkontroll, seks Python-tester og prosjektiltestene er bestått lokalt. Nettlesertester og før/etter-bilder venter på GitHub Actions. Operativsystemet i Work-økten avviste oppstart av lokal Chromium; denne runden er derfor ikke lokalt spilltestet eller visuelt godkjent i nettleseren.
+**Status:** levert i [PR #7](https://github.com/Tombonator3000/Loincloth-Legends/pull/7). Typekontroll, vanlig bygg, enkeltfilbygg, kunstkontroll, seks Python-tester og prosjektiltestene er bestått lokalt og i CI. Alle åtte nettlesersuiter og bildeopptak er bestått i [Actions-kjøring 36846244498](https://github.com/Tombonator3000/Loincloth-Legends/actions/runs/36846244498), på kodecommit `57f755e`. De ti før/etter-bildene er åpnet og vurdert. Operativsystemet i Work-økten avviste lokal Chromium; nettleserevidensen kommer fra GitHub-runneren med SwiftShader.
 
 ## Det som er endret
 
@@ -23,7 +23,7 @@ Arbeidsrunde 2026-10-01, med `5eded08` som utgangspunkt. Tom ba ChatGPT Work hje
 
 Kunstpakken har nå 254 bildefiler, opp fra 252. Jungelens nye kulissebilder, Zanthras egne deler og de nye fiendetypenes egne figurer er fortsatt åpne oppgaver. Ingen nye stemmeopptak er levert i denne runden.
 
-De to teksturene er generert separat med imagegen og behandlet gjennom `process_art.py`. En 2 x 2-flisprøve er visuelt kontrollert. Opphav og oppsummerte bestillinger står i `art/prompts/jungle-surfaces-2026-10-01.json`; kontroll av teksturene inne i spillet gjenstår.
+De to teksturene er generert separat med imagegen og behandlet gjennom `process_art.py`. Både en 2 x 2-flisprøve og jungelen i spillet er visuelt kontrollert. Opphav og oppsummerte bestillinger står i `art/prompts/jungle-surfaces-2026-10-01.json`.
 
 ## Kontroller og faktisk status
 
@@ -35,17 +35,29 @@ De to teksturene er generert separat med imagegen og behandlet gjennom `process_
 | `python tools/check_art_pack.py` | Manifest og alle 254 bildefiler, inkludert begge jungelteksturene | Bestått lokalt |
 | `python -m unittest discover -s tools/tests -p 'test_process_art.py'` | Seks regresjoner for alfa, hjelpelinjer, bakgrunn og små bilder | 6 av 6 bestått lokalt |
 | `node tools/tests/projectile-resources.mjs` | Ekte Three-ressurser uten WebGL: delt materiale, egne geometrier, levetid og gjentatt rydding | Tre kontrollgrupper bestått lokalt |
-| `post-quality.mjs` | 4K-budsjett, bloom på tvers av kvalitet, shaderopprydding, dråper ved rotasjon og kvalitetsmåler | Venter på nettleserkjøring i Actions |
-| `audio-depth.mjs` | WebAudio, opptak/syntreserve, biombytte, avstand, pause, ro/kamp og frakobling av noder | Venter på nettleserkjøring i Actions |
-| `atmosphere.mjs` | Løvpool, pause, kamerahopp, begge stemningskilder på LOW, synlige GPU-former, dis og stråler | Venter på nettleserkjøring i Actions |
-| `lifecycle.mjs` | Forsinket editor/fullskjerm, forsyninger, hån og duellreplikker ved pause/scenebytte | Venter på nettleserkjøring i Actions |
-| `polish-visuals.mjs` | Faste kamerasteder, frø, før/etter-bilder, stående mobilformat, tegnekall og minnetall | Venter på bilder og visuell vurdering |
+| `post-quality.mjs` | 4K-budsjett, bloom på tvers av kvalitet, shaderopprydding, dråper ved rotasjon og kvalitetsmåler | Bestått i Actions |
+| `audio-depth.mjs` | WebAudio, opptak/syntreserve, biombytte, avstand, pause, ro/kamp og frakobling av noder | Bestått i Actions, 137 av 137 opptak dekodet |
+| `atmosphere.mjs` | Løvpool, pause, kamerahopp, begge stemningskilder på LOW, synlige GPU-former, dis og stråler | Bestått i Actions |
+| `lifecycle.mjs` | Forsinket editor/fullskjerm, forsyninger, hån og duellreplikker ved pause/scenebytte | Bestått i Actions |
+| `soundbank`, `particles`, `jungle`, `finale` | Opptak og enkeltfilreserve, synlige kamppartikler, jungelfarer og sluttkamp | Alle fire bestått i Actions |
+| `polish-visuals.mjs` | Faste kamerasteder, frø, før/etter-bilder, stående mobilformat, tegnekall og minnetall | Ti bilder tatt og vurdert; ingen nye lesbarhetsfeil funnet |
 
 Den nye arbeidsflyten `.github/workflows/world-quality.yml` kjører på relevante PR-endringer eller manuelt. Den setter opp Node 22, Python 3.12, Pillow og Playwright 1.56.1 med Chromium. Typecheck, vanlig bygg, kunst-/alfakontroll og prosjektilressurstesten kjøres først, deretter de nye nettlesertestene og eksisterende `soundbank`, `particles`, `jungle` og `finale`. Enkeltfilbygget er kontrollert lokalt. Nettlesertestene kjøres én om gangen mot Vite dev-serveren. `atmosphere.mjs` importerer kildefilene direkte og skal ikke kjøres mot et rent produksjonsbygg.
 
 Arbeidsflyten starter også en separat dev-server for PR-ens base. `polish-visuals.mjs` bruker samme bildeformat og kamerasteder på begge: brett 1 ved x 55, nattleiren ved x 34,5, jungelen ved x 72 og Scorchlands ved x 35. Stående mobilformat tas med aktive skjermeffekter. Logger, `metrics.json` og bilder lagres i Actions-artifakten `world-quality-<sha>` i 14 dager. Dette er sammenligningsbilder, ikke en automatisk påstand om at den nye grafikken er bedre.
 
-Et grønt bygg bekrefter ikke shaderkompilering, lydmiksen eller at figurene er tydelige i kampen. Før godkjenning må Actions-resultatene leses og bildene åpnes. Oppdater denne statustabellen når resultatene foreligger.
+Visuell vurdering: kronen foran kameraet skjulte helten på brett 1 og nesten hele nattleiren før endringen. Etterpå er helten, kampbeltet og miljøet synlige. Jungelens nye steinvei har mer detalj, men helten og den kjøttetende planten er tydelig skilt fra bakgrunnen. Scorchlands beholder lysstemningen og lesbare figurer. Begge bildekjøringene rapporterte null nettleser-/shaderfeil. Fiendeposeringer og replikker varierer litt selv med samme startfrø, så bildene er ikke en pikselidentisk A/B-måling av bare bloom.
+
+| Kontrollert kamerasted | Tegnekall før | Tegnekall etter |
+|---|---:|---:|
+| Road, x 55 | 261 | 261 |
+| Nightcamp, x 34,5 | 122 | 120 |
+| Jungle, x 72 | 280 | 280 |
+| Scorch, x 35 | 194 | 193 |
+
+På 4K holdt alle nivåene sine pikselbudsjetter; LOW tegnet 1 198 660 piksler. HDR-kontrollen ga identisk prøvefarge på MEDIUM/HIGH/ULTRA, og alle åtte post-materialene ble frigjort. Lydbanene hadde gyldige prøver og ledig nivåmargin; scenebytte frakoblet alle målte løkkenoder. Dette erstatter ikke lytting på høyttalere eller ytelsesmåling på ekte mobil/GPU.
+
+To eksisterende UI-feil ble også synlige i sammenligningen og er ført i `todo.md`: METAL overlapper heltenavnet i stående smalt format, og jungelens fortellertekst har svak kontrast mot forgrunnsgresset. De står fortsatt åpne.
 
 ## Viktige grenser for videre arbeid
 
@@ -56,7 +68,7 @@ Et grønt bygg bekrefter ikke shaderkompilering, lydmiksen eller at figurene er 
 
 ## Neste nyttige runde etter kontrollen
 
-1. Se før/etter-bildene og prøv road/nightcamp på stedene der trærne dekket kameraet. Kontroller at tåke og lysstråler ikke skjuler fiender, og at jungelens steinvei passer figurstilen og tåler gjentakelse over hele brettet.
+1. Prøvespill road/nightcamp og hele jungelbrettet på ekte maskinvare. Før/etter-bildene er vurdert, men dekker fire kamerasteder og ikke alle spillsituasjoner. Rett også de to eksisterende UI-feilene over.
 2. Lytt på ro/kamp og pause med ekte høyttalere eller hodetelefoner. Juster nivåene etter hørbarheten av slag og replikker; ikke legg på flere samtidige lydlag før miksen er vurdert.
 3. Lag jungelkulissene og egne figurer for Zanthra/bueskytter/kaptein/griper/berserker etter oppdaterte `ART_PROMPTS.md` og prop-art-flyten. Kontroller rigg og ankere for hver figur.
 4. Mål minne over gjentatte scenebytter før en større opprydding i miljø- og riggressurser. Skill delte ressurser fra instanseide ressurser først.

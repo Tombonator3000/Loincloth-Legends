@@ -15,7 +15,7 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [x] Jungelbrett mellom brett 1 og sumpen (`jungle`, STAGE 2): kjøttetende plante, steinvekt, søyler som veltes over fiendene, Soltempelet, duell mot dronning Zanthra, låten TEMPLE OF THE SUN (tools/tests/jungle.mjs)
 - [ ] Tom: se på jungelen (plantene, steinvekta, søylene, tempelet i disen, palmene og duellen) og si fra om noe skal endres
 - [ ] Tom: lag replikkene for jungelen i VoiceStudio (fortelleren, Vorthax, dronning Zanthra, docs/STEMMER.md)
-- [x] Jungelen: bakke- og veitekstur (`ground_jungle`, `road_jungle`) levert som 1024 x 1024 WebP og registrert i manifestet (2026-10-01, docs/WORK_POLISH.md). Visuell kontroll i spillet venter på Actions
+- [x] Jungelen: bakke- og veitekstur (`ground_jungle`, `road_jungle`) levert som 1024 x 1024 WebP og registrert i manifestet (2026-10-01, docs/WORK_POLISH.md). Visuelt kontrollert i spillet fra Actions-kjøring 36846244498
 - [ ] Jungelen: kulisser (tempelruiner, steinguder, slyngplanter) etter ART_PROMPTS og skillen prop-art. Zanthra er satt sammen av Forge-deler og kan få egne bilder
 - [ ] Jungelen: elv med ruinby, og søyler som blir bro over elva (fra idélista), er ikke laget
 - [ ] Utstyr som endrer handlingene, to eller tre ting som gjenbruker effekter vi har: oljeflaske (glør og brann), ring (tordenmagien), kastedolk (kultistenes dolk). Må passe på de tre knappene
@@ -44,7 +44,7 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [x] Spillet henter bare kulissebildene brettene bruker (28 av 52 på brett 1), editoren resten (`loadPropImages`)
 - [x] Murene og gravene på de andre brettene (Tom 2026-09-30): gravplass i sumpen (også ute i vannet), steinmur, gravplass, borgruin og borgmur fram til porten i frosten, nedbrente teglmurer og borgruin i Scorchlands, ras og krypt i tårnet, liten gravplass i nattleiren. Farge per brett med tint
 - [ ] Porten (`env_palisade_gate`), alteret, steinblokka og den falne stokken er ikke brukt på noe brett ennå
-- [x] Genererte eiker som dekket kameraet i nattleiren (x 34,5) og på brett 1 (x 55), flyttet bak kampbeltet i env/night.ts og env/grass.ts (2026-10-01). Før/etter-bilder venter på Actions
+- [x] Genererte eiker som dekket kameraet i nattleiren (x 34,5) og på brett 1 (x 55), flyttet bak kampbeltet i env/night.ts og env/grass.ts (2026-10-01). Før/etter-bildene er visuelt kontrollert
 - [x] Varig alfagjenkjenning i process_art.py: eksisterende alfa bevares uten prosentgrense; hjelpelinjer behandles separat. Seks Python-regresjoner bestått (2026-10-01)
 - [ ] Tom: si om rekkefølgen passer (A, B, C, D, E), eller om AI del 1 (D) skal før editoren (C)
 - [ ] Tom: si fra om blodmengden nå som dråpene synes (standard EXCESSIVE)
@@ -138,8 +138,11 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [x] Egne prosjektilgeometrier og materialer ryddes uten å slippe delte sprite-materialer; post-prosessering slipper sine mål/materialer; ferdige lyder kobler fra egne noder
 - [x] Nye regresjonstester og arbeidsflyten .github/workflows/world-quality.yml for nettleserkontroll og før/etter-bilder, dokumentert i docs/WORK_POLISH.md
 - [x] Lokalt: typecheck, build, build:single, kunstkontroll av 254 bildefiler, seks alfa-tester og prosjektilressurstestene
-- [ ] Kjør og les nettlesertestene i GitHub Actions. Lokal Chromium ble avvist av operativsystemet i Work-økten
-- [ ] Se før/etter-bildene fra polish-visuals.mjs og kontroller ekte spill/lyd før den visuelle runden godkjennes
+- [x] Åtte nettlesersuiter bestått og logger lest i GitHub Actions 36846244498. Lokal Chromium ble avvist; runtimekontrollen er fra GitHub-runneren
+- [x] Ti før/etter-bilder vurdert: fri sikt på road/nightcamp, nye jungelteksturer og lesbare figurer i Scorchlands. Ingen ny lesbarhetsregresjon funnet
+- [ ] Lytt på ro/kamp og miljødybde på ekte høyttalere; mål ytelsen på ekte telefon/GPU
+- [ ] Rett eksisterende mobil-HUD: METAL overlapper heltenavnet i smalt stående format
+- [ ] Gi fortellerteksten bedre kontrast mot forgrunnsgress, særlig i jungelen
 
 ## Pågår: nesten ekte karikatur (Toms Valkyra-bilde, fra 2026-09-29 17:05)
 - [x] Ny tegneinstruks i docs/ART_PROMPTS.md: stil-blokk for nesten ekte karikatur, helfigur først, delene med helfiguren som referanse, HAIRBACK for langt hår, nye Thrugg- og Valkyra-prompter
