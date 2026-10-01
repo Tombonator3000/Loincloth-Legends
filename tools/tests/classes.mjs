@@ -220,7 +220,8 @@ await page.evaluate(() => {
   window.__run(0.1);
   f.startAttack(h.atk('slash1'));
   window.__run(0.2);
-  // Frosne figurer teller ikke ned treffblinket
+  // Hitstop etter et hardt treff stopper spilltiden, så treffblinket er ikke talt ned ennå
+  o.f.flashT = 0;
   o.f.rig.flash = 0;
 });
 await shot('c3-thief');

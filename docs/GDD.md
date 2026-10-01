@@ -160,7 +160,7 @@ En parodi på rollespillene fra 80-tallet, uten navn, regler eller monstre som t
 | MAGIC-USER | Stav | Magic Missile, Polymorph: Chicken, Meteor Storm, Grease | Svake slag, starter med tre krukker, mye sterkere magi |
 | ELF | Langbue | Magic Missile, Polymorph: Chicken, Sky Thunder | Skyter piler langs linja, lite liv, litt magi. ELF IS A CLASS. DO NOT ASK. |
 | DWARF | Øks eller hammer | Ancestral Scream, Sky Thunder | Lav og bred, mye liv, treg |
-| BARD | Lutt (brukt som kølle) | Ancestral Scream, Polymorph: Chicken | METAL-måleren fylles dobbelt så fort for alle |
+| BARD | Lutt (brukt som kølle, klinger når den treffer) | Ancestral Scream, Polymorph: Chicken | METAL-måleren fylles dobbelt så fort for alle |
 
 - **ROLL 3D6** i smia kaster tre terninger for STR, INT, WIS, DEX, CON og CHA, som i 1974. STR gir skade, DEX fart, CON liv og INT magi (4 prosent per poeng i tillegg, fra -3 til +3). WIS og CHA gjør ingenting, som vanlig. Spillederen har en mening om kastet, og om hvor mange ganger du har kastet på nytt.
 - **NATURAL 20 og CRITICAL FUMBLE**: hvert tungt slag rulles på en d20. 20 gir dobbel skade. 1 betyr at helten går på trynet og mister litt liv, og GAME MASTER sukker.

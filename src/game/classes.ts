@@ -90,8 +90,12 @@ export class ClassPlay {
     }
   }
 
-  /** Et treff fra en helt (Stage): tyven stjeler en mynt. */
+  /** Et treff fra en helt (Stage): lutten klinger, og tyven stjeler en mynt. */
   onHit(h: Hero, t: Fighter, blocked: boolean) {
+    if (h.cls.gear === 'lute' && !blocked) {
+      audio.lute();
+      if (chance(0.25)) W.fx.text(t.headPoint().add(new THREE.Vector3(0, 0.7, 0)), 'TWANG!', 'word', 0.8);
+    }
     if (!h.cls.steal || blocked || t.team === 'hero' || !chance(h.cls.steal)) return;
     h.gold += DICE.stealGold;
     W.stats.gold += DICE.stealGold;

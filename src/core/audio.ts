@@ -763,6 +763,14 @@ export class AudioEngine {
     }
   }
 
+  /** Lutten som treffer et hode (barden): et nappet akkord, litt ustemt, opp og ned igjen. */
+  lute() {
+    if (!this.ok('lute', 0.12) || !this.ctx) return;
+    const root = 55 + Math.floor(rand(0, 5));
+    const off = rand(-0.3, 0.3);
+    this.notes([[root + off, 0, 0.35], [root + 4 + off, 0.025, 0.32], [root + 7 - off, 0.05, 0.3], [root + 12 + off, 0.075, 0.28]], 'triangle', 0.11);
+  }
+
   /** Tre terninger som rulles over et bord (ROLL 3D6): tørre klikk som kommer tettere og tettere og stopper. */
   dice() {
     if (!this.ok('dice', 0.25) || !this.ctx) return;
