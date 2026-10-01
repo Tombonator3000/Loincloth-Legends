@@ -59,13 +59,14 @@ export function buildGrass(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
 
   if (gen(o, 'stakeWall')) stakeWall(g, 4, L - 8, -7.2, [[30, 38], [70, 76]]);
 
-  // Høstskog: rader bak palisaden, store trær lenger bak, glisne trær i forgrunnen som rammer inn bildet
+  // Høye 3D-trær står bak kampbeltet. De mangler kulissebildenes uttoning og kan fylle hele kameraet foran.
+  // De lave silhuettene og malte FRONT-kulissene beholder innrammingen uten å skjule kampen.
   wind.set(0.75, 1, 0.35, 0.7);
   if (gen(o, 'forest')) {
     const autumn = new Forest(SPECIES.autumn, 3);
     for (let x = -14; x < L + 14; x += rand(6, 11)) autumn.add(x, rand(-14, -10.5), rand(0.9, 1.2));
     for (let x = -24; x < L + 24; x += rand(4.5, 9)) autumn.add(x, rand(-32, -19), rand(1.1, 1.55), undefined, false);
-    for (let x = 14; x < L; x += rand(32, 46)) autumn.add(x, rand(8.6, 10), rand(0.9, 1.05));
+    for (let x = 14; x < L; x += rand(32, 46)) autumn.add(x, rand(-9.8, -8.8), rand(0.9, 1.05));
     g.add(autumn.build());
     const dead = new Forest(SPECIES.dead, 2);
     for (let x = 6; x < L; x += rand(20, 32)) dead.add(x, rand(-8.6, -7.9), rand(0.75, 0.95));

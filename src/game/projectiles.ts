@@ -120,9 +120,19 @@ export class Projectile {
   }
 
   kill() {
+    if (!this.alive) return;
     this.alive = false;
-    this.mesh?.removeFromParent();
-    this.marker?.removeFromParent();
+    if (this.mesh) {
+      this.mesh.removeFromParent();
+      this.mesh.geometry.dispose();
+      // Sprite-materialene bufres og deles av alle dolker/piler/kuler. Bare tunga eier sitt materiale selv.
+      if (this.kind === 'tongue') (this.mesh.material as THREE.Material).dispose();
+    }
+    if (this.marker) {
+      this.marker.removeFromParent();
+      this.marker.geometry.dispose();
+      (this.marker.material as THREE.Material).dispose();
+    }
   }
 
   get target(): 'hero' | 'enemy' {

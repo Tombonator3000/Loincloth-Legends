@@ -47,7 +47,8 @@ export function buildNight(scene: THREE.Scene, gore: Gore, o: StageEnvOpts): Env
     const oaks = new Forest(SPECIES.oak, 3);
     for (let x = -16; x < L + 16; x += rand(5, 9)) oaks.add(x, rand(-13, -9.5), rand(0.95, 1.25));
     for (let x = -26; x < L + 26; x += rand(4, 8)) oaks.add(x, rand(-30, -18), rand(1.1, 1.5), undefined, false);
-    for (let x = -6; x < L + 6; x += rand(14, 22)) oaks.add(x, rand(8.4, 9.8), rand(0.95, 1.1));
+    // Fullvoksne eiker foran kameraet skjulte hele bildet ved daggry. Lav forgrunn står fortsatt foran.
+    for (let x = -6; x < L + 6; x += rand(14, 22)) oaks.add(x, rand(-9.4, -8.4), rand(0.95, 1.1));
     g.add(oaks.build());
   }
   if (gen(o, 'meadow')) {

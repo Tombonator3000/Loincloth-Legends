@@ -1,0 +1,17 @@
+{
+  "generator": "Innebygd imagegen",
+  "created": "2026-10-01",
+  "note": "To originale, separat genererte overflater. Beskrivelsene under oppsummerer bestillingen. PNG-originalene er behandlet med tools/process_art.py til 1024 x 1024 WebP; en visuell 2 x 2-flisprøve er kontrollert.",
+  "assets": [
+    {
+      "file": "tex_ground_jungle.webp",
+      "brief": "Sømløs, kvadratisk albedo sett rett ovenfra av omtrent 3,5 meter fuktig jungelbunn. Naturtro dempet mosegrønt og brun jord, små døde blader, tynne røtter og små steiner. Jevnt nøytralt lys, ingen slagskygger, perspektiv, vignettering eller store dominerende former. Detaljene må fungere når teksturen gjentas over et 3D-brett i et seriøst 1980-talls fantasyspill.",
+      "transparent_background": false
+    },
+    {
+      "file": "tex_road_jungle.webp",
+      "brief": "Sømløs, kvadratisk albedo sett rett ovenfra av en gammel jungeltempelvei. Små og mellomstore uregelmessige gråoliven sandsteinsheller i forskjøvet mønster, smale fuger med mose, forsiktig slitasje og avskallede kanter. Naturtro materialer, moderat lyshet, jevnt nøytralt lys, ingen slagskygger, perspektiv eller vignettering. Ingen symboler eller store unike blikkfang.",
+      "transparent_background": false
+    }
+  ]
+}

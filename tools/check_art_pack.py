@@ -30,6 +30,7 @@ expected_textures |= {f'{kind}_arena-{theme}' for kind in ('floor', 'sand', 'wal
                       for theme in ('pit', 'ice', 'bone')}
 # Teksturer fra docs/PLAN_BRETT_GORR_AI.md (del 9.1). De kan komme inn før koden bruker dem (runde A).
 planned_textures = {'bark', 'stake_tip', 'canvas', 'thatch', 'plank', 'roof_slate', 'obsidian', 'bone'}
+planned_textures |= {'ground_jungle', 'road_jungle'}
 expected_sky = {'grass', 'swamp', 'frost', 'scorch', 'night',
                 'arena-pit', 'arena-ice', 'arena-bone'}
 
@@ -46,6 +47,7 @@ assert extra_parts == forge_parts, f'Ukjente ekstra figurdeler: {extra_parts - f
 actual_textures = set(manifest['textures'])
 extra_textures = actual_textures - expected_textures
 assert expected_textures <= actual_textures, f'Mangler teksturer: {expected_textures - actual_textures}'
+assert {'ground_jungle', 'road_jungle'} <= actual_textures, 'Mangler jungelens bakke eller vei'
 assert extra_textures <= planned_textures, f'Ukjente teksturer: {extra_textures - planned_textures}'
 assert set(manifest['sky']) == expected_sky
 assert manifest['map'] == 'map.webp'

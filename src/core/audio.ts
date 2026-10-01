@@ -179,6 +179,8 @@ export class AudioEngine {
   /** Dukking under store smell, og dempingen mens spillet står på pause. */
   private duckG!: GainNode;
   private dimG!: GainNode;
+  /** Litt mer luft til miljøet mellom bølgene, uavhengig av brukerens volum og store smell. */
+  private moodG!: GainNode;
   private duckEnd = 0;
   private duckAmt = 0;
   private dimmed = false;
@@ -210,6 +212,9 @@ export class AudioEngine {
     level: (n, t, sd, fast) => {
       this.chipLevel = n;
       if (this.style === 'metal') this.bandPerf!.level(n, t, sd, fast);
+      this.moodG.gain.cancelScheduledValues(t);
+      this.moodG.gain.setTargetAtTime(n === 0 ? 0.66 : 1, t, n === 0 ? 1.4 : 0.18);
+      this.amb?.mix(n, this.dimmed, t);
     },
     shred: (phase, tr, s, t, sd) => {
       if (isMetal(tr)) this.bandPerf!.shred(phase, tr, s, t, sd);
@@ -262,7 +267,8 @@ export class AudioEngine {
     this.duckG = c.createGain();
     this.dimG.gain.value = this.dimmed ? DIM : 1;
     this.fadeG = c.createGain();
-    this.music.connect(this.fadeG).connect(this.dimG).connect(this.duckG).connect(this.master);
+    this.moodG = c.createGain();
+    this.music.connect(this.moodG).connect(this.fadeG).connect(this.dimG).connect(this.duckG).connect(this.master);
     this.band = new MetalBand(c, this.music);
     this.bandPerf = new BandPerformer(this.band);
     const len = c.sampleRate * 1.5;
@@ -292,6 +298,7 @@ export class AudioEngine {
     this.band.samples = { pick: (g, m, v) => this.bank.pick(g, m, v), full: (g) => this.bank.full(g) };
     this.band.swellSample = () => (this.bank.hasFile('ins_bekken_1') ? { buf: this.bank.buffer('ins_bekken_1')!, lead: this.bank.leadIn('ins_bekken_1') } : null);
     this.amb = new Ambience(c, this.sfx, this.bank, this.layers);
+    this.amb.mix(this.chipLevel, this.dimmed);
     if (this.wantAmb) this.amb.set(this.wantAmb);
     if (this.trackName) this.play(this.trackName, true);
   }
@@ -355,11 +362,12 @@ export class AudioEngine {
     g.setTargetAtTime(1, this.duckEnd, 0.35);
   }
 
-  /** Musikken dempes mens spillet står på pause (kalles hvert bilde, gjør bare noe når det endres). */
+  /** Musikken og miljøet dempes mens spillet står på pause. Menylydene beholder normalt nivå. */
   setPaused(on: boolean) {
     if (on === this.dimmed) return;
     this.dimmed = on;
     if (this.ctx) this.dimG.gain.setTargetAtTime(on ? DIM : 1, this.ctx.currentTime, 0.12);
+    this.amb?.setPaused(on);
   }
 
   /** Stemning for et biom (LevelDef.biome), 'arena' for duellene, eller null. Glir over fra den forrige. */
@@ -576,9 +584,9 @@ export class AudioEngine {
     if (!this.ok('roar', 0.8)) return;
     const pitch = clamp(1.25 - size * 0.15, 0.7, 1.05);
     const out = this.rec([['brol', 0.95]], 0.3, pitch, at);
-    this.duck(0.35, 1.2, at);
     const c = this.ctx!;
     const t = c.currentTime + at;
+    this.duck(0.35, 1.2, t);
     const o = c.createOscillator();
     o.type = 'sawtooth';
     o.frequency.setValueAtTime(70 * pitch, t);
@@ -644,10 +652,11 @@ export class AudioEngine {
       if (!this.bank.has(g)) continue;
       const len = this.bank.buffer(g)?.duration ?? 2;
       this.bank.play(g, { vol: 1, pan: clamp(pan, -0.6, 0.6), t: this.ctx.currentTime + at });
-      this.duck(0.3, len, at);
       at += len + 0.35;
       n++;
     }
+    // Hele replikkrekken bruker lydkortets absolutte tid. Relative forsinkelser ga bare dukk under første linje.
+    if (n) this.duck(0.3, at - 0.35);
     return n;
   }
 

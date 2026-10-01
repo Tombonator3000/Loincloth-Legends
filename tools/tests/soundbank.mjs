@@ -20,9 +20,10 @@ async function open(u) {
   const logs = [];
   page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') logs.push(m.type() + ': ' + m.text()); });
   page.on('pageerror', (e) => logs.push('pageerror: ' + e.message + '\n' + e.stack));
+  await page.addInitScript(() => { window.requestAnimationFrame = () => 0; });
   await page.goto(u + (u.includes('?') ? '&' : '?') + 'nosplash');
-  await page.waitForTimeout(1500);
-  await page.evaluate(() => { window.requestAnimationFrame = () => 0; localStorage.clear(); window.__lib.audio.init(); });
+  await page.waitForFunction(() => window.__game && window.__lib?.audio, null, { polling: 100, timeout: 60000 });
+  await page.evaluate(() => { localStorage.clear(); window.__lib.audio.init(); });
   return { page, logs };
 }
 const runner = (page) => (sec) => page.evaluate((sec) => { const g = window.__game; for (let i = 0; i < Math.round(sec * 60); i++) g.tick(1 / 60, false); }, sec);

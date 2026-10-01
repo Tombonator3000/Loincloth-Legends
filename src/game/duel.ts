@@ -127,6 +127,7 @@ class DuelCtl {
 
   private cpu(dt: number, opp: Fighter, duel: Duel) {
     const f = this.f;
+    if (f.state === 'taunt' && f.st >= 0.9) f.setState('idle');
     this.think -= dt;
     this.planT -= dt;
     this.tauntCd -= dt;
@@ -205,7 +206,6 @@ class DuelCtl {
       f.setState('taunt');
       f.stunT = 0.9;
       W.fx.text(f.headPoint().add(new THREE.Vector3(0, 0.9, 0)), pick(this.side.taunts ?? TAUNTS_CPU), 'speech', 1.8);
-      setTimeout(() => f.state === 'taunt' && f.setState('idle'), 900);
       return;
     }
     const reachOf = (a: AttackDef) => a.reach * (0.85 + (0.15 * f.size) / 0.9) - 0.15;
@@ -268,6 +268,7 @@ export class Duel {
   matchWinner: 0 | 1 = 0;
   corpses: Fighter[] = [];
   private said = false;
+  private disposed = false;
   private roster: DuelSide[];
   sideA!: DuelSide;
 
@@ -420,7 +421,15 @@ export class Duel {
   }
 
   private storyIntro() {
-    (this.cfg.intro ?? []).forEach(([who, text], i) => setTimeout(() => this.hud.say(who, text, 1.8), i * 1900));
+    (this.cfg.intro ?? []).forEach(([who, text], i) => this.later(i * 1.9, () => this.hud.say(who, text, 1.8)));
+  }
+
+  /** Del spillets tidskø med effektene, men la aldri en gammel runde snakke eller posere i den neste. */
+  private later(delay: number, action: () => void) {
+    const round = this.round;
+    W.gore.later(delay, () => {
+      if (!this.disposed && this.phase !== 'done' && this.round === round) action();
+    });
   }
 
   private onHit(t: Fighter, r: { killed: boolean; decap: boolean; blocked: boolean }) {
@@ -451,13 +460,13 @@ export class Duel {
       this.focusT = 1.0;
       this.hud.announce(pick(['BUTCHERED!', 'FLAWLESS BUTCHERY!', 'SLAUGHTERED!', 'MAXIMUM GORE!']), 'kill', 2.2);
     }
-    setTimeout(() => {
+    this.later(0.9, () => {
       if (w.alive && w.canAct()) {
         w.setState('victory');
         const side = w === this.fa ? this.sideA : this.cfg.b;
         if (chance(0.7)) W.fx.text(w.headPoint().add(new THREE.Vector3(0, 0.9, 0)), pick(side.human ? TAUNTS_HERO : side.taunts ?? TAUNTS_CPU), 'speech', 2);
       }
-    }, 900);
+    });
   }
 
   private timeUp() {
@@ -579,6 +588,7 @@ export class Duel {
   }
 
   dispose() {
+    this.disposed = true;
     audio.ambience(null);
     this.fa?.remove();
     this.fb?.remove();

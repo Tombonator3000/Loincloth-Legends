@@ -67,12 +67,16 @@ function driveCurve(k: number) {
 export class LayerPlayer {
   constructor(private ctx: BaseAudioContext, private noise: AudioBuffer, private hall: AudioNode | null = null) {}
 
-  play(layers: Layer[], out: AudioNode, vol = 1, pitch = 1, t0 = this.ctx.currentTime) {
+  play(layers: Layer[], out: AudioNode, vol = 1, pitch = 1, t0 = this.ctx.currentTime, onEnded?: () => void) {
+    // Tell kildene, ikke lagene: et arpeggio har flere kilder. Den siste frigjør eventuell romklang/panorering.
+    let left = layers.reduce((n, l) => n + ('arp' in l ? l.arp.length : 1), 0);
+    const ended = () => { if (--left === 0) onEnded?.(); };
+    if (!left) { onEnded?.(); return; }
     for (const L of layers) {
       const t = t0 + (L.at ?? 0);
-      if ('arp' in L) this.arp(L, out, vol, pitch, t);
-      else if ('n' in L) this.noiseLayer(L, out, vol, pitch, t);
-      else this.osc(L, out, vol, pitch, t);
+      if ('arp' in L) this.arp(L, out, vol, pitch, t, ended);
+      else if ('n' in L) this.noiseLayer(L, out, vol, pitch, t, ended);
+      else this.osc(L, out, vol, pitch, t, ended);
     }
   }
 
@@ -82,13 +86,16 @@ export class LayerPlayer {
       const r = this.ctx.createGain();
       r.gain.value = rv;
       g.connect(r).connect(this.hall);
+      return r;
     }
+    return null;
   }
 
-  private osc(s: OscLayer, out: AudioNode, vol: number, pitch: number, now: number) {
+  private osc(s: OscLayer, out: AudioNode, vol: number, pitch: number, now: number, ended: () => void) {
     const c = this.ctx;
     const o = c.createOscillator();
     const g = c.createGain();
+    const nodes: AudioNode[] = [o, g];
     o.type = s.w;
     const f = s.f * pitch * (0.97 + Math.random() * 0.06);
     o.frequency.setValueAtTime(f, now);
@@ -96,6 +103,7 @@ export class LayerPlayer {
     if (s.vib) {
       const l = c.createOscillator();
       const lg = c.createGain();
+      nodes.push(l, lg);
       l.frequency.value = s.vib[0];
       lg.gain.value = s.vib[1];
       l.connect(lg).connect(o.detune);
@@ -108,12 +116,14 @@ export class LayerPlayer {
     let node: AudioNode = o;
     if (s.dist) {
       const w = c.createWaveShaper();
+      nodes.push(w);
       w.curve = driveCurve(s.dist);
       node.connect(w);
       node = w;
     }
     if (s.lp) {
       const lp = c.createBiquadFilter();
+      nodes.push(lp);
       lp.type = 'lowpass';
       lp.Q.value = 2;
       lp.frequency.setValueAtTime(s.lp[0], now);
@@ -122,12 +132,14 @@ export class LayerPlayer {
       node = lp;
     }
     node.connect(g);
-    this.send(g, out, s.rv);
+    const send = this.send(g, out, s.rv);
+    if (send) nodes.push(send);
+    o.onended = () => { for (const n of nodes) n.disconnect(); ended(); };
     o.start(now);
     o.stop(now + s.d + 0.02);
   }
 
-  private noiseLayer(s: NoiseLayer, out: AudioNode, vol: number, pitch: number, now: number) {
+  private noiseLayer(s: NoiseLayer, out: AudioNode, vol: number, pitch: number, now: number, ended: () => void) {
     const c = this.ctx;
     const src = c.createBufferSource();
     src.buffer = this.noise;
@@ -142,14 +154,17 @@ export class LayerPlayer {
     g.gain.linearRampToValueAtTime(Math.max(0.0002, s.v * vol), now + (s.atk ?? 0.01));
     g.gain.exponentialRampToValueAtTime(0.0001, now + s.d);
     src.connect(f).connect(g);
-    this.send(g, out, s.rv);
+    const send = this.send(g, out, s.rv);
+    src.onended = () => { src.disconnect(); f.disconnect(); g.disconnect(); send?.disconnect(); ended(); };
     // Lange drønn og applaus går i sløyfe, ellers kuttes de når støybufferen tar slutt
     if (s.d > 0.45) src.loop = true;
-    src.start(now, Math.random() * 0.5, s.d + 0.05);
+    src.start(now, Math.random() * Math.min(0.5, this.noise.duration * 0.3));
+    // stop() er på lydklokka. duration-argumentet til start() ville blitt kortere ved høyere pitch.
+    src.stop(now + s.d + 0.05);
   }
 
-  private arp(s: ArpLayer, out: AudioNode, vol: number, pitch: number, now: number) {
-    s.arp.forEach((f, i) => this.osc({ w: s.w, f, d: s.nd ?? s.nl * 1.8, v: s.v, rv: s.rv, vib: s.vib, atk: s.atk }, out, vol, pitch, now + i * s.nl));
+  private arp(s: ArpLayer, out: AudioNode, vol: number, pitch: number, now: number, ended: () => void) {
+    s.arp.forEach((f, i) => this.osc({ w: s.w, f, d: s.nd ?? s.nl * 1.8, v: s.v, rv: s.rv, vib: s.vib, atk: s.atk }, out, vol, pitch, now + i * s.nl, ended));
   }
 }
 

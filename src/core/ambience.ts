@@ -29,13 +29,15 @@ export interface AmbLayer {
   syn?: AmbSynth;
   sv?: number;
   lp?: number;
+  /** Litt bredde mellom lagene, med plass til kamplydene i midten. */
+  pan?: number;
 }
 
 /** Lagene per biom (LevelDef.biome) og for arenaene. */
 export const AMBIENCE: Record<string, AmbLayer[]> = {
   grass: [{ file: 'amb_vind', v: 0.5, syn: 'wind', sv: 0.25, lp: 3000 }],
-  jungle: [{ file: 'amb_natt', v: 0.3, syn: 'crickets', sv: 0.28, lp: 7000 }, { file: 'amb_drypp', v: 0.28, syn: 'drips', sv: 0.12 }],
-  swamp: [{ file: 'amb_drypp', v: 0.5, syn: 'drips', sv: 0.18 }, { file: 'amb_drone', v: 0.3, syn: 'drone', sv: 0.1, lp: 1800 }, { file: 'amb_natt', v: 0.1, lp: 5000 }],
+  jungle: [{ file: 'amb_natt', v: 0.3, syn: 'crickets', sv: 0.28, lp: 7000, pan: -0.28 }, { file: 'amb_drypp', v: 0.28, syn: 'drips', sv: 0.12, pan: 0.25 }, { file: 'amb_vind', v: 0.09, syn: 'wind', sv: 0.07, lp: 1800 }],
+  swamp: [{ file: 'amb_drypp', v: 0.5, syn: 'drips', sv: 0.18, pan: 0.2 }, { file: 'amb_drone', v: 0.3, syn: 'drone', sv: 0.1, lp: 1800 }, { file: 'amb_natt', v: 0.1, lp: 5000, pan: -0.25 }],
   frost: [{ file: 'amb_vind', v: 0.9, syn: 'wind', sv: 0.45 }],
   scorch: [{ file: 'amb_baal', v: 0.45, syn: 'fire', sv: 0.45 }, { syn: 'rumble', v: 0.35 }],
   night: [{ file: 'amb_natt', v: 0.5, syn: 'crickets', sv: 0.45 }, { file: 'amb_vind', v: 0.08, lp: 1200 }],
@@ -50,6 +52,8 @@ interface AmbEvent {
   lp?: number;
   every: [number, number];
   syn?: Layer[];
+  /** Opplevd avstand, 0 nær og 1 langt bak trærne. */
+  far?: [number, number];
 }
 const CROW: Layer[] = [
   { w: 'sawtooth', f: 620, d: 0.22, pd: 0.35, v: 0.05 },
@@ -78,13 +82,13 @@ const MONKEY: Layer[] = [
 ];
 export const AMB_EVENTS: Record<string, AmbEvent[]> = {
   jungle: [
-    { g: 'jungelfugl', v: 0, every: [5, 12], syn: BIRD },
-    { g: 'ape', v: 0, every: [14, 30], syn: MONKEY },
-    { g: 'frosk', v: 0, every: [9, 20], syn: FROG },
+    { g: 'jungelfugl', v: 0.22, every: [5, 12], syn: BIRD, far: [0.1, 0.65] },
+    { g: 'ape', v: 0.2, every: [14, 30], syn: MONKEY, far: [0.4, 0.85] },
+    { g: 'frosk', v: 0.18, every: [9, 20], syn: FROG, far: [0.1, 0.5] },
   ],
   grass: [{ g: 'kraake', v: 0.22, lp: 3500, every: [9, 20], syn: CROW }],
   night: [{ g: 'ugle', v: 0.3, lp: 3500, every: [12, 26], syn: OWL }],
-  swamp: [{ g: 'frosk', v: 0, every: [7, 16], syn: FROG }],
+  swamp: [{ g: 'frosk', v: 0.18, every: [7, 16], syn: FROG, far: [0.1, 0.65] }],
   frost: [
     { g: 'ulv', v: 0.16, lp: 2400, every: [20, 42] },
     { g: 'vindkast', v: 0.32, every: [8, 18] },
@@ -94,6 +98,7 @@ export const AMB_EVENTS: Record<string, AmbEvent[]> = {
 
 interface AmbVoice {
   g: GainNode;
+  lp: BiquadFilterNode | null;
   pan: StereoPannerNode | null;
   stop(fade: number): void;
 }
@@ -113,6 +118,8 @@ export class Ambience {
   };
   private nearT = 0;
   private eventT: number[] = [];
+  private paused = false;
+  private intensity = 1;
 
   constructor(private ctx: AudioContext, dest: AudioNode, private bank: SoundBank, private player: LayerPlayer) {
     this.bus = ctx.createGain();
@@ -143,16 +150,30 @@ export class Ambience {
     this.apply();
   }
 
+  /** Miljøet kommer fram mellom bølgene, og gir plass til slagene under kamp. Pause demper også bålet. */
+  mix(level: number, paused = this.paused, at = this.ctx.currentTime) {
+    this.intensity = level;
+    this.paused = paused;
+    const v = paused ? 0.12 : level === 0 ? 0.56 : level >= 2 ? 0.34 : 0.44;
+    const now = this.ctx.currentTime;
+    hold(this.bus.gain, now);
+    this.bus.gain.setTargetAtTime(v, Math.max(now, at), paused ? 0.12 : 0.7);
+  }
+
+  setPaused(on: boolean) {
+    if (on !== this.paused) this.mix(this.intensity, on);
+  }
+
   /**
    * Hvert bilde fra Stage: hvor nær nærmeste bål og foss er (0 til 1) og hvor de er (panorering), og enkeltlydene.
    * Nærheten oppdateres fire ganger i sekundet, som i Morbidium.
    */
   tick(dt: number, fire = 0, pan = 0, water = 0, wpan = 0) {
-    if (!this.biome) return;
-    this.near.fire.k = fire;
-    this.near.fire.pan = pan;
-    this.near.water.k = water;
-    this.near.water.pan = wpan;
+    if (!this.biome || this.paused || dt <= 0) return;
+    this.near.fire.k = Math.max(0, Math.min(1, fire));
+    this.near.fire.pan = Math.max(-1, Math.min(1, pan));
+    this.near.water.k = Math.max(0, Math.min(1, water));
+    this.near.water.pan = Math.max(-1, Math.min(1, wpan));
     this.nearT -= dt;
     if (this.nearT <= 0) {
       this.nearT = 0.25;
@@ -165,29 +186,38 @@ export class Ambience {
       if (this.eventT[i] > 0) return;
       this.eventT[i] = rnd(e.every[0], e.every[1]);
       const p = rnd(-0.7, 0.7);
-      if (this.bank.has(e.g)) this.bank.play(e.g, { vol: e.v * rnd(0.7, 1), pitch: rnd(0.92, 1.06), lp: e.lp, pan: p, out: this.bus });
-      else if (e.syn) this.player.play(e.syn, this.panned(p), rnd(0.7, 1), rnd(0.94, 1.06));
+      const far = rnd(...(e.far ?? [0.2, 0.75]));
+      const v = rnd(0.7, 1) * (1 - far * 0.55);
+      const lp = Math.min(e.lp ?? 9000, 9500 - far * 7000);
+      if (this.bank.has(e.g)) this.bank.play(e.g, { vol: e.v * v, pitch: rnd(0.92, 1.06), lp, pan: p, out: this.bus });
+      else if (e.syn) this.eventSynth(e.syn, p, v, lp);
     });
   }
 
-  private panned(p: number): AudioNode {
-    if (!this.ctx.createStereoPanner) return this.bus;
-    const s = this.ctx.createStereoPanner();
-    s.pan.value = p;
-    s.connect(this.bus);
-    return s;
+  private eventSynth(layers: Layer[], p: number, vol: number, cutoff: number) {
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = cutoff;
+    filter.Q.value = 0.5;
+    const pan = this.ctx.createStereoPanner?.();
+    if (pan) { pan.pan.value = p; filter.connect(pan).connect(this.bus); }
+    else filter.connect(this.bus);
+    this.player.play(layers, filter, vol, rnd(0.94, 1.06), this.ctx.currentTime, () => {
+      filter.disconnect();
+      pan?.disconnect();
+    });
   }
 
   // ---------------------------------------------------------------- lagene
   private want() {
-    const W = new Map<string, { v: number; lp?: number; make: () => AmbVoice | null }>();
+    const W = new Map<string, { v: number; lp?: number; pan?: number; make: () => AmbVoice | null }>();
     for (const L of AMBIENCE[this.biome ?? ''] ?? []) {
       if (L.file && this.bank.has(L.file)) {
         const file = L.file;
-        W.set('f:' + file, { v: L.v, lp: L.lp, make: () => this.fileVoice(file, L.lp) });
+        W.set('f:' + file, { v: L.v, lp: L.lp, pan: L.pan, make: () => this.fileVoice(file, L.lp, true) });
       } else if (L.syn) {
         const syn = L.syn;
-        W.set('s:' + syn, { v: L.sv ?? L.v, make: () => this.synthVoice(syn) });
+        W.set('s:' + syn, { v: L.sv ?? L.v, lp: L.lp, pan: L.pan, make: () => this.synthVoice(syn, true) });
       }
     }
     return W;
@@ -205,10 +235,12 @@ export class Ambience {
         this.voices.set(k, v);
       } else {
         // Et lag som allerede spiller (også et som var på vei ut) glir fra der det er
-        v.g.gain.cancelScheduledValues(now);
-        v.g.gain.setValueAtTime(Math.max(0.0001, v.g.gain.value), now);
+        hold(v.g.gain, now);
       }
       v.g.gain.setTargetAtTime(w.v, now, 1.1);
+      // Samme vindopptak brukes i skog, jungel, natt og frost. Filteret må også følge biomet.
+      v.lp?.frequency.setTargetAtTime(w.lp ?? 18000, now, 0.8);
+      v.pan?.pan.setTargetAtTime(w.pan ?? 0, now, 0.8);
     }
     for (const [k, v] of this.voices) {
       if (W.has(k) || k.startsWith('near:')) continue;
@@ -246,12 +278,14 @@ export class Ambience {
     st.set = [st.k, st.pan];
     v.g.gain.setTargetAtTime(N.v * st.k, now, 0.6);
     v.pan?.pan.setTargetAtTime(st.pan, now, 0.5);
+    // En fjern foss/bålplass er mørkere enn en nær, uten å drukne slag og fottrinn.
+    v.lp?.frequency.setTargetAtTime(1700 + Math.sqrt(st.k) * (kind === 'fire' ? 6800 : 4300), now, 0.6);
   }
 
   private fileVoice(group: string, lp?: number, panned = false): AmbVoice | null {
-    const h: Voice | null = this.bank.play(group, { loop: true, randomStart: true, vol: 0.0001, out: this.bus, lp, pan: panned ? 0 : undefined });
+    const h: Voice | null = this.bank.play(group, { loop: true, randomStart: true, vol: 0.0001, out: this.bus, lp: lp ?? 18000, pan: panned ? 0 : undefined });
     if (!h) return null;
-    return { g: h.g, pan: h.pan, stop: (fade) => h.stop(fade) };
+    return { g: h.g, lp: h.lp, pan: h.pan, stop: (fade) => h.stop(fade) };
   }
 
   // ---------------------------------------------------------------- syntetiske reserver
@@ -260,14 +294,22 @@ export class Ambience {
     const t = c.currentTime;
     const g = c.createGain();
     g.gain.value = 0.0001;
+    const outputFilter = c.createBiquadFilter();
+    outputFilter.type = 'lowpass';
+    outputFilter.frequency.value = 18000;
+    outputFilter.Q.value = 0.5;
+    g.connect(outputFilter);
+    const nodes: AudioNode[] = [g, outputFilter];
     let pan: StereoPannerNode | null = null;
     if (panned && c.createStereoPanner) {
       pan = c.createStereoPanner();
-      g.connect(pan).connect(this.bus);
-    } else g.connect(this.bus);
+      nodes.push(pan);
+      outputFilter.connect(pan).connect(this.bus);
+    } else outputFilter.connect(this.bus);
     const stops: (AudioScheduledSourceNode)[] = [];
     const loop = (buf: AudioBuffer, rate = 1) => {
       const s = c.createBufferSource();
+      nodes.push(s);
       s.buffer = buf;
       s.loop = true;
       s.playbackRate.value = rate;
@@ -279,6 +321,7 @@ export class Ambience {
       const o = c.createOscillator();
       o.frequency.value = hz;
       const d = c.createGain();
+      nodes.push(o, d);
       d.gain.value = depth;
       o.connect(d).connect(target);
       o.start(t);
@@ -286,33 +329,35 @@ export class Ambience {
     };
     const filter = (type: BiquadFilterType, f: number, q: number) => {
       const b = c.createBiquadFilter();
+      nodes.push(b);
       b.type = type;
       b.frequency.value = f;
       b.Q.value = q;
       return b;
     };
+    const gain = () => { const n = c.createGain(); nodes.push(n); return n; };
     if (kind === 'wind') {
       // Morbidiums vær: lavpass rundt 420 Hz som svinger sakte, og et svakt hvin over
       const lp = filter('lowpass', 420, 1.6);
       lfo(0.09, 180, lp.frequency);
-      const amp = c.createGain();
+      const amp = gain();
       amp.gain.value = 0.8;
       lfo(0.13, 0.25, amp.gain);
       loop(this.buffer('white')).connect(lp).connect(amp).connect(g);
       const bp = filter('bandpass', 900, 6);
       lfo(0.05, 260, bp.frequency);
-      const hi = c.createGain();
+      const hi = gain();
       hi.gain.value = 0.12;
       loop(this.buffer('white')).connect(bp).connect(hi).connect(g);
     } else if (kind === 'rumble' || kind === 'murmur') {
       const f = kind === 'rumble' ? filter('lowpass', 140, 0.9) : filter('bandpass', 620, 0.9);
-      const amp = c.createGain();
+      const amp = gain();
       amp.gain.value = kind === 'rumble' ? 1.6 : 0.9;
       lfo(kind === 'rumble' ? 0.11 : 0.33, kind === 'rumble' ? 0.4 : 0.35, amp.gain);
       loop(this.buffer(kind === 'rumble' ? 'brown' : 'white')).connect(f).connect(amp).connect(g);
       if (kind === 'murmur') {
         const f2 = filter('bandpass', 1350, 1.4);
-        const a2 = c.createGain();
+        const a2 = gain();
         a2.gain.value = 0.4;
         lfo(0.21, 0.2, a2.gain);
         loop(this.buffer('white'), 0.97).connect(f2).connect(a2).connect(g);
@@ -321,7 +366,7 @@ export class Ambience {
       // Fossesus: hvit støy mellom 250 og 1600 Hz som svulmer litt
       const hp = filter('highpass', 250, 0.7);
       const lp = filter('lowpass', 1600, 0.7);
-      const amp = c.createGain();
+      const amp = gain();
       amp.gain.value = 0.9;
       lfo(0.17, 0.15, amp.gain);
       loop(this.buffer('white')).connect(hp).connect(lp).connect(amp).connect(g);
@@ -329,11 +374,12 @@ export class Ambience {
       // Tre ustemte sagtenner på E1 og H1 gjennom et lavpass som puster (Morbidiums drone, stemt til E)
       const lp = filter('lowpass', 220, 1.2);
       lfo(0.07, 90, lp.frequency);
-      const amp = c.createGain();
+      const amp = gain();
       amp.gain.value = 0.22;
       lp.connect(amp).connect(g);
       for (const [f, det] of [[41.2, -7], [41.2, 6], [61.74, 3]] as const) {
         const o = c.createOscillator();
+        nodes.push(o);
         o.type = 'sawtooth';
         o.frequency.value = f;
         o.detune.value = det;
@@ -343,18 +389,22 @@ export class Ambience {
       }
     } else {
       // Ferdige sløyfer laget her: sirisser, bålknitring og drypp i en hule
-      const lvl = c.createGain();
+      const lvl = gain();
       lvl.gain.value = kind === 'fire' ? 0.9 : 0.8;
       loop(this.buffer(kind)).connect(lvl).connect(g);
     }
+    let left = stops.length;
+    for (const source of stops) source.onended = () => {
+      if (--left === 0) for (const node of nodes) node.disconnect();
+    };
     let stopped = false;
     return {
-      g, pan,
+      g, lp: outputFilter, pan,
       stop: (fade) => {
         if (stopped) return;
         stopped = true;
         const n = c.currentTime;
-        g.gain.cancelScheduledValues(n);
+        hold(g.gain, n);
         g.gain.setTargetAtTime(0.0001, n, fade / 3);
         for (const s of stops) {
           try {
@@ -434,4 +484,14 @@ export class Ambience {
 
 function rnd(a: number, b: number) {
   return a + Math.random() * (b - a);
+}
+
+/** Behold det hørbare nivået når en pågående overgang avbrytes. */
+function hold(param: AudioParam, t: number) {
+  if (param.cancelAndHoldAtTime) param.cancelAndHoldAtTime(t);
+  else {
+    const value = param.value;
+    param.cancelScheduledValues(t);
+    param.setValueAtTime(value, t);
+  }
 }
