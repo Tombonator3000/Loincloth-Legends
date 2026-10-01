@@ -9,6 +9,7 @@ Repo: https://github.com/Tombonator3000/Loincloth-Legends. Spillet er fra Tom's 
 3. Les de siste oppføringene i `log.md`.
 4. Design: `docs/GDD.md`. Arkitektur og oppskrifter: `docs/ARCHITECTURE.md`. Grafikk: `docs/ART_PROMPTS.md`. Målbildet for grafikken: `docs/STYLE_TARGET.md`. Brettverkstedet: `docs/STAGE_FORGE.md`.
 5. Skills for vanlige oppgaver ligger i `.claude/skills/` (brett og kulisser, grafikk fra ChatGPT, nytt brett, testene). Oversikt i `docs/SKILLS.md`. Claude Code finner dem selv. Andre agenter leser `SKILL.md` i mappa som passer.
+6. Claude Code har tillegget autoharness slått på for prosjektet (`.claude/settings.json`). Det lærer skills av øktene og legger dem i `.claude/skills/` (de med `.ledger.jsonl`). Commit dem etter at du har sett over dem; `.claude/autoharness/` er tilstand og skal ikke i git. Mer i `docs/SKILLS.md`.
 
 ## Mens du jobber
 - Logg alt du gjør i `log.md` med tidsstempel (format: `## YYYY-MM-DD HH:MM (Europe/Oslo)`).

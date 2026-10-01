@@ -650,6 +650,14 @@ Tom: «lag en PR».
 - Repoet har ingen PR-mal, så beskrivelsen følger de tidligere PR-ene: hva som er endret per punkt, hva som er kontrollert, og hva som gjenstår for Tom.
 - CI (`.github/workflows/pages.yml`) kjører typecheck og build på PR-en. Begge er grønne lokalt. Grenen bygger rett på `main` (dce0aaf), så ingen konflikter.
 
+## 2026-10-01 11:27 (Europe/Oslo)
+Tom: «https://github.com/tigerless-labs/autoharness bruk dette».
+- autoharness er et tillegg (plugin) for Claude Code som lærer skills av øktene: etter hvert 50. verktøykall starter det en egen Claude-økt i bakgrunnen (`claude -p --agent autoharness:reflector --dangerously-skip-permissions`) som leser et sladdet utdrag av økta og foreslår en ny skill eller en endring. Bare skriveren i tillegget lagrer, og bare skills det har laget selv (med `.ledger.jsonl`) endres. MIT, ren Python uten avhengigheter, krever Python 3.11 eller nyere. Lest README, krokene (`hooks.json`), MCP-serveren og koden som starter bakgrunnsøktene før det ble slått på.
+- Slått på med Claudes egne kommandoer: `claude plugin marketplace add tigerless-labs/autoharness --scope project` og `claude plugin install autoharness@autoharness --scope project`. Det ga `.claude/settings.json` med markedsplassen og `enabledPlugins`. Versjon 0.5.3, installert og aktiv i denne containeren (Python 3.11.15, Claude Code 2.1.286).
+- Prøvd kroken for øktstart for hånd med den installerte utgaven: kjører uten feil. Denne økta laster tillegget først etter `/reload-plugins` eller i neste økt.
+- `.claude/autoharness/` (tellere, forslag i kø, kjøringer, øyeblikksbilder) står i `.gitignore`. Lærte skills i `.claude/skills/` skal i git etter gjennomsyn, ellers forsvinner de med containeren. Skills tillegget legger i det globale laget (`~/.claude/skills/`), forsvinner i skymiljøet.
+- Dokumentasjon: docs/SKILLS.md (ny del om autoharness: hvordan det virker, hvor det havner, regler, kostnad, hvordan det slås av), AGENTS.md (punkt 6), memory.md og todo.md (oppstartsskriptet i skymiljøet er Toms jobb).
+
 ## 2026-10-01 11:53 (Europe/Oslo)
 
 Tom ba ChatGPT Work hjelpe Claude med partikler, atmosfære, lyd, etterbehandling, manglende grafikk og opprydding. Denne arbeidsrunden bygger på `5eded08`. Overlevering og detaljert kontrollstatus står i `docs/WORK_POLISH.md`.

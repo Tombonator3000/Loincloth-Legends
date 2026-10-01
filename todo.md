@@ -1,5 +1,11 @@
 # todo.md
 
+## autoharness: skills som lærer av øktene (2026-10-01, docs/SKILLS.md)
+- [x] Slått på for prosjektet i `.claude/settings.json`, tilstanden i `.gitignore`, regler i AGENTS.md og docs/SKILLS.md
+- [ ] Tom: legg `claude plugin marketplace add tigerless-labs/autoharness` og `claude plugin install autoharness@autoharness` i oppstartsskriptet til skymiljøet (miljøinnstillingene), så tillegget er med fra start i hver økt
+- [ ] Se over de første skillene den lærer (mapper i `.claude/skills/` med `.ledger.jsonl`, også `references/`) før de commites, og si fra om noe skal endres
+- [ ] Vurder takten etter noen økter (`AUTOHARNESS_REFLECT_EVERY_N`, standard 50 verktøykall): hver runde er en egen Claude-økt
+
 ## Retning fra ChatGPT-samtalen (forslag som venter på Tom, 2026-10-01)
 Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og Mystara som inspirasjon. Vurderingen står i log.md 2026-10-01.
 - [x] Tom: historien. Prinsesse Amberly er målet, Solhjertet kan være grunnen til jungelen (Tom 2026-10-01)
