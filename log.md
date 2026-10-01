@@ -643,3 +643,9 @@ Testene etter de nye fiendene og ridedyrene (commit 4fd68dc).
 - Første runde: riders, mounts, mountride, grab (road), guard, giant, combo, director, pets, metalmode, jungle og scenarios (road, jungle, swamp, scorch, tower) mot bygget før de siste rettelsene. Alt grønt unntatt pets, som fikk tidsavbrudd fordi jeg kjørte andre tester samtidig; alene gikk den gjennom.
 - Siste runde mot det endelige bygget, én test om gangen: newfoes (to ganger, 21 av 21 begge), frostplay (kjempens grep og kast), grab (road), combo, riders, finale og scenarios (jungle til duellen, swamp og scorch til sjefen er død). Alt grønt.
 - typecheck og build grønne.
+
+## 2026-10-01 11:11 (Europe/Oslo)
+Tom: «lag en PR».
+- PR #6 fra `ccr-8d41a195-mid2vq` til `main`: https://github.com/Tombonator3000/Loincloth-Legends/pull/6 («Ledd som bøyes, jungelbrettet, valgfri kartrekkefølge og runde E»). Sju commits, alle seks punktene fra Tom og leseren for delte ChatGPT-lenker.
+- Repoet har ingen PR-mal, så beskrivelsen følger de tidligere PR-ene: hva som er endret per punkt, hva som er kontrollert, og hva som gjenstår for Tom.
+- CI (`.github/workflows/pages.yml`) kjører typecheck og build på PR-en. Begge er grønne lokalt. Grenen bygger rett på `main` (dce0aaf), så ingen konflikter.
