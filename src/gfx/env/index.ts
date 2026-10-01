@@ -9,6 +9,7 @@ import { buildFrost } from './frost';
 import { buildScorch } from './scorch';
 import { buildTower } from './tower';
 import { buildNight } from './night';
+import { buildJungle } from './jungle';
 
 export interface StageEnvOpts {
   length: number;
@@ -33,6 +34,7 @@ export const STAGE_BUILDERS: Record<string, StageBuilder> = {
   scorch: buildScorch,
   tower: buildTower,
   night: buildNight,
+  jungle: buildJungle,
 };
 
 export { buildArena, type ArenaTheme } from './arena';

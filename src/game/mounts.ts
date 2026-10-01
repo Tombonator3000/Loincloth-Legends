@@ -51,6 +51,11 @@ export interface MountWorld {
 
 type MState = 'idle' | 'walk' | 'charge' | 'tail' | 'fire' | 'wild' | 'flee';
 
+/** Spesialangrepet koster så mye utholdenhet (av 1), og så mye fylles opp per sekund når dyret ikke angriper. */
+export const STAMINA = { cost: 0.34, regen: 0.16 };
+/** Bredden på utholdenhetslinja over dyret. */
+const BAR_W = 1.1;
+
 export class Mount implements MountLike {
   rig: BeastRig;
   shadow: THREE.Mesh;
@@ -80,6 +85,15 @@ export class Mount implements MountLike {
   private remountT = 0;
   /** Angrep som ble trykket litt for tidlig (utføres når dyret er klart). */
   private queued = 0;
+  /**
+   * Utholdenhet (runde E, docs/PLAN_BRETT_GORR_AI.md 6.4 punkt 7): spesialangrepet koster utholdenhet i stedet for
+   * liv, og fylles opp igjen når dyret ikke angriper. Lærdommen fra Golden Axe: Beast Rider, der spillerne lot være å
+   * bruke angrepene fordi de kostet dyret liv.
+   */
+  stamina = 1;
+  private winded = 0;
+  /** Linja over dyret som viser utholdenheten (bare med en helt på ryggen). */
+  private bar: THREE.Group | null = null;
 
   constructor(public def: MountDef, x: number, z: number) {
     this.rig = new BeastRig(BEASTS[def.beast]);
@@ -101,6 +115,35 @@ export class Mount implements MountLike {
   remove() {
     this.rig.root.removeFromParent();
     this.shadow.removeFromParent();
+    this.bar?.removeFromParent();
+  }
+
+  /** Utholdenheten som en liten linje over ryggen på dyret, bare når en helt rir og den ikke er full. */
+  private updateBar() {
+    const show = this.rider?.team === 'hero' && this.stamina < 0.999;
+    if (!show) {
+      if (this.bar) this.bar.visible = false;
+      return;
+    }
+    if (!this.bar) {
+      this.bar = new THREE.Group();
+      const bg = new THREE.Mesh(new THREE.PlaneGeometry(BAR_W + 0.1, 0.2), new THREE.MeshBasicMaterial({ color: '#1a1008', transparent: true, opacity: 0.8, depthTest: false }));
+      const fill = new THREE.Mesh(new THREE.PlaneGeometry(BAR_W, 0.11), new THREE.MeshBasicMaterial({ color: '#7ad44a', depthTest: false }));
+      fill.position.z = 0.001;
+      fill.name = 'fill';
+      bg.renderOrder = 20;
+      fill.renderOrder = 21;
+      this.bar.add(bg, fill);
+      this.rig.root.parent?.add(this.bar);
+    }
+    this.bar.visible = true;
+    // Over ryggen bak rytteren, så linja ikke dekker ham
+    this.bar.position.set(this.pos.x - this.facing * 1.0 * this.size, this.pos.y + 1.6 * this.size, this.pos.z + 0.2);
+    const fill = this.bar.getObjectByName('fill') as THREE.Mesh;
+    const k = Math.max(0.001, this.stamina);
+    fill.scale.x = k;
+    fill.position.x = (-(1 - k) * BAR_W) / 2;
+    (fill.material as THREE.MeshBasicMaterial).color.set(this.stamina < STAMINA.cost ? '#d44a2a' : '#7ad44a');
   }
 
   // ---------------------------------------------------------------- MountLike
@@ -126,6 +169,16 @@ export class Mount implements MountLike {
       return;
     }
     this.queued = 0;
+    // For lite utholdenhet: dyret fnyser og må hvile litt
+    if (this.stamina < STAMINA.cost) {
+      if (this.winded <= 0) {
+        this.winded = 1.2;
+        W.fx.text(this.pos.clone().add(new THREE.Vector3(0, 2.2 * this.size, 0)), 'WINDED!', 'word', 0.9);
+        audio.grunt(this.def.voice);
+      }
+      return;
+    }
+    this.stamina -= STAMINA.cost;
     this.state = this.def.attack;
     this.t = 0;
     this.hits.clear();
@@ -139,6 +192,11 @@ export class Mount implements MountLike {
     this.vel.y = 9;
     audio.jump();
     W.gore.dust(this.pos, 6);
+  }
+
+  /** Klar for en ny rytter: ingen på ryggen, ikke på flukt, og pausen etter forrige rytter er over. */
+  get ready() {
+    return !this.rider && this.state !== 'flee' && !this.removeMe && this.remountT <= 0;
   }
 
   mountUp(f: Fighter) {
@@ -177,7 +235,7 @@ export class Mount implements MountLike {
       if (this.falls >= 3) {
         this.state = 'flee';
         W.fx.text(this.pos.clone().add(new THREE.Vector3(0, 2.4, 0)), 'BAIL!', 'word');
-        if (r.team === 'hero') setTimeout(() => W.fx.text(this.pos.clone().add(new THREE.Vector3(0, 3, 0)), this.def.fleeLine, 'speech', 2.4), 300);
+        if (r.team === 'hero') W.gore.later(0.3, () => W.fx.text(this.pos.clone().add(new THREE.Vector3(0, 3, 0)), this.def.fleeLine, 'speech', 2.4));
       }
     } else {
       r.setState('idle');
@@ -190,6 +248,13 @@ export class Mount implements MountLike {
     this.t += dt;
     this.cd -= dt;
     this.remountT -= dt;
+    this.winded -= dt;
+    // Utholdenheten fylles opp når dyret ikke angriper, og et andpustent dyr puster damp
+    if (this.state === 'idle' || this.state === 'walk' || this.state === 'wild') this.stamina = Math.min(1, this.stamina + STAMINA.regen * dt);
+    if (this.stamina < STAMINA.cost && Math.random() < dt * 5) {
+      W.gore.ambient(this.pos.x + this.facing * 1.1 * this.size, 1.0 * this.size, this.pos.z + 0.1, this.facing * 0.6, 0.4, '#e8eef4', 0.07, 0.8, false);
+    }
+    this.updateBar();
     const r = this.rider;
     if (r && (!r.alive || (r.state !== 'ride' && r.state !== 'magic'))) this.dismount(true);
     if (this.queued > 0) {

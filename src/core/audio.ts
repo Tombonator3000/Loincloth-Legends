@@ -16,7 +16,7 @@ import { LayerPlayer, TROMBONE, STREAK_FANFARES, BOSS_FANFARE, KO_FANFARE, DEFEA
 
 export type MusicStyle = 'metal' | 'chip';
 /** Låter som bare finnes som metal. 8-bit bruker da en av de gamle. */
-const CHIP_FALLBACK: Record<string, string> = { swamp: 'stage', frost: 'stage', scorch: 'stage', night: 'title' };
+const CHIP_FALLBACK: Record<string, string> = { jungle: 'stage', swamp: 'stage', frost: 'stage', scorch: 'stage', night: 'title' };
 
 type Voice = 'hero' | 'heroine' | 'skeleton' | 'pig' | 'cultist' | 'gnome' | 'brute' | 'imp' | 'zombie' | 'frog' | 'troll' | 'wizard' | 'boar' | 'rooster' | 'newt';
 

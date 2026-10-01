@@ -123,6 +123,73 @@ Avhengigheter går én vei: `app` bruker `game`, `gfx`, `data`, `ui`. `game` bru
 
 Heltene bygges av `gfx/chars/muscle.ts` med målene i `gfx/chars/types.ts`: lange bein (`LEG_L`, `HERO_HIP_Y`), lange armer (`ARM_L`), høyere overkropp (`TORSO_Y` via `stretchY()`), hodet litt for lite (`HEAD_SCALE`), brede skuldre og enorme armer (`HERO_BIG_J`). `scalePart()` skalerer en del rundt leddet uten at konturstreken blir tykkere, og `stretchY()` strekker bare i høyden. Thrugg og Valkyra i `classic.ts` er bygget med heltebyggeren, så presetene har samme proporsjoner.
 
+## Albuer og knær
+
+Figurer med `bend` i `CharDef` (alt som bygges med `buildHeroDef`: heltene, Thrugg, Valkyra, Ash Raider og Iron Warden) bøyer albuene og knærne. Armer og bein er delt i ruter (`PlaneGeometry` 4 x 24 i `partAsset`), og hver figur får en egen kopi av geometrien (`Rig.limbBend`) der alt nedenfor leddet dreies rundt albuen eller kneet, med en myk overgang (`BEND_SOFT`) så huden strekkes i stedet for å knekke. Skyggeleggeren får dreiningen per hjørne (`aRot`, `#define BEND` i `CHAR_VERT`), så relieffet og kantlyset følger underarmen. Skyggen følger med fordi det er geometrien som bøyes.
+- Leddet: `elbow` og `knee` i manifestet (brøk av bildet, målt for Thrugg og Valkyra), ellers midt på armen og 40 prosent ned på beinet.
+- Stillingene: `elbowF`, `elbowB`, `kneeF`, `kneeB` i `Pose` (positivt er bøyd). Våpenet følger neven, men bladet peker dit `armF + weapon` sier, så våpenvinklene virker likt med og uten bøy. Tilleggene for heltene står i `PB` i `game/attacks.ts` og legges oppå `P` med `bentPose()` (figurer uten `bend` bruker `P` som før). Gangen og løpet regnes i `Fighter.animate`: kneet bøyes i beinet som svinger fram.
+- Føttene på bakken: `Rig.plant()` flytter kroppen så laveste fot eller kne står på bakken når figuren står (`PLANTED` i fighter.ts). Da gir bøyde knær lavere kropp, kroppen synker når beina sprikes, og kneet står i bakken når figuren kneler. `bodyY` i stillingene betyr derfor bare noe for figurer uten `bend`.
+- En arm som ryker, beholder bøyen den hadde. `tools/tests/bend.mjs` sjekker og viser stillingene (også `stiff` ved siden av, før og etter).
+
+## Grep og tøffe fiender
+
+Helten griper ved å gå inn i en fiende (`AUTO_GRAB`). Tøffe fiender (`guard: true` i `FoeDef`: grisemannen, vakten og istrollet) står imot til de vakler (`offBalance` i `game/grab.ts`): rett etter et treff (`Fighter.staggerT`, `STAGGER_OPEN` etter treffstøtet), når de er svimle, eller med under en tredjedel av livet. Går helten inn i en som står imot, skyves helten unna (`resistGrab`, en replikk fra `RESIST_BARKS`) og prøver ikke igjen på litt over et sekund (`Hero.grabPause`). Fiender med `poise` står uansett imot til de vakler. Test: `tools/tests/guard.mjs`.
+
+## Vorthax på veien
+
+`vorthax: { at, lines }` i en `LevelDef` får Vorthax til å vise seg som et kjempehode av lilla lys over brettet (`gfx/vision.ts`, hodet til figuren `vorthax`) og holde en tale, én replikk om gangen i HUD-en (`Stage.updateVision`, spilltid). Han viser seg bare mellom bølgene og bare én gang. Alle brettene før tårnet har en tale, og noen bølger har replikker om ordrene hans. Test: `tools/tests/vorthax.mjs`.
+
+## Jungelen
+
+Brett 2 (`jungle` i `levels.ts`, biomet `gfx/env/jungle.ts`). Trærne er tre arter med store blad (`broad` i `LeafKind`): jungelkjempen (`SPECIES.jungle`), palmen og bananplanten. Skogen åpner seg foran Soltempelet (`TEMPLE_X`), så pyramiden synes fra veien.
+- **Planten** (`maneater`): syklusen står i `MANEATER` (`data/hazards.ts`). Den hviler, varsler (rister og snur gapet mot veien) og glefser. En fiende som kastes eller slås inn i den, blir spist med en gang (`armed` er alltid sant), mens en helt bare blir bitt når den glefser (`Hazard.bites`). Fiendene går rundt den.
+- **Steinvekta** (`deadfall`): faller når noen står under den (`Hazard.trigger()` fra `Stage.updateHazards`), knirker først (`DEADFALL.creak`), treffer i ett bilde (`impact`) og heises opp igjen. Den dreper alle fiender under seg (`killsAll`), og en helt tar skade.
+- **Søylene** (`templePillar` i `env/props.ts`, plassene i `JUNGLE_PILLARS`) er `Tippable` som fyrfatene. `tip(dir)` får retningen slaget kom fra, så søylen faller på skrå bort fra helten, og `Crush` er linjestykket den lander langs. `Stage.crush` dreper fiendene som står der og slår helter over ende (`PILLAR_HIT`).
+- **Finalen** er en duell mot dronning Zanthra (`zanthra` i `duelists.ts`, figuren i `gfx/chars/raiders.ts`) i arenaen `temple`. `after` på duellanten gir replikker etter seieren når duellen er finalen på et brett.
+- Låten er TEMPLE OF THE SUN (`jungle` i `METAL_TRACKS`), stemningen insekter, drypp, fugler, aper og frosker (`AMBIENCE` og `AMB_EVENTS` i `core/ambience.ts`).
+- Test: `tools/tests/jungle.mjs` (farene og søylene, og skjermbilder langs brettet).
+
+## Sjefer i faser og sluttkampen
+
+Runde E i `docs/PLAN_BRETT_GORR_AI.md` (del 6.4). Sjefene går gjennom faser ved 66 og 33 prosent (`phases` i `BossDef`) i stedet for én raserigrense. En fase har replikk, fart, nye trekk (`extra`) og sterkere utgaver av trekkene han har (`stronger`, slås sammen med trekket av samme slag). Livslinja får merker der fasene begynner (`hud.bossPhases`), og hodeskallen gløder i fasene.
+- **Sliten** (`tired` på et trekk): etter store trekk står sjefen og hiver etter pusten uten rustning (`BossCtl.tire`), så slagene rykker ham, og han tar 1,3 ganger skade. Teksten OPENING! viser vinduet.
+- **Røde trekk** (`red`): rødt blink og krigshorn før trekket, og slag kan ikke avbryte det. Det må unngås (gå ut av linja, hopp). Sjefene slås aldri over ende (`Fighter.kdImmune`), de rykkes.
+- **Nye trekk**: `feast` (Hogmother spiser et kyllinglår og får `heal` av livet tilbake, men slag for fem prosent av livet mens hun spiser, avbryter og gjør henne sliten), `dive` (Croakus går under bakken uten skygge, skyggen svømmer mot helten, og han kommer opp der den er, `DiveShadow`), `mirror` (Vorthax lager kopier av seg selv, `Fighter.illusion`, uten skygge; et slag på en kopi får den til å forsvinne, et slag på den ekte får alle til å forsvinne) og `beam` (solstrålen langs veien i høyden helten står i, med rød stripe som varsel, treffer hver helt én gang). `trail` på en fase gir lava i sporene (Magmor, `BossWorld.lava` og `LavaTrail`), som brenner det som går i den (glørne i `Stage.embers`). Figurer av lava brenner ikke.
+- **Sluttkampen** (`finale` i `BossDef`, `Stage.updateFinale`): Vorthax står på tronen bak skjoldet (`mode: 'throne'`, `Fighter.shielded`, alt preller av) mens vaktene reiser seg av gulvet bølge for bølge (`guards`, `Stage.spawnRising`, `Foe.rise`). Skjelettvaktene (`skelguard`) har en dør som skjold (`FoeDef.shield`, `Fighter.frontGuard`): vanlige slag forfra preller av, men tredje slag i komboen, hoppslag, stormløp, spinn, kast, magi og slag bakfra går gjennom. Når vaktene er slått, går han ned og slåss. Skjoldet holdes oppe av tre søyler med krystaller i tronsalen (`templePillar(..., 'tower')`, `Tippable.conduit`); de veltes som søylene i jungelen, og en søyle som faller over ham tar sju prosent av livet (`BossCtl.crushed`, skjoldet hjelper ikke). Når den siste faller, brister skjoldet, og han er sliten. Ved 33 prosent tar han Solhjertet (`heart` på fasen): hjertet flyr fra lysekronen til ham, han gløder, og rommet blir rødt (`GRADES.heart`). Når han dør, faller hjertet på gulvet og buret med prinsessen senkes (`FinaleFx` fra `gfx/env/tower.ts`).
+- Effektene står i `gfx/bossfx.ts`: skjoldet med stråler fra krystallene (`ShieldFx`), skyggen, lavaen, solstrålen, kyllinglåret og døra. Livslinja viser skjoldet (`hud.bossShield`).
+- Tester: `tools/tests/bossphases.mjs` (fasene, måltidet, røde trekk, sliten sjef, dykket, lavaen, speilbildene, solstrålen) og `tools/tests/finale.mjs` (tronen, vaktene, døra, søylene, skjoldet, Solhjertet og slutten).
+
+## Komboer og forsvar
+
+Runde E, del 6.4 punkt 3 og 4 i planen (`game/combo.ts`):
+- **Sjonglering**: `JUGGLE_LIMIT` treff i lufta (telles i `Stage.juggle`), så slås fienden i bakken (`spike`) og blir liggende. En liggende fiende kan ikke treffes før han er oppe (`canHit`).
+- **Kanten av bildet**: under en bølge (`Stage.lockX`) spretter en kropp som flyr mot kanten, tilbake (`wallBounce`, litt skade), høyst `WALL_BOUNCES` ganger per flytur. En kropp som er slått avgårde (ikke kastet, det er `bowl` i grab.ts), skader fiendene den treffer (`bodyHits`, `BODY_HIT`). Tellerne nullstilles når kroppen er nede (`grounded`).
+- **Lese helten** (`HabitReader`): eliter (`guard`, `poise` eller `shield` på `FoeDef`) og sjefer som tar `READ_AFTER` like slag på rad (samme slag uten trinnummer og våpen, `attackKind`), blokkerer i `READ_BLOCK` sekunder (`Foe.blockFor`, `BossCtl.blockFor`, staten `block`) og slår tilbake etterpå. Slag forfra preller av; løpeslaget har `guardBreak`, og slag bakfra går gjennom.
+- **Grepet**: den som holdes, river seg løs etter `BREAK_FREE` sekunder uten kne (`breakFree` i grab.ts) og skyver helten bakover.
+- **Prosjektiler**: fiender som ser et prosjektil fra heltene komme langs linja, går til side (`Foe.incoming`, sjansen fra vanskelighetsgraden).
+- Test: `tools/tests/combo.mjs`.
+
+## Tempo og vanskelighetsgrad
+
+Runde E, del 6.4 punkt 1 og 6 i planen:
+- **Regissøren** (`game/director.ts`, `Stage.director`): spenningen stiger med skaden heltene tar (andel av livet), drap og lite liv igjen, og synker over tid. Over `TENSION.peak` er det en topp; etter `peakTime` sekunder kommer et pusterom (`relaxTime`). `tokens()` gir angrepsplassene (`Stage.maxTokens`): én færre i pusterommet, én flere når det er rolig. `pace()` ganger nedkjølingene til fiendene (`FoeWorld.pace`, under 1 er lengre pauser).
+- **Bølgebudsjettet** (`foeRank` i `data/enemies.ts`, `Stage.waveCap` og `waveDebt`): en bølge har plass til `maxAlive` i rang (1,4 ganger med to spillere). En fiende kommer når rangen hans får plass (eller ingen lever); går en bølge over, trekkes det fra neste bølge. `rank` på `FoeDef` overstyrer.
+- **Vanskelighetsgraden** (`data/difficulty.ts`, `settings.difficulty`, OPTIONS): `wind` ganger opptrekket før fiendenes slag (`windUp` i foes.ts), `pace` tempoet, `dodge` unnamanøvrene, `tokens` angrepsplassene og `think` tenketiden til sjefene. Aldri liv eller skade.
+- Alt som påvirker spillet, går i spilltid (`W.gore.later`), også ryttere, rop og game over, så pause virker.
+- Test: `tools/tests/director.mjs`.
+
+## Nye fiendetyper og ridedyr
+
+Runde E, del 6.4 punkt 2 og 7 i planen. Hver ny fiende har en vane spilleren må straffe, og alt står i `FoeDef` (`data/enemies.ts`) og `Foe` (`game/foes.ts`):
+- **Bueskytteren** (`goblinarcher`, `behavior: 'archer'`, `proj: 'arrow'`): holder avstand på linja (samme dybde som helten) og skyter piler med buen (`ENEMY_ATK.bow`, opptrekket er tida helten har til å gå ut av linja). Kommer helten nærmere enn `ARCHER_NEAR`, løper han unna i full fart, og han stikker bare svakt. Buen sitter i den fremre hånda (`attachBow`, `keepBowUpright` i `gfx/bossfx.ts`): våpenarmen sitter bak på kroppen og når bare midt på brystet, så den trekker strengen.
+- **Froskemannen i bakhold** (`ambushfrog`, `ambush: true`): `side: 'B'` i bølgene setter ham i buskene bak veien (`AMBUSH.z`, `Foe.ambush`). Der er han usynlig, uten skygge og kan ikke treffes (`Fighter.hidden`), mens bladene rister. Så hopper han ut mot nærmeste helt og slår i lufta på vei ned (`leapOut`). Mens han er på vei ut, slipper `Stage` ham utenfor veien (`Foe.ambushing`, `backView`).
+- **Griperen** (`grabber`, `grab` med `tell: 'red'` og `hold`): blinker rødt før grepet (`AttackDef.tell`, `Foe.strike`), og et slag i opptrekket stopper det. Han går helt inn før han griper (grepet rekker kortere enn slaget), holder helten bakfra (`data.holds`, `Fighter` plasserer den som holdes, med ryggen mot ham) og ber vennene slå (`callFriends`). Han slipper etter `hold` sekunder uten å kaste; helten vrir seg løs fortere ved å hamre på angrep eller hopp (`STRUGGLE` i `game/hero.ts`).
+- **Berserkeren** (`berserker`, `berserk: 0.4`): under 40 prosent av livet blir berserkeren raskere (`RAGE.speed`), tar mindre skade (`RAGE.dmgTaken`), får kortere pauser og ingen panikk (`Foe.enrage`).
+- **Den feige kapteinen** (`captain`, `behavior: 'captain'`, `horn`): blir bak troppene, blåser i hornet (`ENEMY_ATK.horn`, hornet i munnen fra `attachHorn`) etter forsterkninger fra kantene så langt bølgebudsjettet rekker (`Stage.hornCall`, høyst to per gang og tre ganger i alt), og roper ordre (`CAPTAIN.orders`): alle angriper oftere en stund (`Foe.rallyT`), og annenhver går rundt helten til den andre siden (`flankT`). Når kapteinen dør, får troppene panikk (`Stage.foeDied`).
+- **Ledige ridedyr**: fiender til fots (ikke kjemper, kapteiner, bueskyttere eller gripere) løper til et ledig dyr innen 7 og setter seg opp (`Stage.claimMount`, `Foe.toMount`, `Mount.ready`), også dyret en helt nettopp gikk av. Ett dyr per fiende, og ingen andre tar det samme.
+- **Utholdenhet**: spesialangrepet til dyret koster `STAMINA.cost` utholdenhet i stedet for liv og fylles opp igjen når dyret ikke angriper (`STAMINA.regen`, `game/mounts.ts`). Med for lite blir dyret andpustent (WINDED!) og puster damp. En linje over ryggen viser utholdenheten når en helt rir.
+- Test: `tools/tests/newfoes.mjs` (med skjermbilder av buen, grepet, hoppet ut av buskene, hornet, raseriet og linja over dyret).
+
 ## Lys på figurene
 
 Figurdelene er flate tegninger, så `gfx/charlight.ts` lager et relieffkart per del når tegningen lages (`reliefTexture` i `rig.ts` og `beast.ts`): hver flate mellom blekkstrekene blir en pute (avstandsfelt til blekk og kontur), pluss en slak bue over hele delen. R og G er normalen, B er glansstyrke og A glanstype (matt stoff og lær, hud med olje, metall). Hud gjenkjennes fra `skin` på CharDef (hudfargene og mørkere nyanser av dem), stål og gull fra fargen.
@@ -190,7 +257,7 @@ Portet og forbedret fra Morbidium (Toms eget spill): dråpene fra `src/43_vaatt.
 - Nye effekter i sluttpasset legges i COMPOSITE i `post.ts` med en uniform som `screenFX.writeUniforms()` fyller. Sjekk med `tools/tests/screenfx.mjs`.
 
 ### Nytt tre eller ny art
-Legg en `Species` i `SPECIES` (`env/trees.ts`): lengde, radius, seksjoner, barn, vinkler, knudrethet og blader per nivå. Bruk den med `new Forest(art).add(x, z, skala)` og `forest.build()` i biomet.
+Legg en `Species` i `SPECIES` (`env/trees.ts`): lengde, radius, seksjoner, barn, vinkler, knudrethet og blader per nivå. Bruk den med `new Forest(art).add(x, z, skala)` og `forest.build()` i biomet. Bladtypene (`LeafKind`) er bladkort tegnet i `leafTexture()`; `broad` er noen få store blad i vifte (jungelen). En palme er bare stamme og ett nivå blad som henger (`start` nær 1, høy `droop`).
 
 ## Menyer
 
@@ -233,26 +300,26 @@ Et brett er tre lag oppå hverandre: miljøbyggeren for biomet (`gfx/env/<biom>.
 1. Tegn figuren i `gfx/chars/wilds.ts` (eller ny fil) som en `CharDef` med delene leg, arm, pelvis, torso, head og eventuelt weapon. Legg den i eksportlista.
 2. Legg til en `FoeDef` i `data/enemies.ts` med `behavior`, `attack`, `range` og eventuelt `proj`.
 3. Bruk id-en i bølgene i `data/levels.ts`.
-Bare fargevariant? Bruk en eksisterende `char` og sett `tint` (se `frostskel`).
+Bare fargevariant? Bruk en eksisterende `char` og sett `tint` (se `frostskel`). Skjold? Sett `shield: true` (en dør foran kroppen, se `skelguard`). Bakhold, grep som holder, raseri og horn er felt på `FoeDef` (`ambush`, `hold`, `berserk`, `horn`), og bueskytteren og kapteinen er egne `behavior` (se «Nye fiendetyper og ridedyr»). Et slag med `tell: 'red'` blinker rødt i opptrekket.
 Fiende-AI (`game/foes.ts`): fiender holder avstand, men rygger på halv fart (`RETREAT`), og når de først har vært i bildet (`Foe.entered`), holder `Stage` dem innenfor det (tyver på flukt går fritt). Ridedyr med fiende på ryggen har det samme: `Mount.entered` og `Stage.mountBounds` holder dem i bildet når de har ridd inn (under en bølge også dyr uten rytter), og `Mount.ai()` holder standplassen `MOUNT_EDGE` innenfor kanten, rygger på halv fart og ser mot helten mens det rygger. Rytteren angriper ikke fra utenfor bildet, og ikke en helt som ligger nede eller reiser seg (`RIDER_GRACE`). `tools/tests/riders.mjs` jager ryttere med en spillerbot. Ønsket avstand for dem som kaster, begrenses av bredden på bildet. `Foe.panic(sek)` gir panikk (løper vekk i sikksakk, armene i været via `Fighter.panicking`, høyst `PANIC_SPEED`); `Stage` utløser den ved grufulle drap i nærheten, lite liv, brann og når METAL MODE starter.
 Kjempe? Lag en `CharDef` med stor `scale` som arver delene fra en vanlig figur (`inherit`, se `bigtroll` i `gfx/chars/wilds.ts`). Store figurer tegnes med flere piksler per enhet og like tynn strek på skjermen (`rig.ts`). Sett `poise` på `FoeDef` (han tar skade, men blir verken slått tilbake eller ned før han har tatt så stor andel av livet, da vakler han), og gi angrepet `quake` (bakken rister der slaget treffer). Kameraet trekker seg bakover mens en figur større enn 1.8 er i bildet (`Stage.camPull`, avstandene i `gfx/stagecam.ts`).
 
 ### Ny sjef
 1. Lag figuren (eller gjenbruk en med `scale` og `tint`).
-2. Legg til en `BossDef` i `data/bosses.ts`: velg trekk med vekt og nedkjøling, sett `enrage` og intro-replikker.
+2. Legg til en `BossDef` i `data/bosses.ts`: velg trekk med vekt og nedkjøling, sett `phases` (to faser, ved 0.66 og 0.33, med replikk, fart, nye trekk og `stronger`) og intro-replikker. Gi de store trekkene `tired` (vinduet etter trekket) og noen `red` (kan ikke avbrytes).
 3. Sett `finale: { type: 'boss', boss: '<id>' }` på et brett.
-Nytt trekk som ikke finnes: legg det til i `BossMoveKind` og i `exec()` i `game/boss.ts`.
+Nytt trekk som ikke finnes: legg det til i `BossMoveKind` og i `exec()` i `game/boss.ts`. En sluttkamp med vakter og skjold er `finale` på `BossDef` (se «Sjefer i faser og sluttkampen»); biomet må da gi `Env.finale` (tronen) og søyler med `conduit`.
 
 ### Nytt biom
 1. Lag `gfx/env/<biom>.ts` med en `build<Biom>(scene, gore, opts)` som returnerer `Env`. Bruk `stageBase` og hjelperne i `common.ts`.
 2. Registrer den i `STAGE_BUILDERS` i `gfx/env/index.ts`.
 3. Bruk biom-id-en i en `LevelDef`.
 Juv: en fare med `kind: 'chasm'` langs bakkanten (data/hazards.ts). `Stage` gir hullene til miljøet (`StageEnvOpts.holes`), `stageBase` lager bakken og veien rundt dem (`Look.holes`), `gore.holes` hindrer blod og kroppsdeler i å bli liggende i lufta, og farevisningen tegner veggene ned i dypet med taugjerde. `blocks` på faren: ingen går utfor, bare kastede og slåtte fiender faller.
-Istapper (`game/icicles.ts`) og fyrfat som veltes (`Env.tippables`, `Tippable` i common.ts) styres av `Stage.updateProps`, som også håndterer glør på bakken og `Fighter.burnT` (brann). Bakkeslag melder fra via `FoeWorld.onQuake`. Skade fra omgivelsene går gjennom `applyHit` med en skjult figur som angriper (`Stage.nature`).
+Istapper (`game/icicles.ts`) og fyrfat og søyler som veltes (`Env.tippables`, `Tippable` i common.ts, `tip(dir)` med retningen slaget kom fra) styres av `Stage.updateProps`, som også håndterer glør på bakken og `Fighter.burnT` (brann). Bakkeslag melder fra via `FoeWorld.onQuake`. Skade fra omgivelsene går gjennom `applyHit` med en skjult figur som angriper (`Stage.nature`).
 Rekvisittene i `env/props.ts` kan brukes i alle biomer: `brazier()` gir ild, lys, varmeflimmer og knitring (returnerer punktet flammene skal komme fra), `warBanner()` bølger i vinden, `cliff()` returnerer høyden på toppen så ruiner, bro og fossefall kan settes der. Sett `gore.dustColor` hvis støvet fra bakken ikke er sand (snø i frosten).
 
 ### Nytt brett
-Legg til en `LevelDef` i `data/levels.ts`. Kulissene legges i `data/layouts/<id>.json` (tom fil: `{"version": 1, "level": "<id>", "props": [], "runs": []}`), gjerne med STAGE FORGE (`?editor=<id>`). Bølger skrives kompakt: `w(at, maxAlive, 'skeleton:R:0.2 hogman:L:1.0', { title, say })`. Farer legges inn med `hz(kind, x, z, bredde, dybde)`, og ryttere med `[bølgeindeks, fiende, ridedyr]`. Finalen er en sjef, en duell eller `{ type: 'dawn' }` (ferdig når bølgene er over og ingen fiender er igjen). `nightCamp: true` gir nattleir-reglene: heltene sover ved start, tyvnisser stjeler krukker, og krukkene blir forsyninger (`Game.campSupplies`).
+Legg til en `LevelDef` i `data/levels.ts`. Kulissene legges i `data/layouts/<id>.json` (tom fil: `{"version": 1, "level": "<id>", "props": [], "runs": []}`), gjerne med STAGE FORGE (`?editor=<id>`). Bølger skrives kompakt: `w(at, maxAlive, 'skeleton:R:0.2 hogman:L:1.0', { title, say })`. Siden er `L` eller `R` (kanten av bildet) eller `B` (buskene bak veien, for fiender i bakhold som `ambushfrog`). `maxAlive` er rangen som kan leve samtidig (bølgebudsjettet). Farer legges inn med `hz(kind, x, z, bredde, dybde)`, og ryttere med `[bølgeindeks, fiende, ridedyr]`. Finalen er en sjef, en duell eller `{ type: 'dawn' }` (ferdig når bølgene er over og ingen fiender er igjen). `nightCamp: true` gir nattleir-reglene: heltene sover ved start, tyvnisser stjeler krukker, og krukkene blir forsyninger (`Game.campSupplies`).
 
 ### Ny kulisse
 - Et bilde: `prop_<navn>.png` eller `anim_<navn>_<K>x<R>.png` i `art/inbox/` og `python3 tools/process_art.py`, eller dra det inn i editoren. Se «Kulisser til brettverkstedet» i `docs/ART_PROMPTS.md`.
@@ -268,12 +335,12 @@ Legg til en `LevelDef` i `data/levels.ts`. Kulissene legges i `data/layouts/<id>
 ### Ny fare
 1. Legg typen til i `HazardKind` og `HAZARDS` (`data/hazards.ts`).
 2. Tegn den i `buildHazard()` (`gfx/env/hazards.ts`).
-3. Lag dødsmåten i `Hazard.kill()` og eventuelt syklusen i `Hazard.update()` (`game/hazards.ts`).
+3. Lag dødsmåten i `Hazard.kill()` og eventuelt syklusen i `Hazard.update()` (`game/hazards.ts`). `armed` sier om den dreper fiender akkurat nå, `bites` om den skader en helt, og `killsAll` om den dreper fiender som står oppreist (ellers bare dem som er slått ned eller kastet).
 
 ### Nytt ridedyr
 1. Tegn dyret som en `BeastDef` i `gfx/chars/beasts.ts` (kropp, hode, hale, bein, ledd, sal).
 2. Legg til en `MountDef` i `data/mounts.ts` med `attack: 'charge' | 'tail' | 'fire'`.
-3. Bruk det i `riders` på et brett. Nytt angrep: legg til en tilstand i `Mount.update()` (`game/mounts.ts`).
+3. Bruk det i `riders` på et brett. Nytt angrep: legg til en tilstand i `Mount.update()` (`game/mounts.ts`). Angrepet koster utholdenhet (`STAMINA`), ikke liv.
 
 ### Nytt kjæledyr
 1. Tegn det i `ART` i `gfx/pets.ts`.
@@ -284,10 +351,10 @@ Legg til en `LevelDef` i `data/levels.ts`. Kulissene legges i `data/layouts/<id>
 Legg en `ShopItem` i `SHOP` (`data/progress.ts`). Nye typer (`ShopKind`) trenger en linje i `buy()` og `stock()` i `app/camp.ts`.
 
 ### Ny kartnode
-Legg til en `MapNode` i `data/worldmap.ts` (posisjon, krav, belønning) og en kant i `MAP_EDGES`. Arena-noder peker på en duellant.
+Legg til en `MapNode` i `data/worldmap.ts` (posisjon, krav, belønning) og en kant i `MAP_EDGES`. Arena-noder peker på en duellant. Alle nodene i `requires` må være klart før noden åpner. Hovedveien står i `MAIN_ROUTE`, der en liste inni lista er brett som kan tas i valgfri rekkefølge (sumpen og frosten), og `stageName()` gir brettnummeret ut fra rekkefølgen brettene ble klart i (`save.completed`). Kartet og `StageScene` bruker det, og `name` i `LevelDef` er bare reserven. Kartografen melder bare steder som faktisk ble åpnet. Test: `tools/tests/route.mjs`.
 
 ### Ny duellant
-Legg til en `DuelistDef` i `data/duelists.ts`. `char: '@player'` gir en ond tvilling av spillerens helt.
+Legg til en `DuelistDef` i `data/duelists.ts`. `char: '@player'` gir en ond tvilling av spillerens helt. `after` gir replikker etter seieren når duellen er finalen på et brett (`finale: { type: 'duel' }`).
 
 ### Ny del i heltebyggeren
 Malte deler: legg inn bildet under støttet delnavn i `public/assets/manifest.json`, og legg et valg med stabil `id`, `source`, `slot` og `label` i `src/data/hero-parts.ts`. Våpen må angi indeks i `WEAPONS`, overkropper kroppstype, og låste deler en eksisterende opplåsingsnøkkel. Se `HERO_FORGE_GRAFIKK.md` for kunstkrav og kontrollverktøy før grunnpakken utvides.

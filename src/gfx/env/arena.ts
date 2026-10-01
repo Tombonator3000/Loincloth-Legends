@@ -1,4 +1,4 @@
-// Duell-arenaen. Tre temaer: gropa (standard), is-arenaen og bein-colosseumet.
+// Duell-arenaen. Fire temaer: gropa (standard), is-arenaen, bein-colosseumet og tempelgården i jungelen.
 import * as THREE from 'three';
 import { unitCanvas } from '../draw';
 import { rand } from '../../core/math';
@@ -9,7 +9,7 @@ import { GRADES } from './grades';
 import { screenFX } from '../screenfx';
 import { SunShadow } from './sun';
 
-export type ArenaTheme = 'pit' | 'ice' | 'bone';
+export type ArenaTheme = 'pit' | 'ice' | 'bone' | 'temple';
 
 const THEMES: Record<ArenaTheme, {
   bg: string; sky: [string, string, string]; hemi: [string, string, number]; floor: [string, string]; sand: [string, string[]];
@@ -29,6 +29,12 @@ const THEMES: Record<ArenaTheme, {
     bg: '#140c18', sky: ['#0a060e', '#2a1430', '#4a2448'], hemi: ['#e0c8ff', '#1a1020', 1.3], floor: ['#c8bca0', '#5a4e40'],
     sand: ['#d8ccae', ['#c8bc9e', '#e6dcc0', '#b8ac8e']], wall: ['#b8ac90', '#4a4034'], step: '#3a2e36', pillar: ['#d8ccb0', '#5a4e40'],
     fire: GHOSTFIRE, light: '#a060ff', banner: ['#3a1a4a', '#efe8d2'], drape: '#3a1a4a',
+  },
+  // Tempelgården i jungelen: mosegrodd stein, grønt lys fra løvtaket og gylne bannere med sola
+  temple: {
+    bg: '#14200f', sky: ['#0c160a', '#2a4a22', '#6a8a4a'], hemi: ['#f0f4c8', '#1a2a12', 1.45], floor: ['#8a866c', '#4a4838'],
+    sand: ['#7a6a48', ['#6a5a3a', '#8a7a58', '#5a6a36']], wall: ['#7a7a5e', '#3e3e30'], step: '#3a4a2a', pillar: ['#8a866c', '#4a4838'],
+    fire: FIRE, light: '#ffb04a', banner: ['#2a5a2a', '#d8b04a'], drape: '#2a5a2a',
   },
 };
 

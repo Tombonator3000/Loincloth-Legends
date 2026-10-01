@@ -24,6 +24,8 @@ type Asset = {
   neck?: V2;
   /** Hode fra PNG som skal ligge foran overkroppen (langt skjegg). */
   front?: boolean;
+  /** Arm eller bein fra PNG: albuen eller kneet målt i bildet (elbow og knee i manifestet), i delens enheter. */
+  joint?: V2;
   /** Svake pekere: cacheopprydding må aldri frigjøre en del som fortsatt tegnes i en scene. */
   users: Set<WeakRef<THREE.Object3D>>;
 };
@@ -110,6 +112,9 @@ function armTurn(ch: CharDef, ov: PartOverride) {
   return Math.atan2(hy, hx) - Math.atan2(-dy, dx);
 }
 
+/** Et punkt dreid rundt origo (leddet), som rotateZ på geometrien. */
+const turned = ([x, y]: V2, a: number): V2 => [x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a)];
+
 export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
   let k = ch.id + ':' + key;
   // Hår og øyne endrer ikke kroppen. Del malte kroppsressurser på tvers av hodevalg, men aldri reservegrafikk.
@@ -131,6 +136,7 @@ export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
     let turn = 0;
     let shoulders: [V2, V2] | undefined;
     let neck: V2 | undefined;
+    let joint: V2 | undefined;
     if (ov) {
       const h = rigHeight(ch, key, def, ov);
       if (h) ov = resized(ov, h);
@@ -140,6 +146,8 @@ export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
       const at = ([u, v]: readonly number[]): V2 => [(u - o.ax) * o.w, (o.ay - v) * o.h];
       if (key === 'torso' && ov.shoulders) shoulders = [at(ov.shoulders[0]), at(ov.shoulders[1])];
       if (key === 'torso' && ov.neck) neck = at(ov.neck);
+      if (key === 'arm' && ov.elbow) joint = at(ov.elbow);
+      if (key === 'leg' && ov.knee) joint = at(ov.knee);
       def = { w: ov.w, h: ov.h, ox: ov.ox, oy: ov.oy, draw: () => {} };
     }
     // Store figurer (sjefer, kjempetrollet) tegnes med flere piksler per enhet, så de ikke blir uskarpe, og med
@@ -173,10 +181,15 @@ export function partAsset(ch: CharDef, key: string, def: PartDef): Asset {
     tex.colorSpace = THREE.SRGBColorSpace;
     tex.anisotropy = 4;
     tex.minFilter = THREE.LinearMipmapLinearFilter;
-    const geo = new THREE.PlaneGeometry(def.w, def.h);
+    // Armer og bein deles i ruter, så de kan bøyes i albuen og kneet (Rig.limbBend). Resten er ett plan.
+    const limb = key === 'arm' || key === 'leg';
+    const geo = new THREE.PlaneGeometry(def.w, def.h, limb ? 4 : 1, limb ? 24 : 1);
     geo.translate(def.w / 2 - def.ox, def.h / 2 - def.oy, 0);
-    if (turn) geo.rotateZ(turn);
-    a = { owners: new Set([ch.id]), tex, relief, geo, canvas: cv, shoulders, neck, front: ov?.front, users: new Set() };
+    if (turn) {
+      geo.rotateZ(turn);
+      if (joint) joint = turned(joint, turn);
+    }
+    a = { owners: new Set([ch.id]), tex, relief, geo, canvas: cv, shoulders, neck, front: ov?.front, joint, users: new Set() };
     cache.set(k, a);
     if (ch.appearance) {
       appearanceAssets.delete(k);
@@ -242,9 +255,9 @@ export function purgeChar(id: CharId) {
   purgeHeroAppearance(id);
 }
 
-/** Lyssatt materiale for en figurdel (se gfx/charlight.ts). Uten relieffkart blir delen flat. */
-export function partMaterial(tex: THREE.Texture, tint = 1, relief: THREE.Texture | null = null) {
-  return charMaterial(tex, relief, tint);
+/** Lyssatt materiale for en figurdel (se gfx/charlight.ts). Uten relieffkart blir delen flat. bend: arm eller bein som bøyes. */
+export function partMaterial(tex: THREE.Texture, tint = 1, relief: THREE.Texture | null = null, bend = false) {
+  return charMaterial(tex, relief, tint, bend);
 }
 
 export interface Pose {
@@ -259,11 +272,50 @@ export interface Pose {
   bodyX: number;
   tilt: number;
   lift: number;
+  /**
+   * Albuene og knærne (figurer med bend, se CharDef). Positivt er bøyd: underarmen kommer fram og opp, leggen går
+   * bakover. Våpenet følger neven, men bladet peker dit armF + weapon sier, akkurat som med stiv arm, så stillingene
+   * virker likt med og uten bøy (håndleddet tar resten). Figurer uten bend overser dem.
+   */
+  elbowF: number;
+  elbowB: number;
+  kneeF: number;
+  kneeB: number;
 }
 
-/** Hvilestilling: våpenet holdes fram foran magen, og den fjerne armen henger litt fram så den synes. */
-export const NEUTRAL: Pose = { torso: -0.05, head: 0.05, armF: 0.55, armB: 0.3, legF: 0.22, legB: -0.22, weapon: -2.0, bodyY: -0.03, bodyX: 0, tilt: 0, lift: 0 };
+/**
+ * Hvilestilling: våpenet holdes fram foran magen, og den fjerne armen henger litt fram så den synes. Med bøy: albuene
+ * litt spent og knærne litt bøyd, klar til å slåss.
+ */
+export const NEUTRAL: Pose = {
+  torso: -0.05, head: 0.05, armF: 0.55, armB: 0.3, legF: 0.22, legB: -0.22, weapon: -2.0, bodyY: -0.03, bodyX: 0, tilt: 0, lift: 0,
+  elbowF: 0.55, elbowB: 0.7, kneeF: 0.14, kneeB: 0.2,
+};
 const KEYS = Object.keys(NEUTRAL) as (keyof Pose)[];
+
+/** Lemmer som kan bøyes, og vinkelen i stillingen som bøyer dem. */
+type Limb = 'armF' | 'armB' | 'legF' | 'legB';
+const FLEX: [Limb, 'elbowF' | 'elbowB' | 'kneeF' | 'kneeB'][] = [['armF', 'elbowF'], ['armB', 'elbowB'], ['legF', 'kneeF'], ['legB', 'kneeB']];
+/** Halve bredden på overgangen rundt leddet, som brøk av lengden på lemmet. Mindre gir en skarpere knekk. */
+const BEND_SOFT = 0.13;
+
+/**
+ * Et bøyd lem: en egen kopi av delens geometri der alt nedenfor leddet dreies rundt albuen eller kneet. Overgangen
+ * er myk over BEND_SOFT på hver side av leddet, så huden strekkes i stedet for å knekke.
+ */
+interface LimbBend {
+  geo: THREE.BufferGeometry;
+  rest: Float32Array;
+  /** Hvor mye av vinkelen hvert hjørne får: 0 over leddet, 1 nedenfor. */
+  w: Float32Array;
+  rot: THREE.BufferAttribute;
+  /** Leddet (albuen eller kneet) i delens rom. */
+  e: V2;
+  /** Armene bøyes framover (positiv dreiing), beina bakover. */
+  sign: number;
+  /** Dreiingen geometrien har nå. */
+  angle: number;
+}
 
 /**
  * Dybden på delene, størst er fremst. Figurene står i trekvart profil mot høyre: bakerst den fjerne armen, så
@@ -295,6 +347,11 @@ export class Rig {
   scale: number;
   detached = new Set<PartName>();
   private flashV = 0;
+  /** Armer og bein som bøyes (figurer med bend), og alle kopiene av geometrien som er laget (ryddes i dispose). */
+  private bends: Partial<Record<Limb, LimbBend>> = {};
+  private bendGeos: THREE.BufferGeometry[] = [];
+  /** Hvor mye kroppen er senket (eller hevet, negativt) så føttene står på bakken (plant). */
+  drop = 0;
 
   constructor(public def: CharDef, scaleMul = 1, public tint: [number, number, number] = [1, 1, 1]) {
     this.scale = def.scale * scaleMul;
@@ -329,12 +386,13 @@ export class Rig {
       if (a.shoulders) [J.shF, J.shB] = a.shoulders;
       if (a.neck) J.neck = a.neck;
     }
-    const m = partMaterial(a.tex, tint, a.relief);
+    const bend = !!def.bend && (name === 'armF' || name === 'armB' || name === 'legF' || name === 'legB');
+    const m = partMaterial(a.tex, tint, a.relief, bend);
     m.userData.shade = tint;
     m.uniforms.tint.value.setRGB(tint * this.tint[0], tint * this.tint[1], tint * this.tint[2]);
     m.uniforms.flash.value = this.flashV;
     this.mats.push(m);
-    const mesh = new THREE.Mesh(a.geo, m);
+    const mesh = new THREE.Mesh(bend ? this.limbBend(name as Limb, key, a) : a.geo, m);
     a.users.add(new WeakRef(mesh));
     mesh.frustumCulled = false;
     mesh.castShadow = true;
@@ -345,6 +403,120 @@ export class Rig {
     parent.add(grp);
     this.g[name] = grp;
     return grp;
+  }
+
+  /**
+   * Egen kopi av geometrien til en arm eller et bein, som sync() bøyer i albuen eller kneet. Leddet er målt i bildet
+   * (elbow og knee i manifestet), ellers midt mellom skulderen og neven, og 40 prosent ned mellom hofta og bakken.
+   * Kopien deles ikke med andre figurer, så hver figur kan bøye sine egne lemmer, og skyggen følger med.
+   */
+  private limbBend(name: Limb, key: string, a: Asset) {
+    const arm = key === 'arm';
+    const end: V2 = arm ? this.joints.hand : [0, -this.def.hipY];
+    const len = Math.hypot(end[0], end[1]) || 1;
+    const ux = end[0] / len, uy = end[1] / len;
+    // Uten målt ledd: albuen midt på armen, kneet 40 prosent ned (hofta på de malte figurene dekker toppen av låret)
+    const e: V2 = a.joint ?? [end[0] * (arm ? 0.5 : 0.4), end[1] * (arm ? 0.5 : 0.4)];
+    const geo = a.geo.clone();
+    const rest = Float32Array.from(geo.attributes.position.array as ArrayLike<number>);
+    const n = geo.attributes.position.count;
+    const w = new Float32Array(n);
+    const r = len * BEND_SOFT;
+    for (let i = 0; i < n; i++) {
+      // Hvor langt forbi leddet hjørnet ligger, langs lemmet
+      const s = (rest[i * 3] - e[0]) * ux + (rest[i * 3 + 1] - e[1]) * uy;
+      const t = Math.min(1, Math.max(0, (s + r) / (2 * r)));
+      w[i] = t * t * (3 - 2 * t);
+    }
+    const rot = new THREE.BufferAttribute(new Float32Array(n), 1);
+    geo.setAttribute('aRot', rot);
+    this.bendGeos.push(geo);
+    this.bends[name] = { geo, rest, w, rot, e, sign: arm ? 1 : -1, angle: 0 };
+    return geo;
+  }
+
+  /** Bøy et lem til vinkelen i stillingen (positivt er bøyd). Et løsnet lem beholder bøyen det hadde da det røk. */
+  private bendLimb(name: Limb, flex: number) {
+    const b = this.bends[name];
+    if (!b || this.detached.has(name)) return;
+    const A = b.sign * flex;
+    if (Math.abs(A - b.angle) < 1e-4) return;
+    b.angle = A;
+    const pos = b.geo.attributes.position as THREE.BufferAttribute;
+    const arr = pos.array as Float32Array;
+    const rot = b.rot.array as Float32Array;
+    const [ex, ey] = b.e;
+    const c1 = Math.cos(A), s1 = Math.sin(A);
+    for (let i = 0; i < pos.count; i++) {
+      const wi = b.w[i];
+      const x = b.rest[i * 3] - ex, y = b.rest[i * 3 + 1] - ey;
+      rot[i] = A * wi;
+      if (wi <= 0) {
+        arr[i * 3] = b.rest[i * 3];
+        arr[i * 3 + 1] = b.rest[i * 3 + 1];
+        continue;
+      }
+      const c = wi >= 1 ? c1 : Math.cos(A * wi), s = wi >= 1 ? s1 : Math.sin(A * wi);
+      arr[i * 3] = ex + x * c - y * s;
+      arr[i * 3 + 1] = ey + x * s + y * c;
+    }
+    pos.needsUpdate = true;
+    b.rot.needsUpdate = true;
+  }
+
+  /** Et punkt nedenfor leddet i et bøyd lem, der det havner med bøyen lemmet har nå (delens rom). */
+  private bentPoint(name: Limb, x: number, y: number): V2 {
+    const b = this.bends[name];
+    if (!b || !b.angle) return [x, y];
+    const c = Math.cos(b.angle), s = Math.sin(b.angle);
+    const dx = x - b.e[0], dy = y - b.e[1];
+    return [b.e[0] + dx * c - dy * s, b.e[1] + dx * s + dy * c];
+  }
+
+  /** Foten (bunnen av beinet rett under hofta) i verden, med kneet bøyd. Testene sjekker at føttene står på bakken. */
+  footPoint(leg: 'legF' | 'legB', out = new THREE.Vector3()) {
+    const [x, y] = this.bentPoint(leg, 0, -this.def.hipY);
+    return this.worldPoint(leg, x, y, out);
+  }
+
+  /** Hvor mye et lem er bøyd nå (radianer, positivt er bøyd). 0 for figurer uten bend. */
+  flexOf(name: Limb) {
+    const b = this.bends[name];
+    return b ? b.angle * b.sign : 0;
+  }
+
+  /**
+   * Føttene på bakken (figurer med bend): kroppen flyttes opp eller ned så den laveste foten eller det laveste kneet
+   * står på bakken, regnet fra stillingen. Da gir bøyde knær en lavere kropp av seg selv, kroppen synker når beina
+   * sprikes i gangen, og kneet står på bakken når figuren kneler. on er av i lufta, når figuren ligger og når den rir.
+   */
+  plant(on: boolean, dt: number) {
+    const p = this.pose;
+    const ok = on && !!this.def.bend && Math.abs(p.tilt) < 0.05 && p.lift < 0.01;
+    const target = ok ? this.lowest() : 0;
+    this.drop = damp(this.drop, ok && Number.isFinite(target) ? target : 0, ok ? 40 : 12, dt);
+  }
+
+  /** Laveste fot eller kne over bakken i rotens rom med stillingen slik den er nå (uten drop). */
+  private lowest() {
+    const p = this.pose, J = this.joints, hipY = this.def.hipY;
+    let min = Infinity;
+    for (const [leg, a, flex, hip] of [['legF', p.legF, p.kneeF, J.hipF], ['legB', p.legB, p.kneeB, J.hipB]] as const) {
+      if (this.detached.has(leg)) continue;
+      const b = this.bends[leg];
+      const A = b ? b.sign * flex : 0;
+      const pts: V2[] = b ? [b.e, [0, -hipY]] : [[0, -hipY]];
+      for (const [x0, y0] of pts) {
+        let x = x0, y = y0;
+        if (b && A && y0 < b.e[1]) {
+          const dx = x0 - b.e[0], dy = y0 - b.e[1];
+          x = b.e[0] + dx * Math.cos(A) - dy * Math.sin(A);
+          y = b.e[1] + dx * Math.sin(A) + dy * Math.cos(A);
+        }
+        min = Math.min(min, hipY + p.bodyY + hip[1] + x * Math.sin(a) + y * Math.cos(a));
+      }
+    }
+    return min;
   }
 
   /**
@@ -466,8 +638,16 @@ export class Rig {
     g.armB.rotation.z = p.armB;
     g.legF.rotation.z = p.legF;
     g.legB.rotation.z = p.legB;
-    if (g.weapon) g.weapon.rotation.z = p.weapon;
-    this.body.position.set(p.bodyX, this.def.hipY + p.bodyY, 0);
+    for (const [limb, k] of FLEX) this.bendLimb(limb, p[k]);
+    if (g.weapon && !this.detached.has('weapon')) {
+      // Våpenet sitter i neven, som flyttes med underarmen når albuen bøyes. Bladet beholder retningen fra stillingen.
+      if (this.bends.armF) {
+        const [hx, hy] = this.bentPoint('armF', this.joints.hand[0], this.joints.hand[1]);
+        g.weapon.position.set(hx, hy, Z.weapon);
+      }
+      g.weapon.rotation.z = p.weapon;
+    }
+    this.body.position.set(p.bodyX, this.def.hipY + p.bodyY - this.drop, 0);
     this.tilt.rotation.z = p.tilt;
     this.tilt.position.y = p.lift;
   }
@@ -525,6 +705,7 @@ export class Rig {
 
   dispose() {
     for (const m of this.mats) m.dispose();
+    for (const g of this.bendGeos) g.dispose();
     this.root.removeFromParent();
   }
 }

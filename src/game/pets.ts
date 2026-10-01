@@ -55,7 +55,7 @@ export class Pet {
     let best: Fighter | null = null;
     let bd = range;
     for (const f of w.foeFighters()) {
-      if (!f.alive || f.state === 'held' || f.armored) continue;
+      if (!f.alive || f.state === 'held' || f.armored || f.hidden) continue;
       const dx = f.pos.x - h.pos.x;
       if (front && Math.sign(dx) !== h.facing) continue;
       const d = Math.abs(dx) + Math.abs(f.pos.z - h.pos.z) * 0.5;

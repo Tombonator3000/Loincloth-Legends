@@ -1,6 +1,7 @@
-// Innstillinger som lagres lokalt: gore-nivå, lydnivå, innspilte lyder, risting, blink, forvrengning, rumble,
-// berøringskontroller og grafikknivå.
+// Innstillinger som lagres lokalt: gore-nivå, vanskelighetsgrad, lydnivå, innspilte lyder, risting, blink,
+// forvrengning, rumble, berøringskontroller og grafikknivå.
 // Ingen Three.js her, så modulen kan brukes fra både core, gfx og app.
+import { DIFFICULTIES, type Difficulty } from '../data/difficulty';
 
 export type GoreLevel = 0 | 1 | 2 | 3;
 export const GORE_NAMES = ['FAMILY', 'NORMAL', 'EXCESSIVE', 'PLEASE SEEK HELP'] as const;
@@ -31,6 +32,8 @@ export type MusicStyleSetting = 'metal' | 'chip';
 
 export interface Settings {
   gore: GoreLevel;
+  /** Reaksjonstid og aggresjon hos fiendene (data/difficulty.ts). Endrer aldri liv eller skade. */
+  difficulty: Difficulty;
   music: number;
   /** Heavy metal (standard) eller de gamle 8-bit-låtene. */
   musicStyle: MusicStyleSetting;
@@ -52,7 +55,7 @@ export interface Settings {
 const KEY = 'loincloth-legends-settings-v1';
 
 export function defaultSettings(): Settings {
-  return { gore: 2, music: 0.7, musicStyle: 'metal', sfx: 0.9, recorded: true, shake: true, flashes: true, distortion: true, rumble: true, touch: 'auto', quality: 'auto', autoQuality: '' };
+  return { gore: 2, difficulty: 'normal', music: 0.7, musicStyle: 'metal', sfx: 0.9, recorded: true, shake: true, flashes: true, distortion: true, rumble: true, touch: 'auto', quality: 'auto', autoQuality: '' };
 }
 
 function load(): Settings {
@@ -64,6 +67,7 @@ function load(): Settings {
     const num = (v: unknown, def: number) => (typeof v === 'number' && v >= 0 && v <= 1 ? v : def);
     return {
       gore: typeof o.gore === 'number' && o.gore >= 0 && o.gore <= 3 ? (Math.floor(o.gore) as GoreLevel) : d.gore,
+      difficulty: DIFFICULTIES.includes(o.difficulty as Difficulty) ? (o.difficulty as Difficulty) : d.difficulty,
       music: num(o.music, d.music),
       musicStyle: o.musicStyle === 'chip' || o.musicStyle === 'metal' ? o.musicStyle : d.musicStyle,
       sfx: num(o.sfx, d.sfx),

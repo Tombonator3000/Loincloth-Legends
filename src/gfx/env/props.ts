@@ -726,6 +726,124 @@ export function ruins(g: THREE.Group, x: number, y: number, z: number, s = 1) {
   sg.add(tower);
 }
 
+// ---------------------------------------------------------------- tempelsøyle (jungelen)
+/**
+ * Sprukken tempelsøyle med mose ved veikanten. Den kan veltes (Env.tippables) av et slag eller en fiende som kastes inn
+ * i den, faller om foten mot kampfeltet (+z) og knuser alt i stripen den lander på (crush), og blir liggende i
+ * stykker over veien. Returnerer håndtaket.
+ */
+/**
+ * En sprukken søyle som kan veltes (jungelen), eller en søyle i tronsalen med en krystall på toppen som mater
+ * skjoldet til Vorthax (look 'tower', conduit på Tippable). Den faller på skrå bort fra slaget og knuser det den
+ * lander på (Stage.crush).
+ */
+export function templePillar(g: THREE.Group, gore: Gore, updates: Updates, x: number, z: number, h = 5.4, look: 'temple' | 'tower' = 'temple'): Tippable {
+  const tower = look === 'tower';
+  const st = tower ? stoneTex('#6e6080', '#2a2034', 48, 40) : stoneTex('#8a8670', '#4e4c40', 48, 40);
+  const stone = mat(tower ? 'pillarTower' : 'pillar', () => lit({ map: st, roughness: 0.9 }, { scale: 0.8, normal: 1.1, albedo: 0.4 }));
+  const trim = tower ? mat('pillarGold', () => lit({ color: '#c8a040', roughness: 0.45, metalness: 0.6 }, false)) : mat('pillarMoss', () => lit({ color: '#4c6e2c', roughness: 1 }, false));
+  // Søylen står i en egen gruppe med dreiepunktet i forkanten av foten. Den vris mot den siden slaget kom fra og
+  // vipper framover, så den faller på skrå over veien
+  const pv = new THREE.Group();
+  pv.position.set(x, 0, z + 0.45);
+  const tilt = new THREE.Group();
+  pv.add(tilt);
+  const body = new THREE.Group();
+  body.position.z = -0.45;
+  tilt.add(body);
+  const base = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.4, 0.9), stone);
+  base.position.y = 0.2;
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.4, h - 0.8, 12, 4), stone);
+  // Riller i søylen og et skjevt brudd på toppen (tronsalens søyler er hele)
+  const sp = shaft.geometry.getAttribute('position') as THREE.BufferAttribute;
+  for (let i = 0; i < sp.count; i++) {
+    const a = Math.atan2(sp.getZ(i), sp.getX(i));
+    const k = 1 - 0.06 * Math.max(0, Math.cos(a * 12));
+    sp.setX(i, sp.getX(i) * k);
+    sp.setZ(i, sp.getZ(i) * k);
+    if (!tower && sp.getY(i) > (h - 0.8) / 2 - 0.01) sp.setY(i, sp.getY(i) - Math.max(0, sp.getX(i)) * 0.5);
+  }
+  shaft.geometry.computeVertexNormals();
+  shaft.position.y = 0.4 + (h - 0.8) / 2;
+  const capital = new THREE.Mesh(new THREE.BoxGeometry(0.95, 0.35, 0.95), stone);
+  capital.position.set(tower ? 0 : -0.06, h - 0.32, 0);
+  capital.rotation.z = tower ? 0 : 0.12;
+  body.add(base, shaft, capital);
+  if (tower) {
+    // Gullringer og en krystall på toppen som lyser
+    for (const y of [0.55, h - 0.62]) {
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.06, 6, 18), trim);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = y;
+      body.add(ring);
+    }
+  } else {
+    const moss = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.44, 0.9, 12, 1, true, 0.5, 2.6), trim);
+    moss.position.y = 1.0;
+    body.add(moss);
+  }
+  let crystal: THREE.Mesh | null = null;
+  let glow: ReturnType<Gore['vfx']['lights']['source']> | null = null;
+  if (tower) {
+    crystal = new THREE.Mesh(new THREE.OctahedronGeometry(0.34, 0), new THREE.MeshStandardMaterial({ color: '#ffe08a', emissive: '#ffb020', emissiveIntensity: 2.2, roughness: 0.2 }));
+    crystal.scale.y = 1.6;
+    crystal.position.y = h + 0.35;
+    body.add(crystal);
+    glow = gore.vfx.lights.source(new THREE.Vector3(x, h + 0.4, z), '#ffc040', 9, 7, 0.15);
+    updates.push((_dt, t) => {
+      if (crystal) crystal.rotation.y = t * 1.3;
+    });
+  }
+  g.add(pv);
+  /** Hvor mye søylen vris til siden når den faller (radianer). */
+  const YAW = 0.5;
+  const top = new THREE.Vector3();
+  const handle: Tippable = {
+    x, z, tipped: false, conduit: tower,
+    top: () => (crystal ? crystal.getWorldPosition(top) : top.set(x, h, z)),
+    tip(dir = 1) {
+      if (handle.tipped) return null;
+      handle.tipped = true;
+      falling = true;
+      vel = 0.4;
+      const yaw = (dir < 0 ? -1 : 1) * YAW;
+      pv.rotation.y = yaw;
+      audio.iceCrack(1);
+      const ax = x, az = z + 0.2, bx = x + Math.sin(yaw) * h, bz = z + 0.45 + Math.cos(yaw) * h;
+      landed = [ax, az, bx, bz];
+      return { x: (ax + bx) / 2, z: (az + bz) / 2, t: 0, crush: { ax, az, bx, bz, r: 0.75, delay: 0.62 } };
+    },
+  };
+  ((g.userData.tippables ??= []) as Tippable[]).push(handle);
+  let ang = 0, vel = 0, falling = false, landed = [x, z, x, z + h];
+  const rest = Math.PI / 2 - 0.05;
+  updates.push((dt) => {
+    if (!falling) return;
+    vel += 9 * dt;
+    ang = Math.min(rest, ang + vel * dt);
+    tilt.rotation.x = ang;
+    if (ang >= rest) {
+      falling = false;
+      audio.thud(2.4);
+      audio.boom(0.4);
+      // Støv langs hele søylen der den lander
+      const [ax, az, bx, bz] = landed;
+      for (let i = 0; i < 6; i++) gore.dust(new THREE.Vector3(ax + (bx - ax) * (i / 5) + rand(-0.3, 0.3), 0.1, az + (bz - az) * (i / 5)), 6);
+      gore.gibs(new THREE.Vector3(bx, 0.6, bz), 5, 'bone', 0.8);
+      // Krystallen knuses og slukner
+      if (crystal) {
+        gore.sparks(crystal.getWorldPosition(new THREE.Vector3()), 30, '#ffd35a', 8);
+        crystal.visible = false;
+        if (glow) gore.vfx.lights.removeSource(glow);
+        glow = null;
+        audio.iceCrack(1.3);
+        audio.sparkle();
+      }
+    }
+  });
+  return handle;
+}
+
 /** Taugjerde langs en kant: skjeve stolper med to tau som henger mellom dem (ved juvet i konseptbilde 4). */
 export function ropeFence(g: THREE.Group, x0: number, x1: number, z: number, h = 1.1, jz = 0.15) {
   const sg = staticGroup(g);

@@ -1,4 +1,4 @@
-// Grep og kast inn i farer. Bruk: node grab.mjs URL OUTDIR [level]
+// Grep og kast inn i farer (hoggmannen slås først, han er tøff). Bruk: node grab.mjs URL OUTDIR [level]
 import { chromium } from 'playwright';
 const [url, out, level = 'road'] = process.argv.slice(2);
 const browser = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
@@ -38,6 +38,10 @@ await page.evaluate((H) => {
 }, H);
 await run(0.3);
 await shot('g1-before');
+// Hoggmannen er tøff (FoeDef.guard): et slag først, så vakler han og kan gripes (se også guard.mjs)
+await run(0.1, [], ['KeyF']);
+await run(0.25);
+await page.evaluate(() => { const s = window.__game.scene.stage; const h = s.heroes[0].f; const a = s.foes.find((f) => f.def.id === 'hogman'); a.f.pos.x = h.pos.x + 1.0; a.f.pos.z = h.pos.z; });
 await run(0.1, [], ['KeyR']);
 await run(0.2);
 console.log('grab', JSON.stringify(await st()));

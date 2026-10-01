@@ -3,7 +3,11 @@
     {
       "char": "valkyra",
       "part": "arm",
-      "file": "valkyra_arm.webp"
+      "file": "valkyra_arm.webp",
+      "elbow": [
+        0.42,
+        0.4
+      ]
     },
     {
       "char": "valkyra",
@@ -17,7 +21,11 @@
     {
       "char": "valkyra",
       "part": "leg",
-      "file": "valkyra_leg.webp"
+      "file": "valkyra_leg.webp",
+      "knee": [
+        0.45,
+        0.3
+      ]
     },
     {
       "char": "valkyra",
@@ -675,7 +683,11 @@
     {
       "char": "thrugg",
       "part": "arm",
-      "file": "thrugg_arm.webp"
+      "file": "thrugg_arm.webp",
+      "elbow": [
+        0.38,
+        0.52
+      ]
     },
     {
       "char": "thrugg",
@@ -685,7 +697,11 @@
     {
       "char": "thrugg",
       "part": "leg",
-      "file": "thrugg_leg.webp"
+      "file": "thrugg_leg.webp",
+      "knee": [
+        0.45,
+        0.45
+      ]
     },
     {
       "char": "thrugg",

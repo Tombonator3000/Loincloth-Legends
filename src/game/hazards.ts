@@ -3,16 +3,25 @@ import * as THREE from 'three';
 import type { Fighter } from './fighter';
 import { W } from './world';
 import { screenFX } from '../gfx/screenfx';
-import { HAZARDS, CHASM_STOP, type HazardDef } from '../data/hazards';
+import { HAZARDS, CHASM_STOP, MANEATER, DEADFALL, type HazardDef } from '../data/hazards';
 import type { HazardVisual } from '../gfx/env/hazards';
 import { audio } from '../core/audio';
 import { rand, pick } from '../core/math';
+
+/** Steinvekta (deadfall): oppe, knirker, faller, ligger på veien, heises opp igjen. */
+export type DeadfallMode = 'up' | 'creak' | 'fall' | 'down' | 'lift';
 
 export class Hazard {
   t = rand(0, 3);
   /** Piggfelle: hvor langt oppe piggene er (0 til 1). */
   up = 0;
   private rattled = false;
+  /** Planten: hvile, varsler (rister og gaper) eller glefser. */
+  plant: 'idle' | 'warn' | 'snap' = 'idle';
+  /** Steinvekta: tilstanden og hvor lenge den har vart. impact er sant i det ene bildet den treffer veien. */
+  drop: DeadfallMode = 'up';
+  private dropT = 0;
+  impact = false;
   constructor(public def: HazardDef, public vis: HazardVisual) {}
 
   get info() {
@@ -42,13 +51,39 @@ export class Hazard {
     return this.contains(x, z);
   }
 
-  /** Farlig akkurat nå? Piggfellen bare når piggene er oppe. */
+  /**
+   * Farlig for fiender akkurat nå? Piggfellen bare når piggene er oppe, steinvekta bare i bildet den treffer.
+   * Planten spiser alltid det som kastes inn i den.
+   */
   get armed() {
-    return this.def.kind !== 'spiketrap' || this.up > 0.6;
+    if (this.def.kind === 'spiketrap') return this.up > 0.6;
+    if (this.def.kind === 'deadfall') return this.impact;
+    return true;
+  }
+
+  /** Skader den en helt som står i den akkurat nå? Planten bare når den glefser, steinvekta når den treffer. */
+  get bites() {
+    if (this.def.kind === 'maneater') return this.plant === 'snap';
+    return this.armed;
+  }
+
+  /** Dreper den alle fiender inne i den (ikke bare dem som er slått ned)? Piggfellen og steinvekta. */
+  get killsAll() {
+    return this.def.kind === 'spiketrap' || this.def.kind === 'deadfall';
+  }
+
+  /** Steinvekta: noen står under den. Den knirker en liten stund og faller. */
+  trigger() {
+    if (this.def.kind !== 'deadfall' || this.drop !== 'up') return;
+    this.drop = 'creak';
+    this.dropT = 0;
+    audio.iceCrack(0.7);
   }
 
   update(dt: number, time: number, near: boolean) {
     this.vis.update(dt, time);
+    if (this.def.kind === 'maneater') return this.updatePlant(dt, near);
+    if (this.def.kind === 'deadfall') return this.updateDeadfall(dt, near);
     if (this.def.kind !== 'spiketrap') return;
     this.t += dt;
     const c = this.t % 3.4;
@@ -66,6 +101,68 @@ export class Hazard {
     if (k >= 1 && this.up < 1 && near) audio.impale();
     this.up = Math.max(0, Math.min(1, k));
     this.vis.setSpikes?.(this.up);
+  }
+
+  /** Planten: hviler, varsler (rister, gaper og knurrer) og glefser ut over veien, om igjen. */
+  private updatePlant(dt: number, near: boolean) {
+    this.t += dt;
+    const c = this.t % MANEATER.cycle;
+    const was = this.plant;
+    this.plant = c < MANEATER.warn ? 'idle' : c < MANEATER.snap ? 'warn' : 'snap';
+    if (near && was === 'idle' && this.plant === 'warn') audio.roar(0.8);
+    if (near && was === 'warn' && this.plant === 'snap') audio.bite();
+    const k = this.plant === 'idle' ? c / MANEATER.warn : this.plant === 'warn' ? (c - MANEATER.warn) / (MANEATER.snap - MANEATER.warn) : (c - MANEATER.snap) / (MANEATER.done - MANEATER.snap);
+    this.vis.setPlant?.(this.plant, k);
+  }
+
+  /** Steinvekta: knirker, faller (treffer i ett bilde), ligger litt, heises opp igjen og er klar. */
+  private updateDeadfall(dt: number, near: boolean) {
+    this.impact = false;
+    this.dropT += dt;
+    const D = DEADFALL;
+    let y = D.top;
+    switch (this.drop) {
+      case 'creak':
+        if (this.dropT >= D.creak) {
+          this.drop = 'fall';
+          this.dropT = 0;
+        }
+        break;
+      case 'fall': {
+        const k = Math.min(1, this.dropT / D.fall);
+        y = D.top * (1 - k * k);
+        if (k >= 1) {
+          this.drop = 'down';
+          this.dropT = 0;
+          this.impact = true;
+          y = 0;
+          if (near) {
+            audio.thud(2.6);
+            audio.boom(0.5);
+            W.fx.shake(0.6);
+          }
+          W.gore.dust(new THREE.Vector3(this.def.x, 0.1, this.def.z), 18);
+        }
+        break;
+      }
+      case 'down':
+        y = 0;
+        if (this.dropT >= D.rest) {
+          this.drop = 'lift';
+          this.dropT = 0;
+        }
+        break;
+      case 'lift': {
+        const k = Math.min(1, this.dropT / D.lift);
+        y = D.top * (k * k * (3 - 2 * k));
+        if (k >= 1) {
+          this.drop = 'up';
+          this.dropT = 0;
+        }
+        break;
+      }
+    }
+    this.vis.setDrop?.(y / D.top, this.drop === 'creak' ? this.dropT / D.creak : 0);
   }
 
   /** Skyv en gående figur ut til kanten (fiender går rundt farene). */
@@ -145,6 +242,18 @@ export class Hazard {
         W.gore.dust(new THREE.Vector3(f.pos.x, 0.1, this.def.z + this.def.d / 2), 10);
         W.gore.later(1.3, () => audio.thud(0.6, true));
         break;
+      case 'maneater':
+        // Planten glefser med en gang og tygger: kroppen går i stykker, og blodet spruter ut av munnen
+        this.vis.chomp?.();
+        audio.bite();
+        audio.squish();
+        f.die('explode', dir, killer);
+        if (f.def.blood !== 'bone') W.gore.spray(tp, -dir, 0.6, 40, 6, 0.7, 0.1, f.def.blood === 'green' ? 'green' : 'red');
+        break;
+      case 'deadfall':
+        f.die('explode', dir, killer);
+        if (f.def.blood !== 'bone') for (let i = 0; i < 6; i++) W.gore.splat(this.def.x + rand(-0.9, 0.9), this.def.z + rand(-0.6, 0.6), rand(0.4, 0.9));
+        break;
       case 'lava':
         f.die('normal', dir, killer);
         f.collapseT = 1.4;
@@ -184,6 +293,12 @@ export class Hazard {
       if (d.kind === 'icehole') audio.iceCrack(0.8);
       screenFX.hurt = Math.max(screenFX.hurt, 0.4);
       screenFX.wet.plash(0.5);
+    } else if (d.kind === 'maneater') {
+      audio.bite();
+      W.fx.heroHit(power, Math.random() < 0.5 ? -1 : 1);
+    } else if (d.kind === 'deadfall') {
+      audio.thud(2);
+      W.fx.heroHit(power * 1.3, Math.random() < 0.5 ? -1 : 1);
     } else {
       audio.impale();
       W.fx.heroHit(power, Math.random() < 0.5 ? -1 : 1);

@@ -45,14 +45,19 @@ Castle Crashers-inspirert 3D-kart over en øy. Heltene (og kjæledyrene) går la
 | The Keep of Beginnings | Hjem | Gress | | Hero Forge, butikk, trening | |
 | The Road of Mild Peril | Brett | Gress | | Sjef: Big Mama Hogmother | Warhammer |
 | The Pit of Unfair Judgement | Arena (valgfri) | Gress | Road | Duell: Gorthak | Beast Skull-hjelm |
-| The Swamp of Moist Regret | Brett | Sump | Road | Sjef: King Croakus | Krone |
+| The Steaming Jungle | Brett | Jungel | Road | **Duell i stedet for sjef**: Queen Zanthra | Gull |
+| The Swamp of Moist Regret | Brett | Sump | Jungle | Sjef: King Croakus | Krone |
 | The Mirror Pool | Arena (valgfri) | Sump | Swamp | Duell: Dark You (ond tvilling) | Wizard Blue hårfarge |
-| The Night Camp | Brett (valgfritt) | Natt | Swamp | Overlev til daggry (tyvnisser) | Gull, krukker til neste brett |
-| Frostbite Pass | Brett | Frost | Swamp | **Duell i stedet for sjef**: Frostjarl Kaldor | Great Helm, Frost Blue hud |
+| The Night Camp | Brett (valgfritt) | Natt | Jungle | Overlev til daggry (tyvnisser) | Gull, krukker til neste brett |
+| Frostbite Pass | Brett | Frost | Jungle | **Duell i stedet for sjef**: Frostjarl Kaldor | Great Helm, Frost Blue hud |
 | The Trough of Honour | Arena (valgfri) | Frost | Frost | Duell: Sir Oinksalot | Gull |
-| The Scorchlands | Brett | Vulkan | Frost | Sjef: Magmor the Molten | Gull |
+| The Scorchlands | Brett | Vulkan | Swamp og Frost | Sjef: Magmor the Molten | Gull |
 | The Bone Coliseum | Arena (valgfri) | Vulkan | Scorch | Duell: Bonejangles | Spiked Club |
 | Tower of Moderate Evil | Brett | Tårn | Scorch | Sjef: Vorthax | Slutten |
+
+**Valgfri rekkefølge** (Tom 2026-10-01): etter jungelen kan sumpen og frostpasset tas i den rekkefølgen spilleren vil, men begge må klares før Scorchlands åpner. Brettnummeret følger rekkefølgen: det første av de to heter STAGE 3, det andre STAGE 4, både på kartet og når brettet starter.
+
+**Jungelen** (brett 2) ligger mellom brett 1 og sumpen. Prinsessen er fortsatt målet. Jungelen gir en grunn til å gå omveien: Vorthax har stjålet Solhjertet fra Soltempelet, og amazonene tror heltene er tyvene. Brettet ender i en duell mot dronning Zanthra over tempelet. Etter seieren viser amazonene heltene lappen Vorthax la igjen på sokkelen (IOU), og fortelleren knytter det til tårnet: Solhjertet er der, og prinsessen også.
 
 **Nattleiren** er en hyllest til leiren mellom brettene i Golden Axe. Heltene sover ved bålet med to ekstra krukker hver. Tyvnisser løper forbi og napper krukker (YOINK!, høyst to hver), og et slag får dem til å miste alt de har tatt (GIVE THAT BACK!). Når siste nisse er borte, gryr det (DAWN BREAKS), og krukkene heltene har igjen blir forsyninger til neste brett (to krukker per forsyning). Egen låt: NIGHT WATCH, en seig metal-ballade.
 
@@ -60,26 +65,31 @@ Castle Crashers-inspirert 3D-kart over en øy. Heltene (og kjæledyrene) går la
 
 | Biom | Stemning | Fiender | Fare | Ryttere |
 |---|---|---|---|---|
-| Gress (solnedgang) | Palisader, telt, bål, hodeskaller på stokker | Skeletons, Hogmen, Cultists, Potion Gnomes | Piggroper med blodige staker | Skjelett og hogman på krigsvillsvin |
-| Sump | Tåke, råtne trær, siv, lysende sopp, ildfluer | Bog Zombies, Frogmen | Myr som suger ned | Frogman og zombie på kakatrisse |
+| Gress (solnedgang) | Palisader, telt, bål, hodeskaller på stokker | Skeletons, Hogmen, Cultists, Potion Gnomes, Coward Captain (siste bølge) | Piggroper med blodige staker | Skjelett og hogman på krigsvillsvin |
+| Jungel (Soltempelet) | Høye jungeltrær med kronen langt oppe, palmer og bananplanter, lianer, mosegrodde steinguder og et halvt begravd steinhode, en trappepyramide med gullsol i disen, lysstråler, pollen og ildfluer | Mossy Skeletons, Temple Thieves (kaster dolker), Frogmen, froskemenn i bakhold, Goblin Archers, Hogmen | Kjøttetende planter ved veikanten (varsler, glefser, spiser fiender som kastes inn) og steinvekter som faller når noen står under. Søyler langs veien kan slås over ende og knuser alt de lander på | Frogman på kakatrisse |
+| Sump | Tåke, råtne trær, siv, lysende sopp, ildfluer | Bog Zombies, Frogmen, froskemenn i bakhold | Myr som suger ned | Frogman og zombie på kakatrisse |
 | Frost | Blåtimen i et fjellpass (konseptbilde 4): klippevegger med snø, fossefall, taubro, ruiner, fyrfat med ild, fillete krigsbannere med hornet hodeskalle, runesteiner, istapper, taugjerde og tett snøfall | Frost Skeletons, Ice Trolls, Avalanche Troll (kjempe midtveis) | Råk i isen | Frostskjeletter på villsvin og kakatrisse |
-| Vulkan | Lavaelv, obsidianpigger, brennende trær | Fire Imps, Ember Skeletons | Lavapøler | Ildimp og glødeskjelett på magma-salamander |
-| Tårn (innendørs) | Rødt teppe, søyler, hengende bur, onde plakater | Dark Cultists, Hog Guards, alt annet | Piggfeller i gulvet (spretter opp i takt) | Alle tre ridedyrene |
+| Vulkan | Lavaelv, obsidianpigger, brennende trær | Fire Imps, Ember Skeletons, Ash Raiders, Grabbers, Berserkers | Lavapøler | Ildimp og glødeskjelett på magma-salamander |
+| Tårn (innendørs) | Rødt teppe, søyler, hengende bur, onde plakater | Dark Cultists, Hog Guards, en kaptein med griper og bueskytter, alt annet | Piggfeller i gulvet (spretter opp i takt) | Alle tre ridedyrene |
 
 ## 6. Sjefer
 
-Sjefer er satt sammen av trekk med vekt og nedkjøling, og blir rasende ved halv HP (raskere og med nye trekk). De er urokkelige mot vanlige slag, men blir "staggered" etter nok skade. De kan ikke gripes, og de mister ikke armer.
+Sjefer er satt sammen av trekk med vekt og nedkjøling. De er urokkelige mot vanlige slag, men blir "staggered" etter nok skade. De kan ikke gripes, slås ikke over ende og mister ikke armer.
 
-| Sjef | Trekk | Rasende |
-|---|---|---|
-| Big Mama Hogmother | Kjøttøks, magestormløp, magaplask med sjokkbølger | Kaller inn hogmen og skjeletter |
-| King Croakus | Septer, tunge som drar deg inn (og biter), byks, giftbobler | Kaller inn frogmen og zombier |
-| Magmor the Molten | Lavanever, utbrudd med ildbølger, meteorregn, ildkuler | Tettere meteorregn |
-| Vorthax | Stav, teleport bak deg, magiske kuler, lynregn, kaller inn undersåtter | Lynregn og mer fart |
+**Faser** (runde E): ved 66 og 33 prosent liv går sjefen over i en ny fase med en replikk, mer fart, nye trekk og sterkere utgaver av de gamle. Etter de store trekkene er sjefen sliten et par sekunder (OPENING!), og da biter slagene. Noen trekk er røde: de blinker rødt før de kommer og kan ikke avbrytes, bare unngås. Livslinja har merker der fasene begynner.
+
+| Sjef | Trekk | Fase 2 (66 prosent) | Fase 3 (33 prosent) |
+|---|---|---|---|
+| Big Mama Hogmother | Kjøttøks, magestormløp, magaplask med sjokkbølger | Spiser et kyllinglår og får liv tilbake, om ingen slår henne mens hun spiser (CHOKED!). Kaller inn hogmen og skjeletter | Røde stormløp og magaplask |
+| King Croakus | Septer, tunge som drar deg inn (og biter), byks, giftbobler | Svømmer under bakken: bare skyggen synes, og han kommer opp der den er (rødt). Kaller inn frogmen og zombier | Flere giftbobler, rød tunge, dykker oftere |
+| Magmor the Molten | Lavanever, utbrudd med ildbølger, meteorregn, ildkuler | Lava renner i sporene hans og brenner den som går i dem | Tettere meteorregn, rødt utbrudd |
+| Vorthax | Stav, teleport bak deg, magiske kuler, lynregn, kaller inn undersåtter | Kopier av seg selv. Bare den ekte kaster skygge | Tar Solhjertet: rød solstråle langs veien, vaktene reiser seg igjen, tettere lynregn |
+
+**Sluttkampen i tårnet** er i faser, som hyllest til Death Adder i Golden Axe: Vorthax står på tronen bak et gyllent skjold mens skjelettvaktene reiser seg av gulvet, to bølger (vaktene bærer dører som skjold, så slagene må komme bakfra eller som tredje slag i komboen). Når vaktene er slått, går han ned og slåss selv. Skjoldet får lyset sitt fra Solhjertet gjennom tre søyler med krystaller. Søylene kan slås over ende, og en søyle som faller over ham gjør vondt. Når den siste ligger, brister skjoldet. Ved 33 prosent tar han Solhjertet selv. Når han faller, ruller hjertet over gulvet, og buret med prinsessen senkes (nytt skilt: FINALLY).
 
 ## 7. Dueller (Barbarian-stil)
 
-Brukes som finale i stedet for sjef (Frostbite Pass) og som valgfrie arena-noder på kartet.
+Brukes som finale i stedet for sjef (jungelen og Frostbite Pass) og som valgfrie arena-noder på kartet.
 
 | Input | Trekk | Høyde | Kommentar |
 |---|---|---|---|
@@ -139,12 +149,24 @@ CLASSIC BUILDER beholder de prosedyretegnede valgene nedenfor. Malt hår, hjelme
 - **Fyrfat som veltes**: slag, kastede fiender og bakkeslag velter fyrfatene. Glørne renner ut og brenner en stund, og fiender som tråkker i dem, tar fyr og løper i panikk.
 - **Panikk**: fiender får panikk av og til (grufulle drap i nærheten, nesten død, i brann, når METAL MODE starter). De løper skrikende vekk med armene i været, alltid saktere enn helten, og kommer tilbake etterpå.
 - **Fiender som rygger**: de holder avstand, men rygger på halv fart og blir i bildet når de først har kommet inn, så helten alltid når dem.
-- **Ridedyr**: slå rytteren av og gå inn i dyret for å sitte opp. Angrep bruker dyrets angrep, ned + hopp hopper av. Treff kaster rytteren av. Etter tre avkastinger stikker dyret av. Fiende-ryttere holder seg i bildet når de har ridd inn, rygger på halv fart og angriper med dyret (stormløp, halesvip, ildpust), men ikke en helt som ligger nede eller nettopp har reist seg.
+- **Ridedyr**: slå rytteren av og gå inn i dyret for å sitte opp. Angrep bruker dyrets angrep, ned + hopp hopper av. Treff kaster rytteren av. Etter tre avkastinger stikker dyret av. Fiende-ryttere holder seg i bildet når de har ridd inn, rygger på halv fart og angriper med dyret (stormløp, halesvip, ildpust), men ikke en helt som ligger nede eller nettopp har reist seg. Fiender til fots løper til ledige dyr og setter seg opp, også dyret helten nettopp gikk av. Spesialangrepet koster utholdenhet, ikke liv (lærdommen fra Golden Axe: Beast Rider): to angrep på rad, så er dyret andpustent (WINDED!) til linja over ryggen har fylt seg igjen.
   - War Hog: stormløp som spidder alt foran seg
   - Cluckatrice (halvt hane, halvt øgle): halesvip som treffer begge sider
   - Magma Newt: ildpust som griller alt foran
 - Magi: blå potions fra gnomer, alle brukes på én gang (sterkere jo flere, og sterkere med MAG). Tre typer som i Golden Axe: meteorregn, forfedrenes skrik og tordenguden (lynet slår først ned i heltens våpen og så i hver fiende på skjermen, med flere nedslag rundt omkring fra tre krukker og fiolette lyn på fem og seks)
-- **Sjonglering** som i Castle Crashers: treff på en fiende som er i lufta telles (JUGGLE! x2, AIR RAID! x3, SKY BUFFET! x4 osv.) og fyller METAL-måleren
+- **Sjonglering** som i Castle Crashers: treff på en fiende som er i lufta telles (JUGGLE! x2, AIR RAID! x3, SKY BUFFET! x4 osv.) og fyller METAL-måleren. Etter sju treff i lufta slås han hardt i bakken (SPIKED!) og blir liggende, så ingen kombo varer evig
+- **Kanten av bildet** under en bølge: kropper som blir slått bakover, spretter tilbake fra kanten (WALL BOUNCE!), høyst tre ganger. En kropp som flyr, slår ned fiendene den treffer
+- **Fiender som leser deg**: eliter (tøffe fiender, kjemper og skjelettvakter) og sjefer blokkerer etter fire like slag på rad (TOO PREDICTABLE!). En hel kombo teller ikke som like slag. Løpeslaget bryter guarden, og slag bakfra går gjennom
+- **Grepet** varer ikke evig: en fiende som holdes uten å få kneet, river seg løs etter halvannet sekund og skyver helten bakover
+- Fiender går til side for prosjektiler fra heltene (dragens ildkuler)
+- **Tempo** (runde E): en liten regissør måler spenningen (skaden heltene tar, drap nær dem, livet som er igjen). Når det har vært travelt en stund, kommer et pusterom med færre som angriper og lengre pauser. Når det er rolig, øker trykket
+- **Bølgebudsjett**: fiendene har rang (vanlig 1, sterk 2, elite 4), og en bølge har plass til så mye rang samtidig. En kjempe tar plassen til flere småfolk. Med to spillere er det mer plass
+- **Nye fiendetyper** (runde E), hver med en vane å straffe:
+  - **Goblin Archer** holder avstand og skyter piler langs linja. Ikke stå på linje med ham. Han er svak på nært hold og løper unna.
+  - **Froskemann i bakhold** venter usynlig i buskene bak veien (bladene rister), hopper ut og slår helten ned fra lufta.
+  - **Grabber** blinker rødt før grepet. Et slag i opptrekket stopper det. Ellers holder han helten bakfra for vennene sine; hamre på angrep for å vri deg løs.
+  - **Berserker** (askeraider) blir raskere og tåler mer når livet er lavt (ENRAGED!), og får aldri panikk. Gjør ferdig det du begynner på.
+  - **Coward Captain** står bakerst, blåser i hornet etter forsterkninger og roper ordre (FLANK THE OILY ONE!): troppene angriper oftere, og noen går rundt helten. Når kapteinen dør, flykter troppene (MORALE BROKEN!). Ta ham først.
 - Berserk-spinn uten potions, koster litt HP
 - Pickups: stekt kylling, halvspist skinke, potions, gull, egg fra kampkyllingen
 - Kameraet låses per bølge. GO-pil når bølgen er ryddet
@@ -168,7 +190,7 @@ CLASSIC BUILDER beholder de prosedyretegnede valgene nedenfor. Malt hår, hjelme
 
 ## 12. Innstillinger
 
-Gore (FAMILY, NORMAL, EXCESSIVE, PLEASE SEEK HELP), musikk, musikkstil (HEAVY METAL eller 8-BIT), lydeffekter, skjermristing, gamepad-rumble, berøringskontroller (auto, på, av) og fullskjerm. FAMILY gjør blod om til konfetti og gibs til gummiender.
+Gore (FAMILY, NORMAL, EXCESSIVE, PLEASE SEEK HELP), vanskelighetsgrad (EASY, NORMAL, HARD: endrer hvor fort fiendene reagerer og hvor ofte de angriper, aldri liv eller skade), musikk, musikkstil (HEAVY METAL eller 8-BIT), lydeffekter, skjermristing, gamepad-rumble, berøringskontroller (auto, på, av) og fullskjerm. FAMILY gjør blod om til konfetti og gibs til gummiender.
 
 ## 13. Humor
 

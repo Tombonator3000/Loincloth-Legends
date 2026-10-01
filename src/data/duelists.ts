@@ -17,6 +17,8 @@ export interface DuelistDef {
   arena: ArenaTheme;
   taunts: string[];
   intro: [string, string][];
+  /** Replikker etter seieren når duellen er finalen på et brett (vises sammen med belønningen). */
+  after?: [string, string][];
 }
 
 export const DUELISTS: Record<string, DuelistDef> = {
@@ -39,6 +41,13 @@ export const DUELISTS: Record<string, DuelistDef> = {
     id: 'bonejangles', char: 'skeleton', name: 'BONEJANGLES', title: 'THE BRITTLE. DANCES WHEN HE WINS.', hp: 80, speed: 3.4, dmg: 0.95, scale: 1.15, aggression: 0.75, skill: 0.4, arena: 'bone',
     taunts: ['RATTLE ME BONES!', 'I HAVE NO GUTS TO SPILL!', 'DANCE WITH ME!'],
     intro: [['ANNOUNCER', 'THE BONE COLISEUM PRESENTS: BONEJANGLES!'], ['BONEJANGLES', 'I\'VE BEEN DEAD FOR 300 YEARS AND I\'M STILL IN BETTER SHAPE THAN YOU.']],
+  },
+  // Finalen i jungelen: dronningen over Soltempelet tror heltene er tyvene som tok Solhjertet
+  zanthra: {
+    id: 'zanthra', char: 'zanthra', name: 'QUEEN ZANTHRA', title: 'OF THE SUN TEMPLE. HAS NEVER LOST. RARELY BLINKS.', hp: 115, speed: 3.0, dmg: 1.1, aggression: 0.62, skill: 0.4, arena: 'temple',
+    taunts: ['KNEEL, OUTSIDER!', 'THE SUN SEES YOU. IT IS NOT IMPRESSED.', 'YOUR BICEPS ARE ADEQUATE.', 'I HAVE FOUGHT BIGGER MEN. ONE OF THEM WAS A TREE.'],
+    intro: [['QUEEN ZANTHRA', 'THIEVES! YOU DARE RETURN TO THE SUN TEMPLE?'], ['QUEEN ZANTHRA', 'A WIZARD IN A POINTY HAT STOLE THE SUN HEART. YOU LOOK SUSPICIOUS.'], ['NARRATOR', 'SHE IS NOT WRONG. YOU DO LOOK SUSPICIOUS.']],
+    after: [['NARRATOR', 'THE AMAZONS BOW TO THE VICTOR. THEN THEY SHOW YOU THE IOU.'], ['NARRATOR', 'THE SUN HEART IS IN VORTHAX\'S TOWER. SO IS THE PRINCESS. HOW CONVENIENT.']],
   },
   darkyou: {
     id: 'darkyou', char: '@player', name: 'DARK YOU', title: 'YOUR EVIL TWIN. SAME HAIRCUT.', hp: 110, speed: 3.0, dmg: 1.05, tint: [0.42, 0.36, 0.55], aggression: 0.6, skill: 0.45, arena: 'bone',

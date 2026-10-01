@@ -224,7 +224,7 @@ export function levelWithLayout(def: LevelDef, layout: LevelLayout | null | unde
 }
 
 // ---------------------------------------------------------------- kontroll
-const HAZARD_KINDS: HazardKind[] = ['spikes', 'bog', 'icehole', 'lava', 'spiketrap', 'chasm'];
+const HAZARD_KINDS: HazardKind[] = ['spikes', 'bog', 'icehole', 'lava', 'spiketrap', 'chasm', 'maneater', 'deadfall'];
 const PICK_KINDS = ['coin', 'chicken', 'potion', 'ham', 'egg', 'gold'];
 const num = (v: unknown) => typeof v === 'number' && Number.isFinite(v);
 

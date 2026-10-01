@@ -70,7 +70,7 @@ export class HUD {
     this.streakEl.className = 'streak';
     this.bossEl = document.createElement('div');
     this.bossEl.className = 'bossbar';
-    this.bossEl.innerHTML = '<div class="b-skull"></div><div class="b-info"><div class="b-name"></div><div class="bar big"><i class="ghost"></i><i class="fill"></i></div></div>';
+    this.bossEl.innerHTML = '<div class="b-skull"></div><div class="b-info"><div class="b-name"></div><div class="bar big"><i class="ghost"></i><i class="fill"></i><i class="shield"></i><span class="marks"></span></div></div>';
     this.bossFill = this.bossEl.querySelector('.fill')!;
     this.bossGhost = this.bossEl.querySelector('.ghost')!;
     this.metalEl = document.createElement('div');
@@ -139,6 +139,26 @@ export class HUD {
 
   hideBoss() {
     this.bossEl.classList.remove('show');
+  }
+
+  /** Merker på sjefens livslinje der fasene begynner (andeler av livet, runde E). */
+  bossPhases(at: number[]) {
+    const marks = this.bossEl.querySelector('.marks') as HTMLElement;
+    marks.innerHTML = at.map((a) => `<b style="left:${(a * 100).toFixed(1)}%"></b>`).join('');
+    this.bossEl.classList.remove('phase1', 'phase2');
+  }
+
+  /** Fasen sjefen er i nå (1 og 2 etter første og andre merke). */
+  bossPhase(i: number) {
+    this.bossEl.classList.toggle('phase1', i === 1);
+    this.bossEl.classList.toggle('phase2', i >= 2);
+  }
+
+  /** Skjoldet til sjefen over livslinja: andel som står (søylene), null når det er borte. */
+  bossShield(v: number | null) {
+    const el = this.bossEl.querySelector('.shield') as HTMLElement;
+    el.style.width = v === null ? '0%' : (Math.max(0, Math.min(1, v)) * 100).toFixed(1) + '%';
+    this.bossEl.classList.toggle('shielded', v !== null);
   }
 
   visible(v: boolean) {

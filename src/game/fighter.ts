@@ -3,7 +3,7 @@ import * as THREE from 'three';
 import { Rig, makeRig, NEUTRAL, type Pose } from '../gfx/rig';
 import { getChar, type CharDef, type CharId, type PartName } from '../gfx/chars';
 import { plainCanvas } from '../gfx/draw';
-import { P, DEATH_WORDS, type AttackDef, type DeathStyle } from './attacks';
+import { P, DEATH_WORDS, bentPose, type AttackDef, type DeathStyle } from './attacks';
 import { headImage } from '../gfx/rig';
 import { W } from './world';
 import { audio } from '../core/audio';
@@ -17,6 +17,12 @@ export type FState =
   | 'roll' | 'crouch' | 'victory' | 'taunt' | 'stunned' | 'blockstun' | 'land' | 'drag' | 'flee' | 'hold' | 'held' | 'ride';
 
 export type Team = 'hero' | 'enemy';
+
+/** Hvor lenge en figur vakler (og kan gripes selv om den er tøff) etter at treffstøtet er over. */
+export const STAGGER_OPEN = 0.75;
+
+/** Tilstander der figuren står på beina, så føttene settes på bakken (Rig.plant). */
+const PLANTED = new Set<FState>(['idle', 'land', 'walk', 'flee', 'attack', 'hurt', 'blockstun', 'stunned', 'getup', 'block', 'crouch', 'magic', 'victory', 'taunt', 'drag', 'hold', 'dead']);
 
 let shadowMat: THREE.MeshBasicMaterial | null = null;
 function getShadowMat() {
@@ -122,6 +128,10 @@ export class Fighter {
   swooshed = false;
   airAttackUsed = false;
   frozen = false;
+  /** Tøff fiende som står imot grep til han vakler (FoeDef.guard, se offBalance i game/grab.ts). */
+  guard = false;
+  /** Hvor lenge figuren fortsatt vakler etter et treff som rykket den (kan gripes selv om den er tøff). */
+  staggerT = 0;
   label: string;
   onDeath: ((f: Fighter, killer: Fighter | null, style: DeathStyle) => void) | null = null;
   onLand: ((f: Fighter) => void) | null = null;
@@ -155,6 +165,22 @@ export class Fighter {
   poseMod: Partial<Pose> | null = null;
   /** Sjefer og store fiender: ignorer vanlige treff i vindup. */
   armored = false;
+  /** Slås aldri over ende, bare rykkes (sjefene). */
+  kdImmune = false;
+  /** Et magisk skjold: alle slag preller av (Vorthax mens søylene i tronsalen står). */
+  shielded = false;
+  onShieldHit: ((from: Fighter) => void) | null = null;
+  /** En dør som skjold (FoeDef.shield): vanlige slag forfra preller av. */
+  frontGuard = false;
+  /** Et speilbilde (Vorthax): tar ingen skade, men forsvinner når det blir truffet. */
+  illusion = false;
+  /** Reiser seg av gulvet (Foe.rise): kan ikke treffes ennå. */
+  rising = false;
+  /** Ingen skygge (sjefen under bakken). */
+  hideShadow = false;
+  /** Gjemt i buskene bak veien (froskemannen i bakhold): synes ikke, har ingen skygge og kan ikke treffes. */
+  hidden = false;
+  onIllusionHit: ((from: Fighter) => void) | null = null;
   /** Kan ikke miste armer (sjefer, ridedyr). */
   noSever = false;
   armsLost = 0;
@@ -263,6 +289,8 @@ export class Fighter {
     this.stunT = stun;
     this.vel.x = pushX;
     this.atk = null;
+    // Han vakler en stund etter treffet, og da kan selv de tøffe gripes (game/grab.ts)
+    this.staggerT = Math.max(this.staggerT, stun + STAGGER_OPEN);
   }
 
   knockdown(pushX: number, vy: number) {
@@ -505,6 +533,7 @@ export class Fighter {
     this.st += dt;
     this.invuln = Math.max(0, this.invuln - dt);
     this.flashT = Math.max(0, this.flashT - dt);
+    this.staggerT = Math.max(0, this.staggerT - dt);
     this.drip(dt);
     const a = this.atk;
     // På ryggen av et ridedyr: dyret bestemmer posisjonen
@@ -525,9 +554,11 @@ export class Fighter {
         this.onGround = false;
         this.setState('jump');
       } else {
-        // En kjempe holder deg oppe i neven, en helt i nakkeskinnet
-        this.pos.set(h.pos.x + h.facing * 0.8 * h.size, h.pos.y + (h.size > 1.8 ? 0.95 * h.size : 0.3), h.pos.z + 0.03);
-        this.facing = -h.facing;
+        // En kjempe holder deg oppe i neven, en helt i nakkeskinnet. Griperen (data.holds) holder deg bakfra med ryggen
+        // mot seg, så vennene hans kan slå deg forfra
+        const hug = !!h.data.holds;
+        this.pos.set(h.pos.x + h.facing * (hug ? 0.5 : 0.8) * h.size, h.pos.y + (h.size > 1.8 ? 0.95 * h.size : hug ? 0.12 : 0.3), h.pos.z + 0.03);
+        this.facing = hug ? h.facing : -h.facing;
         this.vel.set(0, 0, 0);
         this.onGround = true;
         this.animate(dt);
@@ -676,7 +707,11 @@ export class Fighter {
     if (this.state === 'jump') {
       this.setState('land');
       this.stunT = 0.06;
-      this.rig.pose.bodyY -= 0.12;
+      // Landingen tas i knærne (figurer med bøyde knær får kroppen senket av Rig.plant), de andre synker litt
+      if (this.def.bend) {
+        this.rig.pose.kneeF += 0.75;
+        this.rig.pose.kneeB += 0.75;
+      } else this.rig.pose.bodyY -= 0.12;
       W.gore.dust(this.pos, 3);
     } else if (this.state === 'attack' && this.atk?.air) {
       const rec = this.atk.recovery;
@@ -731,6 +766,9 @@ export class Fighter {
     const t = W.time + this.id * 1.7;
     let target: Partial<Pose> = NEUTRAL;
     let speed = 14;
+    // Figurer med bøyde albuer og knær får tillegget i PB oppå stillingene fra P (game/attacks.ts)
+    const bend = this.def.bend;
+    const pb = (pose: Partial<Pose>) => bentPose(pose, bend);
     switch (this.state) {
       case 'idle':
       case 'land': {
@@ -752,68 +790,80 @@ export class Fighter {
           bodyY: -0.04 + Math.abs(Math.cos(ph)) * (run ? 0.1 : 0.06),
           ...this.poseMod,
         };
+        if (bend) {
+          // Beinet som svinger fram, bøyer kneet (mest når det passerer under kroppen), beinet som står, er nesten
+          // rett. Kortere steg enn de stive beina, og kroppen synker når beina sprikes (Rig.plant). Armene pumper.
+          const c = Math.cos(ph), stride = run ? 0.72 : 0.45;
+          Object.assign(target, {
+            legF: s * stride, legB: -s * stride,
+            kneeF: (run ? 0.25 : 0.12) + Math.max(0, c) * (run ? 1.5 : 0.8), kneeB: (run ? 0.25 : 0.12) + Math.max(0, -c) * (run ? 1.5 : 0.8),
+            elbowF: run ? 1.0 : 0.6, elbowB: (run ? 1.3 : 0.4) + Math.max(0, -s) * (run ? 0.3 : 0.25),
+          });
+        }
         // Panikk: armene veiver over hodet og blikket er bakover
         if (this.panicking) Object.assign(target, { armF: 2.6 + Math.sin(t * 17) * 0.5, armB: 2.4 + Math.cos(t * 15) * 0.5, head: -0.25, torso: -0.05, weapon: -0.6 });
         speed = 22;
         break;
       }
       case 'jump':
-        target = this.vel.y > 0 ? P.jump : P.fall;
+        target = pb(this.vel.y > 0 ? P.jump : P.fall);
         speed = 12;
         break;
       case 'attack': {
         const a = this.atk!;
         const ph = this.phase();
-        target = ph === 'wind' ? a.wind : a.strike;
+        target = pb(ph === 'wind' ? a.wind : a.strike);
         speed = ph === 'wind' ? 24 : ph === 'active' ? 55 : 10;
         break;
       }
       case 'hurt':
-        target = P.hurt;
+        target = pb(P.hurt);
         speed = 32;
         break;
       case 'blockstun':
-        target = this.blocking === 'low' ? P.blockLo : P.blockHi;
+        target = pb(this.blocking === 'low' ? P.blockLo : P.blockHi);
         speed = 30;
         break;
       case 'stunned':
-        target = { ...P.stunned, head: 0.3 + Math.sin(t * 9) * 0.3, torso: 0.2 + Math.sin(t * 4.5) * 0.15 };
+        target = { ...pb(P.stunned), head: 0.3 + Math.sin(t * 9) * 0.3, torso: 0.2 + Math.sin(t * 4.5) * 0.15 };
         speed = 10;
         break;
       case 'down':
-        target = this.onGround ? P.down : P.tumble;
+        target = pb(this.onGround ? P.down : P.tumble);
         speed = this.onGround ? 14 : 8;
         break;
       case 'getup':
-        target = P.getup;
+        target = pb(P.getup);
         speed = 10;
         break;
       case 'block':
-        target = this.blocking === 'low' ? P.blockLo : P.blockHi;
+        target = pb(this.blocking === 'low' ? P.blockLo : P.blockHi);
         speed = 28;
         break;
       case 'crouch':
-        target = P.crouch;
+        target = pb(P.crouch);
         speed = 20;
         break;
       case 'magic':
-        target = { ...P.magic, armF: P.magic.armF + Math.sin(t * 20) * 0.08, armB: P.magic.armB + Math.cos(t * 20) * 0.08 };
+        target = { ...pb(P.magic), armF: P.magic.armF + Math.sin(t * 20) * 0.08, armB: P.magic.armB + Math.cos(t * 20) * 0.08 };
         speed = 10;
         break;
       case 'victory':
-        target = { ...P.victory, armF: 2.9 + Math.sin(t * 7) * 0.25, bodyY: Math.abs(Math.sin(t * 7)) * 0.08 };
+        target = { ...pb(P.victory), armF: 2.9 + Math.sin(t * 7) * 0.25, bodyY: Math.abs(Math.sin(t * 7)) * 0.08 };
         speed = 12;
         break;
       case 'taunt':
-        target = { ...P.taunt, bodyY: Math.abs(Math.sin(t * 8)) * 0.1, head: 0.3 + Math.sin(t * 8) * 0.15 };
+        target = { ...pb(P.taunt), bodyY: Math.abs(Math.sin(t * 8)) * 0.1, head: 0.3 + Math.sin(t * 8) * 0.15 };
+        // Bicepsene pumpes i takt
+        if (bend) target.elbowB = (target.elbowB ?? 0) + Math.sin(t * 8) * 0.25;
         speed = 12;
         break;
       case 'roll':
-        target = P.roll;
+        target = pb(P.roll);
         speed = 40;
         break;
       case 'drag':
-        target = { ...P.drag, legF: Math.sin(t * 8) * 0.4, legB: -Math.sin(t * 8) * 0.4 };
+        target = { ...pb(P.drag), legF: Math.sin(t * 8) * 0.4, legB: -Math.sin(t * 8) * 0.4 };
         speed = 14;
         break;
       case 'hold': {
@@ -824,10 +874,18 @@ export class Fighter {
           speed = 14;
           break;
         }
+        // Griperen: begge armene rundt helten, og han klemmer i takt
+        if (this.data.holds) {
+          const sq = Math.sin(t * 7) * 0.08;
+          target = { armF: 1.45 + sq, armB: 1.35 + sq, weapon: -1.4, torso: -0.22, head: 0.12, legF: 0.35, legB: -0.35, bodyY: -0.05, elbowF: 0.9, elbowB: 0.9, kneeF: 0.3, kneeB: 0.35 };
+          speed = 14;
+          break;
+        }
         const knee = ((this.data.pummelT as number) ?? 0) > 0;
+        // Kneet: med bøyde knær går leggen ned og bakover, så det er kneet som treffer
         target = knee
-          ? { armF: 0.7, armB: 1.35, weapon: -2.0, torso: 0.3, head: -0.2, legF: 1.5, legB: -0.3, bodyY: 0.02 }
-          : { armF: 0.6, armB: 1.3, weapon: -1.8, torso: -0.12, head: 0.05, legF: 0.35, legB: -0.35, bodyY: -0.05 };
+          ? { armF: 0.7, armB: 1.35, weapon: -2.0, torso: 0.3, head: -0.2, legF: 1.5, legB: -0.3, bodyY: 0.02, elbowF: 0.6, elbowB: 0.5, kneeF: 1.9, kneeB: 0.25 }
+          : { armF: 0.6, armB: 1.3, weapon: -1.8, torso: -0.12, head: 0.05, legF: 0.35, legB: -0.35, bodyY: -0.05, elbowF: 0.6, elbowB: 0.5, kneeF: 0.2, kneeB: 0.3 };
         speed = knee ? 40 : 16;
         break;
       }
@@ -835,11 +893,14 @@ export class Fighter {
         target = {
           armF: 2.4 + Math.sin(t * 18) * 0.6, armB: 2.2 + Math.cos(t * 16) * 0.6, weapon: -1.0, torso: 0.35, head: 0.45,
           legF: Math.sin(t * 14) * 0.7, legB: -Math.sin(t * 14) * 0.7, bodyY: 0, tilt: 0.25 + Math.sin(t * 9) * 0.08,
+          kneeF: 0.6 + Math.sin(t * 14) * 0.5, kneeB: 0.6 - Math.sin(t * 14) * 0.5, elbowF: 0.6, elbowB: 0.8 + Math.cos(t * 16) * 0.4,
         };
         speed = 20;
         break;
       case 'ride':
         target = { torso: -0.05, head: 0.05, armF: 0.9, armB: 0.6, weapon: -2.3, legF: 1.25, legB: 1.05, bodyY: -0.1, ...this.poseMod };
+        // Med bøyde knær henger leggene ned langs dyret i stedet for å stikke rett fram
+        if (bend) Object.assign(target, { legF: 1.0, kneeF: 1.2, legB: 0.85, kneeB: 1.1, elbowF: 0.6, elbowB: 0.7 });
         speed = 14;
         break;
       case 'dead': {
@@ -848,17 +909,18 @@ export class Fighter {
           target = {
             torso: -0.3, head: 0, armF: 2.3 + Math.sin(t * 19) * 0.9, armB: 1.9 + Math.cos(t * 17) * 0.9, weapon: -1.0,
             legF: Math.sin(ph) * 0.95, legB: -Math.sin(ph) * 0.95, bodyY: -0.04 + Math.abs(Math.cos(ph)) * 0.12, tilt: Math.sin(t * 5) * 0.1,
+            kneeF: 0.3 + Math.max(0, Math.cos(ph)) * 1.4, kneeB: 0.3 + Math.max(0, -Math.cos(ph)) * 1.4,
           };
           speed = 24;
         } else if (this.st < this.collapseT && !this.legless) {
-          target = { ...P.hurt, armF: 2.2 + Math.sin(t * 20) * 0.6, armB: 2.0 + Math.cos(t * 18) * 0.6, legF: 0.2 + Math.sin(t * 14) * 0.2, bodyX: Math.sin(t * 11) * 0.03 };
+          target = { ...pb(P.hurt), armF: 2.2 + Math.sin(t * 20) * 0.6, armB: 2.0 + Math.cos(t * 18) * 0.6, legF: 0.2 + Math.sin(t * 14) * 0.2, bodyX: Math.sin(t * 11) * 0.03 };
           speed = 16;
         } else if (this.legless) {
-          target = { ...P.down, tilt: 0.25 * this.fallDir, lift: 0, bodyY: -this.def.hipY + 0.22, armF: 1.8 + Math.sin(t * 6) * 0.3, armB: 1.6, head: 0.4, torso: -0.2 };
+          target = { ...pb(P.down), tilt: 0.25 * this.fallDir, lift: 0, bodyY: -this.def.hipY + 0.22, armF: 1.8 + Math.sin(t * 6) * 0.3, armB: 1.6, head: 0.4, torso: -0.2 };
           speed = 10;
           if (this.st > 1.8) target = { ...target, tilt: 1.45 * this.fallDir, lift: 0.3, bodyY: -this.def.hipY + 0.1 };
         } else {
-          target = { ...P.down, tilt: 1.5 * this.fallDir };
+          target = { ...pb(P.down), tilt: 1.5 * this.fallDir };
           speed = 7;
         }
         break;
@@ -870,16 +932,18 @@ export class Fighter {
       r.pose.lift = 0.5;
       r.pose.bodyY = -this.def.hipY;
     }
+    // Føttene på bakken når figuren står (bare figurer med bøyde knær, se Rig.plant)
+    r.plant(this.onGround && PLANTED.has(this.state) && !(this.state === 'attack' && this.atk?.air) && !(this.state === 'dead' && !(this.headlessT > 0)), dt);
     r.sync();
     let vf = this.facing;
     if (this.state === 'attack' && this.atk?.spin && this.phase() !== 'recover') vf = (Math.floor(this.st / 0.06) % 2 ? -1 : 1) * this.facing;
     r.setFacing(vf);
     r.root.position.set(this.pos.x, this.pos.y + (this.state === 'dead' && this.corpseLife < 900 && this.st > this.corpseLife && !(this.sinkRate > 0) ? r.root.position.y - this.pos.y : 0), this.pos.z);
     r.flash = this.flashT > 0 ? 0.85 : 0;
-    r.root.visible = !(this.invuln > 0 && this.alive && Math.floor(this.invuln * 16) % 2 === 1);
+    r.root.visible = !this.hidden && !(this.invuln > 0 && this.alive && Math.floor(this.invuln * 16) % 2 === 1);
     const h = Math.max(0, this.pos.y);
     const ss = this.size * (this.def.id === 'hogman' ? 1.5 : 1.15) * Math.max(0.4, 1 - h * 0.18);
-    this.shadow.visible = !(this.state === 'dead' && (this.deathStyle === 'explode' || this.deathStyle === 'shatter' || this.sinkRate > 0 || this.envKill));
+    this.shadow.visible = !this.illusion && !this.hideShadow && !this.hidden && !(this.state === 'dead' && (this.deathStyle === 'explode' || this.deathStyle === 'shatter' || this.sinkRate > 0 || this.envKill));
     this.shadow.scale.set(ss * 1.4, ss * 0.55, 1);
     this.shadow.position.set(this.pos.x, 0.02, this.pos.z);
   }

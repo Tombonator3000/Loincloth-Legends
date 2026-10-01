@@ -1,7 +1,7 @@
 // 3D-verdenskart: malt terreng med biomer, små 3D-rekvisitter, stier og nodemarkører.
 import * as THREE from 'three';
 import { plainCanvas, unitCanvas, INK } from '../draw';
-import { rand, pick } from '../../core/math';
+import { rand, pick, random } from '../../core/math';
 import { images } from '../assets';
 import type { Gore } from '../gore';
 import { M, toon, canvasTex, skull3D } from './common';
@@ -14,6 +14,7 @@ export interface NodeMarker { node: MapNode; group: THREE.Group; flag: THREE.Mes
 
 const BIOME_COL: Record<string, [string, string[]]> = {
   grass: ['#6f8a3a', ['#7d9a42', '#5f7a30', '#86a04a']],
+  jungle: ['#2f5a24', ['#3a6e2a', '#244a1c', '#4a7e30']],
   swamp: ['#5a5e3a', ['#4a5030', '#6a6a40', '#3e4a2e']],
   frost: ['#dfe9f2', ['#ffffff', '#cad8e6', '#e8f0f6']],
   scorch: ['#3a2622', ['#4a2a22', '#2a1a18', '#5a3020']],
@@ -110,6 +111,45 @@ function paintMap() {
   });
 }
 
+const px = (x: number, w: number) => ((x + MAP_W / 2) / MAP_W) * w;
+const pz = (z: number, h: number) => ((z + MAP_D / 2) / MAP_D) * h;
+
+/**
+ * Jungelen males oppå kartet (også det malte kartet fra ChatGPT, som ble laget før jungelen fantes): en mørk, frodig
+ * flekk rundt jungelnoden med tette trekroner, og en gyllen prikk der Soltempelet står.
+ */
+function withJungle(src: HTMLCanvasElement | HTMLImageElement) {
+  const W = src.width, H = src.height;
+  return plainCanvas(W, H, (c) => {
+    c.drawImage(src, 0, 0);
+    for (const nd of MAP_NODES.filter((n) => n.biome === 'jungle')) {
+      const cx = px(nd.pos[0], W), cy = pz(nd.pos[1], H), r = W * 0.085;
+      const gr = c.createRadialGradient(cx, cy, r * 0.2, cx, cy, r);
+      gr.addColorStop(0, 'rgba(30,70,24,0.95)');
+      gr.addColorStop(0.7, 'rgba(40,84,30,0.75)');
+      gr.addColorStop(1, 'rgba(40,84,30,0)');
+      c.fillStyle = gr;
+      c.beginPath();
+      c.ellipse(cx, cy, r * 1.25, r, 0, 0, Math.PI * 2);
+      c.fill();
+      // Trekroner
+      for (let i = 0; i < 260; i++) {
+        const a = random() * Math.PI * 2, d = Math.sqrt(random()) * r * 1.1;
+        const x = cx + Math.cos(a) * d * 1.2, y = cy + Math.sin(a) * d * 0.9;
+        const k = 3 + random() * 6;
+        c.fillStyle = pick(['#1e4a18', '#2e6224', '#3e7a2c', '#4e8a34', '#16381a']);
+        c.beginPath();
+        c.arc(x, y, k, 0, Math.PI * 2);
+        c.fill();
+      }
+      c.fillStyle = '#d8b04a';
+      c.beginPath();
+      c.arc(cx + r * 0.45, cy - r * 0.35, 5, 0, Math.PI * 2);
+      c.fill();
+    }
+  });
+}
+
 function flagMat(col: string, skull: boolean) {
   const t = canvasTex(unitCanvas(0.8, 0.5, 0, 0.25, 128, (p) => {
     p.poly([0, 0.22, 0.76, 0.12, 0.62, 0.0, 0.76, -0.14, 0, -0.22], col);
@@ -131,7 +171,7 @@ export function buildWorldMap(scene: THREE.Scene, gore: Gore) {
   sun.position.set(-10, 30, 20);
   g.add(sun);
 
-  const tex = canvasTex(images.map ?? paintMap(), false);
+  const tex = canvasTex(withJungle(images.map ?? paintMap()), false);
   const ground = new THREE.Mesh(new THREE.PlaneGeometry(MAP_W, MAP_D), toon('#ffffff', tex));
   ground.rotation.x = -Math.PI / 2;
   g.add(ground);
@@ -181,6 +221,18 @@ export function buildWorldMap(scene: THREE.Scene, gore: Gore) {
   decor(-12, 8, -15, -2, 26, pine);
   decor(-6, 9, 4, 15, 26, deadT);
   decor(6, 15, -2, 14, 22, spike);
+  // Jungeltrær rundt jungelnoden: høy stamme og en flat, bred krone, og en liten trappepyramide
+  const jungleTree = (x: number, z: number) => {
+    const s = rand(0.6, 1);
+    g.add(M(new THREE.CylinderGeometry(0.05 * s, 0.08 * s, 1.1 * s, 5), '#5a4a32', x, 0.55 * s, z, 0.06));
+    const crown = M(new THREE.SphereGeometry(0.5 * s, 8, 6), pick(['#2e6224', '#3a7a2c', '#244e1c']), x, 1.15 * s, z, 0.06);
+    crown.scale.y = 0.45;
+    g.add(crown);
+  };
+  for (const nd of MAP_NODES.filter((n) => n.biome === 'jungle')) {
+    decor(nd.pos[0] - 3.5, nd.pos[0] + 3.5, nd.pos[1] - 2.5, nd.pos[1] + 2.5, 30, jungleTree);
+    for (let t = 0; t < 3; t++) g.add(M(new THREE.BoxGeometry(1.2 - t * 0.35, 0.25, 1.2 - t * 0.35), '#8a866c', nd.pos[0] + 1.7, 0.12 + t * 0.25, nd.pos[1] - 1.2, 0.05));
+  }
 
   // Vulkan
   const volc = M(new THREE.CylinderGeometry(0.8, 3, 4, 10), '#3a2226', 13.5, 2, -1.5, 0.04);

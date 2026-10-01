@@ -23,6 +23,12 @@ export const GRADES: Record<string, G> = {
     shadowTint: [0.85, 0.92, 1.16], highlightTint: [1.08, 1.0, 0.9], tint: 0.5, vignette: 0.45, grain: 0.26,
     bloom: 1.0, threshold: 0.95, knee: 0.5, dofFar: 0.75, dofNear: 0.55,
   },
+  // Jungelen: fuktig og frodig, gylne høylys i lysstrålene, dype grønne skygger
+  jungle: {
+    exposure: 1.02, contrast: 1.08, saturation: 1.06, vibrance: 0.12, lift: [0.0, 0.015, 0.01], gain: [1.02, 1.02, 0.95],
+    shadowTint: [0.9, 1.02, 0.96], highlightTint: [1.06, 1.03, 0.88], tint: 0.4, vignette: 0.45, grain: 0.3,
+    bloom: 1.0, threshold: 0.9, knee: 0.5, dofFar: 0.8, dofNear: 0.6,
+  },
   // Helvetesild: varme skygger, lava som gløder
   scorch: {
     exposure: 1.0, contrast: 1.06, saturation: 0.98, vibrance: 0.05, lift: [0.02, 0.0, 0.005], gain: [1.02, 0.99, 0.95],
@@ -56,6 +62,16 @@ export const GRADES: Record<string, G> = {
     exposure: 1.0, contrast: 1.08, saturation: 0.98, vibrance: 0.06, lift: [0.015, 0.0, 0.02], gain: [1.01, 1.0, 0.98],
     shadowTint: [0.95, 0.9, 1.06], highlightTint: [1.04, 1.01, 0.94], tint: 0.35, vignette: 0.48, grain: 0.32,
     bloom: 0.85, threshold: 1.0, knee: 0.5, dofFar: 0.72, dofNear: 0.35,
+  },
+  temple: {
+    exposure: 1.0, contrast: 1.07, saturation: 1.04, vibrance: 0.1, lift: [0.0, 0.015, 0.01], gain: [1.02, 1.01, 0.95],
+    shadowTint: [0.92, 1.02, 0.95], highlightTint: [1.05, 1.02, 0.9], tint: 0.38, vignette: 0.46, grain: 0.3,
+    bloom: 0.85, threshold: 1.0, knee: 0.5, dofFar: 0.72, dofNear: 0.35,
+  },
+  // Den desperate fasen i tårnet: Vorthax har Solhjertet, rommet blir rødt og gyllent (legges oppå tower)
+  heart: {
+    exposure: 1.08, contrast: 1.12, saturation: 1.1, lift: [0.03, 0.0, 0.0], gain: [1.08, 0.98, 0.86],
+    shadowTint: [1.12, 0.86, 0.8], highlightTint: [1.12, 1.02, 0.8], tint: 0.55, bloom: 1.3, threshold: 0.85,
   },
   // Verdenskartet sees ovenfra: lite dybdeskarphet, varm pergamentstemning
   map: {

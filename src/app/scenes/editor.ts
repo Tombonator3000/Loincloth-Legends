@@ -63,7 +63,7 @@ export function forgeState() {
 
 const clone = <T>(o: T): T => JSON.parse(JSON.stringify(o)) as T;
 const r3 = (v: number) => Math.round(v * 1000) / 1000;
-const HAZARD_KINDS: HazardKind[] = ['spikes', 'bog', 'icehole', 'lava', 'spiketrap', 'chasm'];
+const HAZARD_KINDS: HazardKind[] = ['spikes', 'bog', 'icehole', 'lava', 'spiketrap', 'chasm', 'maneater', 'deadfall'];
 const BARREL_KINDS = ['chicken', 'ham', 'potion', 'gold', 'egg', 'coin'];
 
 /** Grunnavnet til en variant: palisade_a, palisade_b og palisade_2 er varianter av palisade. */
@@ -538,7 +538,7 @@ export class EditorScene implements Scene {
     this.change();
     this.takeGameplay('hazards');
     const biome = this.level.biome;
-    const kind: HazardKind = biome === 'swamp' ? 'bog' : biome === 'frost' ? 'icehole' : biome === 'scorch' ? 'lava' : biome === 'tower' ? 'spiketrap' : 'spikes';
+    const kind: HazardKind = biome === 'swamp' ? 'bog' : biome === 'frost' ? 'icehole' : biome === 'scorch' ? 'lava' : biome === 'tower' ? 'spiketrap' : biome === 'jungle' ? 'maneater' : 'spikes';
     this.st.layout.hazards!.push({ kind, x: r3(this.game.camera.position.x), z: -1.85, w: 3, d: 1.3 });
     this.st.sel = { type: 'hazard', i: this.st.layout.hazards!.length - 1 };
     this.gameplayChanged(true);

@@ -1,4 +1,4 @@
-// Fiender bygget av de samme malte delene som spilleren kan velge i heltesmia.
+// Fiender og duellanter bygget av de samme malte delene som spilleren kan velge i heltesmia.
 import { buildHeroDef, type HeroConfig } from './hero';
 import type { CharDef } from './types';
 
@@ -20,7 +20,19 @@ const warden: HeroConfig = {
   },
 };
 
+// Dronningen over Soltempelet i jungelen (duellen på slutten av brett 2): flettet krone, brystplate, krigskilt,
+// lærarmer, kampsandaler og sabel
+const zanthra: HeroConfig = {
+  name: 'QUEEN ZANTHRA', body: 1, skin: 2, face: 4, hair: 4, hairColor: 0, beard: 0, helmet: 4,
+  torso: 4, pelvis: 1, boots: 3, weapon: 0, cloth: 6, magic: 0,
+  parts: {
+    head: 'forge_crownbraid_head', torso: 'forge_plate_torso', pelvis: 'forge_kilt_pelvis',
+    arm: 'forge_leather_arm', leg: 'forge_sandals_leg', weapon: 'forge_sabre_weapon',
+  },
+};
+
 export const RAIDERS: CharDef[] = [
   { ...buildHeroDef(ash, 0), id: 'ashraider', color: '#9a5e38' },
   { ...buildHeroDef(warden, 0), id: 'ironwarden', color: '#8e1b1b' },
+  { ...buildHeroDef(zanthra, 0), id: 'zanthra', color: '#2a6a2a' },
 ];

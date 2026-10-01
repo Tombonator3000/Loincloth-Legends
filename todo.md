@@ -1,5 +1,39 @@
 # todo.md
 
+## Retning fra ChatGPT-samtalen (forslag som venter på Tom, 2026-10-01)
+Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og Mystara som inspirasjon. Vurderingen står i log.md 2026-10-01.
+- [x] Tom: historien. Prinsesse Amberly er målet, Solhjertet kan være grunnen til jungelen (Tom 2026-10-01)
+- [x] Tom: kartet. Sumpen og frosten i valgfri rekkefølge etter jungelen (Tom 2026-10-01)
+- [x] Kartet: sumpen og frosten i valgfri rekkefølge, Scorchlands krever begge, brettnummeret følger rekkefølgen (tools/tests/route.mjs)
+- [x] Bøy i albue og kne på heltene (bend i CharDef, PB i game/attacks.ts, Rig.plant), tools/tests/bend.mjs
+- [ ] Tom: se på bøyen i spillet (gang, løp, slag, huk, spark, kne, hån) og si fra om vinkler som skal justeres (PB i game/attacks.ts, gangen i Fighter.animate)
+- [ ] Bøy på fiendene også: sjekk stillingene for skjelett, kultist, grisemann osv. og sett `bend: true` på dem som tåler det
+- [ ] Mål albue og kne på Forge-delene (de bruker standardpunktene: midt på armen, 40 prosent ned på beinet)
+- [x] Tøffe fiender (guard) må vakle før de kan gripes, småfolk gripes som før (tools/tests/guard.mjs)
+- [x] Vorthax på brettene før tårnet (nå også jungelen): kjempehode på himmelen med tale mellom bølgene, og replikker om ordrene hans (fangevogna på brett 1) (tools/tests/vorthax.mjs)
+- [ ] Tom: lag talene til Vorthax i VoiceStudio (docs/STEMMER.md, prioritet A)
+- [x] Jungelbrett mellom brett 1 og sumpen (`jungle`, STAGE 2): kjøttetende plante, steinvekt, søyler som veltes over fiendene, Soltempelet, duell mot dronning Zanthra, låten TEMPLE OF THE SUN (tools/tests/jungle.mjs)
+- [ ] Tom: se på jungelen (plantene, steinvekta, søylene, tempelet i disen, palmene og duellen) og si fra om noe skal endres
+- [ ] Tom: lag replikkene for jungelen i VoiceStudio (fortelleren, Vorthax, dronning Zanthra, docs/STEMMER.md)
+- [ ] Jungelen: bestill bakke- og veitekstur (`ground_jungle`, `road_jungle`) og kulisser (tempelruiner, steinguder, slyngplanter) etter ART_PROMPTS og skillen prop-art. Zanthra er satt sammen av Forge-deler og kan få egne bilder
+- [ ] Jungelen: elv med ruinby, og søyler som blir bro over elva (fra idélista), er ikke laget
+- [ ] Utstyr som endrer handlingene, to eller tre ting som gjenbruker effekter vi har: oljeflaske (glør og brann), ring (tordenmagien), kastedolk (kultistenes dolk). Må passe på de tre knappene
+- [ ] Flere mannekropper blant fiender og rivaler (tung og hårete bryter, kompakt veteran med brukket nese, forfengelig arenahelt), se også kroppstypene under Neste
+- [ ] Kameraet trekker seg litt bakover når to spillere går fra hverandre (slik `Stage.camPull` gjør for kjemper)
+- [x] Sluttkampen i faser: skjelettvakter med dør som skjold reiser seg av gulvet, Vorthax bak skjold fra tre søyler, faser, Solhjertet (tools/tests/finale.mjs)
+- [x] Sjefer i faser ved 66 og 33 prosent: måltidet (Hogmother), dykket (Croakus), lavasporet (Magmor), speilbildene og solstrålen (Vorthax), vinduer etter store trekk og røde trekk (tools/tests/bossphases.mjs)
+- [ ] Tom: spill sluttkampen og si fra om den er for lett eller for vond (skjoldet, søylene, solstrålen)
+- [ ] Tom: lag de nye replikkene for sjefene og sluttkampen i VoiceStudio (docs/STEMMER.md)
+- [x] Runde E: grense for evige komboer (SPIKED!, sprett mot kanten, kropper som treffer andre) og forsvar (eliter og sjefer som leser like slag, unnamanøvrer, grep som rives løs) (tools/tests/combo.mjs)
+- [x] Runde E: tempostyring (regissøren), bølgebudsjett med rang og vanskelighetsgrad i OPTIONS (tools/tests/director.mjs)
+- [x] Runde E: nye fiendetyper (Goblin Archer, froskemann i bakhold, Grabber, Berserker, Coward Captain) og ridedyr (fiender som løper til ledige dyr, utholdenhet i stedet for liv) (tools/tests/newfoes.mjs)
+- [ ] Tom: spill brettene med de nye fiendene (kapteinen på brett 1, bakholdet og bueskytterne i jungelen, griperne og berserkerne i Scorchlands, mellomlederne i tårnet) og si fra om noen er for vonde
+- [ ] Tom: lag replikkene til de nye fiendene og fortelleren i VoiceStudio (docs/STEMMER.md, ny stemme ASKERAIDER)
+- [ ] Egne figurer for bueskytteren, kapteinen, griperen og berserkeren (ART_PROMPTS, Planlagt). I dag er de fargevarianter med 3D-bue og 3D-horn
+- [ ] Bakholdet kan bruke buskene fra brettverkstedet (baklaget) når brettfilene får rekvisitter; i dag venter froskemannen på en fast dybde (`AMBUSH.z`)
+- [ ] Tom: prøv EASY og HARD og si fra om forskjellen er stor nok (data/difficulty.ts)
+- [ ] Se på brett 1 om de nesten fotorealistiske figurene og de malte miljøbildene ser ut som samme spill
+
 ## Plan: brettverksted, gørr, AI og teksturer (fra 2026-09-30 15:54, docs/PLAN_BRETT_GORR_AI.md)
 - [x] Blodråper i lufta, gnister og sjokkbølger var usynlige (speilvendte partikler i GLOW_VERT). Rettet, med ny test tools/tests/particles.mjs
 - [x] Plan med editor, lag, rekvisitter, Morbidium-animasjon, gørr, AI (moderne Golden Axe-kloner), teksturer og andre forbedringer

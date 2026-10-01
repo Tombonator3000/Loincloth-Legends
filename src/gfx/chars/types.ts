@@ -44,6 +44,12 @@ export interface CharDef {
   inherit?: Partial<Record<'leg' | 'arm' | 'pelvis' | 'torso' | 'head' | 'weapon', CharId>>;
   /** Separate malte lag på modulære hoder og hudfarge på deler med uttrykkelige masker. */
   appearance?: HeroAppearance;
+  /**
+   * Albuene og knærne bøyer seg (elbowF, kneeF osv. i stillingene, se gfx/rig.ts). Alt som bygges med buildHeroDef
+   * har det (heltene, Ash Raider og Iron Warden). De andre fiendene har stive armer og bein til de er sjekket i
+   * stillingene sine.
+   */
+  bend?: boolean;
 }
 
 export const HERO_J: Joints = { hipF: [0.07, 0], hipB: [-0.08, 0], neck: [0.03, 0.78], shF: [-0.15, 0.68], shB: [0.15, 0.66], hand: [0, -0.6] };

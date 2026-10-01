@@ -1,4 +1,5 @@
-// Menyene: fire knapper på tittelen (antall spillere og motstander med venstre/høyre), OPTIONS med gore og tre
+// Menyene: fire knapper på tittelen (antall spillere og motstander med venstre/høyre), OPTIONS med gore,
+// vanskelighetsgrad og tre
 // grupper, alle de gamle innstillingene finnes, ERASE SAVE bare fra tittelen, forklaringen følger valget, og
 // kontrollskjermen blas i tre sider med begge tastene for spiller 2 ("/" og "-").
 // Bruk: node tools/tests/menus.mjs http://localhost:4173/ [./shots]
@@ -73,15 +74,23 @@ check('og tilbake til 1 spiller og CPU', m.rows[0] === '>STORY = 1 PLAYER' && m.
 await key('ArrowDown'); await key('ArrowDown'); await key('ArrowDown');
 await key('Enter');
 m = await menu();
-check('OPTIONS: gore, lyd, skjerm, kontroller, slett og tilbake', m.title === 'OPTIONS' && JSON.stringify(labels(m)) === JSON.stringify(['GORE', 'SOUND', 'SCREEN', 'CONTROLS', 'ERASE SAVE', 'BACK']), m);
+check('OPTIONS: gore, vanskelighetsgrad, lyd, skjerm, kontroller, slett og tilbake', m.title === 'OPTIONS' && JSON.stringify(labels(m)) === JSON.stringify(['GORE', 'DIFFICULTY', 'SOUND', 'SCREEN', 'CONTROLS', 'ERASE SAVE', 'BACK']), m);
 await shot('options');
+// Vanskelighetsgraden: høyre går fra NORMAL til HARD, og tilbake med venstre
+await key('ArrowDown');
+const d0 = await page.evaluate(() => window.__lib.settings.difficulty);
+await key('ArrowRight');
+m = await menu();
+const d1 = await page.evaluate(() => window.__lib.settings.difficulty);
+check('pil på DIFFICULTY bytter vanskelighetsgrad og raden blir valgt', d0 === 'normal' && d1 === 'hard' && m.rows[1] === '>DIFFICULTY = HARD', { d0, d1, rows: m.rows });
+await key('ArrowLeft');
 await key('ArrowDown');
 await key('Enter');
 m = await menu();
 check('SOUND har de fire lydvalgene', m.title === 'SOUND' && ['MUSIC', 'MUSIC STYLE', 'SOUND FX', 'RECORDED SOUNDS', 'BACK'].every((l) => labels(m).includes(l)), m.rows);
 await key('Escape');
 m = await menu();
-check('tilbake til OPTIONS med SOUND valgt', m.title === 'OPTIONS' && m.rows[1] === '>SOUND', m.rows);
+check('tilbake til OPTIONS med SOUND valgt', m.title === 'OPTIONS' && m.rows[2] === '>SOUND', m.rows);
 await key('ArrowDown');
 await key('Enter');
 m = await menu();
@@ -119,7 +128,7 @@ check('høyre blar BEAT \'EM UP, DUELS og tilbake til KEYS', pages[0].show === "
 if (FD) check('trekksidene får plass i 1280x720', pages.every((p) => p.scroll <= 0), pages.map((p) => p.scroll));
 await key('Escape');
 m = await menu();
-check('tilbake til OPTIONS med CONTROLS valgt', m.title === 'OPTIONS' && m.rows[3] === '>CONTROLS', m.rows);
+check('tilbake til OPTIONS med CONTROLS valgt', m.title === 'OPTIONS' && m.rows[4] === '>CONTROLS', m.rows);
 
 // 4) Fra pausen: OPTIONS uten ERASE SAVE
 await page.evaluate(() => { const g = window.__game; g.save.heroMade = [true, true]; g.twoP = false; g.goMap(); });

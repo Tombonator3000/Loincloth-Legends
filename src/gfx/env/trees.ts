@@ -43,7 +43,7 @@ class Rng {
 }
 
 // ---------------------------------------------------------------- arter
-export type LeafKind = 'autumn' | 'green' | 'needle' | 'moss';
+export type LeafKind = 'autumn' | 'green' | 'needle' | 'moss' | 'broad';
 
 export interface LeafSpec {
   kind: LeafKind;
@@ -112,6 +112,30 @@ export const SPECIES: Record<string, Species> = {
     children: [28, 3, 0], angle: [0, 104, 42], start: [0, 0.16, 0.2], gnarl: [0.02, 0.06, 0.1],
     twist: [0.0, 0.0, 0], taper: [0.92, 0.8, 0.7], up: 0.02, droop: 0.03, profile: 'cone', bark: '#4a3526',
     leaves: { kind: 'needle', count: 8, size: 0.95, variance: 0.25, angle: 72, start: 0.0, palette: ['#2f5a3a', '#2a5033', '#3a6a44', '#24462e'] },
+  },
+  // Jungelkjempe: høy, rett stamme med kronen helt øverst, store, brede blader og grener som henger litt
+  jungle: {
+    name: 'jungle', levels: 2,
+    length: [10.5, 3.4, 1.3], radius: [0.44, 0.42, 0.55], sections: [12, 6, 3], segments: [9, 5, 3],
+    children: [7, 3, 0], angle: [0, 68, 52], start: [0, 0.7, 0.2], gnarl: [0.03, 0.2, 0.12],
+    twist: [0.05, -0.05, 0], taper: [0.8, 0.7, 0.7], up: 0.01, droop: 0.025, bark: '#5c5444',
+    leaves: { kind: 'broad', count: 7, size: 1.85, variance: 0.35, angle: 48, start: 0.1, palette: ['#2f6a2a', '#3e7a30', '#2a5a26', '#4a8a36', '#5a9a3a', '#6aa040'] },
+  },
+  // Palme: slank, litt bøyd stamme og en dusk av lange blad som henger ned fra toppen
+  palm: {
+    name: 'palm', levels: 1,
+    length: [6.2, 2.9], radius: [0.2, 0.42], sections: [10, 7], segments: [7, 4],
+    children: [11, 0], angle: [0, 58], start: [0, 0.9], gnarl: [0.05, 0.03],
+    twist: [0.02, 0], taper: [0.4, 0.85], up: 0.004, droop: 0.075, bark: '#7a6a4c',
+    leaves: { kind: 'broad', count: 6, size: 1.15, variance: 0.25, angle: 82, start: 0.12, palette: ['#3e7224', '#4e822a', '#30621e', '#5a8a2e', '#467a26'] },
+  },
+  // Bananplante: kort stamme og noen få enorme blad som bøyer seg ut og ned
+  banana: {
+    name: 'banana', levels: 1,
+    length: [1.5, 2.3], radius: [0.17, 0.5], sections: [4, 6], segments: [7, 4],
+    children: [7, 0], angle: [0, 34], start: [0, 0.45], gnarl: [0.02, 0.04],
+    twist: [0.0, 0], taper: [0.3, 0.85], up: 0.002, droop: 0.05, bark: '#5e6a3a',
+    leaves: { kind: 'broad', count: 4, size: 1.45, variance: 0.25, angle: 70, start: 0.25, palette: ['#4e8426', '#5e922c', '#3e7222', '#6e9e30'] },
   },
   dead: {
     name: 'dead', levels: 3,
@@ -209,6 +233,16 @@ export function leafTexture(kind: LeafKind) {
             c.lineTo(64 + s * len * (0.7 + Math.random() * 0.3), y - len * 0.55);
             c.stroke();
           }
+        }
+      });
+    }
+    if (kind === 'broad') {
+      // Jungel: noen få store, lange blader (som bananblader) i vifte fra roten
+      return plainCanvas(128, 128, (c) => {
+        c.clearRect(0, 0, 128, 128);
+        for (let i = 0; i < 5; i++) {
+          const a = -1.0 + (i / 4) * 2.0 + (Math.random() - 0.5) * 0.25;
+          drawLeaf(c, 64 + Math.sin(a) * 8, 124 - Math.cos(a) * 6, 92 + Math.random() * 22, 26 + Math.random() * 8, a, Math.random());
         }
       });
     }

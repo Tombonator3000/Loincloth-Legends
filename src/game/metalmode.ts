@@ -113,7 +113,7 @@ export class MetalMode {
   /** Lynet slår ned i en tilfeldig fiende på skjermen (varslet med en ring på bakken). */
   private bolt(w: MetalWorld) {
     const heroes = w.heroes.filter((h) => h.f.alive);
-    const foes = w.foeFighters().filter((f) => f.alive && w.onScreen(f.pos.x, -0.5));
+    const foes = w.foeFighters().filter((f) => f.alive && !f.hidden && !f.rising && w.onScreen(f.pos.x, -0.5));
     if (!heroes.length || !foes.length) return;
     const t = pick(foes);
     w.proj.spawn({ kind: 'lightning', owner: pick(heroes).f, x: t.pos.x, y: 0, z: t.pos.z, vx: 0, dmg: METAL.boltDmg, delay: 0.35, life: 2 });

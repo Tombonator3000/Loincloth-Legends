@@ -30,7 +30,8 @@ export function vorthaxSprite() {
   return spriteMesh(cv, 2.4, 3.2);
 }
 
-export function princessSprite() {
+/** Prinsessen med et skilt (BORED, eller FINALLY når hun slipper ut av buret i tårnet). */
+export function princessSprite(sign = 'BORED') {
   const cv = unitCanvas(1.8, 3.0, 0.9, 0.05, 110, (p) => {
     p.poly([-0.5, 0, 0.5, 0, 0.3, 1.2, -0.3, 1.2], '#e76fa8');
     p.poly([-0.22, 1.2, 0.22, 1.2, 0.18, 1.6, -0.18, 1.6], '#f59ac4');
@@ -54,7 +55,8 @@ export function princessSprite() {
   c.fillStyle = '#7a1010';
   c.font = 'bold 26px Impact, sans-serif';
   c.textAlign = 'center';
-  c.fillText('BORED', (0.9 + 0.5) * 110, cv.height - (0.05 + 1.46) * 110);
+  c.font = `bold ${sign.length > 5 ? 20 : 26}px Impact, sans-serif`;
+  c.fillText(sign, (0.9 + 0.5) * 110, cv.height - (0.05 + 1.46) * 110);
   return spriteMesh(cv, 1.8, 3.0);
 }
 
