@@ -113,6 +113,8 @@ export interface AttackDef {
   stun: number;
   hits?: number;
   guardBreak?: boolean;
+  /** Varsel før slaget (runde E): rødt blink betyr et grep eller et slag som ikke kan blokkeres. */
+  tell?: 'red';
   decap?: boolean;
   lunge?: number;
   air?: boolean;
@@ -150,6 +152,11 @@ export const ENEMY_ATK = {
   hog: A({ id: 'hog', startup: 0.7, active: 0.12, recovery: 0.7, dmg: 14, reach: 2.0, zr: 0.7, height: 'high', kd: true, launch: 6, push: 5, stun: 0.6, heavy: true, armor: true, wind: P.chopW, strike: P.chopS, death: ['normal'], swoosh: 'over' }),
   stab: A({ id: 'stab', startup: 0.3, active: 0.1, recovery: 0.5, dmg: 6, reach: 1.35, zr: 0.6, height: 'mid', push: 1.5, stun: 0.3, wind: P.backW, strike: P.backS, death: ['normal'], swoosh: 'under' }),
   throw: A({ id: 'throw', startup: 0.45, active: 0.05, recovery: 0.6, dmg: 0, reach: 0, zr: 0, height: 'mid', push: 0, stun: 0, projectile: true, wind: P.throwW, strike: P.throwS, death: ['normal'], swoosh: 'none' }),
+  // Bueskytteren (runde E): buearmen strekkes fram og strengen trekkes, så slippes pila. Opptrekket er tida helten har
+  // til å gå ut av linja
+  bow: A({ id: 'bow', startup: 0.55, active: 0.05, recovery: 0.45, dmg: 0, reach: 0, zr: 0, height: 'mid', push: 0, stun: 0, projectile: true, wind: { armF: 1.62, weapon: -1.6, armB: 1.5, torso: 0.12, head: 0.05, legF: 0.35, legB: -0.3, bodyX: -0.05 }, strike: { armF: 1.58, weapon: -1.6, armB: 0.9, torso: -0.05, head: 0, legF: 0.35, legB: -0.3 }, death: ['normal'], swoosh: 'none' }),
+  // Kapteinen blåser i hornet (ikke et slag: projectile gjør at ingen treffes)
+  horn: A({ id: 'horn', startup: 0.25, active: 0.8, recovery: 0.3, dmg: 0, reach: 0, zr: 0, height: 'mid', push: 0, stun: 0, projectile: true, wind: { armB: 2.3, armF: 0.4, head: 0.3, torso: -0.12 }, strike: { armB: 2.75, armF: 0.6, head: 0.45, torso: -0.2, bodyY: 0.03 }, death: ['normal'], swoosh: 'none' }),
 };
 
 // ---------------------------------------------------------------- duell

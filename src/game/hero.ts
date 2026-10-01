@@ -13,6 +13,8 @@ import { defaultProgress, statEffects, type HeroProgress } from '../data/progres
 
 export const HERO_HP = 115;
 export const HERO_SPEED = 3.85;
+/** Hvor mye hvert trykk korter ned et grep fra en griper (sekunder). */
+export const STRUGGLE = 0.15;
 
 export interface HeroWorld {
   frozen: boolean;
@@ -90,6 +92,17 @@ export class Hero {
     }
     const ax = inp.axisX();
     const az = inp.axisY();
+
+    // Holdt av en griper (runde E): hamre på angrep eller hopp for å vri seg løs fortere. Kjempen kaster uansett
+    if (f.state === 'held') {
+      const by = f.heldBy;
+      if (by?.data.holds && (inp.consumeAttack() || inp.consumeJump())) {
+        by.data.holdT = ((by.data.holdT as number) ?? 0) + STRUGGLE;
+        f.flash(0.05);
+        if (Math.random() < 0.3) W.fx.text(f.headPoint().add(new THREE.Vector3(0, 0.8, 0)), 'STRUGGLE!', 'word', 0.6);
+      }
+      return;
+    }
 
     // Rir: dyret styres, angrep bruker dyrets angrep, ned + hopp = hopp av (grip-knappen virker også)
     if (f.mount) {

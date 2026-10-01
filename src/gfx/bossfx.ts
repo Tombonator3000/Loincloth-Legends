@@ -1,6 +1,7 @@
 // Effekter for sjefsfasene og sluttkampen (runde E, se game/boss.ts): skjoldet rundt Vorthax med en stråle fra hver
 // krystall som fortsatt står, skyggen der Croakus svømmer under bakken, lava i sporene etter Magmor, solstrålen fra
-// Solhjertet, kyllinglåret Hogmother spiser av, og døra skjelettvaktene bærer som skjold.
+// Solhjertet, kyllinglåret Hogmother spiser av, døra skjelettvaktene bærer som skjold, og buen og hornet til
+// bueskytteren og kapteinen.
 import * as THREE from 'three';
 import { plainCanvas } from './draw';
 import { canvasTex } from './env/common';
@@ -307,4 +308,64 @@ export function attachDoor(rig: Rig) {
   door.rotation.z = -0.06;
   rig.body.add(door);
   return door;
+}
+
+/**
+ * Buen til bueskytteren (runde E): en bue av tre med streng i den fremre hånda (armB). Våpenarmen sitter bak på kroppen
+ * og når bare midt på brystet, så den trekker strengen, og våpenet figuren har, skjules. Grepet sitter i hånda, og
+ * tuppene ligger litt bak grepet, som på en spent bue. Buen holdes loddrett (keepBowUpright).
+ */
+export function attachBow(rig: Rig) {
+  const arm = rig.g.armB;
+  if (!arm) return null;
+  if (rig.g.weapon) rig.g.weapon.visible = false;
+  const r = 0.75, half = 0.62;
+  const bow = new THREE.Group();
+  const wood = new THREE.Mesh(new THREE.TorusGeometry(r, 0.045, 6, 20, half * 2), new THREE.MeshStandardMaterial({ color: '#7a4a22', roughness: 0.75 }));
+  // Midten av buen mot -y i armen (framover når armen er strukket fram), med grepet i hånda
+  wood.rotation.z = -Math.PI / 2 - half;
+  wood.position.y = r;
+  wood.castShadow = true;
+  const len = 2 * r * Math.sin(half);
+  const string = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, len, 4), new THREE.MeshBasicMaterial({ color: '#efe6d2' }));
+  string.rotation.z = Math.PI / 2;
+  string.position.y = r - r * Math.cos(half);
+  // Lærbånd rundt grepet
+  const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.16, 8), new THREE.MeshStandardMaterial({ color: '#3a2414', roughness: 0.9 }));
+  grip.rotation.z = Math.PI / 2;
+  bow.add(wood, string, grip);
+  const [hx, hy] = rig.joints.hand;
+  bow.position.set(hx, hy, 0.07);
+  arm.add(bow);
+  return bow;
+}
+
+/** Buen står loddrett med buen framover uansett hvordan armen og kroppen er vridd (kalles hvert bilde). */
+export function keepBowUpright(rig: Rig, bow: THREE.Object3D) {
+  bow.rotation.z = Math.PI / 2 - rig.pose.armB - rig.pose.torso;
+}
+
+/**
+ * Hornet kapteinen blåser i (runde E): et messinghorn i munnen, som peker framover og opp. Det sitter på hodet og er
+ * skjult til han blåser (Foe viser det under angrepet horn).
+ */
+export function attachHorn(rig: Rig) {
+  const head = rig.g.head;
+  if (!head) return null;
+  const brass = new THREE.MeshStandardMaterial({ color: '#d8b048', metalness: 0.6, roughness: 0.3 });
+  const horn = new THREE.Group();
+  const axis = new THREE.Vector3(0.87, 0.5, 0);
+  const len = 0.5;
+  // Kjeglen har spissen (munnstykket) opp i y: snus så spissen er i munnen og munningen peker langs axis
+  const tube = new THREE.Mesh(new THREE.ConeGeometry(0.11, len, 14, 1, true), brass);
+  tube.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), axis);
+  tube.position.copy(axis).multiplyScalar(len / 2);
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.11, 0.018, 6, 16), brass);
+  rim.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), axis);
+  rim.position.copy(axis).multiplyScalar(len);
+  horn.add(tube, rim);
+  horn.position.set(0.2, 0.3, 0.08);
+  horn.visible = false;
+  head.add(horn);
+  return horn;
 }

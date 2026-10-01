@@ -24,7 +24,7 @@ export interface HitOpts {
 const tmp = new THREE.Vector3();
 
 export function canHit(att: Fighter, tgt: Fighter, a: AttackDef, pvp = false) {
-  if (tgt === att || !tgt.alive || tgt.invuln > 0 || tgt.rising) return false;
+  if (tgt === att || !tgt.alive || tgt.invuln > 0 || tgt.rising || tgt.hidden) return false;
   if (!pvp && tgt.team === att.team) return false;
   const dx = (tgt.pos.x - att.pos.x) * att.facing;
   const reach = a.reach * (0.85 + 0.15 * att.size / 0.9);
@@ -202,7 +202,7 @@ export function applyHit(att: Fighter, tgt: Fighter, a: AttackDef, dmgOverride?:
 
   // Holdt fast: skaden tas, men han blir hengende i grepet
   if (tgt.state === 'held') return res;
-  // Et grep (kjempen): han løftes i neven i stedet for å bli slått tilbake, og kastes etterpå (game/foes.ts)
+  // Et grep: kjempen løfter helten i neven og kaster ham etterpå, griperen holder ham for vennene sine (game/foes.ts)
   if (a.grab && att.alive && !tgt.mount) {
     att.setState('hold');
     att.holding = tgt;
@@ -211,7 +211,8 @@ export function applyHit(att: Fighter, tgt: Fighter, a: AttackDef, dmgOverride?:
     tgt.heldBy = att;
     tgt.atk = null;
     tgt.vel.set(0, 0, 0);
-    W.fx.text(contact.clone().add(new THREE.Vector3(0, 1.2, 0)), pick(['GOTCHA, TINY MAN!', 'MINE NOW!', 'UP YOU GO!']), 'speech', 1.4);
+    const lines = att.data.holds ? ['FREE HUGS!', 'GOT ONE! HIT IT!', 'BEAR HUG!'] : ['GOTCHA, TINY MAN!', 'MINE NOW!', 'UP YOU GO!'];
+    W.fx.text(contact.clone().add(new THREE.Vector3(0, 1.2, 0)), pick(lines), 'speech', 1.4);
     return res;
   }
   const armored = (tgt.atk?.armor && tgt.phase() === 'wind') || tgt.armored;

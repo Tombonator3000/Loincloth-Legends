@@ -7,7 +7,7 @@ description: Lag et nytt brett i Loincloth Legends fra bunnen av, eller bygg om 
 
 Innhold er data i dette repoet. Et nytt brett skal ikke trenge spesialtilfeller i motorkoden.
 
-1. **Data.** Legg en `LevelDef` i `src/data/levels.ts` (oppskriften «Nytt brett» i `docs/ARCHITECTURE.md`): id, navn og undertittel på engelsk i 80-tallsstil, biom, lengde, musikk, bølger med `w(at, maxAlive, 'fiende:side:forsinkelse ...', { title, say })`, tønner, farer med `hz(kind, x, z, bredde, dybde)`, ryttere `[bølgeindeks, fiende, ridedyr]` og finale (sjef, duell eller `{ type: 'dawn' }`).
+1. **Data.** Legg en `LevelDef` i `src/data/levels.ts` (oppskriften «Nytt brett» i `docs/ARCHITECTURE.md`): id, navn og undertittel på engelsk i 80-tallsstil, biom, lengde, musikk, bølger med `w(at, maxAlive, 'fiende:side:forsinkelse ...', { title, say })` (side L, R eller B for bakhold fra buskene bak veien), tønner, farer med `hz(kind, x, z, bredde, dybde)`, ryttere `[bølgeindeks, fiende, ridedyr]` og finale (sjef, duell eller `{ type: 'dawn' }`).
 2. **Biom.** Bruk grass, swamp, frost, scorch, night eller tower, eller lag et nytt etter «Nytt biom». Nye pyntblokker pakkes i `gen(o, 'nøkkel')`, så de får faste frø og kan slås av i editoren.
 3. **Kartet.** En node i `MAP_NODES` (oppskriften «Ny kartnode»).
 4. **Brettfila.** Lag `src/data/layouts/<id>.json`:

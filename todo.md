@@ -26,7 +26,11 @@ Toms ønsker: nesten ekte karikatur, jungelbiom, en vei fram til sluttkampen og 
 - [ ] Tom: lag de nye replikkene for sjefene og sluttkampen i VoiceStudio (docs/STEMMER.md)
 - [x] Runde E: grense for evige komboer (SPIKED!, sprett mot kanten, kropper som treffer andre) og forsvar (eliter og sjefer som leser like slag, unnamanøvrer, grep som rives løs) (tools/tests/combo.mjs)
 - [x] Runde E: tempostyring (regissøren), bølgebudsjett med rang og vanskelighetsgrad i OPTIONS (tools/tests/director.mjs)
-- [ ] Runde E videre: nye fiendetyper (Goblin Archer, froskemann i bakhold, Grabber, Berserker, Coward Captain) og ridedyr (fiender som løper til ledige dyr, utholdenhet)
+- [x] Runde E: nye fiendetyper (Goblin Archer, froskemann i bakhold, Grabber, Berserker, Coward Captain) og ridedyr (fiender som løper til ledige dyr, utholdenhet i stedet for liv) (tools/tests/newfoes.mjs)
+- [ ] Tom: spill brettene med de nye fiendene (kapteinen på brett 1, bakholdet og bueskytterne i jungelen, griperne og berserkerne i Scorchlands, mellomlederne i tårnet) og si fra om noen er for vonde
+- [ ] Tom: lag replikkene til de nye fiendene og fortelleren i VoiceStudio (docs/STEMMER.md, ny stemme ASKERAIDER)
+- [ ] Egne figurer for bueskytteren, kapteinen, griperen og berserkeren (ART_PROMPTS, Planlagt). I dag er de fargevarianter med 3D-bue og 3D-horn
+- [ ] Bakholdet kan bruke buskene fra brettverkstedet (baklaget) når brettfilene får rekvisitter; i dag venter froskemannen på en fast dybde (`AMBUSH.z`)
 - [ ] Tom: prøv EASY og HARD og si fra om forskjellen er stor nok (data/difficulty.ts)
 - [ ] Se på brett 1 om de nesten fotorealistiske figurene og de malte miljøbildene ser ut som samme spill
 

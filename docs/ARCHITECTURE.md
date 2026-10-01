@@ -178,6 +178,18 @@ Runde E, del 6.4 punkt 1 og 6 i planen:
 - Alt som påvirker spillet, går i spilltid (`W.gore.later`), også ryttere, rop og game over, så pause virker.
 - Test: `tools/tests/director.mjs`.
 
+## Nye fiendetyper og ridedyr
+
+Runde E, del 6.4 punkt 2 og 7 i planen. Hver ny fiende har en vane spilleren må straffe, og alt står i `FoeDef` (`data/enemies.ts`) og `Foe` (`game/foes.ts`):
+- **Bueskytteren** (`goblinarcher`, `behavior: 'archer'`, `proj: 'arrow'`): holder avstand på linja (samme dybde som helten) og skyter piler med buen (`ENEMY_ATK.bow`, opptrekket er tida helten har til å gå ut av linja). Kommer helten nærmere enn `ARCHER_NEAR`, løper han unna i full fart, og han stikker bare svakt. Buen sitter i den fremre hånda (`attachBow`, `keepBowUpright` i `gfx/bossfx.ts`): våpenarmen sitter bak på kroppen og når bare midt på brystet, så den trekker strengen.
+- **Froskemannen i bakhold** (`ambushfrog`, `ambush: true`): `side: 'B'` i bølgene setter ham i buskene bak veien (`AMBUSH.z`, `Foe.ambush`). Der er han usynlig, uten skygge og kan ikke treffes (`Fighter.hidden`), mens bladene rister. Så hopper han ut mot nærmeste helt og slår i lufta på vei ned (`leapOut`). Mens han er på vei ut, slipper `Stage` ham utenfor veien (`Foe.ambushing`, `backView`).
+- **Griperen** (`grabber`, `grab` med `tell: 'red'` og `hold`): blinker rødt før grepet (`AttackDef.tell`, `Foe.strike`), og et slag i opptrekket stopper det. Han går helt inn før han griper (grepet rekker kortere enn slaget), holder helten bakfra (`data.holds`, `Fighter` plasserer den som holdes, med ryggen mot ham) og ber vennene slå (`callFriends`). Han slipper etter `hold` sekunder uten å kaste; helten vrir seg løs fortere ved å hamre på angrep eller hopp (`STRUGGLE` i `game/hero.ts`).
+- **Berserkeren** (`berserker`, `berserk: 0.4`): under 40 prosent av livet blir berserkeren raskere (`RAGE.speed`), tar mindre skade (`RAGE.dmgTaken`), får kortere pauser og ingen panikk (`Foe.enrage`).
+- **Den feige kapteinen** (`captain`, `behavior: 'captain'`, `horn`): blir bak troppene, blåser i hornet (`ENEMY_ATK.horn`, hornet i munnen fra `attachHorn`) etter forsterkninger fra kantene så langt bølgebudsjettet rekker (`Stage.hornCall`, høyst to per gang og tre ganger i alt), og roper ordre (`CAPTAIN.orders`): alle angriper oftere en stund (`Foe.rallyT`), og annenhver går rundt helten til den andre siden (`flankT`). Når kapteinen dør, får troppene panikk (`Stage.foeDied`).
+- **Ledige ridedyr**: fiender til fots (ikke kjemper, kapteiner, bueskyttere eller gripere) løper til et ledig dyr innen 7 og setter seg opp (`Stage.claimMount`, `Foe.toMount`, `Mount.ready`), også dyret en helt nettopp gikk av. Ett dyr per fiende, og ingen andre tar det samme.
+- **Utholdenhet**: spesialangrepet til dyret koster `STAMINA.cost` utholdenhet i stedet for liv og fylles opp igjen når dyret ikke angriper (`STAMINA.regen`, `game/mounts.ts`). Med for lite blir dyret andpustent (WINDED!) og puster damp. En linje over ryggen viser utholdenheten når en helt rir.
+- Test: `tools/tests/newfoes.mjs` (med skjermbilder av buen, grepet, hoppet ut av buskene, hornet, raseriet og linja over dyret).
+
 ## Lys på figurene
 
 Figurdelene er flate tegninger, så `gfx/charlight.ts` lager et relieffkart per del når tegningen lages (`reliefTexture` i `rig.ts` og `beast.ts`): hver flate mellom blekkstrekene blir en pute (avstandsfelt til blekk og kontur), pluss en slak bue over hele delen. R og G er normalen, B er glansstyrke og A glanstype (matt stoff og lær, hud med olje, metall). Hud gjenkjennes fra `skin` på CharDef (hudfargene og mørkere nyanser av dem), stål og gull fra fargen.
@@ -288,7 +300,7 @@ Et brett er tre lag oppå hverandre: miljøbyggeren for biomet (`gfx/env/<biom>.
 1. Tegn figuren i `gfx/chars/wilds.ts` (eller ny fil) som en `CharDef` med delene leg, arm, pelvis, torso, head og eventuelt weapon. Legg den i eksportlista.
 2. Legg til en `FoeDef` i `data/enemies.ts` med `behavior`, `attack`, `range` og eventuelt `proj`.
 3. Bruk id-en i bølgene i `data/levels.ts`.
-Bare fargevariant? Bruk en eksisterende `char` og sett `tint` (se `frostskel`). Skjold? Sett `shield: true` (en dør foran kroppen, se `skelguard`).
+Bare fargevariant? Bruk en eksisterende `char` og sett `tint` (se `frostskel`). Skjold? Sett `shield: true` (en dør foran kroppen, se `skelguard`). Bakhold, grep som holder, raseri og horn er felt på `FoeDef` (`ambush`, `hold`, `berserk`, `horn`), og bueskytteren og kapteinen er egne `behavior` (se «Nye fiendetyper og ridedyr»). Et slag med `tell: 'red'` blinker rødt i opptrekket.
 Fiende-AI (`game/foes.ts`): fiender holder avstand, men rygger på halv fart (`RETREAT`), og når de først har vært i bildet (`Foe.entered`), holder `Stage` dem innenfor det (tyver på flukt går fritt). Ridedyr med fiende på ryggen har det samme: `Mount.entered` og `Stage.mountBounds` holder dem i bildet når de har ridd inn (under en bølge også dyr uten rytter), og `Mount.ai()` holder standplassen `MOUNT_EDGE` innenfor kanten, rygger på halv fart og ser mot helten mens det rygger. Rytteren angriper ikke fra utenfor bildet, og ikke en helt som ligger nede eller reiser seg (`RIDER_GRACE`). `tools/tests/riders.mjs` jager ryttere med en spillerbot. Ønsket avstand for dem som kaster, begrenses av bredden på bildet. `Foe.panic(sek)` gir panikk (løper vekk i sikksakk, armene i været via `Fighter.panicking`, høyst `PANIC_SPEED`); `Stage` utløser den ved grufulle drap i nærheten, lite liv, brann og når METAL MODE starter.
 Kjempe? Lag en `CharDef` med stor `scale` som arver delene fra en vanlig figur (`inherit`, se `bigtroll` i `gfx/chars/wilds.ts`). Store figurer tegnes med flere piksler per enhet og like tynn strek på skjermen (`rig.ts`). Sett `poise` på `FoeDef` (han tar skade, men blir verken slått tilbake eller ned før han har tatt så stor andel av livet, da vakler han), og gi angrepet `quake` (bakken rister der slaget treffer). Kameraet trekker seg bakover mens en figur større enn 1.8 er i bildet (`Stage.camPull`, avstandene i `gfx/stagecam.ts`).
 
@@ -307,7 +319,7 @@ Istapper (`game/icicles.ts`) og fyrfat og søyler som veltes (`Env.tippables`, `
 Rekvisittene i `env/props.ts` kan brukes i alle biomer: `brazier()` gir ild, lys, varmeflimmer og knitring (returnerer punktet flammene skal komme fra), `warBanner()` bølger i vinden, `cliff()` returnerer høyden på toppen så ruiner, bro og fossefall kan settes der. Sett `gore.dustColor` hvis støvet fra bakken ikke er sand (snø i frosten).
 
 ### Nytt brett
-Legg til en `LevelDef` i `data/levels.ts`. Kulissene legges i `data/layouts/<id>.json` (tom fil: `{"version": 1, "level": "<id>", "props": [], "runs": []}`), gjerne med STAGE FORGE (`?editor=<id>`). Bølger skrives kompakt: `w(at, maxAlive, 'skeleton:R:0.2 hogman:L:1.0', { title, say })`. Farer legges inn med `hz(kind, x, z, bredde, dybde)`, og ryttere med `[bølgeindeks, fiende, ridedyr]`. Finalen er en sjef, en duell eller `{ type: 'dawn' }` (ferdig når bølgene er over og ingen fiender er igjen). `nightCamp: true` gir nattleir-reglene: heltene sover ved start, tyvnisser stjeler krukker, og krukkene blir forsyninger (`Game.campSupplies`).
+Legg til en `LevelDef` i `data/levels.ts`. Kulissene legges i `data/layouts/<id>.json` (tom fil: `{"version": 1, "level": "<id>", "props": [], "runs": []}`), gjerne med STAGE FORGE (`?editor=<id>`). Bølger skrives kompakt: `w(at, maxAlive, 'skeleton:R:0.2 hogman:L:1.0', { title, say })`. Siden er `L` eller `R` (kanten av bildet) eller `B` (buskene bak veien, for fiender i bakhold som `ambushfrog`). `maxAlive` er rangen som kan leve samtidig (bølgebudsjettet). Farer legges inn med `hz(kind, x, z, bredde, dybde)`, og ryttere med `[bølgeindeks, fiende, ridedyr]`. Finalen er en sjef, en duell eller `{ type: 'dawn' }` (ferdig når bølgene er over og ingen fiender er igjen). `nightCamp: true` gir nattleir-reglene: heltene sover ved start, tyvnisser stjeler krukker, og krukkene blir forsyninger (`Game.campSupplies`).
 
 ### Ny kulisse
 - Et bilde: `prop_<navn>.png` eller `anim_<navn>_<K>x<R>.png` i `art/inbox/` og `python3 tools/process_art.py`, eller dra det inn i editoren. Se «Kulisser til brettverkstedet» i `docs/ART_PROMPTS.md`.
@@ -328,7 +340,7 @@ Legg til en `LevelDef` i `data/levels.ts`. Kulissene legges i `data/layouts/<id>
 ### Nytt ridedyr
 1. Tegn dyret som en `BeastDef` i `gfx/chars/beasts.ts` (kropp, hode, hale, bein, ledd, sal).
 2. Legg til en `MountDef` i `data/mounts.ts` med `attack: 'charge' | 'tail' | 'fire'`.
-3. Bruk det i `riders` på et brett. Nytt angrep: legg til en tilstand i `Mount.update()` (`game/mounts.ts`).
+3. Bruk det i `riders` på et brett. Nytt angrep: legg til en tilstand i `Mount.update()` (`game/mounts.ts`). Angrepet koster utholdenhet (`STAMINA`), ikke liv.
 
 ### Nytt kjæledyr
 1. Tegn det i `ART` i `gfx/pets.ts`.

@@ -5,7 +5,7 @@ import { HERO_ATK, type AttackDef } from './attacks';
 import { resolveAttack, applyHit } from './combat';
 import { Pickup, Barrel } from './items';
 import { Projectiles } from './projectiles';
-import { Foe, type FoeWorld } from './foes';
+import { Foe, AMBUSH, type FoeWorld } from './foes';
 import { BossCtl, type BossWorld } from './boss';
 import type { BossPhase } from '../data/bosses';
 import { ShieldFx, LavaTrail } from '../gfx/bossfx';
@@ -30,12 +30,12 @@ import { Vision } from '../gfx/vision';
 import { layoutFor } from '../data/layouts';
 import type { PlayerInput } from '../core/input';
 import type { HeroConfig } from '../gfx/chars/hero';
-import { FOES, DEATH_BARKS, foeRank } from '../data/enemies';
+import { FOES, DEATH_BARKS, CAPTAIN, foeRank } from '../data/enemies';
 import { BOSSES } from '../data/bosses';
 import type { LevelDef, SpawnDef, WaveDef } from '../data/levels';
 import { audio, type Surface } from '../core/audio';
 import type { Level } from '../core/conductor';
-import { rand, pick, chance, withSeed, hashSeed } from '../core/math';
+import { rand, pick, chance, clamp, withSeed, hashSeed } from '../core/math';
 import { settings } from '../core/settings';
 import { xpForFoe, XP_BOSS, type HeroProgress } from '../data/progress';
 import type { HUD } from '../ui/hud';
@@ -120,6 +120,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   /** Bølgebudsjettet (rang): hvor mye som kan leve samtidig i denne bølgen, og det forrige bølge brukte for mye. */
   private waveCap = 0;
   private waveDebt = 0;
+  /** Ledige ridedyr fiendene løper til (runde E): hvilken fiende som har tatt hvert dyr. */
+  private claims = new Map<Mount, Foe>();
   /** Krukker hver tyvnisse har stjålet i nattleiren, og nedkjøling mellom tyveriene. */
   private stolen = new Map<Foe, { n: number; cd: number }>();
   /** Daggry i nattleiren (skjer bare én gang). */
@@ -260,17 +262,32 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   say(who: string, text: string, dur = 2.4) {
     this.hud.say(who, text, dur);
   }
-  spawnFoe(id: string, side: 'L' | 'R'): Foe | null {
+  /** side: L og R er kantene av bildet, B er buskene bak veien (bakhold, se Foe.ambush). */
+  spawnFoe(id: string, side: SpawnDef['side']): Foe | null {
     const def = FOES[id];
     if (!def) return null;
-    const x = side === 'R' ? this.camX + this.halfW + 1.5 : this.camX - this.halfW - 1.5;
-    const foe = new Foe(def, x, rand(Z_MIN + 0.3, Z_MAX - 0.3), this.twoP ? 1.2 : 1);
+    let x = side === 'R' ? this.camX + this.halfW + 1.5 : this.camX - this.halfW - 1.5;
+    let z = rand(Z_MIN + 0.3, Z_MAX - 0.3);
+    const h = this.nearestHero(new THREE.Vector3(this.camX, 0, 0));
+    if (side === 'B') {
+      // I baklaget inne i bildet, et stykke unna nærmeste helt, så hoppet ut av buskene rekker fram
+      const hx = h?.f.pos.x ?? this.camX;
+      x = this.camX + rand(-0.6, 0.6) * this.halfW;
+      if (Math.abs(x - hx) < 2.5) x = hx + (x < hx ? -1 : 1) * rand(2.5, 4);
+      x = clamp(x, this.camX - this.halfW + 1.2, this.camX + this.halfW - 1.2);
+      z = AMBUSH.z;
+    }
+    const foe = new Foe(def, x, z, this.twoP ? 1.2 : 1);
     if (def.behavior === 'runner') foe.dir = side === 'L' ? 1 : -1;
-    foe.f.face(side === 'R' ? -1 : 1);
+    foe.f.face(side === 'R' ? -1 : side === 'L' ? 1 : Math.sign((h?.f.pos.x ?? this.camX) - x) || 1);
     foe.f.allowHeadless = true;
     foe.f.addTo(W.scene);
     foe.f.onDeath = (_f, killer, style) => this.foeDied(foe, killer, style);
     this.foes.push(foe);
+    if (side === 'B') {
+      foe.ambush(rand(AMBUSH.wait[0], AMBUSH.wait[1]));
+      return foe;
+    }
     // En kjempe varsles med krigshorn og brøler når han kommer inn
     if (def.poise) {
       audio.warHorn();
@@ -337,6 +354,58 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     });
   }
 
+  /**
+   * Kapteinen blåser i hornet (game/foes.ts): forsterkninger fra kantene, høyst to, så langt bølgebudsjettet rekker.
+   * Svarer hvor mange som kommer.
+   */
+  hornCall(c: Foe, ids: string[]) {
+    if (!this.wave) return 0;
+    let room = this.waveCap - this.aliveRank();
+    let n = 0;
+    for (let i = 0; i < 2; i++) {
+      const id = pick(ids);
+      const def = FOES[id];
+      if (!def) continue;
+      const r = foeRank(def);
+      if (r > room) break;
+      room -= r;
+      const side = i % 2 ? 'L' : 'R';
+      W.gore.later(0.8 + i * 0.5, () => {
+        if (this.done === '' && this.wave && c.f.alive) this.spawnFoe(id, side);
+      });
+      n++;
+    }
+    return n;
+  }
+
+  /**
+   * Et ledig ridedyr en fiende kan løpe til (runde E): det nærmeste innen 7 som ingen annen har tatt, også dyret en helt
+   * nettopp gikk av. Fienden beholder dyret til han sitter på det, dør, eller noen andre kommer først.
+   */
+  claimMount(fo: Foe) {
+    for (const [m, o] of this.claims) {
+      if (o !== fo) continue;
+      if (m.rider || m.removeMe || m.state === 'flee' || !this.mounts.includes(m) || !fo.f.alive) {
+        this.claims.delete(m);
+        break;
+      }
+      return m;
+    }
+    if (!this.wave) return null;
+    let best: Mount | null = null;
+    let bd = 7;
+    for (const m of this.mounts) {
+      if (m.rider || m.removeMe || m.state === 'flee' || this.claims.has(m) || !this.onScreen(m.pos.x, -1)) continue;
+      const d = Math.abs(m.pos.x - fo.f.pos.x) + Math.abs(m.pos.z - fo.f.pos.z);
+      if (d < bd) {
+        bd = d;
+        best = m;
+      }
+    }
+    if (best) this.claims.set(best, fo);
+    return best;
+  }
+
   /** En fiende som kommer ridende inn fra høyre. */
   spawnRider(foeId: string, mountId: string) {
     const def = MOUNTS[mountId];
@@ -383,6 +452,17 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
         if (o === foe || !o.f.alive || Math.abs(o.f.pos.x - f.pos.x) > 4.5) continue;
         if (chance(0.35)) o.panic(rand(2, 3.5));
       }
+    }
+    // Kapteinen er død: troppene mister motet og flykter en stund (derfor skal han tas først)
+    if (foe.def.behavior === 'captain') {
+      const rest = this.foes.filter((o) => o !== foe && o.f.alive && o.def.behavior !== 'runner');
+      let first = true;
+      for (const o of rest) {
+        if (!o.panic(rand(2.2, 3.2), true) || !first) continue;
+        first = false;
+        W.gore.later(0.4, () => o.f.alive && this.bark(o.f, pick(CAPTAIN.down)));
+      }
+      W.fx.text(f.headPoint().add(new THREE.Vector3(0, 1.1, 0)), 'MORALE BROKEN!', 'kill big', 1.4);
     }
     if (foe.def.behavior !== 'runner') W.stats.xp += xpForFoe(foe.def.hp, !!f.envKill);
     const hero = this.heroes.find((h) => h.f === killer) ?? (this.magic ? this.magic.hero : undefined);
@@ -501,7 +581,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
       if (!near) continue;
       for (const fo of this.foes) {
         const f = fo.f;
-        if (!f.alive || f.state === 'held' || f.pos.y > 0.35) continue;
+        // Froskemannen i bakhold venter bak veien og berøres ikke av farene før han er ute
+        if (!f.alive || f.state === 'held' || f.pos.y > 0.35 || fo.ambushing) continue;
         // Ved juvet stoppes de som går, foran gjerdet, men bare de som havner i selve hullet, faller
         const inside = hz.contains(f.pos.x, f.pos.z);
         if (!inside && !hz.stops(f.pos.x, f.pos.z)) continue;
@@ -675,7 +756,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     f.setState('magic');
     f.vel.set(0, 0, 0);
     this.frozen = true;
-    const targets = this.foes.filter((x) => x.f.alive && this.onScreen(x.f.pos.x, 0.5)).map((x) => x.f);
+    const targets = this.foes.filter((x) => x.f.alive && !x.f.hidden && this.onScreen(x.f.pos.x, 0.5)).map((x) => x.f);
     if (this.boss?.f.alive && this.onScreen(this.boss.f.pos.x, 1)) targets.push(this.boss.f);
     this.magic = { hero: h, level, t: 0, targets, hit: new Set(), meteors: [] };
     this.hud.announce(MAGIC_NAMES[h.magic], 'magic', 1.8, 'LEVEL ' + level);
@@ -959,7 +1040,7 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
       this.queue = this.wave.spawns.map((s) => ({ ...s }));
       if (this.twoP) {
         const extra = this.wave.spawns.filter((s) => FOES[s.foe]?.behavior !== 'runner').slice(0, Math.ceil(this.wave.spawns.length / 2))
-          .map((s, i) => ({ ...s, side: (s.side === 'L' ? 'R' : 'L') as 'L' | 'R', delay: s.delay + 0.5 + i * 0.4 }));
+          .map((s, i) => ({ ...s, side: (s.side === 'B' ? 'B' : s.side === 'L' ? 'R' : 'L') as SpawnDef['side'], delay: s.delay + 0.5 + i * 0.4 }));
         this.queue.push(...extra);
       }
       this.waveT = 0;
@@ -1018,6 +1099,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     this.pace = this.director.pace();
     // Aktører
     for (const h of this.heroes) h.update(dt, this);
+    // Ridedyr som er tatt av en fiende som er død eller sitter på et annet dyr, er ledige igjen
+    for (const [m, o] of this.claims) if (!o.f.alive || o.f.mount || m.removeMe || !this.mounts.includes(m)) this.claims.delete(m);
     for (const fo of this.foes) fo.update(dt, this);
     this.boss?.update(dt);
     this.updateFinale(dt);
@@ -1055,10 +1138,12 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
     // Fiender som har kommet inn i bildet, holdes der. Ellers kan de rygge ut av bildet, der helten ikke når dem
     // (kameraet står stille under bølgen). Tyver på flukt og ryttere går fritt.
     const inView: Bounds = { minX: this.camX - this.halfW + 0.4, maxX: this.camX + this.halfW - 0.4, minZ: Z_MIN, maxZ: Z_MAX };
+    // Froskemannen i bakhold venter i baklaget bak veien og hopper derfra
+    const backView: Bounds = { ...inView, minZ: AMBUSH.z - 0.4 };
     for (const fo of this.foes) {
       if (!fo.entered && fo.f.pos.x > inView.minX && fo.f.pos.x < inView.maxX) fo.entered = true;
       const kept = fo.entered && fo.def.behavior !== 'runner' && !fo.f.mount;
-      fo.f.update(dt, kept ? inView : foeBounds);
+      fo.f.update(dt, fo.ambushing ? backView : kept ? inView : foeBounds);
       resolveAttack(fo.f, heroF);
       // Runde E: kropper spretter mot kanten av bildet under en bølge, og kropper som flyr, treffer andre fiender
       const f = fo.f;
@@ -1331,7 +1416,8 @@ export class Stage implements FoeWorld, BossWorld, HeroWorld, MountWorld, PetWor
   private fighterBoxes(): FighterBox[] {
     const out: FighterBox[] = [];
     const add = (f: Fighter) => {
-      if (f.rig.root.parent) out.push({ x: f.pos.x, y: f.pos.y, z: f.pos.z, h: 2.1 * f.size, w: 1.1 * f.size });
+      // En skjult froskemann i buskene skal ikke tone ut forgrunnen
+      if (f.rig.root.parent && !f.hidden) out.push({ x: f.pos.x, y: f.pos.y, z: f.pos.z, h: 2.1 * f.size, w: 1.1 * f.size });
     };
     for (const h of this.heroes) add(h.f);
     for (const f of this.foes) add(f.f);

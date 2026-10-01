@@ -47,13 +47,14 @@ Lim beskrivelsen inn i feltet for stemmebeskrivelse (Voice Design) i VoiceStudio
 | QUEEN ZANTHRA | Duellen i jungelen | `female, middle-aged, low pitch, british accent` | Dronning og kriger: rolig, kald og kongelig, dømmer deg før du har sagt noe. |
 | MAGMOR THE MOLTEN | Sjef, vulkanen | `male, middle-aged, very low pitch` | Buldrende, og plutselig sårbar i den andre replikken. |
 | TROLL | Istrollet og kjempetrollet | `male, middle-aged, very low pitch` | Enkel trolltale, tungt og sakte. |
-| SKJELETT | Skjelettene (også de mosegrodde i jungelen) | `male, teenager, high pitch` | Nervøs praktikant. |
-| GRISEMANN | Hogman og Hog Guard (og replikkene når en elite leser helten eller river seg løs) | `male, middle-aged, low pitch` | Grynt og brøl mellom ordene. |
-| KULTIST | Kultistene og tempeltyvene | `male, young adult, moderate pitch, british accent` | Messende og litt flau. |
+| SKJELETT | Skjelettene (også de mosegrodde i jungelen), og troppene når kapteinen gir ordre eller dør, og når de tar et ledig ridedyr | `male, teenager, high pitch` | Nervøs praktikant. |
+| GRISEMANN | Hogman, Hog Guard og griperen (og replikkene når en elite leser helten eller river seg løs) | `male, middle-aged, low pitch` | Grynt og brøl mellom ordene. |
+| KULTIST | Kultistene, tempeltyvene og den feige kapteinen | `male, young adult, moderate pitch, british accent` | Messende og litt flau. |
 | GNOME | Gnomene | `male, elderly, very high pitch` | Ren panikk. |
 | ZOMBIE | Zombiene | `male, middle-aged, very low pitch` | Stønnende og treg. |
 | FROSKEMANN | Froskemennene | `male, young adult, high pitch` | Stolt kongens garde, litt fuktig. |
-| IMP | Ildimpene og oppryddings-impen | `male, teenager, very high pitch` | Frekk og stresset. |
+| IMP | Ildimpene, oppryddings-impen og goblin-bueskytterne | `male, teenager, very high pitch` | Frekk og stresset. |
+| ASKERAIDER | Askeraiderne og berserkerne i Scorchlands (kvinner) | `female, young adult, low pitch` | Hes krigerinne som har jobbet for lenge i varmen. Berserkeren brøler og ler i raseriet. |
 | DUELLANT | Motstanderne i duellene | `male, middle-aged, low pitch, american accent` | Brautende bryter. |
 
 ### NARRATOR
@@ -136,6 +137,13 @@ Lim beskrivelsen inn i feltet for stemmebeskrivelse (Voice Design) i VoiceStudio
 | `v_the_amazons_bow_to_the_victor_then_they_show_you_the_iou.wav` | A | THE AMAZONS BOW TO THE VICTOR. THEN THEY SHOW YOU THE IOU. |
 | `v_the_sun_heart_is_in_vorthax_s_tower_so_is_the_princess_how_c.wav` | A | THE SUN HEART IS IN VORTHAX'S TOWER. SO IS THE PRINCESS. HOW CONVENIENT. |
 | `v_the_sun_heart_goes_back_to_the_jungle_queen_zanthra_sends_a.wav` | A | THE SUN HEART GOES BACK TO THE JUNGLE. QUEEN ZANTHRA SENDS A FRUIT BASKET. |
+| `v_a_coward_captain.wav` | A | A COWARD CAPTAIN! |
+| `v_ambush.wav` | A | AMBUSH! |
+| `v_grabbers.wav` | A | GRABBERS! |
+| `v_middle_management.wav` | A | MIDDLE MANAGEMENT! |
+| `v_goblin_archers_they_shoot_in_straight_lines_do_not_stand_in.wav` | A | GOBLIN ARCHERS. THEY SHOOT IN STRAIGHT LINES. DO NOT STAND IN STRAIGHT LINES. |
+| `v_berserkers_the_less_blood_they_have_the_angrier_they_get_fin.wav` | A | BERSERKERS. THE LESS BLOOD THEY HAVE, THE ANGRIER THEY GET. FINISH WHAT YOU START. |
+| `v_a_captain_a_hugger_and_an_archer_walk_into_a_tower_nobody_la.wav` | A | A CAPTAIN, A HUGGER AND AN ARCHER WALK INTO A TOWER. NOBODY LAUGHS. |
 
 ### THRUGG
 
@@ -330,6 +338,15 @@ Finalen i jungelen (duellanten `zanthra`). Introen, så hånene hun roper under 
 | `v_halt_who_goes_there.wav` | C | HALT! WHO GOES THERE? |
 | `v_this_door_is_my_shield_now.wav` | C | THIS DOOR IS MY SHIELD NOW! |
 | `v_i_guard_that_is_all_i_do.wav` | C | I GUARD. THAT IS ALL I DO. |
+| `v_yes_sir.wav` | C | YES, SIR! |
+| `v_on_it.wav` | C | ON IT! |
+| `v_why_me.wav` | C | WHY ME? |
+| `v_the_captain_is_down_run.wav` | C | THE CAPTAIN IS DOWN! RUN! |
+| `v_who_is_in_charge_now.wav` | C | WHO IS IN CHARGE NOW? |
+| `v_no_more_orders_freedom.wav` | C | NO MORE ORDERS! FREEDOM! |
+| `v_mine_now.wav` | C | MINE NOW! |
+| `v_nice_ride.wav` | C | NICE RIDE! |
+| `v_giddy_up.wav` | C | GIDDY UP! |
 
 ### GRISEMANN
 
@@ -347,6 +364,12 @@ Finalen i jungelen (duellanten `zanthra`). Introen, så hånene hun roper under 
 | `v_same_move_really.wav` | C | SAME MOVE? REALLY? |
 | `v_i_have_seen_this_one.wav` | C | I HAVE SEEN THIS ONE! |
 | `v_let_go_of_me.wav` | C | LET GO OF ME! |
+| `v_hug_time.wav` | C | HUG TIME! |
+| `v_i_got_one_hit_it.wav` | C | I GOT ONE! HIT IT! |
+| `v_hold_still_muscles.wav` | C | HOLD STILL, MUSCLES! |
+| `v_free_hugs.wav` | C | FREE HUGS! |
+| `v_got_one_hit_it.wav` | C | GOT ONE! HIT IT! |
+| `v_bear_hug.wav` | C | BEAR HUG! |
 
 ### KULTIST
 
@@ -362,6 +385,14 @@ Finalen i jungelen (duellanten `zanthra`). Introen, så hånene hun roper under 
 | `v_this_gold_is_for_vorthax_mostly.wav` | C | THIS GOLD IS FOR VORTHAX! MOSTLY! |
 | `v_i_have_a_receipt.wav` | C | I HAVE A RECEIPT! |
 | `v_finders_keepers.wav` | C | FINDERS KEEPERS! |
+| `v_flank_the_oily_one.wav` | C | FLANK THE OILY ONE! |
+| `v_charge_not_me_you.wav` | C | CHARGE! NOT ME, YOU! |
+| `v_i_am_very_important.wav` | C | I AM VERY IMPORTANT! |
+| `v_surround_them.wav` | C | SURROUND THEM! |
+| `v_attack_i_will_supervise.wav` | C | ATTACK! I WILL SUPERVISE! |
+| `v_nobody_really.wav` | C | NOBODY? REALLY? |
+| `v_hello_anyone.wav` | C | HELLO? ANYONE? |
+| `v_i_am_docking_your_pay.wav` | C | I AM DOCKING YOUR PAY! |
 
 ### GNOME
 
@@ -388,6 +419,9 @@ Finalen i jungelen (duellanten `zanthra`). Introen, så hånene hun roper under 
 | `v_for_the_king.wav` | C | FOR THE KING! |
 | `v_croak_this.wav` | C | CROAK THIS! |
 | `v_i_can_lick_my_own_eyeball.wav` | C | I CAN LICK MY OWN EYEBALL |
+| `v_surprise.wav` | C | SURPRISE! |
+| `v_i_was_in_the_bush_the_whole_time.wav` | C | I WAS IN THE BUSH THE WHOLE TIME! |
+| `v_ribbit_of_doom.wav` | C | RIBBIT OF DOOM! |
 
 ### IMP
 
@@ -401,6 +435,23 @@ Finalen i jungelen (duellanten `zanthra`). Introen, så hånene hun roper under 
 | `v_who_signed_off_on_the_gibs.wav` | C | WHO SIGNED OFF ON THE GIBS? |
 | `v_this_is_not_in_my_job_description.wav` | C | THIS IS NOT IN MY JOB DESCRIPTION. |
 | `v_i_have_a_degree_you_know.wav` | C | I HAVE A DEGREE, YOU KNOW. |
+| `v_pew_pew.wav` | C | PEW PEW! |
+| `v_hold_still.wav` | C | HOLD STILL! |
+| `v_i_never_miss_mostly.wav` | C | I NEVER MISS! MOSTLY! |
+
+### ASKERAIDER
+
+| Fil | Prioritet | Replikk |
+|---|---|---|
+| `v_the_heat_is_included.wav` | C | THE HEAT IS INCLUDED! |
+| `v_two_blades_no_refunds.wav` | C | TWO BLADES. NO REFUNDS. |
+| `v_i_worked_through_my_lunch_raid.wav` | C | I WORKED THROUGH MY LUNCH RAID! |
+| `v_blood_more_blood.wav` | C | BLOOD! MORE BLOOD! |
+| `v_i_feel_no_pain_ow.wav` | C | I FEEL NO PAIN! OW! |
+| `v_raaaargh.wav` | C | RAAAARGH! |
+| `v_blood_rage.wav` | C | BLOOD RAGE! |
+| `v_now_i_am_angry.wav` | C | NOW I AM ANGRY! |
+| `v_you_made_me_bleed.wav` | C | YOU MADE ME BLEED! |
 
 ### DUELLANT
 

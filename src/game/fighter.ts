@@ -178,6 +178,8 @@ export class Fighter {
   rising = false;
   /** Ingen skygge (sjefen under bakken). */
   hideShadow = false;
+  /** Gjemt i buskene bak veien (froskemannen i bakhold): synes ikke, har ingen skygge og kan ikke treffes. */
+  hidden = false;
   onIllusionHit: ((from: Fighter) => void) | null = null;
   /** Kan ikke miste armer (sjefer, ridedyr). */
   noSever = false;
@@ -552,9 +554,11 @@ export class Fighter {
         this.onGround = false;
         this.setState('jump');
       } else {
-        // En kjempe holder deg oppe i neven, en helt i nakkeskinnet
-        this.pos.set(h.pos.x + h.facing * 0.8 * h.size, h.pos.y + (h.size > 1.8 ? 0.95 * h.size : 0.3), h.pos.z + 0.03);
-        this.facing = -h.facing;
+        // En kjempe holder deg oppe i neven, en helt i nakkeskinnet. Griperen (data.holds) holder deg bakfra med ryggen
+        // mot seg, så vennene hans kan slå deg forfra
+        const hug = !!h.data.holds;
+        this.pos.set(h.pos.x + h.facing * (hug ? 0.5 : 0.8) * h.size, h.pos.y + (h.size > 1.8 ? 0.95 * h.size : hug ? 0.12 : 0.3), h.pos.z + 0.03);
+        this.facing = hug ? h.facing : -h.facing;
         this.vel.set(0, 0, 0);
         this.onGround = true;
         this.animate(dt);
@@ -870,6 +874,13 @@ export class Fighter {
           speed = 14;
           break;
         }
+        // Griperen: begge armene rundt helten, og han klemmer i takt
+        if (this.data.holds) {
+          const sq = Math.sin(t * 7) * 0.08;
+          target = { armF: 1.45 + sq, armB: 1.35 + sq, weapon: -1.4, torso: -0.22, head: 0.12, legF: 0.35, legB: -0.35, bodyY: -0.05, elbowF: 0.9, elbowB: 0.9, kneeF: 0.3, kneeB: 0.35 };
+          speed = 14;
+          break;
+        }
         const knee = ((this.data.pummelT as number) ?? 0) > 0;
         // Kneet: med bøyde knær går leggen ned og bakover, så det er kneet som treffer
         target = knee
@@ -929,10 +940,10 @@ export class Fighter {
     r.setFacing(vf);
     r.root.position.set(this.pos.x, this.pos.y + (this.state === 'dead' && this.corpseLife < 900 && this.st > this.corpseLife && !(this.sinkRate > 0) ? r.root.position.y - this.pos.y : 0), this.pos.z);
     r.flash = this.flashT > 0 ? 0.85 : 0;
-    r.root.visible = !(this.invuln > 0 && this.alive && Math.floor(this.invuln * 16) % 2 === 1);
+    r.root.visible = !this.hidden && !(this.invuln > 0 && this.alive && Math.floor(this.invuln * 16) % 2 === 1);
     const h = Math.max(0, this.pos.y);
     const ss = this.size * (this.def.id === 'hogman' ? 1.5 : 1.15) * Math.max(0.4, 1 - h * 0.18);
-    this.shadow.visible = !this.illusion && !this.hideShadow && !(this.state === 'dead' && (this.deathStyle === 'explode' || this.deathStyle === 'shatter' || this.sinkRate > 0 || this.envKill));
+    this.shadow.visible = !this.illusion && !this.hideShadow && !this.hidden && !(this.state === 'dead' && (this.deathStyle === 'explode' || this.deathStyle === 'shatter' || this.sinkRate > 0 || this.envKill));
     this.shadow.scale.set(ss * 1.4, ss * 0.55, 1);
     this.shadow.position.set(this.pos.x, 0.02, this.pos.z);
   }

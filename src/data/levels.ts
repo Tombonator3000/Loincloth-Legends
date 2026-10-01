@@ -2,7 +2,8 @@
 import type { PickKind } from '../game/items';
 import { hz, type HazardDef } from './hazards';
 
-export interface SpawnDef { foe: string; side: 'L' | 'R'; delay: number }
+/** side: L og R er kantene av bildet, B er buskene bak veien (fiender i bakhold, runde E). */
+export interface SpawnDef { foe: string; side: 'L' | 'R' | 'B'; delay: number }
 export interface WaveDef { at: number; maxAlive: number; title?: string; say?: [string, string]; spawns: SpawnDef[] }
 /**
  * Vorthax viser seg på himmelen som et kjempehode og holder tale når kameraet når at (mellom bølgene, så heltene
@@ -45,7 +46,7 @@ const w = (at: number, maxAlive: number, list: string, extra: Partial<WaveDef> =
   // Format: "skeleton:R:0.2 hogman:L:1.0"
   spawns: list.split(/\s+/).filter(Boolean).map((s) => {
     const [foe, side, delay] = s.split(':');
-    return { foe, side: side as 'L' | 'R', delay: Number(delay) };
+    return { foe, side: side as 'L' | 'R' | 'B', delay: Number(delay) };
   }),
   ...extra,
 });
@@ -71,7 +72,7 @@ export const LEVELS: Record<string, LevelDef> = {
       w(8, 4, 'skeleton:R:0.2 skeleton:R:0.6 skeleton:L:1.4 skeleton:R:2.4', { title: 'SKELETONS!', say: ['NARRATOR', 'LIKE PEOPLE, BUT WORSE. AND CRUNCHIER.'] }),
       w(30, 4, 'gnome:L:0.2 skeleton:R:0.8 hogman:R:1.6 skeleton:L:2.4', { say: ['NARRATOR', 'A GNOME WITH A SACK OF POTIONS. HIT HIM. FOR SCIENCE.'] }),
       w(54, 5, 'cultist:R:0.3 skeleton:L:0.8 cultist:R:1.5 skeleton:R:2.2 hogman:L:3.2', { title: 'CULTISTS!', say: ['NARRATOR', 'THEY THROW DAGGERS. RUDE.'] }),
-      w(80, 5, 'hogman:R:0.3 hogman:L:1.0 gnome:R:1.6 skeleton:R:2.0 cultist:L:2.8 skeleton:R:3.6', { say: ['NARRATOR', 'A PRISONER CART BOUND FOR VORTHAX\'S TOWER. THE PRISONERS ESCAPED. THE HOGMEN DID NOT.'] }),
+      w(80, 5, 'hogman:R:0.3 captain:L:1.0 gnome:R:1.6 skeleton:R:2.0 cultist:L:2.8 skeleton:R:3.6', { title: 'A COWARD CAPTAIN!', say: ['NARRATOR', 'A PRISONER CART BOUND FOR VORTHAX\'S TOWER. THE PRISONERS ESCAPED. THE HOGMEN DID NOT.'] }),
     ],
     vorthax: { at: 20, lines: [
       'GREETINGS, OILY TRESPASSERS. I AM VORTHAX THE MODERATELY EVIL.',
@@ -92,8 +93,8 @@ export const LEVELS: Record<string, LevelDef> = {
     waves: [
       w(8, 4, 'mossskel:R:0.2 mossskel:R:0.7 frogman:L:1.4 mossskel:R:2.2', { title: 'TEMPLE GUARDS!', say: ['NARRATOR', 'THE OLD GUARDS OF THE SUN TEMPLE. NOBODY TOLD THEM TO STOP.'] }),
       w(34, 5, 'templethief:R:0.3 hogman:L:0.9 templethief:R:1.6 gnome:L:2.0 mossskel:R:2.6', { title: 'TEMPLE THIEVES!', say: ['NARRATOR', 'VORTHAX\'S LOOTERS. CARRYING GOLD. AND A RECEIPT.'] }),
-      w(64, 5, 'frogman:R:0.3 frogman:L:0.8 hogman:R:1.4 templethief:L:2.0 mossskel:R:2.6 frogman:R:3.2', { say: ['NARRATOR', 'THE PLANTS ARE HUNGRY. FEED THEM SOMETHING THAT IS NOT YOU.'] }),
-      w(94, 6, 'hogman:R:0.3 templethief:R:0.8 mossskel:L:1.2 hogguard:L:1.8 templethief:R:2.4 frogman:L:3.0', { title: 'THE LOOTING TRAIN!' }),
+      w(64, 5, 'ambushfrog:B:0.3 frogman:L:0.8 hogman:R:1.4 templethief:L:2.0 mossskel:R:2.6 ambushfrog:B:3.2', { title: 'AMBUSH!', say: ['NARRATOR', 'THE PLANTS ARE HUNGRY. FEED THEM SOMETHING THAT IS NOT YOU.'] }),
+      w(94, 6, 'hogman:R:0.3 templethief:R:0.8 goblinarcher:L:1.2 hogguard:L:1.8 templethief:R:2.4 goblinarcher:R:3.0', { title: 'THE LOOTING TRAIN!', say: ['NARRATOR', 'GOBLIN ARCHERS. THEY SHOOT IN STRAIGHT LINES. DO NOT STAND IN STRAIGHT LINES.'] }),
     ],
     vorthax: { at: 21, lines: [
       'OH. YOU FOUND THE SUN TEMPLE. AND ITS EMPTY PEDESTAL.',
@@ -112,7 +113,7 @@ export const LEVELS: Record<string, LevelDef> = {
       w(8, 4, 'zombie:R:0.2 zombie:R:0.9 zombie:L:1.5 frogman:R:2.6', { title: 'ZOMBIES!', say: ['NARRATOR', 'SLOW, STUPID, AND STICKY. LIKE A MONDAY.'] }),
       w(32, 5, 'frogman:R:0.2 frogman:L:0.8 gnome:L:1.2 zombie:R:1.8 zombie:R:2.6', { title: 'FROGMEN!', say: ['NARRATOR', 'THEY JUMP. THEY STAB. THEY LICK THINGS.'] }),
       w(58, 5, 'cultist:R:0.3 zombie:L:0.8 frogman:R:1.4 zombie:L:2.2 hogman:R:3.0 frogman:L:3.6', { say: ['NARRATOR', 'A NOTE PINNED TO A ZOMBIE: MORE BRAINS FOR THE ARMY. SIGNED, V.'] }),
-      w(86, 6, 'frogman:R:0.3 frogman:R:0.8 zombie:L:1.0 zombie:L:1.6 cultist:R:2.2 gnome:R:2.8 hogman:L:3.4', { title: 'THE ROYAL GUARD!' }),
+      w(86, 6, 'frogman:R:0.3 ambushfrog:B:0.8 zombie:L:1.0 zombie:L:1.6 cultist:R:2.2 gnome:R:2.8 hogman:L:3.4', { title: 'THE ROYAL GUARD!' }),
     ],
     vorthax: { at: 21, lines: [
       'STILL ALIVE? HOW... ADEQUATE.',
@@ -150,8 +151,8 @@ export const LEVELS: Record<string, LevelDef> = {
     waves: [
       w(8, 4, 'emberskel:R:0.2 emberskel:L:0.8 fireimp:R:1.4 emberskel:R:2.2', { title: 'FIRE IMPS!', say: ['NARRATOR', 'SMALL, RED AND THROWING FIRE. LIKE A TODDLER WITH A TORCH.'] }),
       w(34, 5, 'fireimp:R:0.3 fireimp:L:0.8 hogman:R:1.4 ashraider:L:2.0 gnome:R:2.4 emberskel:R:3.0', { title: 'ASH RAIDERS!', say: ['NARRATOR', 'TWO AXE BLADES. STILL NO MANNERS.'] }),
-      w(62, 5, 'troll:R:0.3 fireimp:L:0.9 fireimp:R:1.5 emberskel:L:2.2 cultist:R:2.8', { say: ['NARRATOR', 'THE IMPS CARRY VORTHAX\'S LAUNDRY TO THE TOWER. EVEN EVIL NEEDS CLEAN ROBES.'] }),
-      w(92, 6, 'hogman:R:0.3 fireimp:R:0.8 fireimp:L:1.2 ashraider:L:1.8 emberskel:R:2.4 darkcultist:R:3.0', { title: 'IT GETS HOTTER!' }),
+      w(62, 5, 'grabber:R:0.3 fireimp:L:0.9 fireimp:R:1.5 emberskel:L:2.2 cultist:R:2.8', { title: 'GRABBERS!', say: ['NARRATOR', 'THE IMPS CARRY VORTHAX\'S LAUNDRY TO THE TOWER. EVEN EVIL NEEDS CLEAN ROBES.'] }),
+      w(92, 6, 'berserker:R:0.3 fireimp:R:0.8 fireimp:L:1.2 berserker:L:1.8 emberskel:R:2.4 darkcultist:R:3.0', { title: 'IT GETS HOTTER!', say: ['NARRATOR', 'BERSERKERS. THE LESS BLOOD THEY HAVE, THE ANGRIER THEY GET. FINISH WHAT YOU START.'] }),
     ],
     vorthax: { at: 21, lines: [
       'BEHOLD MY SCORCHLANDS. THE PROPERTY VALUES ARE TERRIBLE.',
@@ -168,9 +169,9 @@ export const LEVELS: Record<string, LevelDef> = {
     intro: 'VORTHAX\'S TOWER. THE CARPET IS NICE. THE PEOPLE ARE NOT.',
     waves: [
       w(8, 5, 'darkcultist:R:0.2 skeleton:L:0.6 skeleton:R:1.2 ironwarden:R:2.2', { title: 'THE LOBBY', say: ['NARRATOR', 'PLEASE SIGN IN AT THE FRONT DESK. THEN KILL IT.'] }),
-      w(34, 5, 'hogguard:R:0.3 darkcultist:L:0.8 emberskel:R:1.4 frostskel:L:2.0 gnome:R:2.4'),
+      w(34, 5, 'captain:R:0.3 grabber:L:0.8 emberskel:R:1.4 goblinarcher:L:2.0 gnome:R:2.4', { title: 'MIDDLE MANAGEMENT!', say: ['NARRATOR', 'A CAPTAIN, A HUGGER AND AN ARCHER WALK INTO A TOWER. NOBODY LAUGHS.'] }),
       w(62, 6, 'zombie:L:0.3 frogman:R:0.8 troll:R:1.4 fireimp:L:2.0 darkcultist:R:2.6 skeleton:L:3.2', { title: 'EVERYBODY!', say: ['VORTHAX', 'SEND EVERYONE! YES, EVEN KEVIN!'] }),
-      w(92, 6, 'ironwarden:R:0.3 hogguard:L:0.9 darkcultist:R:1.5 darkcultist:L:2.1 fireimp:R:2.7 gnome:L:3.0', { title: 'LAST LINE OF DEFENCE' }),
+      w(92, 6, 'ironwarden:R:0.3 hogguard:L:0.9 darkcultist:R:1.5 darkcultist:L:2.1 berserker:R:2.7 gnome:L:3.0', { title: 'LAST LINE OF DEFENCE' }),
     ],
     barrels: [[20, 'chicken'], [46, 'potion'], [74, 'ham'], [100, 'potion']],
     hazards: [hz('spiketrap', 22, 0, 2.2, 2.0), hz('spiketrap', 52, -1.2, 2.2, 2.0), hz('spiketrap', 88, 1.2, 2.2, 2.0)],

@@ -1,4 +1,4 @@
-// Prosjektiler: dolker, ildkuler, giftbobler, snøballer, magiske kuler, sjokkbølger, meteorer, lyn og froskatunger.
+// Prosjektiler: dolker, piler, ildkuler, giftbobler, snøballer, magiske kuler, sjokkbølger, meteorer, lyn og froskatunger.
 import * as THREE from 'three';
 import { unitCanvas, INK } from '../gfx/draw';
 import { W } from './world';
@@ -10,7 +10,7 @@ import { audio } from '../core/audio';
 import { rand } from '../core/math';
 import { ICEFIRE, GHOSTFIRE } from '../gfx/gore';
 
-export type ProjKind = 'dagger' | 'fireball' | 'poison' | 'snowball' | 'bolt' | 'shockwave' | 'meteor' | 'lightning' | 'tongue';
+export type ProjKind = 'dagger' | 'arrow' | 'fireball' | 'poison' | 'snowball' | 'bolt' | 'shockwave' | 'meteor' | 'lightning' | 'tongue';
 
 const mats = new Map<string, THREE.MeshBasicMaterial>();
 function spriteMat(key: string, w: number, h: number, draw: Parameters<typeof unitCanvas>[5]) {
@@ -29,6 +29,12 @@ const SPR: Partial<Record<ProjKind, () => [THREE.MeshBasicMaterial, number, numb
     p.rrect(-0.2, -0.08, 0.04, 0.16, 0.01, '#d4a63a');
     p.shape((c) => { c.moveTo(-0.16, -0.05); c.lineTo(0.32, 0); c.lineTo(-0.16, 0.05); c.closePath(); }, '#d6dde6');
   }), 0.8, 0.3],
+  // Pil fra bueskytteren (runde E): skaft, fjær og jernspiss
+  arrow: () => [spriteMat('arrow', 0.95, 0.2, (p) => {
+    p.rrect(-0.4, -0.016, 0.66, 0.032, 0.01, '#7a5430');
+    p.shape((c) => { c.moveTo(-0.44, 0); c.lineTo(-0.34, 0.07); c.lineTo(-0.26, 0.07); c.lineTo(-0.34, 0); c.lineTo(-0.26, -0.07); c.lineTo(-0.34, -0.07); c.closePath(); }, '#d8d0c0');
+    p.shape((c) => { c.moveTo(0.26, -0.05); c.lineTo(0.42, 0); c.lineTo(0.26, 0.05); c.closePath(); }, '#9aa2ac');
+  }), 0.95, 0.2],
   poison: () => [spriteMat('poison', 0.5, 0.5, (p) => {
     p.ell(0, 0, 0.2, 0.2, '#7ad44a');
     p.ell(-0.07, 0.07, 0.06, 0.05, '#e0ffc0', false);
@@ -222,6 +228,7 @@ export class Projectiles {
       if (p.mesh && p.kind !== 'tongue') {
         p.mesh.position.copy(p.pos);
         if (p.kind === 'dagger') p.mesh.rotation.z = Math.sin(p.t * 30) * 0.08;
+        else if (p.kind === 'arrow') p.mesh.rotation.z = Math.atan2(p.vel.y, Math.abs(p.vel.x));
         else p.mesh.rotation.z += dt * 8;
       }
       p.life -= dt;
@@ -231,7 +238,7 @@ export class Projectiles {
       }
       // Kollisjon
       for (const f of targets) {
-        if (!f.alive || f.team !== p.target || f.invuln > 0 || p.hit.has(f.id)) continue;
+        if (!f.alive || f.hidden || f.team !== p.target || f.invuln > 0 || p.hit.has(f.id)) continue;
         if (f.state === 'down' && f.onGround) continue;
         const dx = Math.abs(f.pos.x - p.pos.x);
         const dz = Math.abs(f.pos.z - p.pos.z);

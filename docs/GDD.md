@@ -65,12 +65,12 @@ Castle Crashers-inspirert 3D-kart over en øy. Heltene (og kjæledyrene) går la
 
 | Biom | Stemning | Fiender | Fare | Ryttere |
 |---|---|---|---|---|
-| Gress (solnedgang) | Palisader, telt, bål, hodeskaller på stokker | Skeletons, Hogmen, Cultists, Potion Gnomes | Piggroper med blodige staker | Skjelett og hogman på krigsvillsvin |
-| Jungel (Soltempelet) | Høye jungeltrær med kronen langt oppe, palmer og bananplanter, lianer, mosegrodde steinguder og et halvt begravd steinhode, en trappepyramide med gullsol i disen, lysstråler, pollen og ildfluer | Mossy Skeletons, Temple Thieves (kaster dolker), Frogmen, Hogmen | Kjøttetende planter ved veikanten (varsler, glefser, spiser fiender som kastes inn) og steinvekter som faller når noen står under. Søyler langs veien kan slås over ende og knuser alt de lander på | Frogman på kakatrisse |
-| Sump | Tåke, råtne trær, siv, lysende sopp, ildfluer | Bog Zombies, Frogmen | Myr som suger ned | Frogman og zombie på kakatrisse |
+| Gress (solnedgang) | Palisader, telt, bål, hodeskaller på stokker | Skeletons, Hogmen, Cultists, Potion Gnomes, Coward Captain (siste bølge) | Piggroper med blodige staker | Skjelett og hogman på krigsvillsvin |
+| Jungel (Soltempelet) | Høye jungeltrær med kronen langt oppe, palmer og bananplanter, lianer, mosegrodde steinguder og et halvt begravd steinhode, en trappepyramide med gullsol i disen, lysstråler, pollen og ildfluer | Mossy Skeletons, Temple Thieves (kaster dolker), Frogmen, froskemenn i bakhold, Goblin Archers, Hogmen | Kjøttetende planter ved veikanten (varsler, glefser, spiser fiender som kastes inn) og steinvekter som faller når noen står under. Søyler langs veien kan slås over ende og knuser alt de lander på | Frogman på kakatrisse |
+| Sump | Tåke, råtne trær, siv, lysende sopp, ildfluer | Bog Zombies, Frogmen, froskemenn i bakhold | Myr som suger ned | Frogman og zombie på kakatrisse |
 | Frost | Blåtimen i et fjellpass (konseptbilde 4): klippevegger med snø, fossefall, taubro, ruiner, fyrfat med ild, fillete krigsbannere med hornet hodeskalle, runesteiner, istapper, taugjerde og tett snøfall | Frost Skeletons, Ice Trolls, Avalanche Troll (kjempe midtveis) | Råk i isen | Frostskjeletter på villsvin og kakatrisse |
-| Vulkan | Lavaelv, obsidianpigger, brennende trær | Fire Imps, Ember Skeletons | Lavapøler | Ildimp og glødeskjelett på magma-salamander |
-| Tårn (innendørs) | Rødt teppe, søyler, hengende bur, onde plakater | Dark Cultists, Hog Guards, alt annet | Piggfeller i gulvet (spretter opp i takt) | Alle tre ridedyrene |
+| Vulkan | Lavaelv, obsidianpigger, brennende trær | Fire Imps, Ember Skeletons, Ash Raiders, Grabbers, Berserkers | Lavapøler | Ildimp og glødeskjelett på magma-salamander |
+| Tårn (innendørs) | Rødt teppe, søyler, hengende bur, onde plakater | Dark Cultists, Hog Guards, en kaptein med griper og bueskytter, alt annet | Piggfeller i gulvet (spretter opp i takt) | Alle tre ridedyrene |
 
 ## 6. Sjefer
 
@@ -149,7 +149,7 @@ CLASSIC BUILDER beholder de prosedyretegnede valgene nedenfor. Malt hår, hjelme
 - **Fyrfat som veltes**: slag, kastede fiender og bakkeslag velter fyrfatene. Glørne renner ut og brenner en stund, og fiender som tråkker i dem, tar fyr og løper i panikk.
 - **Panikk**: fiender får panikk av og til (grufulle drap i nærheten, nesten død, i brann, når METAL MODE starter). De løper skrikende vekk med armene i været, alltid saktere enn helten, og kommer tilbake etterpå.
 - **Fiender som rygger**: de holder avstand, men rygger på halv fart og blir i bildet når de først har kommet inn, så helten alltid når dem.
-- **Ridedyr**: slå rytteren av og gå inn i dyret for å sitte opp. Angrep bruker dyrets angrep, ned + hopp hopper av. Treff kaster rytteren av. Etter tre avkastinger stikker dyret av. Fiende-ryttere holder seg i bildet når de har ridd inn, rygger på halv fart og angriper med dyret (stormløp, halesvip, ildpust), men ikke en helt som ligger nede eller nettopp har reist seg.
+- **Ridedyr**: slå rytteren av og gå inn i dyret for å sitte opp. Angrep bruker dyrets angrep, ned + hopp hopper av. Treff kaster rytteren av. Etter tre avkastinger stikker dyret av. Fiende-ryttere holder seg i bildet når de har ridd inn, rygger på halv fart og angriper med dyret (stormløp, halesvip, ildpust), men ikke en helt som ligger nede eller nettopp har reist seg. Fiender til fots løper til ledige dyr og setter seg opp, også dyret helten nettopp gikk av. Spesialangrepet koster utholdenhet, ikke liv (lærdommen fra Golden Axe: Beast Rider): to angrep på rad, så er dyret andpustent (WINDED!) til linja over ryggen har fylt seg igjen.
   - War Hog: stormløp som spidder alt foran seg
   - Cluckatrice (halvt hane, halvt øgle): halesvip som treffer begge sider
   - Magma Newt: ildpust som griller alt foran
@@ -161,6 +161,12 @@ CLASSIC BUILDER beholder de prosedyretegnede valgene nedenfor. Malt hår, hjelme
 - Fiender går til side for prosjektiler fra heltene (dragens ildkuler)
 - **Tempo** (runde E): en liten regissør måler spenningen (skaden heltene tar, drap nær dem, livet som er igjen). Når det har vært travelt en stund, kommer et pusterom med færre som angriper og lengre pauser. Når det er rolig, øker trykket
 - **Bølgebudsjett**: fiendene har rang (vanlig 1, sterk 2, elite 4), og en bølge har plass til så mye rang samtidig. En kjempe tar plassen til flere småfolk. Med to spillere er det mer plass
+- **Nye fiendetyper** (runde E), hver med en vane å straffe:
+  - **Goblin Archer** holder avstand og skyter piler langs linja. Ikke stå på linje med ham. Han er svak på nært hold og løper unna.
+  - **Froskemann i bakhold** venter usynlig i buskene bak veien (bladene rister), hopper ut og slår helten ned fra lufta.
+  - **Grabber** blinker rødt før grepet. Et slag i opptrekket stopper det. Ellers holder han helten bakfra for vennene sine; hamre på angrep for å vri deg løs.
+  - **Berserker** (askeraider) blir raskere og tåler mer når livet er lavt (ENRAGED!), og får aldri panikk. Gjør ferdig det du begynner på.
+  - **Coward Captain** står bakerst, blåser i hornet etter forsterkninger og roper ordre (FLANK THE OILY ONE!): troppene angriper oftere, og noen går rundt helten. Når kapteinen dør, flykter troppene (MORALE BROKEN!). Ta ham først.
 - Berserk-spinn uten potions, koster litt HP
 - Pickups: stekt kylling, halvspist skinke, potions, gull, egg fra kampkyllingen
 - Kameraet låses per bølge. GO-pil når bølgen er ryddet
