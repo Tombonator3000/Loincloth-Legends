@@ -1,5 +1,9 @@
 # todo.md
 
+## Oppstartslogoen (2026-10-02)
+- [ ] Med redusert bevegelse (prefers-reduced-motion) havner logoen utenfor skjermen: `.splash.landed .sp-logo { animation: none }` faller tilbake til starttransformen `translateY(-150vh)` i src/style.css. Sjekket i Chromium (logoen på y = -909 px i 1280x800). Rettet i Guild Life med `transform: none` og en enkel inntoning; samme grep passer her
+- [x] Den samme logoen er lagt inn i Guild Life Adventures (Tom 2026-10-02)
+
 ## Teit vold: mer over the top (Tom 2026-10-01)
 - [x] Underkroppen løper rundt og spruter blod fra midjen når en fiende kuttes i to, og legger blodspor (tools/tests/splatter.mjs)
 - [x] Hodet i skjermen: vått splatt fra lydbanken, tones ut mens det sklir (borte under tre sekunder), naturlig spor med sprut, smøremerke og renner
