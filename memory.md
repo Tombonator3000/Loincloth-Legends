@@ -50,6 +50,7 @@ Prosjektets hukommelse. Viktige fakta og beslutninger som må huskes mellom økt
 - 2026-09-29: Grafikk fra ChatGPT (GPT-image) legges i public/assets/ og kobles via manifest.json. Delene tegnes vendt mot høyre, én del per bilde.
 - 2026-09-29: To spillere i duell = tag team (bytter per runde).
 - 2026-09-29: Studioet heter Tom's Happy Happy Funtimes Emporium. Oppstartslogoen bruker Toms eget bilde (art/studio/). Ikke endre logoen uten å bli bedt om det.
+- 2026-10-02: Guild Life Adventures har fått den samme oppstartslogoen (`StudioSplash.tsx`, `studio-splash.css` og `audio/studioFanfare.ts` der, med `studio-logo.webp` kopiert uendret herfra). Endres logoen, lyden eller animasjonen i det ene spillet, bør det andre få det samme.
 - 2026-09-29: Repo: https://github.com/Tombonator3000/Loincloth-Legends. Prosjektet skal videre i Claude Code derfra.
 - 2026-09-29: Proporsjoner (v0.3): stort hode på liten kropp, altfor store muskler, bittesmå lendeklær.
 - 2026-09-29: Proporsjoner (v0.4, konseptbildene): heroiske kropper med lange bein (LEG_L), lange armer (ARM_L), høyere overkropp (TORSO_Y) og mindre hode (HEAD_SCALE) i chars/types.ts. Tom vil ha 80-talls fantasy med ringbrynjebikini og store former på damene. Regel: tydelig voksne, aldri nakenhet.
